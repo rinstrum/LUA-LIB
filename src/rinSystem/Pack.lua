@@ -7,8 +7,8 @@
 local socket = require "socket"
 local io = require "io"
 
-local timers = require "rinFramework.rinTimers.Pack"
-local sockets = require "rinFramework.rinSockets.Pack"
+local timers = require "rinSystem.rinTimers.Pack"
+local sockets = require "rinSystem.rinSockets.Pack"
 
 local pairs = pairs
 
