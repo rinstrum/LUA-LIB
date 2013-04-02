@@ -1,13 +1,11 @@
 ------------------------------------------------------------------------------
 -- services for saving and restoring settings in a table to .INI config file
--- @module rinINI
+-- @module ini
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
 local _M = {}
-
-
 
 -------------------------------------------------------------------------------
 -- Saves table t as a .INI name (fname)

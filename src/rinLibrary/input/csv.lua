@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Offer functions for creating a multi-table database stored and recalled in .CSV format
--- @module rinCSV
+-- @module csv
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
