@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Offer functions for timers that are compatible with the app framework
--- @module rinlib
+-- @module rinSystem.rinTimers
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -20,7 +20,7 @@ local unpack = unpack
 -------------------------------------------------------------------------------
 -- Add a timer to the timer list
 -- @param time Time until the timer will go off (milliseconds)
--- @param repeating boolean, sets whether timer will repeat until cancelled
+-- @param delay Initial delay for timer
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key

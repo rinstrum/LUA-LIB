@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Module that manages IO functions
--- @module UserIO.Pack
+-- @module IOSockets
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Framework for interfacing with the L401 for advanced applications
+-- @module rinSystem
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
