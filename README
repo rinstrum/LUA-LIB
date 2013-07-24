@@ -15,6 +15,28 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 -------------------------------------------------------------------------------
+Installation
+-------------------------------------------------------------------------------  
+
+The Rnstrum Lua Library can be used in multiple ways.
+
+On PC:
+The library can be used on a pc by requiring rinApp.lua. This can be done by
+writing the new Lua script within the same folder that rinApp.lua is stored in,
+or by changing the require statement to the remote location of rinApp.lua.
+
+This can also be done by modifying the package.path variable in your Lua 
+script.
+
+On module:
+The library can be used on the module the same way it can be used on the PC, 
+but if the libraries are being used for multiple applications it is possible
+to save space by copying the contents of '/src' to '/usr/local/share/lua/5.1'.
+
+After this has been done, the contents of '/test' can be executed from anywhere
+on the module.
+
+-------------------------------------------------------------------------------
 Contact Rinstrum
 -------------------------------------------------------------------------------  
 
