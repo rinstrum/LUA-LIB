@@ -10,6 +10,7 @@ local io = require "io"
 
 local timers = require "rinSystem.rinTimers.Pack"
 local sockets = require "rinSystem.rinSockets.Pack"
+local IOsockets = require "rinSystem.IOSocket.Pack"
 
 local pairs = pairs
 
