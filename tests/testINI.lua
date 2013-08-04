@@ -5,8 +5,8 @@
 -- using INI file
 -- 
 -------------------------------------------------------------------------------
-
-
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
 
 local ini = require "rinLibrary.rinINI"
 local dbg = require "rinLibrary.rinDebug"

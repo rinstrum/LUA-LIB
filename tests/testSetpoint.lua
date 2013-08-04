@@ -11,6 +11,8 @@
 -- product build up
 -- leave the setp outputs set to NONE as they are controlled by the LUA application
 -------------------------------------------------------------------------------
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
 
 local rinCSV = require "rinLibrary.rinCSV"
 local rinApp = require "rinApp"
@@ -227,7 +229,7 @@ local function primary(key, state)
    		           target = L401.readRegWait(L401.setpRegAddress(FILL_SETP,L401.REG_SETP_TARGET))  
         		   empty = L401.readRegWait(L401.setpRegAddress(DUMP_SETP,L401.REG_SETP_TARGET))
 				   startNext()  -- start filling process
-				end   
+				end
            end		   
 		   return true  -- key handled in LUA
 	 -- F2 to Pause
@@ -236,7 +238,7 @@ local function primary(key, state)
 			return true
 	 --F3 to abort
      elseif key == L401.KEY_F3 then
-            abort()	  
+            abort()
 			return true
 	 end
    end	 

@@ -5,6 +5,9 @@
 -- 
 -------------------------------------------------------------------------------
 
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
+
 local dbg = require "rinLibrary.rinDebug"
 
 

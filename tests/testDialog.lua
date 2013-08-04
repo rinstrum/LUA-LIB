@@ -4,6 +4,9 @@
 -- Example of how to use various library dialog functions
 -------------------------------------------------------------------------------
 
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
+
 local rinApp = require "rinApp"
 local L401 = rinApp.addL401("172.17.1.95", 2222)
 local dbg = rinApp.dbg

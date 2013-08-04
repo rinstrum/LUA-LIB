@@ -6,12 +6,14 @@
 -- Configures a rinApp application, displays 'Hello World' on screen and waits
 -- for a key press before exit
 -------------------------------------------------------------------------------
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
 
 -- Require the rinApp module
 local rinApp = require "rinApp"
 
 -- Add control of an L401 at the given IP and port
-local L401 = rinApp.addL401("172.17.1.95", 2222)
+local L401 = rinApp.addL401("127.0.0.1", 2222)
 
 -- Write "Hello world" to the LCD screen.
 L401.writeBotLeft("Hello")

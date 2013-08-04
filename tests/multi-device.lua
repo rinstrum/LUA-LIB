@@ -6,6 +6,9 @@
 -- Displays 'hello' to two instruments and closes when a button is pressed on
 -- a certain instrument.
 -------------------------------------------------------------------------------
+-- Include the src directory
+package.path = package.path .. ";../src/?.lua"
+
 local rinApp = require "rinApp"
 
 local device_a = rinApp.addL401("172.17.1.95", 2222)
