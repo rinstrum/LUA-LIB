@@ -316,7 +316,8 @@ function _M.send(addr, cmd, reg, data, reply, crc)
 	    if type(data) == 'number' then
     	   data = str.format("%X",data)
 		end   
-	 end  
+	 end 
+	 
 	_M.sendMsg((str.format("%02X%02X%04X:%s", 
 					addr, 
 					cmd, 

@@ -5,10 +5,9 @@
 -- and outputs   
 -- 
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = package.path .. ";../src/?.lua"
+
 local rinApp = require "rinApp"
-local L401 = rinApp.addL401("172.17.1.139", 2222)
+local K412 = rinApp.addK412("172.17.1.134", 2222)
 local system = rinApp.system
 local dbg = rinApp.dbg
 
@@ -17,13 +16,13 @@ local dbg = rinApp.dbg
 local function handleWeightStream(data, err)
 	dbg.printVar(data)
 end
-local wgt = L401.addStream(L401.REG_GROSSNET, handleWeightStream, 'change')
+local wgt = K412.addStream(K412.REG_GROSSNET, handleWeightStream, 'change')
 
 
 -------------------------------------------------------------------------------
 -- Timer to rotate activity annunciator on LCD screen
 local function twiddle()
-       L401.rotWAIT(1) 
+       K412.rotWAIT(1) 
 end
 local twiddler = system.timers.addTimer(500,100,twiddle)
 
@@ -35,9 +34,9 @@ local CLICKER_OUTPUT = 3   -- configure which physical Output to drive
 local lastClick = false
 local function click()
 	if lastClick then
-		L401.turnOn(CLICKER_OUTPUT)
+		K412.turnOn(CLICKER_OUTPUT)
 	else 
-		L401.turnOff(CLICKER_OUTPUT)
+		K412.turnOff(CLICKER_OUTPUT)
 	end
 	lastClick = not lastClick  
 end
@@ -52,9 +51,9 @@ local function statusChanged(status, active)
    if active then s = 'Active ' else s = 'Inactive ' end
    dbg.printVar(status, s)
 end
-L401.setStatusCallback(L401.STAT_MOTION, statusChanged)
-L401.setStatusCallback(L401.STAT_NET, statusChanged)
-L401.setStatusCallback(L401.STAT_ZERO, statusChanged)
+K412.setStatusCallback(K412.STAT_MOTION, statusChanged)
+K412.setStatusCallback(K412.STAT_NET, statusChanged)
+K412.setStatusCallback(K412.STAT_ZERO, statusChanged)
 -- statusChanged() called whenever Motion, Gross/Net or Zero status 
 -- changes on the instrument
 --------------------------------------------------------------------------------
@@ -65,37 +64,34 @@ L401.setStatusCallback(L401.STAT_ZERO, statusChanged)
 local function F1Pressed(key, state)
 	if state == 'short' then
         dbg.printVar ('F1 pressed')
-		L401.buzz(3)  -- sound buzzer 3 times to acknowledge keypress
-    else
-		L401.setAnalogVolt(10)
+		K412.buzz(3)  -- sound buzzer 3 times to acknowledge keypress
 	end	
 	return true    -- F1 handled here so don't send back to instrument for handling
 end
-L401.setKeyCallback(L401.KEY_F1, F1Pressed)
+K412.setKeyCallback(K412.KEY_F1, F1Pressed)
 
 -------------------------------------------------------------------------------
 -- F2 handler, reads instrument Serial Number
 local function F2Pressed(key, state)
-	dbg.printVar (L401.readRegWait(L401.REG_SERIALNO))
-    L401.setAnalogVolt(0)
+	dbg.printVar (K412.readRegWait(K412.REG_SERIALNO))
     return true
 end
-L401.setKeyCallback(L401.KEY_F2, F2Pressed)
+K412.setKeyCallback(K412.KEY_F2, F2Pressed)
 
 
 -------------------------------------------------------------------------------
 -- F3 handler : toggles date format from mm-dd-yy to dd-mm-yy      
 local function F3Pressed(key, state)
-	if L401.RTC.first == 'day' then
-		      L401.RTCdateFormat('month','day','year')
-			  L401.sendDateFormat(L401.TM_MMDDYYYY)
+	if K412.RTC.first == 'day' then
+		      K412.RTCdateFormat('month','day','year')
+			  K412.sendDateFormat(K412.TM_MMDDYYYY)
 	else 	  
-              L401.RTCdateFormat('day','month','year')
-			  L401.sendDateFormat(L401.TM_DDMMYYYY)
+              K412.RTCdateFormat('day','month','year')
+			  K412.sendDateFormat(K412.TM_DDMMYYYY)
 	end	
     return true
 end
-L401.setKeyCallback(L401.KEY_F3, F3Pressed)
+K412.setKeyCallback(K412.KEY_F3, F3Pressed)
 
 
 -------------------------------------------------------------------------------
@@ -107,7 +103,7 @@ local function cancelPressed(key, state)
 	end	
 	return false
 end
-L401.setKeyCallback(L401.KEY_CANCEL, cancelPressed)
+K412.setKeyCallback(K412.KEY_CANCEL, cancelPressed)
 
 -------------------------------------------------------------------------------
 -- Key Handler to demonstrate use of Handling Key Groups
@@ -115,31 +111,31 @@ L401.setKeyCallback(L401.KEY_CANCEL, cancelPressed)
 -- other keys are passed back to other handlers and ultimately to the 
 -- instrument to process
 local function primary(key, state)
-  if key == L401.KEY_ZERO then
+  if key == K412.KEY_ZERO then
      print(key, "block Zero key")
 	 return true
   end
   print (key, "ok")
   return false  
 end
-L401.setKeyGroupCallback(L401.keyGroup.primary, primary)
+K412.setKeyGroupCallback(K412.keyGroup.primary, primary)
 
 -------------------------------------------------------------------------------
 -- Handler to capture changes to hardware Real Time CLock and maintain 
 -- a local awareness of time/date 
-local function RTCHandler(stat, change)
-   L401.RTCtick()
-   dbg.printVar(L401.RTCtostring())
+--[[local function RTCHandler(stat, change)
+   K412.RTCtick()
+   dbg.printVar(K412.RTCtostring())
 end
-L401.RTCread();
-L401.setStatusCallback(L401.STAT_RTC, RTCHandler)
+K412.RTCread();
+K412.setStatusCallback(K412.STAT_RTC, RTCHandler)]]--
 
 -------------------------------------------------------------------------------
 -- Setup the LCD screen and initialise the application
-L401.writeBotLeft("CLICKER")
-L401.enableOutput(CLICKER_OUTPUT)  -- CLICKER_OUTPUT can now be controlled directly from LUA
-L401.delay(500)                    -- delay for 500 msec
-dbg.printVar(L401.readRegWait(L401.REG_SERIALNO))  -- example of how to use debug and read instument registers
+K412.writeBotLeft("CLICKER")
+K412.enableOutput(CLICKER_OUTPUT)  -- CLICKER_OUTPUT can now be controlled directly from LUA
+K412.delay(500)                    -- delay for 500 msec
+dbg.printVar(K412.readRegWait(K412.REG_SERIALNO))  -- example of how to use debug and read instument registers
 
 -- Main Application Loop
 while rinApp.running do
@@ -147,7 +143,7 @@ while rinApp.running do
 end  
 
 -- cleanup and exit
-L401.turnOff(CLICKER_OUTPUT)       -- make sure CLICKER_OUTPUT is turned off before ending
-L401.releaseOutput(CLICKER_OUTPUT) -- release CLICKER_OUTPUT from LUA control
+K412.turnOff(CLICKER_OUTPUT)       -- make sure CLICKER_OUTPUT is turned off before ending
+K412.releaseOutput(CLICKER_OUTPUT) -- release CLICKER_OUTPUT from LUA control
 rinApp.cleanup()				   -- shutdown application resources
 

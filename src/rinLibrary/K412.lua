@@ -1,9 +1,10 @@
 -------------------------------------------------------------------------------
--- Libary for the L401, providing easy functionality for interfacing with
+-- Libary for the K412, providing easy functionality for interfacing with
 -- all aspects of the device
--- @module rinLibrary.L401
+-- @module rinLibrary.K412
 -- @author Darren Pearson
 -- @author Merrick Heley
+-- @author Sean Liddle
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
@@ -11,7 +12,7 @@ local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
 
 local con = require "rinLibrary.rinCon"
--- build rest of L401 on top of rinCon
+-- build rest of K412 on top of rinCon
 local _M = con  
 -- remove information that rinCON is already loaded to facilitate multiple connections
 package.loaded["rinLibrary.rinCon"] = nil
@@ -62,22 +63,22 @@ _M.REG_USERID_NAME2		= 0x0081
 _M.REG_USERID_NAME3		= 0x0082
 _M.REG_USERID_NAME4		= 0x0083
 _M.REG_USERID_NAME5		= 0x0084
-_M.REG_USERNUM_NAME1	= 0x0316
-_M.REG_USERNUM_NAME2	= 0x0317
-_M.REG_USERNUM_NAME3	= 0x0318
-_M.REG_USERNUM_NAME4	= 0x0319
-_M.REG_USERNUM_NAME5	= 0x031A
+--_M.REG_USERNUM_NAME1	= 0x0316
+--_M.REG_USERNUM_NAME2	= 0x0317
+--_M.REG_USERNUM_NAME3	= 0x0318
+--_M.REG_USERNUM_NAME4	= 0x0319
+--_M.REG_USERNUM_NAME5	= 0x031A
 
 _M.REG_USERID1			= 0x0090
 _M.REG_USERID2			= 0x0092
 _M.REG_USERID3			= 0x0093
 _M.REG_USERID4			= 0x0094
 _M.REG_USERID5			= 0x0095
-_M.REG_USERNUM1			= 0x0310
-_M.REG_USERNUM2			= 0x0311
-_M.REG_USERNUM3			= 0x0312
-_M.REG_USERNUM4			= 0x0313
-_M.REG_USERNUM5			= 0x0314
+--_M.REG_USERNUM1			= 0x0310
+--_M.REG_USERNUM2			= 0x0311
+--_M.REG_USERNUM3			= 0x0312
+--_M.REG_USERNUM4			= 0x0313
+--_M.REG_USERNUM5			= 0x0314
 
 -------------------------------------------------------------------------------
 -- General Utilities
@@ -329,9 +330,9 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
 _M.REG_LUA_STATUS   = 0x0329
-_M.REG_LUA_STAT_RTC = 0x032A
-_M.REG_LUA_STAT_RDG = 0x032B
-_M.REG_LUA_STAT_IO  = 0x032A
+--_M.REG_LUA_STAT_RTC = 0x032A
+--_M.REG_LUA_STAT_RDG = 0x032B
+--_M.REG_LUA_STAT_IO  = 0x032A
 _M.REG_IOSTATUS		= 0x0051
 
 _M.lastIOStatus = 0
@@ -353,12 +354,22 @@ _M.STAT_ERROR			= 0x00001000
 _M.STAT_ULOAD			= 0x00002000
 _M.STAT_OLOAD			= 0x00004000
 _M.STAT_NOTERROR		= 0x00008000
-_M.STAT_INIT			= 0x01000000
-_M.STAT_RTC				= 0x02000000
-_M.STAT_RDG				= 0x04000000
-_M.STAT_IO			    = 0x08000000
-_M.STAT_SER1			= 0x10000000
-_M.STAT_SER2			= 0x20000000
+_M.STAT_IDLE            = 0x00010000
+_M.STAT_RUN             = 0x00020000
+_M.STAT_PAUSE           = 0x00040000
+_M.STAT_SLOW            = 0x00080000
+_M.STAT_MED             = 0x00100000
+_M.STAT_FAST            = 0x00200000
+_M.STAT_TIME            = 0x00400000
+_M.STAT_INPUT           = 0x00800000
+_M.STAT_NO_INFO         = 0x01000000
+_M.STAT_FILL            = 0x02000000
+_M.STAT_DUMP            = 0x04000000
+_M.STAT_PULSE           = 0x08000000
+_M.STAT_START           = 0x10000000
+_M.STAT_NO_TYPE         = 0x20000000
+_M.STAT_INIT			= 0x80000000
+
 
 _M.statBinds = {}
 _M.statID = nil          
@@ -400,33 +411,33 @@ end
 -------------------------------------------------------------------------------
 -- Control the use of RTC status bit
 -- @param s true to enable RTC change monitoring, false to disable
-function _M.setRTCStatus(s)
+--[[function _M.setRTCStatus(s)
    local s = s or true
    if s then s = 1 else s = 0 end
    _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s, "noReply") 
-end
+end]]--
 
 -------------------------------------------------------------------------------
 -- Control the use of reading count status bit.  This is useful if weight 
 -- readings are not collected via an on change stream register directly
 -- @param num Sets amount of readings to trigger a reading count status change
-function _M.setRDGStatus(num)
+--[[function _M.setRDGStatus(num)
     local num = num or 0
 	if num > 255 then num = 255 end
 	_M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RDG,num, "noReply")
-end
+end]]--
 
 -------------------------------------------------------------------------------
 -- private function
-function _M.setIOStatus(mask)
+--[[function _M.setIOStatus(mask)
     local mask = mask or 0
 	_M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_IO,mask, "noReply")
-end
+end]]--
 
 -------------------------------------------------------------------------------
 -- sets IO status IO bit to recognise this IO 
 -- @param IO is output 1..32
-function _M.enableIOStatus(IO)
+--[[function _M.enableIOStatus(IO)
 	local curIOStatus =  bit32.bor(_M.lastIOStatus, 
 									bit32.lshift(0x0001,(IO-1)))
 	if (curIOStatus ~= _M.lastIOStatus) then
@@ -434,19 +445,19 @@ function _M.enableIOStatus(IO)
 		_M.lastIOStatus = curIOStatus
 	end  
     
-end
+end]]--
 
 -------------------------------------------------------------------------------
 -- sets IO status IO bit to ignore this IO 
 -- @param IO is output 1..32
-function _M.releaseIOStatus(IO)
+--[[function _M.releaseIOStatus(IO)
 	local curIOStatus =  bit32.band(_M.lastIOStatus,
 									bit32.bnot(bit32.lshift(0x0001,(IO-1))))
 	if (curIOStatus ~= _M.lastIOStatus) then
 		_M.setIOStatus(curIOStatus)
 		_M.lastIOStatus = curIOStatus
 	end 
-end
+end]]--
 
 -------------------------------------------------------------------------------
 -- Cancel status handling
@@ -627,12 +638,14 @@ end
 -- LCD Services
 -------------------------------------------------------------------------------
 --LCD display registers
+_M.REG_DISP_LAYOUT          = 0x000D    -- execute register to change current display layout, set to option 1 "TOP" for comms control
+_M.REG_DISP_LAYOUT_M        = 0x0166    -- menu setting for default display layout
 _M.REG_DISP_BOTTOM_LEFT		= 0x000E	-- Takes string
 _M.REG_DISP_BOTTOM_RIGHT 	= 0x000F	-- Takes string
 _M.REG_DISP_TOP_LEFT		= 0x00A0	-- Takes string
 _M.REG_DISP_TOP_RIGHT		= 0x00A1	-- Takes string
 _M.REG_DISP_TOP_ANNUN		= 0x00A2
-_M.REG_DISP_TOP_UNITS		= 0x00A3	-- Takes string
+_M.REG_DISP_TOP_UNITS		= 0x00A3	-- Takes number
 _M.REG_DISP_BOTTOM_ANNUN	= 0x00A4
 _M.REG_DISP_BOTTOM_UNITS	= 0x00A5
 
@@ -807,7 +820,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 function _M.restoreLcd()
-   _M.setAutoTopAnnun(_M.REG_GROSSNET)
+   --_M.setAutoTopAnnun(_M.REG_GROSSNET)
    _M.setAutoTopLeft(_M.REG_GROSSNET)
    _M.writeTopRight('')
    _M.writeBotLeft('')
@@ -821,6 +834,7 @@ end
 _M.REG_ANALOGUE_DATA = 0x0323
 _M.REG_ANALOGUE_TYPE = 0xA801
 _M.REG_ANALOGUE_CLIP = 0xA806
+_M.REG_ANALOGUE_SOURCE = 0xA805  -- must be set to option 3 "COMMS" if we are to control it via the comms
   
 _M.CUR = 0
 _M.VOLT = 1
@@ -883,7 +897,7 @@ end
 -- @param val value 4.0 to 20.0
 function _M.setAnalogCur(val)
   _M.setAnalogType(_M.CUR)
-  val = (val - 4)/20
+  val = (val - 4)/20  -- TODO should this be val = (val - 4)/16
  _M.setAnalogVal(val)
 end
 
@@ -918,11 +932,11 @@ _M.ALARM_FLASH = 3
 _M.GROSS = 0
 _M.NET = 1
 _M.DISP = 2
-_M.ALT_GROSS = 3
-_M.ALT_NET = 4
-_M.ALT_DISP = 5
-_M.PIECE = 6
-_M.REG = 7
+--_M.ALT_GROSS = 3
+--_M.ALT_NET = 4
+--_M.ALT_DISP = 5
+--_M.PIECE = 6
+--_M.REG = 7
 
 _M.TYPE_OFF      = 0
 _M.TYPE_ON       = 1
@@ -936,7 +950,12 @@ _M.TYPE_ERROR    = 8
 _M.TYPE_LGC_AND  = 9
 _M.TYPE_LGC_OR   = 10
 _M.TYPE_LGC_XOR  = 11
-_M.TYPE_BUZZER   = 12
+_M.TYPE_TOL      = 12
+_M.TYPE_PAUSE    = 13
+_M.TYPE_WAIT     = 14
+_M.TYPE_RUN      = 15
+_M.TYPE_FILL     = 16
+_M.TYPE_BUZZER   = 17
 
 
 
@@ -1608,7 +1627,7 @@ end
 -- Commands
 --  TODO:  Finalise these commands to return proper error messages etc
 -------------------------------------------------------------------------------
-_M.REG_ADC_ZERO         = 0x0300                  -- Execute registers
+--[[_M.REG_ADC_ZERO         = 0x0300                  -- Execute registers
 _M.REG_ADC_TARE         = 0x0301                  
 _M.REG_ADC_PT           = 0x0302                  -- Tare value is parameter 
 _M.REG_ADC_GROSS_NET    = 0x0303                 
@@ -1622,7 +1641,7 @@ _M.ADCHIRES_TOGGLE		= 0
 _M.ADCHIRES_ON			= 1
 _M.ADCHIRES_OFF			= 2
 _M.ADCHIRES_DB			= 3                       -- R420 database setting
-
+]]--
 -- 	Calibrate
 _M.REG_CALIBWGT			= 0x0100
 _M.REG_CALIBZERO		= 0x0102
@@ -1651,7 +1670,7 @@ _M.cmdString[11] = 'HI RES'
 
 -------------------------------------------------------------------------------
 -- <<COMMENT>>
-function _M.zero()
+--[[function _M.zero()
 	local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15000)
  
 	msg = tonumber(msg)
@@ -1695,7 +1714,7 @@ end
 function _M.grossNetToggle()
 	return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
 end
-
+]]--
 
 
 
