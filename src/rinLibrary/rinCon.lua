@@ -172,7 +172,8 @@ function _M.recMsg()
     	return msg, nil
 	end
     
-	dbg.printVar("Error: ", err, dbg.ERROR)
+	dbg.printVar("Receive failed: ", err, dbg.ERROR)
+	os.exit(1)
   	return nil, err
 end
 
