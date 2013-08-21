@@ -30,6 +30,11 @@ function _M.addTimer(time, delay, callback, ...)
 	local value = {refTime, time, callback, {...}}
 	local key = tonumber(string.gsub(tostring(value), "table: 0x", ""), 16)
 	
+	-- Linearly probe for a free key if lua returns one in use
+	while (_M.timers[key] ~= nil) do
+		key = key + 1
+	end
+	
 	_M.timers[key] = value
 
 	return key
