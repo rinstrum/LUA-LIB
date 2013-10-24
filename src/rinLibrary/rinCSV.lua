@@ -21,9 +21,9 @@ local dbg = require "rinLibrary.rinDebug"
 -- Adds '"' around s if it contains ',' or '"' and replaces '"' with '""'
 -- @param s string to escape
 -- @return escaped string
- function _M.escapeCSV(s)  
- -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""' 
- 
+ function _M.escapeCSV(s)
+  s = tostring(s)  -- string find & gsub requires a string so make sure we have one
+  -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""' 
 	if string.find(s, '[,"]') then
         s = '"' .. string.gsub(s,'"','""') .. '"'
     end
@@ -112,6 +112,9 @@ end
 -- @param check 1d array of labels to check
 -- @return true if labels and check are the same, false otherwise
 function _M.equalCSV(labels, check)
+   if #labels ~= #check then
+     return false
+   end
    
 	for col,s in ipairs(labels) do
        -- remove space and convert labels to all lowercase for checking	
@@ -179,11 +182,18 @@ function _M.saveCSV(t)
       f:write(_M.toCSV(t.labels) .. '\n')
       for _,row in ipairs(t.data) do
          f:write(_M.toCSV(row) .. '\n')
-      end   
+      end
       f:close()
-end	
+end
 
 
+-------------------------------------------------------------------------------
+-- Removes last line of data to a table in the database
+-- @param name name of table to use
+function _M.remLineCSV(name)
+      table.remove(_M.tables[name].data)  -- remove last line from the table
+	  _M.saveCSV(_M.tables[name])  -- save the table to .CSV file (overwriting the old one)
+end
 	
 -------------------------------------------------------------------------------
 -- Save database to multiple CSV files
