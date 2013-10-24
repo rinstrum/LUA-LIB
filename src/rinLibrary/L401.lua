@@ -807,8 +807,9 @@ end
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 function _M.restoreLcd()
-   _M.setAutoTopAnnun(_M.REG_GROSSNET)
+   _M.setAutoTopAnnun(0)
    _M.setAutoTopLeft(_M.REG_GROSSNET)
+   _M.setAutoBotLeft(0)
    _M.writeTopRight('')
    _M.writeBotLeft('')
    _M.writeBotRight('')
@@ -1500,15 +1501,20 @@ _M.REG_TIMEYEAR			= 0x0154
 _M.REG_TIMEHOUR			= 0x0155
 _M.REG_TIMEMIN			= 0x0156
 _M.REG_TIMESEC			= 0x0157
-_M.TM_MMDDYYYY			= 0
+_M.TM_DDMMYY			= 0
 _M.TM_DDMMYYYY			= 1
+_M.TM_MMDDYY			= 2
+_M.TM_MMDDYYYY			= 3
+_M.TM_YYMMDD			= 4
+_M.TM_YYYYMMDD			= 5
+
 
 -------------------------------------------------------------------------------
 -- sets the instrument date format
 -- @param fmt TM_MMDDYYYY or TM_DDMMYYYY
 function _M.sendDateFormat(fmt)
-     if fmt ~= _M.TM_MMDDYYYY and fmt ~= _M.TM_DDMMYYYY then
-	    fmt = _M.TM_MMDDYYYY
+     if fmt < _M.TM_DDMMYY or fmt > _M.TM_YYYYMMDD then
+	    fmt = _M.TM_DDMMYYYY
 	 end
   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_TIMEFORMAT,fmt)
 end
@@ -1525,37 +1531,45 @@ _M.RTC['third'] = 'year'
 function _M.RTCread(d)
   local d = d or 'all'
 
-	local fmt = _M.readRegWait(_M.REG_TIMEFORMAT)
-	if fmt == _M.TM_DDMMYYYY then
-       _M.RTCdateFormat('day','month','year')
-	else
-       _M.RTCdateFormat('month','day','year')
-    end	   
-	
+  local fmt , err = _M.sendRegWait(_M.RDFINALDEC,_M.REG_TIMEFORMAT)
   
-	local timestr, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_TIMECUR)
-	
-	if err then 
-		timestr = '01/01/2000 00-00'
-	end  
-	--dbg.printVar(timestr)
-	
-	if d == 'date' or d == 'all' then
-		_M.RTC.day, _M.RTC.month, _M.RTC.year = 
-				string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-	end
-	
-	if d == 'time' or d == 'all' then
-		_,_,_, _M.RTC.hour, _M.RTC.min = 
-				string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-	end	
-	  
-	_M.RTC.sec, err = _M.readRegWait(_M.REG_TIMESEC)
-	
-	if err then 
-		_M.RTC.sec = 0 
-	end
+  if err then
+    fmt = 0
+  else
+    fmt = tonumber(fmt)
+  end
   
+  if fmt == _M.TM_DDMMYYYY or fmt == _M.TM_DDMMYY then
+     _M.RTCdateFormat('day','month','year')
+  elseif fmt == _M.TM_MMDDYYYY or fmt == _M.TM_MMDDYY then
+     _M.RTCdateFormat('month','day','year')
+  else
+     _M.RTCdateFormat('year','month','day')
+  end
+  
+  
+  local timestr, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_TIMECUR)
+  
+  if err then
+    timestr = '01/01/2000 00-00'
+  end
+  --dbg.printVar(timestr)
+  
+  if d == 'date' or d == 'all' then
+    _M.RTC.day, _M.RTC.month, _M.RTC.year =
+      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+  end
+  
+  if d == 'time' or d == 'all' then
+    _,_,_, _M.RTC.hour, _M.RTC.min =
+      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+  end
+    
+  _M.RTC.sec, err = _M.readRegWait(_M.REG_TIMESEC)
+  
+  if err then
+    _M.RTC.sec = 0
+  end
 end
 
 -------------------------------------------------------------------------------
