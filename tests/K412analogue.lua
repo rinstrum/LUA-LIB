@@ -8,7 +8,7 @@
 package.path = package.path .. ";../src/?.lua"
 
 local rinApp = require "rinApp"
-local K412 = rinApp.addK412()--"172.17.1.132", 2222)
+local K412 = rinApp.addK412()--"172.17.1.75", 2222)
 local system = rinApp.system
 local dbg = rinApp.dbg
 
@@ -18,51 +18,65 @@ local FAST_VOLTS = 7.5
 local MED_VOLTS = 6
 local SLOW_VOLTS = 5
 local OFF_VOLTS = 0
-local LAST_VOLTS
+local lastVolts
 
 local SPEED_NONE = 0
 local SPEED_SLOW = 1
 local SPEED_MED = 2
 local SPEED_FAST = 3
-local SPEED = SPEED_NONE
+local speed = SPEED_NONE
 
 local NOT_RUNNING = 0
 local RUNNING = 1
-local BATCH_RUN = NOT_RUNNING
+local batchRun = NOT_RUNNING
 
 -------------------------------------------------------------------------------
--- Do the actual analogue voltage setting  
+-- Do the actual analogue voltage setting
 local function setAnalogVolts (volts)
-   if volts ~= LAST_VOLTS then
+   if volts ~= lastVolts then
       K412.setAnalogVolt(volts)
-      LAST_VOLTS = volts
+      lastVolts = volts
       dbg.printVar("volts", volts)
    end
 end
 
 -------------------------------------------------------------------------------
--- Callback to capture changes to batch info status  
+-- Callback to capture changes to batch info status
 local function statusChanged(status, active)
-   local ANALOGUE_VOLTS = OFF_VOLTS
-   -- keep local variables up to date
-   if (active == true) then
-      if status == K412.STAT_RUN then BATCH_RUN = RUNNING
-      elseif status == K412.STAT_FAST then SPEED = SPEED_FAST
-      elseif status == K412.STAT_MED then SPEED = SPEED_MED
-      elseif status == K412.STAT_SLOW then SPEED = SPEED_SLOW
-      else SPEED = SPEED_NONE end
-   else
-      if status == K412.STAT_RUN then BATCH_RUN = NOT_RUNNING end
-   end
+  local analogueVolts = OFF_VOLTS
+  -- keep local variables up to date
+  if (active == true) then
+    if status == K412.STAT_RUN then
+      batchRun = RUNNING
+    elseif status == K412.STAT_FAST then
+      speed = SPEED_FAST
+    elseif status == K412.STAT_MED then
+      speed = SPEED_MED
+    elseif status == K412.STAT_SLOW then
+      speed = SPEED_SLOW
+    else
+      speed = SPEED_NONE
+    end
+  else
+    if status == K412.STAT_RUN then
+      batchRun = NOT_RUNNING
+    end
+  end
    
-   -- set required voltage if the batch is running
-   if (BATCH_RUN == RUNNING) then 
-      if SPEED == SPEED_FAST then ANALOGUE_VOLTS = FAST_VOLTS end
-      if SPEED == SPEED_MED then ANALOGUE_VOLTS = MED_VOLTS end
-      if SPEED == SPEED_SLOW then ANALOGUE_VOLTS = SLOW_VOLTS end
-   end
-   -- OFF_VOLTS for all other states
-   setAnalogVolts (ANALOGUE_VOLTS)
+  -- set required voltage if the batch is running
+  if (batchRun == RUNNING) then
+    if speed == SPEED_FAST then
+      analogueVolts = FAST_VOLTS
+    end
+    if speed == SPEED_MED then
+      analogueVolts = MED_VOLTS
+    end
+    if speed == SPEED_SLOW then
+      analogueVolts = SLOW_VOLTS
+    end
+  end
+  -- OFF_VOLTS for all other states
+  setAnalogVolts (analogueVolts)
 end
 K412.setStatusCallback(K412.STAT_FAST, statusChanged)
 K412.setStatusCallback(K412.STAT_MED, statusChanged)
@@ -71,31 +85,32 @@ K412.setStatusCallback(K412.STAT_TIME, statusChanged)
 K412.setStatusCallback(K412.STAT_INPUT, statusChanged)
 K412.setStatusCallback(K412.STAT_NO_INFO, statusChanged)
 K412.setStatusCallback(K412.STAT_RUN, statusChanged)
--- statusChanged() called whenever batch info status 
+-- statusChanged() called whenever batch info status
 -- changes on the instrument
 
 
 -------------------------------------------------------------------------------
 -- Handler to capture ABORT key and end program
+--[[
 local function cancelPressed(key, state)
-	if state == 'long' then
-      rinApp.running = false
-      return true
-	end	
-	return false
+  if state == 'long' then
+    rinApp.running = false
+    return true
+  end
+    return false
 end
 K412.setKeyCallback(K412.KEY_CANCEL, cancelPressed)
-
+]]--
 
 -------------------------------------------------------------------------------
--- Setup the LCD screen and initialise the application
+-- Initialise the application
 K412.delay(500)                    -- delay for 500 msec
-dbg.printVar(K412.readRegWait(K412.REG_SERIALNO))  -- example of how to use debug and read instument registers
+dbg.printVar(K412.readRegWait(K412.REG_SERIALNO))  -- example of how to use debug and read instrument registers
 
 -- Main Application Loop
 while rinApp.running do
-   system.handleEvents()           -- handleEvents runs the event handlers 
-end  
+  system.handleEvents()           -- handleEvents runs the event handlers
+end
 
 -- cleanup and exit
 setAnalogVolts (OFF_VOLTS)
