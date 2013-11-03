@@ -28,8 +28,9 @@ _M.dbg.configureDebug(arg[1], true, 'Application')
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
 	local data = sock:receive("*l")
-	   _M.running = false
+	  
 	if data == 'exit' then
+	 _M.running = false
 	end   
 	_M.dbg.configureDebug(data) 
 end
