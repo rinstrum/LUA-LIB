@@ -6,7 +6,7 @@
 -------------------------------------------------------------------------------
 
 local bit32 = require "bit"
-local dbg = require "rinLibrary.rinDebug"
+
 local str = string
 local table = table
 local assert = assert
@@ -17,6 +17,9 @@ local type = type
 
 local _M = {}
 _M.socket = nil   -- must be set to a connected socket for the module to work
+_M.dbg = require "rinLibrary.rinDebug"
+package.loaded["rinLibrary.rinDebug"] = nil
+
 -- Addresses control bits
 _M.ADDR_RESP 			= 0x80
 _M.ADDR_ERR 		    = 0x40
@@ -121,7 +124,7 @@ end
 function _M.sendQueueCallback()
 	if not _M.Qempty() then
 		local msg = _M.popQ()
-		dbg.printVar('<<<', msg, dbg.DEBUG)
+		_M.dbg.printVar('<<<', msg, _M.dbg.DEBUG)
 		_M.socket:send(msg)
    end
 end
@@ -168,11 +171,11 @@ function _M.recMsg()
 	
 	if err == nil then
 	    msg = table.concat(buffer)
-		dbg.printVar('>>>', msg, dbg.DEBUG) 
+		_M.dbg.printVar('>>>', msg, _M.dbg.DEBUG) 
     	return msg, nil
 	end
     
-	dbg.printVar("Receive failed: ", err, dbg.ERROR)
+	_M.dbg.printVar("Receive failed: ", err, _M.dbg.ERROR)
 	os.exit(1)
   	return nil, err
 end
