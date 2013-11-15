@@ -9,6 +9,8 @@
 -- Include the src directory
 package.path = package.path .. ";../src/?.lua"
 
+-- John changes
+
 -- Require the rinApp module
 local rinApp = require "rinApp"
 
