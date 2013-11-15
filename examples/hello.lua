@@ -20,7 +20,20 @@ K401.writeBotLeft("Hello")
 K401.writeBotRight("World")
 
 -- Wait for the user to press a key on the K401
-K401.getKey()
+
+running = true
+
+while running do
+   k, s = K401.getKey()
+
+   if (k == K401.KEY_5) then
+       print ('Got cha')
+       running = false
+   elseif (k == K401.KEY_F1) then
+      print(K401.readReg(K401.REG_SERIALNO))
+   end    
+   print(k,s)
+end
 
 -- Cleanup the application and exit
 rinApp.cleanup()

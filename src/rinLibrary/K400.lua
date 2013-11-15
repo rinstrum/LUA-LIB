@@ -1700,7 +1700,10 @@ end
 -- Called to request response based on custom transmit token string
 -- @param tokenStr  custom token string
 function _M.reqCustomTransmit(tokenStr)
-    return _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_REPLYTOKENSTR, tokenStr, 1000)
+    s =  _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
+    _M.dbg.printVar(s)
+    -- return string.sub(s,10,-1)
+    return s
 end
 
 

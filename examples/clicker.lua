@@ -27,7 +27,7 @@ end
 local twiddler = rinApp.system.timers.addTimer(500,100,twiddle)
 
 -------------------------------------------------------------------------------
-local CLICKER_OUTPUT = 3   -- configure which physical Output to drive
+local CLICKER_OUTPUT = 4   -- configure which physical Output to drive
 
 -------------------------------------------------------------------------------
 -- toggle CLICKER_OUTPUT using a timer callback
