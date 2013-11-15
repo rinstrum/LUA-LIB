@@ -11,8 +11,8 @@ package.path = package.path .. ";../src/?.lua"
 
 local rinApp = require "rinApp"
 
-local device_a = rinApp.addL401("172.17.1.95", 2222)
-local device_b = rinApp.addL401("172.17.1.139", 2222)
+local device_a = rinApp.addK400()
+local device_b = rinApp.addK400("192.168.1.3", 2222)
 
 device_a.writeBotLeft("Hello")
 device_a.writeBotRight("A")

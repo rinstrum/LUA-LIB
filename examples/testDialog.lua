@@ -8,36 +8,36 @@
 package.path = package.path .. ";../src/?.lua"
 
 local rinApp = require "rinApp"
-local L401 = rinApp.addL401("172.17.1.95", 2222)
+local K401 = rinApp.addK400("K401")
 local dbg = rinApp.dbg
 
 -------------------------------------------------------------------------------
 -- Put a message on LCD and remove after 2 second delay
-L401.writeBotLeft("DIALOG")
-L401.writeBotRight("TEST")
-L401.delay(2000)
-L401.writeBotLeft("")
-L401.writeBotRight("")
+K401.writeBotLeft("DIALOG")
+K401.writeBotRight("TEST")
+K401.delay(2000)
+K401.writeBotLeft("")
+K401.writeBotRight("")
 
 -------------------------------------------------------------------------------
 -- Prompt user to enter the number of times to sound buzzer, validate, 
 -- and then buzz after 0.5 second delay  
-local val = L401.edit('BUZZ',2)
-if L401.askOK('OK?',val) == L401.KEY_OK then   -- confirm buzz amount
-   L401.delay(500)
-   L401.buzz(val)
+local val = K401.edit('BUZZ',2)
+if K401.askOK('OK?',val) == K401.KEY_OK then   -- confirm buzz amount
+   K401.delay(500)
+   K401.buzz(val)
 end   
 
 -------------------------------------------------------------------------------
 -- Prompt user to select from a list of options. Options list will loop.
 -- (e.g. if user presses 'up' key when option is large, loop back to small.
-local sel = L401.selectOption('SELECT',{'SMALL','MEDIUM','LARGE'},'SMALL',true)
-L401.delay(10)
+local sel = K401.selectOption('SELECT',{'SMALL','MEDIUM','LARGE'},'SMALL',true)
+K401.delay(10)
 -- show selected option (on device and console) and wait until key pressed
-L401.writeBotLeft(sel)
-L401.writeBotRight('SELECTED')
+K401.writeBotLeft(sel)
+K401.writeBotRight('SELECTED')
 dbg.printVar('Selected value', sel, dbg.INFO)
-L401.getKey()
+K401.getKey()
 
 -------------------------------------------------------------------------------
 

@@ -17,13 +17,15 @@ local _M = con
 package.loaded["rinLibrary.rinCon"] = nil
 
 -------------------------------------------------------------------------------
----@Section Register Commands
+--- Register Functions.
+-- Functions to read, write and execute commands on instrument registers directly
+-- @section registers
  
 _M.sendRegWaiting = false
 _M.sendRegData = ''
 _M.sendRegErr = ''
 
--------------------------------------------------------------------------------
+
 -- Private function
 function _M.sendRegCallback(data, err)
     _M.sendRegWaiting = false
@@ -65,7 +67,7 @@ function _M.sendRegWait(cmd, reg, data, t)
     _M.send(nil, cmd, reg, data, "reply")
     local tmr = _M.system.timers.addTimer(0, t, _M.sendRegCallback, nil, "Timeout")
 
-    while _M.sendRegWaiting and _M.app.running do
+    while _M.sendRegWaiting do
         _M.system.handleEvents()
     end
     
@@ -203,27 +205,6 @@ _M.REG_ALTNET           = 0x002E
 _M.REG_FULLSCALE        = 0x002F
 
 
---- Status Bits for REG_SYSSTATUS.
---@table sysstatus
--- @field SYS_OVERLOAD         Scale overloaded
--- @field SYS_UNDERLOAD        Scale underload
--- @field SYS_ERR              Error active 
--- @field SYS_SETUP            Instrument in setup mode
--- @field SYS_CALINPROG      Instrument calibration in progress
--- @field SYS_MOTION           Weight unstable
--- @field SYS_CENTREOFZERO     Centre of Zero (within 0.25 divisions of zero)
--- @field SYS_ZERO             Weight within zero band setting
--- @field SYS_NET              Instrument in Net mode
-
-_M.SYS_OVERLOAD         = 0x00020000
-_M.SYS_UNDERLOAD        = 0x00010000
-_M.SYS_ERR              = 0x00008000
-_M.SYS_SETUP            = 0x00004000
-_M.SYS_CALINPROG        = 0x00002000
-_M.SYS_MOTION           = 0x00001000
-_M.SYS_CENTREOFZERO     = 0x00000800
-_M.SYS_ZERO             = 0x00000400
-_M.SYS_NET              = 0x00000200
 
 
 -- USER VARIABLES
@@ -250,8 +231,10 @@ _M.REG_USERNUM4         = 0x0313
 _M.REG_USERNUM5         = 0x0314
 
 -------------------------------------------------------------------------------
--- @Section General Utilities
--------------------------------------------------------------------------------
+---  General Utilities.
+-- General Functions for configuring the instrument
+-- @section general
+
 
 
 _M.REG_LCDMODE          = 0x000D
@@ -263,9 +246,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
     
     if mode == 'lua' then
-     _M.sendReg(_M.CMD_EXEC,_M.REG_LCDMODE,2)
+     _M.sendRegWait(_M.CMD_EXEC,_M.REG_LCDMODE,2)
     else
-     _M.sendReg(_M.CMD_EXEC,_M.REG_LCDMODE,1)
+     _M.sendRegWait(_M.CMD_EXEC,_M.REG_LCDMODE,1)
     end
 end 
 
@@ -282,7 +265,7 @@ function _M.connect(model,sock, app)
     _M.system = app.system
     local ip, port = sock:getpeername()
     l,t = app.dbg.getDebugConfig()
-    _M.dbg.configureDebug(t, t, ip)  -- configure debug port to match application debug but with local IP tag
+    _M.dbg.configureDebug(l, t, ip)  -- configure debug port to match application debug but with local IP tag
     _M.lcdControl('lua')
 end 
 
@@ -311,8 +294,6 @@ function _M.getRegDP(reg)
     end 
 end
 
--------------------------------------------------------------------------------
---  
 -------------------------------------------------------------------------------
 -- Called to save any changed settings and re-initialise instrument 
 --
@@ -384,11 +365,12 @@ function _M.toFloat(data, dp)
    return data
 end
 
-------------------------------------------------- 
---- @Section Streaming
--- This section is for functions associated with streaming registers   
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-
+-------------------------------------------------------------------------------- 
+--- Streaming.
+-- This section is for functions associated with streaming registers 
+-- @section Streaming
+ 
+ 
 --  Stream Register Definitions
 _M.REG_STREAMDATA       = 0x0040
 _M.REG_STREAMMODE       = 0x0041
@@ -542,9 +524,33 @@ end
 
 
 -------------------------------------------------------------------------------
----@Section Status Monitoring
--- From here onwards all functions are associated with the status monitoring 
-----------------------------------------------------------------------------
+--- Status Monitoring.
+-- Functions are associated with the status monitoring 
+-- @section status 
+
+
+
+--- Status Bits for REG_SYSSTATUS.
+--@table sysstatus
+-- @field SYS_OVERLOAD         Scale overloaded
+-- @field SYS_UNDERLOAD        Scale underload
+-- @field SYS_ERR              Error active 
+-- @field SYS_SETUP            Instrument in setup mode
+-- @field SYS_CALINPROG      Instrument calibration in progress
+-- @field SYS_MOTION           Weight unstable
+-- @field SYS_CENTREOFZERO     Centre of Zero (within 0.25 divisions of zero)
+-- @field SYS_ZERO             Weight within zero band setting
+-- @field SYS_NET              Instrument in Net mode
+
+_M.SYS_OVERLOAD         = 0x00020000
+_M.SYS_UNDERLOAD        = 0x00010000
+_M.SYS_ERR              = 0x00008000
+_M.SYS_SETUP            = 0x00004000
+_M.SYS_CALINPROG        = 0x00002000
+_M.SYS_MOTION           = 0x00001000
+_M.SYS_CENTREOFZERO     = 0x00000800
+_M.SYS_ZERO             = 0x00000400
+_M.SYS_NET              = 0x00000200
 
 _M.REG_LUA_STATUS   = 0x0329
 _M.REG_LUA_STAT_RTC = 0x032A
@@ -598,7 +604,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a status bit
--- @param stat given in _M.statBinds
+-- @param stat STAT_ status bit
 -- @param callback Function to run when there is an event on change in status
 function _M.setStatusCallback(stat, callback)
     _M.statBinds[stat] = {}
@@ -674,12 +680,46 @@ end
 
 
 -------------------------------------------------------------------------------
----@Section Key Handling
--- From here onwards all functions are associated with the handing key presses 
-----------------------------------------------------------------------------
+--- Key Handling.
+-- Functions associated with the handing key presses 
+-- @section key
    
 _M.firstKey = true    -- flag to catch any garbage
 -- Keys
+
+--- Status Bits for REG_SYSSTATUS.
+--@table keys
+-- @field KEY_0
+-- @field KEY_1               
+-- @field KEY_2               
+-- @field KEY_3               
+-- @field KEY_4               
+-- @field KEY_5               
+-- @field KEY_6               
+-- @field KEY_7               
+-- @field KEY_8               
+-- @field KEY_9               
+-- @field KEY_POWER           
+-- @field KEY_ZERO            
+-- @field KEY_TARE            
+-- @field KEY_GN              
+-- @field KEY_F1              
+-- @field KEY_F2              
+-- @field KEY_F3              
+-- @field KEY_PLUSMINUS       
+-- @field KEY_DP              
+-- @field KEY_CANCEL          
+-- @field KEY_UP              
+-- @field KEY_DOWN            
+-- @field KEY_OK              
+-- @field KEY_SETUP           
+ 
+
+
+
+
+
+
 _M.KEY_0                = 0x0000
 _M.KEY_1                = 0x0001
 _M.KEY_2                = 0x0002
@@ -714,6 +754,17 @@ _M.REG_APP_KEY_HANDLER  = 0x0325
 _M.keyID = nil
 
 _M.keyGroup = {}
+
+--- Key Groups.
+--@table keygroups
+-- @field keyGroup.all      
+-- @field keyGroup.primary  
+-- @field keyGroup.functions
+-- @field keyGroup.keypad   
+-- @field keyGroup.numpad   
+-- @field keyGroup.cursor   
+
+
 
 _M.keyGroup.all         = {callback = nil}
 _M.keyGroup.primary     = {callback = nil}
@@ -808,15 +859,24 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
--- @param key A key given in _M.keyBinds
+-- @param key to monitor (KEY_* )
 -- @param callback Function to run when there is an event on the keygroup
+-- @usage
+-- local function F1Pressed(key, state)
+--  if state == 'short' then
+--       dbg.printVar ('F1 pressed')
+--    end
+--    return true    -- F1 handled here so don't send back to instrument for handling
+--  end
+--  K401.setKeyCallback(K401.KEY_F1, F1Pressed)
+--
 function _M.setKeyCallback(key, callback)
     _M.keyBinds[key].directCallback = callback
 end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key group
--- @param keyGroup A keygroup given in _M.keyGroup.*
+-- @param keyGroup A keygroup given in keyGroup.*
 -- @param callback Function to run when there is an event on the keygroup
 function _M.setKeyGroupCallback(keyGroup, callback)
     keyGroup.callback = callback
@@ -835,17 +895,18 @@ end
 -- @param flush Flush the current keypresses that have not yet been handled
 function _M.endKeys(flush)
     if flush then
-        _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+        _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
     end
 
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
     
     _M.removeStream(_M.keyID)
 end
 
 -------------------------------------------------------------------------------
----@Section LCD Services
-----------------------------------------------------------------------------
+--- LCD Services.
+-- Functions to configure the LCD
+-- @section lcd 
 
 --LCD display registers
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
@@ -1039,8 +1100,9 @@ end
 
 
 -------------------------------------------------------------------------------
----@Section Buzzer Control
-----------------------------------------------------------------------------
+--- Buzzer Control.
+-- Functions to control instrument buzzer
+-- @section buzzer
 
 -- The lengths of beeps, takes 0 (short), 1(med) or 2(long). 
 -- There are no gaps between long beeps
@@ -1080,8 +1142,10 @@ end
 
 
 -------------------------------------------------------------------------------
----@Section Analogue Output control
-----------------------------------------------------------------------------
+--- Analogue Output Control.
+-- Functions to configure and control the analogue output module
+-- @section analogue
+
 
 _M.REG_ANALOGUE_DATA = 0x0323
 _M.REG_ANALOGUE_TYPE = 0xA801
@@ -1151,7 +1215,9 @@ function _M.setAnalogCur(val)
 end
 
 -------------------------------------------------------------------------------
----@Section Setpoint Control
+--- Setpoint Control.
+-- Functions to setup adn control setpoint outputs
+-- @section setpoint
 ----------------------------------------------------------------------------
 
 
@@ -1284,7 +1350,7 @@ end
 -- @param target Target value
 function _M.setpTarget(setp,target)
     _M.setpParam(setp,_M.REG_SETP_TARGET, _M.toPrimary(target))
-    _M.saveSetting()
+    _M.saveSettings()
 end
 
 -------------------------------------------------------------------------------
@@ -1354,7 +1420,9 @@ end
 
 
 -------------------------------------------------------------------------------
----@Section Dialog Control
+--- Dialog Control.
+-- Functions for user interface dialogues
+-- @section dialog
 -------------------------------------------------------------------------------
 
 _M.getKeyPressed = 0
@@ -1478,7 +1546,7 @@ end
 function _M.delay(t)
     local tmr = _M.system.timers.addTimer(0, t, _M.delayCallback)
     _M.delayWaiting = true
-    while _M.delayWaiting and _M.app.running do
+    while _M.delayWaiting do
         _M.system.handleEvents()
     end  
     _M.system.timers.removeTimer(tmr)
@@ -1594,8 +1662,9 @@ end
 
 
 -------------------------------------------------------------------------------
--- @Section Printing Utilities
--------------------------------------------------------------------------------
+--- Printing Utilities.
+-- Functions for printing
+-- @section printing
 
 
 
@@ -1637,7 +1706,9 @@ end
 
 
 -------------------------------------------------------------------------------
--- @Section Real Time Clock
+--- Real Time Clock.
+-- Functions to control Real Time Clock
+-- @section clock
 -------------------------------------------------------------------------------
 
 --  Time and Date
@@ -1713,7 +1784,7 @@ function _M.RTCread(d)
       string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
   end
     
-  _M.RTC.sec, err = _M.readRegWait(_M.REG_TIMESEC)
+  _M.RTC.sec, err = _M.readReg(_M.REG_TIMESEC)
   
   if err then
     _M.RTC.sec = 0

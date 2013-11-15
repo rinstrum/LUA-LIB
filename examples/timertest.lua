@@ -19,12 +19,12 @@ package.path = package.path .. ";../src/?.lua"
 -- Require the rinApp module
 local rinApp = require "rinApp"
 
--- Add control of an L401 at the given IP and port
-local L401 = rinApp.addL401("127.0.0.1", 2222)
+-- Add control of an K401 at the given IP and port
+local K401 = rinApp.addK400("K401")
 
 -- Write to the LCD screen.
-L401.writeBotLeft("hardware")
-L401.writeBotRight("test")
+K401.writeBotLeft("hardware")
+K401.writeBotRight("test")
 
 -- Main application loop
 while rinApp.running do
@@ -33,8 +33,8 @@ while rinApp.running do
 	require 'pl.pretty'.dump(rinApp.system.timers.timers)
 	print "---------------------------"
 	
-	L401.rotWAIT(1)
-	L401.delay(500)
+	K401.rotWAIT(1)
+	K401.delay(500)
 end  
 
 -- Cleanup the application and exit
