@@ -16,6 +16,136 @@ local _M = con
 -- remove information that rinCON is already loaded to facilitate multiple connections
 package.loaded["rinLibrary.rinCon"] = nil
 
+-------------------------------------------------------------------------------
+---@Section Register Commands
+ 
+_M.sendRegWaiting = false
+_M.sendRegData = ''
+_M.sendRegErr = ''
+
+-------------------------------------------------------------------------------
+-- Private function
+function _M.sendRegCallback(data, err)
+    _M.sendRegWaiting = false
+    _M.sendRegData = data
+    _M.sendRegErr = err
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to send command to a register but not wait for the response
+-- @param cmd CMD_  command
+-- @param reg REG_  register 
+-- @param data to send
+function _M.sendReg(cmd, reg, data)
+  _M.send(nil, cmd, reg, data, "noReply")
+end
+
+
+
+-------------------------------------------------------------------------------
+-- Called to send command and wait for response
+-- @param cmd CMD_  command
+-- @param reg REG_  register 
+-- @param data to send
+-- @param t timeout in msec
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+function _M.sendRegWait(cmd, reg, data, t)
+    
+    local t = t or 500
+    
+    if reg == nil then
+          return nil, 'Nil Register'
+    end 
+    
+    local f = _M.deviceRegisters[reg]
+    _M.bindRegister(reg, _M.sendRegCallback)  
+    _M.sendRegWaiting = true
+    _M.send(nil, cmd, reg, data, "reply")
+    local tmr = _M.system.timers.addTimer(0, t, _M.sendRegCallback, nil, "Timeout")
+
+    while _M.sendRegWaiting and _M.app.running do
+        _M.system.handleEvents()
+    end
+    
+    if f then
+        _M.bindRegister(reg, _M.handleReply)  
+    end
+    
+    _M.system.timers.removeTimer(tmr)   
+    return _M.sendRegData, _M.sendRegErr    
+end
+
+-------------------------------------------------------------------------------
+-- Called to read register contents
+-- @param reg REG_  register 
+-- @return data received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+function _M.readReg(reg)
+    local data, err
+    
+    data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
+    if err then
+       _M.dbg.printVar('Read Error', err, _M.dbg.DEBUG)
+       return nil, err
+    else
+      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
+      if not a then
+           return data, nil
+      else
+       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
+       return tonumber(data),nil    
+      end   
+    end
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to write data to an instrument register 
+-- @param reg REG_  register 
+-- @param data to send
+function _M.writeReg(reg, data)
+  _M.send(nil, _M.CMD_WRFINALHEX, reg, data, "noReply")
+end
+
+-------------------------------------------------------------------------------
+-- Called to run a register execute command with data as the execute parameter 
+-- @param reg REG_  register 
+-- @param data to send
+function _M.exReg(reg, data)
+  _M.send(nil, _M.CMD_EXEC, reg, data, "noReply")
+end
+
+
+
+_M.REG_EDIT_REG = 0x0320
+-------------------------------------------------------------------------------
+--  Called to edit value of specified register
+-- @param reg is register to edit
+function _M.editReg(reg)
+   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+   while true do 
+     local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
+     
+     if data and tonumber(data,16) ~= reg then 
+       break
+     end
+     _M.delay(50)
+   end
+   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+   
+end
+
+
+
+
+
+
+
+
+
 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
@@ -32,8 +162,6 @@ _M.REG_SAFEPASS         = 0x001A
 _M.REG_SOFTMODEL        = 0x0003
 _M.REG_SOFTVER          = 0x0004
 _M.REG_SERIALNO         = 0x0005
-
-
 
 
 
@@ -122,8 +250,24 @@ _M.REG_USERNUM4         = 0x0313
 _M.REG_USERNUM5         = 0x0314
 
 -------------------------------------------------------------------------------
--- General Utilities
+-- @Section General Utilities
 -------------------------------------------------------------------------------
+
+
+_M.REG_LCDMODE          = 0x000D
+-------------------------------------------------------------------------------
+-- Called to setup LCD control
+-- @param mode  is 'lua' to control display from script or 'default' 
+-- to return control to the default instrement application 
+function _M.lcdControl(mode)
+    local mode = mode or ''
+    
+    if mode == 'lua' then
+     _M.sendReg(_M.CMD_EXEC,_M.REG_LCDMODE,2)
+    else
+     _M.sendReg(_M.CMD_EXEC,_M.REG_LCDMODE,1)
+    end
+end 
 
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
@@ -139,6 +283,7 @@ function _M.connect(model,sock, app)
     local ip, port = sock:getpeername()
     l,t = app.dbg.getDebugConfig()
     _M.dbg.configureDebug(t, t, ip)  -- configure debug port to match application debug but with local IP tag
+    _M.lcdControl('lua')
 end 
 
 -------------------------------------------------------------------------------
@@ -171,7 +316,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to save any changed settings and re-initialise instrument 
 --
-function _M.saveSetting()
+function _M.saveSettings()
     _M.sendRegWait(_M.CMD_EX,_M.REG_SAVESETTING)
 end
 
@@ -239,7 +384,8 @@ function _M.toFloat(data, dp)
    return data
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+------------------------------------------------- 
+--- @Section Streaming
 -- This section is for functions associated with streaming registers   
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
@@ -349,15 +495,15 @@ function _M.addStream(streamReg, callback, onChange)
     
     _M.streamRegisters[streamReg] = availReg
 
-    _M.send(nil, _M.CMD_WRFINALHEX, 
+    _M.sendReg(_M.CMD_WRFINALHEX, 
                 bit32.bor(_M.REG_LUA,_M.REG_STREAMMODE), 
-                _M.freq, 'noReply')
-    _M.send(nil, _M.CMD_WRFINALDEC, 
+                _M.freq)
+    _M.sendReg(_M.CMD_WRFINALDEC, 
                 bit32.bor(_M.REG_LUA, availReg), 
-                streamReg, 'noReply')
-    _M.send(nil, _M.CMD_EX, 
+                streamReg)
+    _M.sendReg(_M.CMD_EX, 
                 bit32.bor(_M.REG_LUA, _M.REG_STREAMDATA), 
-                _M.STM_START, 'noReply')
+                _M.STM_START)
     
     return streamReg
 end
@@ -370,7 +516,7 @@ function _M.removeStream(streamReg)
 
      if availReg == nil then return end   -- stream already removed
      
-    _M.send(nil,_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUA,availReg),0,'noReply')
+    _M.sendReg(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUA,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUA, availReg))
     
     _M.availRegisters[availReg].reg = 0
@@ -380,7 +526,7 @@ end
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
     for k,v in pairs(_M.availRegisters) do 
-        _M.send(nil, _M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUA, k), 0, 'noReply')
+        _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUA, k), 0)
         v.reg = 0
     end
     _M.streamRegisters = {}
@@ -394,9 +540,11 @@ function _M.setStreamFreq(freq)
     _M.freq = freq
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- From here onwards all functions are associated with the status monitoring      
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
+-------------------------------------------------------------------------------
+---@Section Status Monitoring
+-- From here onwards all functions are associated with the status monitoring 
+----------------------------------------------------------------------------
 
 _M.REG_LUA_STATUS   = 0x0329
 _M.REG_LUA_STAT_RTC = 0x032A
@@ -473,7 +621,7 @@ end
 function _M.setRTCStatus(s)
    local s = s or true
    if s then s = 1 else s = 0 end
-   _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s, "noReply") 
+   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
 end
 
 -------------------------------------------------------------------------------
@@ -483,14 +631,14 @@ end
 function _M.setRDGStatus(num)
     local num = num or 0
     if num > 255 then num = 255 end
-    _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RDG,num, "noReply")
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RDG,num)
 end
 
 -------------------------------------------------------------------------------
 -- private function
 function _M.setIOStatus(mask)
     local mask = mask or 0
-    _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_IO,mask, "noReply")
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_IO,mask)
 end
 
 -------------------------------------------------------------------------------
@@ -523,11 +671,13 @@ end
 function _M.endStatus()
     _M.removeStream(_M.statID)
 end
-   
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- From here onwards all functions are associated with the key presses      
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
+
+-------------------------------------------------------------------------------
+---@Section Key Handling
+-- From here onwards all functions are associated with the handing key presses 
+----------------------------------------------------------------------------
+   
 _M.firstKey = true    -- flag to catch any garbage
 -- Keys
 _M.KEY_0                = 0x0000
@@ -652,7 +802,7 @@ function _M.keyCallback(data, err)
     end
     
     if not handled then
-        _M.send(nil, _M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data, "noReply")
+        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
 end
 
@@ -675,8 +825,8 @@ end
 -------------------------------------------------------------------------------
 -- Setup key handling stream
 function _M.setupKeys()
-    _M.send(nil, _M.CMD_EX, _M.REG_FLUSH_KEYS, 0,"noReply")
-    _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1, "noReply")
+    _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
     _M.keyID = _M.addStream(_M.REG_GET_KEY, _M.keyCallback, 'change')
 end
 
@@ -685,17 +835,18 @@ end
 -- @param flush Flush the current keypresses that have not yet been handled
 function _M.endKeys(flush)
     if flush then
-        _M.send(nil, _M.CMD_EX, _M.REG_FLUSH_KEYS, 0, "noReply")
+        _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
     end
 
-    _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0, "noReply")
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
     
     _M.removeStream(_M.keyID)
 end
 
 -------------------------------------------------------------------------------
--- LCD Services
--------------------------------------------------------------------------------
+---@Section LCD Services
+----------------------------------------------------------------------------
+
 --LCD display registers
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 _M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
@@ -725,7 +876,7 @@ _M.curBotRight = ''
 -- @param s string to display
 function _M.writeBotLeft(s)
     if s then
-        _M.send(nil,_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,  s, "noReply")
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,  s)
         _M.curBotLeft = s
     end  
 end
@@ -735,7 +886,7 @@ end
 -- @param s string to display
 function _M.writeBotRight(s)
     if s then
-        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s, "noReply")
+        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s)
         _M.curBotRight = s
     end   
 end   
@@ -886,9 +1037,52 @@ function _M.restoreLcd()
    _M.writeBotAnnuns(0)
 end
 
+
 -------------------------------------------------------------------------------
---  Routines for Analogue Output control
+---@Section Buzzer Control
+----------------------------------------------------------------------------
+
+-- The lengths of beeps, takes 0 (short), 1(med) or 2(long). 
+-- There are no gaps between long beeps
+_M.REG_BUZZ_LEN =  0x0327
+-- takes 1 – 4, will clear to 0 once beeps have been executed
+_M.REG_BUZZ_NUM =  0x0328        
+
+_M.BUZZ_SHORT = 0
+_M.BUZZ_MEDIUM = 1
+_M.BUZZ_LONG = 2
+
 -------------------------------------------------------------------------------
+-- Called to set the length of the buzzer sound
+-- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
+function _M.setBuzzLen(len)
+
+   local len = len or _M.BUZZ_SHORT
+   if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
+   
+   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
+
+end
+-------------------------------------------------------------------------------
+-- Called to trigger instrument buzzer
+-- @param times  - number of times to buzz, 1..4
+function _M.buzz(times)
+    local times = times or 1
+    times = tonumber(times)
+    if times > 4 then 
+        times = 4 
+    end
+
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
+end
+
+
+
+
+-------------------------------------------------------------------------------
+---@Section Analogue Output control
+----------------------------------------------------------------------------
+
 _M.REG_ANALOGUE_DATA = 0x0323
 _M.REG_ANALOGUE_TYPE = 0xA801
 _M.REG_ANALOGUE_CLIP = 0xA806
@@ -914,11 +1108,9 @@ function _M.setAnalogType(typ)
     end  
     
     if _M.curAnalogType ~= prev then 
-        _M.send(nil,
-                _M.CMD_WRFINALDEC,
+        _M.sendReg(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_TYPE,
-                _M.curAnalogType,
-                "noReply") 
+                _M.curAnalogType) 
     end
 end   
 
@@ -959,8 +1151,9 @@ function _M.setAnalogCur(val)
 end
 
 -------------------------------------------------------------------------------
---  Routines for Setpoint Output control
--------------------------------------------------------------------------------
+---@Section Setpoint Control
+----------------------------------------------------------------------------
+
 
 _M.REG_IO_STATUS    = 0x0051
 _M.REG_IO_ENABLE    = 0x0054
@@ -1074,7 +1267,7 @@ end
 --------------------------------------------------------------------------------
 -- Private function
 function _M.setpParam(setp,reg,v)
-    _M.send(nil, _M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v, "noReply")
+    _M.sendReg(_M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v)
 end
 
 --------------------------------------------------------------------------------
@@ -1154,51 +1347,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints 
--- @param n is the number of setpoints 0..16
+-- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
-  _M.send(nil,_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n, "noReply")
+  _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
 end
 
--------------------------------------------------------------------------------
---Direct Buzzer Control
--------------------------------------------------------------------------------
-
--- The lengths of beeps, takes 0 (short), 1(med) or 2(long). 
--- There are no gaps between long beeps
-_M.REG_BUZZ_LEN =  0x0327
--- takes 1 – 4, will clear to 0 once beeps have been executed
-_M.REG_BUZZ_NUM =  0x0328        
-
-_M.BUZZ_SHORT = 0
-_M.BUZZ_MEDIUM = 1
-_M.BUZZ_LONG = 2
 
 -------------------------------------------------------------------------------
--- Called to set the length of the buzzer sound
--- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
-function _M.setBuzzLen(len)
-
-   local len = len or _M.BUZZ_SHORT
-   if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
-   
-   _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len, "noReply")
-
-end
--------------------------------------------------------------------------------
--- Called to trigger instrument buzzer
--- @param times  - number of times to buzz, 1..4
-function _M.buzz(times)
-    local times = times or 1
-    times = tonumber(times)
-    if times > 4 then 
-        times = 4 
-    end
-
-    _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times, "noReply")
-end
-
--------------------------------------------------------------------------------
---  Routines for Dialog control
+---@Section Dialog Control
 -------------------------------------------------------------------------------
 
 _M.getKeyPressed = 0
@@ -1306,95 +1462,6 @@ end
 
 
 
-
- 
-_M.sendRegWaiting = false
-_M.sendRegData = ''
-_M.sendRegErr = ''
-
--------------------------------------------------------------------------------
--- Private function
-function _M.sendRegCallback(data, err)
-    _M.sendRegWaiting = false
-    _M.sendRegData = data
-    _M.sendRegErr = err
-end
-
--------------------------------------------------------------------------------
--- Called to send command and wait for response
--- @param cmd CMD_  command
--- @param reg REG_  register 
--- @param data to send
--- @param t timeout in msec
--- @return data received from instrument, nil if error
--- @return err error string if error received, nil otherwise
-function _M.sendRegWait(cmd, reg, data, t)
-    
-    local t = t or 500
-    
-    if reg == nil then
-          return nil, 'Nil Register'
-    end 
-    
-    local f = _M.deviceRegisters[reg]
-    _M.bindRegister(reg, _M.sendRegCallback)  
-    _M.sendRegWaiting = true
-    _M.send(nil, cmd, reg, data, "reply")
-    local tmr = _M.system.timers.addTimer(0, t, _M.sendRegCallback, nil, "Timeout")
-
-    while _M.sendRegWaiting and _M.app.running do
-        _M.system.handleEvents()
-    end
-    
-    if f then
-        _M.bindRegister(reg, _M.handleReply)  
-    end
-    
-    _M.system.timers.removeTimer(tmr)   
-    return _M.sendRegData, _M.sendRegErr    
-end
-
--------------------------------------------------------------------------------
--- Called to read register contents
--- @param reg REG_  register 
--- @return data received from instrument, nil if error
--- @return err error string if error received, nil otherwise
-function _M.readRegWait(reg)
-    local data, err
-    
-    data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
-    if err then
-       _M.dbg.printVar('Read Error', err, _M.dbg.DEBUG)
-       return nil, err
-    else
-      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
-      if not a then
-           return data, nil
-      else
-       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
-       return tonumber(data),nil    
-      end   
-    end
-end
-
-_M.REG_EDIT_REG = 0x0320
--------------------------------------------------------------------------------
---  Called to edit value of specified register
--- @param reg is register to edit
-function _M.editRegister(reg)
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
-   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
-   while true do 
-     local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
-     
-     if data and tonumber(data,16) ~= reg then 
-       break
-     end
-     _M.delay(50)
-   end
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
-   
-end
 
 
 
@@ -1525,6 +1592,13 @@ function _M.selectOption(prompt, options, def, loop)
 end
 
 
+
+-------------------------------------------------------------------------------
+-- @Section Printing Utilities
+-------------------------------------------------------------------------------
+
+
+
 -- Custom Print Strings
 
 _M.REG_PRINTPORT        = 0x0317
@@ -1546,10 +1620,10 @@ function _M.printCustomTransmit(tokenStr, comPort)
     local comPort = comPort or _M.PRINT_SER1A
     if comPort ~= _M.curPrintPort  then
         _M.curPrintPort = comPort
-        _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
-        _M.send(nil,_M.CMD_EX, _M.REG_SAVESETTING,0)
+        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
+        _M.sendReg(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end 
-    _M.send(nil,_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
 end
 
 
@@ -1559,9 +1633,13 @@ end
 function _M.reqCustomTransmit(tokenStr)
     return _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_REPLYTOKENSTR, tokenStr, 1000)
 end
+
+
+
 -------------------------------------------------------------------------------
--- RTC  Routines
+-- @Section Real Time Clock
 -------------------------------------------------------------------------------
+
 --  Time and Date
 _M.REG_TIMECUR          = 0x0150
 _M.REG_TIMEFORMAT       = 0x0151
