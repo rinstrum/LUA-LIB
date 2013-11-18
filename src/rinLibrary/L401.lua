@@ -627,18 +627,19 @@ end
 -- LCD Services
 -------------------------------------------------------------------------------
 --LCD display registers
-_M.REG_DISP_BOTTOM_LEFT		= 0x000E	-- Takes string
-_M.REG_DISP_BOTTOM_RIGHT 	= 0x000F	-- Takes string
-_M.REG_DISP_TOP_LEFT		= 0x00A0	-- Takes string
-_M.REG_DISP_TOP_RIGHT		= 0x00A1	-- Takes string
-_M.REG_DISP_TOP_ANNUN		= 0x00A2
-_M.REG_DISP_TOP_UNITS		= 0x00A3	-- Takes string
-_M.REG_DISP_BOTTOM_ANNUN	= 0x00A4
-_M.REG_DISP_BOTTOM_UNITS	= 0x00A5
+_M.REG_DISP_LAYOUT          = 0x000D    -- execute register to change display mode
+_M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
+_M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
+_M.REG_DISP_TOP_LEFT        = 0x00A0    -- Takes string
+_M.REG_DISP_TOP_RIGHT       = 0x00A1    -- Takes string
+_M.REG_DISP_TOP_ANNUN       = 0x00A2
+_M.REG_DISP_TOP_UNITS       = 0x00A3    -- Takes string
+_M.REG_DISP_BOTTOM_ANNUN    = 0x00A4
+_M.REG_DISP_BOTTOM_UNITS    = 0x00A5
 
-_M.REG_DISP_AUTO_TOP_ANNUN	= 0x00A6	-- Register number  REG_*
-_M.REG_DISP_AUTO_TOP_LEFT	= 0x00A7	-- Register number  REG_*
-_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00A8	-- Register number  REG_*
+_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00A6    -- Register number  REG_*
+_M.REG_DISP_AUTO_TOP_LEFT   = 0x00A7    -- Register number  REG_*
+_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00A8    -- Register number  REG_*
 
 _M.REG_BUZ_LEN      = 0x0327
 _M.REG_BUZ_NUM      = 0x0328
