@@ -909,6 +909,7 @@ end
 -- @section lcd 
 
 --LCD display registers
+_M.REG_DISP_LAYOUT          = 0x000D    -- execute register to change display mode
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 _M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
 _M.REG_DISP_TOP_LEFT        = 0x00A0    -- Takes string
