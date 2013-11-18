@@ -1,0 +1,12 @@
+
+- Passcode Handling
+- Serial handling
+- Abort Key
+- Documentation
+- edit local registers
+
+
+
+Done:
+- Pass in App string
+- pass in rinAPP table rather than system table so we can monitor running flag
