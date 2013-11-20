@@ -9,18 +9,17 @@
 
 local assert = assert
 
+local socks = require "rinSystem.rinSockets.Pack"
+
 local _M = {}
 _M.running = false
 
-
 -- Create the rinApp resources
-
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
 
 package.loaded["rinLibrary.rinDebug"] = nil
-
 
 _M.devices = {}
 _M.dbg.configureDebug(arg[1], false, 'Application')
@@ -29,15 +28,18 @@ _M.dbg.printVar('',arg[1])
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
     local data = sock:receive("*l")
-      
-    if data == 'exit' then
+
+    if data == nil then
+        sock.close()
+        socks.removeSocket(sock)
+    elseif data == 'exit' then
      _M.running = false
     else  
      for k,v in pairs(_M.devices) do
         v.dbg.configureDebug(data)
      end 
      _M.dbg.configureDebug(data)
-    end  
+    end
 end
 
 -------------------------------------------------------------------------------
