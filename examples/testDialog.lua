@@ -19,6 +19,8 @@ K401.delay(2000)
 K401.writeBotLeft("")
 K401.writeBotRight("")
 
+id = K401.editReg(K401.REG_USERID1)
+dbg.printVar(' Value: ', id)
 -------------------------------------------------------------------------------
 -- Prompt user to enter the number of times to sound buzzer, validate, 
 -- and then buzz after 0.5 second delay  
@@ -38,6 +40,7 @@ K401.writeBotLeft(sel)
 K401.writeBotRight('SELECTED')
 dbg.printVar('Selected value', sel, dbg.INFO)
 K401.getKey()
+
 
 -------------------------------------------------------------------------------
 

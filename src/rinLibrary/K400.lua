@@ -126,7 +126,7 @@ _M.REG_EDIT_REG = 0x0320
 --  Called to edit value of specified register
 -- @param reg is register to edit
 function _M.editReg(reg)
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
@@ -136,7 +136,8 @@ function _M.editReg(reg)
      end
      _M.delay(50)
    end
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+   return _M.sendRegWait(_M.CMD_RDLIT,reg)
    
 end
 
@@ -1723,6 +1724,10 @@ _M.REG_TIMEYEAR         = 0x0154
 _M.REG_TIMEHOUR         = 0x0155
 _M.REG_TIMEMIN          = 0x0156
 _M.REG_TIMESEC          = 0x0157
+
+_M.REG_MSEC1000         = 0x015C
+_M.REG_MSEC             = 0x015D
+
 _M.TM_DDMMYY            = 0
 _M.TM_DDMMYYYY          = 1
 _M.TM_MMDDYY            = 2
