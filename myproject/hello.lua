@@ -16,11 +16,18 @@ package.path = package.path .. ";../src/?.lua"
 local rinApp = require "rinApp"
 
 -- Add control of an L401 at the given IP and port
-local K401 = rinApp.addK400("L401")
+local K401 = rinApp.addK400("K401")
+
+--- Test Comment.
+--@table wiring
+--@field FILL = 4
+
 
 -- Write "Hello world" to the LCD screen.
 K401.writeBotLeft("Hello")
 K401.writeBotRight("There")
+K401.writeTopLeft("LEFT")
+K401.writeTopRight("RIGHT")
 
 -- Wait for the user to press a key on the L401
 K401.getKey()
