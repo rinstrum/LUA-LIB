@@ -14,12 +14,16 @@ local socks = require "rinSystem.rinSockets.Pack"
 local _M = {}
 _M.running = false
 
+
 -- Create the rinApp resources
+
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
+bit32 = require "bit"
 
 package.loaded["rinLibrary.rinDebug"] = nil
+
 
 _M.devices = {}
 _M.dbg.configureDebug(arg[1], false, 'Application')
@@ -28,18 +32,18 @@ _M.dbg.printVar('',arg[1])
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
     local data = sock:receive("*l")
-
+   
     if data == nil then
         sock.close()
         socks.removeSocket(sock)
     elseif data == 'exit' then
-     _M.running = false
+       _M.running = false
     else  
      for k,v in pairs(_M.devices) do
         v.dbg.configureDebug(data)
      end 
      _M.dbg.configureDebug(data)
-    end
+    end  
 end
 
 -------------------------------------------------------------------------------
@@ -68,9 +72,9 @@ function _M.addK400(model, ip, port)
     s:connect(ip, port)
     s:settimeout(0.1)
     
-  
     -- Connect to the K400, and attach system if using the system library
     device.connect(app, s, _M)
+   
     -- Register the L401 with system
     _M.system.sockets.addSocket(device.socket, device.socketCallback)
     -- Add a timer to send data every 5ms
@@ -80,10 +84,11 @@ function _M.addK400(model, ip, port)
 
     _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
     
+  
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
-    
+    device.lcdControl('lua')
     return device, device.configure()
 end
 

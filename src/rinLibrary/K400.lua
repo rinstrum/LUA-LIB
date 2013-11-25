@@ -108,7 +108,7 @@ end
 -- @param reg REG_  register 
 -- @param data to send
 function _M.writeReg(reg, data)
-  _M.send(nil, _M.CMD_WRFINALHEX, reg, data, "noReply")
+  _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
 end
 
 -------------------------------------------------------------------------------
@@ -116,7 +116,7 @@ end
 -- @param reg REG_  register 
 -- @param data to send
 function _M.exReg(reg, data)
-  _M.send(nil, _M.CMD_EXEC, reg, data, "noReply")
+  _M.sendRegWait(_M.CMD_EX, reg, data)
 end
 
 
@@ -247,9 +247,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
     
     if mode == 'lua' then
-     _M.sendRegWait(_M.CMD_EXEC,_M.REG_LCDMODE,2)
+     _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,2)
     else
-     _M.sendRegWait(_M.CMD_EXEC,_M.REG_LCDMODE,1)
+     _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,1)
     end
 end 
 
@@ -267,7 +267,7 @@ function _M.connect(model,sock, app)
     local ip, port = sock:getpeername()
     l,t = app.dbg.getDebugConfig()
     _M.dbg.configureDebug(l, t, ip)  -- configure debug port to match application debug but with local IP tag
-    _M.lcdControl('lua')
+
 end 
 
 -------------------------------------------------------------------------------
@@ -910,19 +910,18 @@ end
 -- @section lcd 
 
 --LCD display registers
-_M.REG_DISP_LAYOUT          = 0x000D    -- execute register to change display mode
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 _M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-_M.REG_DISP_TOP_LEFT        = 0x00A0    -- Takes string
-_M.REG_DISP_TOP_RIGHT       = 0x00A1    -- Takes string
-_M.REG_DISP_TOP_ANNUN       = 0x00A2
-_M.REG_DISP_TOP_UNITS       = 0x00A3    -- Takes string
-_M.REG_DISP_BOTTOM_ANNUN    = 0x00A4
-_M.REG_DISP_BOTTOM_UNITS    = 0x00A5
+_M.REG_DISP_TOP_LEFT        = 0x00B    -- Takes string
+_M.REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
+_M.REG_DISP_TOP_ANNUN       = 0x00B2
+_M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
+_M.REG_DISP_BOTTOM_ANNUN    = 0x00B4
+_M.REG_DISP_BOTTOM_UNITS    = 0x00B5
 
-_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00A6    -- Register number  REG_*
-_M.REG_DISP_AUTO_TOP_LEFT   = 0x00A7    -- Register number  REG_*
-_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00A8    -- Register number  REG_*
+_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
+_M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
+_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
 
 _M.REG_BUZ_LEN      = 0x0327
 _M.REG_BUZ_NUM      = 0x0328
@@ -957,9 +956,7 @@ end
 _M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
-_M.writeBotUnits    = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_UNITS, 
-                                         _M.CMD_WRFINALHEX, 
-                                         "noReply")
+
 _M.writeTopLeft     = _M.preconfigureMsg(_M.REG_DISP_TOP_LEFT,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
@@ -997,6 +994,9 @@ _M.WAIT45    = 0x0100
 _M.WAIT90    = 0x0200
 _M.WAIT135   = 0x0080
 _M.WAITALL   = 0x03C0
+
+
+
   
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Bottom Annunciators
@@ -1088,6 +1088,34 @@ function _M.clrBitsTopAnnuns(d)
   _M.writeTopAnnuns(_M.topAnnunState)
 end
 
+
+-- REG_DISP UNITS BIT SETTINGS
+_M.UNITS_NONE    = 0x00
+_M.UNITS_KG      = 0x01
+_M.UNITS_LB      = 0x02
+_M.UNITS_T       = 0x03
+_M.UNITS_G       = 0x04
+_M.UNITS_OZ      = 0x05
+_M.UNITS_N       = 0x06
+_M.UNITS_ARROW_L = 0x07
+_M.UNITS_P       = 0x08
+_M.UNITS_L       = 0x09
+_M.UNITS_ARROW_H = 0x0A
+
+_M.UNITS_OTHER_PER_H   = 0x14
+_M.UNITS_OTHER_PER_M   = 0x11
+_M.UNITS_OTHER_PER_S   = 0x12
+_M.UNITS_OTHER_PC      = 0x30
+_M.UNITS_OTHER_TOT     = 0x08
+
+
+
+function _M.writeBotUnits (units, other)
+   local units = units or _M.UNITS_NONE
+   local other = other or _M.UNITS_NONE
+   _M.writeReg(_M.REG_DISP_BOTTOM_UNITS,bit32.bor(bit32.lshift(other,8),units))
+end
+
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 function _M.restoreLcd()
@@ -1098,6 +1126,7 @@ function _M.restoreLcd()
    _M.writeBotLeft('')
    _M.writeBotRight('')
    _M.writeBotAnnuns(0)
+   _M.writeBotUnits()
 end
 
 

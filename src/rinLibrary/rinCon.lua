@@ -28,12 +28,46 @@ _M.ADDR_NOREPLY			= 0x00
 _M.ADDR_BROADCAST		= 0x00
 
 -- Commands
+_M.CMD_RDTYPE           = 0x01
+_M.CMD_RDRANGEMIN       = 0x02
+_M.CMD_RDRANGEMAX       = 0x03
+_M.CMD_RDRAW            = 0x04
+
+
 _M.CMD_RDLIT			= 0x05
+_M.CMD_WRRAW            = 0x06
+_M.CMD_RDDEFAULT        = 0x07
+_M.CMD_RDNAME           = 0x09
+_M.CMD_RDITEM           = 0x0D
+_M.CMD_RDPERMISSION     = 0x0F
+
+
+
 _M.CMD_RDFINALHEX		= 0x11
 _M.CMD_RDFINALDEC		= 0x16
 _M.CMD_WRFINALHEX 		= 0x12
 _M.CMD_WRFINALDEC 		= 0x17
 _M.CMD_EX 				= 0x10
+
+-- Register Types
+_M.TYP_CHAR             = 0x00
+_M.TYP_UCHAR            = 0x01
+_M.TYP_SHORT            = 0x02
+_M.TYP_USHORT           = 0x03
+_M.TYP_LONG             = 0x04
+_M.TYP_ULONG            = 0x05
+_M.TYP_STRING           = 0x06
+_M.TYP_OPTION           = 0x07
+_M.TYP_MENU             = 0x08
+_M.TYP_WEIGHT           = 0x09
+_M.TYP_BLOB             = 0x0A
+_M.TYP_EXECUTE          = 0x0B
+_M.TYP_BITFIELD         = 0x0C
+
+
+
+
+
 
 --	Errors
 _M.ERR_UNKNOWN			= 0xC000
