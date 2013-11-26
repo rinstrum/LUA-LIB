@@ -912,7 +912,7 @@ end
 --LCD display registers
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 _M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-_M.REG_DISP_TOP_LEFT        = 0x00B    -- Takes string
+_M.REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
 _M.REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
 _M.REG_DISP_TOP_ANNUN       = 0x00B2
 _M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
