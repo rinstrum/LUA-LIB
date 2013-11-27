@@ -18,7 +18,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 Installation
 -------------------------------------------------------------------------------  
 
-The Rnstrum Lua Library can be used in multiple ways.
+The Rinstrum Lua Library can be used in multiple ways.
 
 On PC:
 The library can be used on a pc by requiring rinApp.lua. This can be done by
