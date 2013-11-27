@@ -8,41 +8,62 @@
 -------------------------------------------------------------------------------
 
 local assert = assert
+local string = string
+local pairs = pairs
+local require = require
+local dofile = dofile
+local bit32 = require "bit"
 
 local socks = require "rinSystem.rinSockets.Pack"
 
 local _M = {}
 _M.running = false
 
-
 -- Create the rinApp resources
-
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
-bit32 = require "bit"
+_M.dbgconfig = require "debugConfig"
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
+--"Usage: lua SCRIPTNAME [-- dbgconfig=PATH/TO/FILE]"
+local function handleArgs(args)
+    
+    for i=1,#args do
+    
+        local mid = string.find(args[i], "=")
+        
+        if mid == nil then
+            -- do nothing, because lua has no continue statement
+        elseif "dbgconfig" == string.sub(args[i], 1, mid - 1) then
+        
+            _M.dbconfig = dofile(string.sub(args[i], mid + 1, #args[i]))
+            
+            _M.dbg.configureDebug(_M.dbconfig, 'Application')
+            _M.dbg.printVar('', _M.dbg.LEVELS[_M.dbg.level])
+        end
+    end
+end
 
 _M.devices = {}
-_M.dbg.configureDebug(arg[1], false, 'Application')
-_M.dbg.printVar('',arg[1])
+_M.dbg.configureDebug(_M.dbgconfig, 'Application')
+handleArgs(arg)
 
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
     local data = sock:receive("*l")
-   
+       
     if data == nil then
         sock.close()
         socks.removeSocket(sock)
     elseif data == 'exit' then
-       _M.running = false
+        _M.running = false
     else  
-     for k,v in pairs(_M.devices) do
-        v.dbg.configureDebug(data)
-     end 
-     _M.dbg.configureDebug(data)
+        for k,v in pairs(_M.devices) do
+            v.dbg.configureDebug(data)
+        end
+        _M.dbg.configureDebug(data)
     end  
 end
 

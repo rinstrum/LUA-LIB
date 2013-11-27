@@ -13,9 +13,7 @@ local print = print
 local require = require
 
 local logging = require "logging"
-require "logging.console"
-
-local logger = logging.console("%message\n")
+local logger
 
 _M.DEBUG    = logging.DEBUG
 _M.INFO     = logging.INFO
@@ -30,7 +28,8 @@ _M.LEVELS[_M.WARN]  = 'WARN'
 _M.LEVELS[_M.ERROR] = 'ERROR'
 _M.LEVELS[_M.FATAL] = 'FATAL'
 
-_M.level = _M.INFO
+_M.config = nil
+_M.level = logging.INFO
 _M.useTimestamp = false
 _M.ip = ""
 
@@ -38,29 +37,17 @@ _M.ip = ""
 -- Configures the level for debugging
 -- @param level lualogging level, ('DEBUG','INFO','WARN','ERROR','FATAL', default is 'INFO'
 -- @param timestamp true if logging is to include date/time stamps
--- @tparam string ip is an optional tag printed with each message, 
+-- @param config Config file containing the logger type, level and timestamp option
+-- @param string ip is an optional tag printed with each message, 
 -- typically set to the IP address of the instrument but can be any description 
-function _M.configureDebug(level, timestamp, ip)
-
-     local found = false
-     -- try and match level to something meaningful in the logger library 
-     for k,v in pairs(_M.LEVELS) do
-        if level == k then
-            found = true
-            break
-        end
-        if type(level) == "string" and string.find(v,string.upper(level)) then
-           level = k
-           found = true
-        end
-      end       
-    if found then
-       _M.level = level       
-    end 
+function _M.configureDebug(config, ip)
     
-    if timestamp then 
-         _M.useTimestamp = timestamp
-    end     
+    _M.config = config
+    
+    logger = config.logger
+    _M.level = config.level
+    _M.useTimestamp = config.timestamp
+  
     logger:setLevel(_M.level)
    
     if type(ip) == "string" then
@@ -73,8 +60,8 @@ end
 -- @return level lualogging level
 -- @return timestamp: true if timestamp logging is to included 
 -- @return ip 
-function _M.getDebugConfig(level, timestamp, ip)
-  return _M.level,_M.useTimestamp,_M.ip
+function _M.getDebugConfig()
+    return _M.config, _M.ip
 end
 -------------------------------------------------------------------------------
 -- Converts table t into a string

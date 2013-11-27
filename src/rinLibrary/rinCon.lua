@@ -14,7 +14,6 @@ local tonum = tonumber
 local pairs = pairs
 local type = type
 
-
 local _M = {}
 _M.socket = nil   -- must be set to a connected socket for the module to work
 _M.dbg = require "rinLibrary.rinDebug"

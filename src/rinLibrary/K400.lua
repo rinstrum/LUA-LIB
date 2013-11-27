@@ -265,8 +265,8 @@ function _M.connect(model,sock, app)
     _M.app = app
     _M.system = app.system
     local ip, port = sock:getpeername()
-    l,t = app.dbg.getDebugConfig()
-    _M.dbg.configureDebug(l, t, ip)  -- configure debug port to match application debug but with local IP tag
+    local config = app.dbg.getDebugConfig()
+    _M.dbg.configureDebug(config, ip)  -- configure debug port to match application debug but with local IP tag
 
 end 
 
