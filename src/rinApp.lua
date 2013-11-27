@@ -59,11 +59,23 @@ local function userioCallback(sock)
         socks.removeSocket(sock)
     elseif data == 'exit' then
         _M.running = false
-    else  
-        for k,v in pairs(_M.devices) do
-            v.dbg.configureDebug(data)
+    else
+        local level = nil
+        
+        -- Get the level that corresponds to the text (should be UPPERCASE)
+        for k,v in pairs(_M.dbg.LEVELS) do
+            if data == v then
+                level = k
+            end
         end
-        _M.dbg.configureDebug(data)
+        
+        if level ~= nil then
+            -- Set the level in all devices connected
+            for k,v in pairs(_M.devices) do
+                v.dbg.config.logger:setLevel(level)
+            end
+            _M.dbg.config.logger:setLevel(level)
+        end
     end  
 end
 
