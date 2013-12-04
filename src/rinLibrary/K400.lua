@@ -310,7 +310,7 @@ _M.dp = 0
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
 -- @return nil if ok or error string if model doesn't match
-function _M.configure()
+function _M.configure(model)
     _M.fullscale, _M.dp = _M.getRegDP(_M.REG_FULLSCALE)
     local s, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SOFTMODEL)
     if not err then 
@@ -323,7 +323,7 @@ function _M.configure()
     if err then 
       _M.model = ''
       return err
-    elseif s ~= _M.model then
+    elseif model ~= _M.model then
       return "Wrong Software Model"
     else  
       return nil    
@@ -713,12 +713,14 @@ _M.firstKey = true    -- flag to catch any garbage
 -- @field KEY_UP              
 -- @field KEY_DOWN            
 -- @field KEY_OK              
--- @field KEY_SETUP           
- 
-
-
-
-
+-- @field KEY_SETUP
+-- @field KEY_PWR_ZERO   
+-- @field KEY_PWR_TARE              
+-- @field KEY_PWR_SEL     
+-- @field KEY_PWR_F1     
+-- @field KEY_PWR_F2     
+-- @field KEY_PWR_F3     
+-- @field KEY_PWR_CANCEL 
 
 
 _M.KEY_0                = 0x0000
@@ -734,7 +736,7 @@ _M.KEY_9                = 0x0009
 _M.KEY_POWER            = 0x000A
 _M.KEY_ZERO             = 0x000B
 _M.KEY_TARE             = 0x000C
-_M.KEY_GN               = 0x000D
+_M.KEY_SEL              = 0x000D
 _M.KEY_F1               = 0x000E
 _M.KEY_F2               = 0x000F
 _M.KEY_F3               = 0x0010
@@ -745,6 +747,15 @@ _M.KEY_UP               = 0x0014
 _M.KEY_DOWN             = 0x0015
 _M.KEY_OK               = 0x0016
 _M.KEY_SETUP            = 0x0017
+_M.KEY_PWR_ZERO         = 0x0018
+_M.KEY_PWR_TARE         = 0x0019
+_M.KEY_PWR_SEL          = 0x001A
+_M.KEY_PWR_F1           = 0x001B
+_M.KEY_PWR_F2           = 0x001C
+_M.KEY_PWR_F3           = 0x001D
+_M.KEY_PWR_CANCEL       = 0x001E
+_M.KEY_IDLE             = 0x001F
+
 
 --Lua key handling
 _M.REG_GET_KEY          = 0x0321
@@ -764,6 +775,8 @@ _M.keyGroup = {}
 -- @field keyGroup.keypad   
 -- @field keyGroup.numpad   
 -- @field keyGroup.cursor   
+-- @field keyGroup.extended   
+
 
 
 
@@ -773,6 +786,7 @@ _M.keyGroup.functions   = {callback = nil}
 _M.keyGroup.keypad      = {callback = nil}
 _M.keyGroup.numpad      = {callback = nil}
 _M.keyGroup.cursor      = {callback = nil}
+_M.keyGroup.extended    = {callback = nil}
 
 _M.keyBinds = {
     [_M.KEY_0]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
@@ -788,7 +802,7 @@ _M.keyBinds = {
     [_M.KEY_POWER]      = {_M.keyGroup.primary, _M.keyGroup.all},
     [_M.KEY_ZERO]       = {_M.keyGroup.primary, _M.keyGroup.all},
     [_M.KEY_TARE]       = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_GN]         = {_M.keyGroup.primary, _M.keyGroup.all},
+    [_M.KEY_SEL]         = {_M.keyGroup.primary, _M.keyGroup.all},
     [_M.KEY_F1]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
     [_M.KEY_F2]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
     [_M.KEY_F3]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
@@ -798,7 +812,16 @@ _M.keyBinds = {
     [_M.KEY_UP]         = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
     [_M.KEY_DOWN]       = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
     [_M.KEY_OK]         = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_SETUP]      = {_M.keyGroup.primary, _M.keyGroup.all}
+    [_M.KEY_SETUP]      = {_M.keyGroup.primary, _M.keyGroup.all},
+    [_M.KEY_PWR_ZERO]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_TARE]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_SEL ]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_F1  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_F2  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_F3  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
+    [_M.KEY_PWR_CANCEL ]   = {_M.keyGroup.extended, _M.keyGroup.all}
+    
+    
 
 }
 
@@ -821,6 +844,7 @@ function _M.keyCallback(data, err)
     if bit32.band(data, 0x40) > 0 then
         state = "up"
     end
+    
 
     -- Debug - throw away first 0 key garbage
     if data == 0 and _M.firstKey then
@@ -829,9 +853,10 @@ function _M.keyCallback(data, err)
     _M.firstKey = false 
     
     -- Debug  - throw away up and idle events 
-    if state == "up" or data == 30 then
-      return
+    if state == "up" or data == _M.KEY_IDLE then
+       return
     end  
+    
     
     local groups = _M.keyBinds[key]
     local handled = false
@@ -1757,7 +1782,7 @@ _M.REG_TIMESEC          = 0x0157
 
 _M.REG_MSEC1000         = 0x015C
 _M.REG_MSEC             = 0x015D
-
+_M.REG_MSECLAST        = 0x015F
 _M.TM_DDMMYY            = 0
 _M.TM_DDMMYYYY          = 1
 _M.TM_MMDDYY            = 2

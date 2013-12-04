@@ -117,12 +117,12 @@ function _M.addK400(model, ip, port)
 
     _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
     
-  
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
     device.lcdControl('lua')
-    return device, device.configure()
+    device.configure(model)
+    return device 
 end
 
 
@@ -133,6 +133,8 @@ end
 function _M.cleanup()
     for k,v in pairs(_M.devices) do
         v.restoreLcd()
+        v.lcdControl('default')
+
         v.streamCleanup()
         v.endKeys()
         v.delay(50)

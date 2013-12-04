@@ -9,30 +9,30 @@
 -- Include the src directory
 package.path = package.path .. ";../src/?.lua"
 
--- John changes
-
 -- Require the rinApp module
 local rinApp = require "rinApp"
 
--- Add control of an K401 at the given IP and port
-local K401 = rinApp.addK400("K401")
+
+-- Add control of an dwi at the given IP and port
+local dwi = rinApp.addK400("K401")
 
 -- Write "Hello world" to the LCD screen.
-K401.writeBotLeft("Hello")
-K401.writeBotRight("World")
+dwi.writeBotLeft("Hello")
+dwi.writeBotRight("World")
 
--- Wait for the user to press a key on the K401
+-- Wait for the user to press a key on the dwi
 
 running = true
 
 while running do
-   k, s = K401.getKey()
-
-   if (k == K401.KEY_5) then
+   k, s = dwi.getKey()
+   
+   dwi.writeBotUnits(dwi.UNITS_KG, dwi.UNITS_OTHER_PER_H)
+   if (k == dwi.KEY_5) then
        print ('Got cha')
        running = false
-   elseif (k == K401.KEY_F1) then
-      print(K401.readReg(K401.REG_SERIALNO))
+   elseif (k == dwi.KEY_F1) then
+      print(dwi.readReg(dwi.REG_SERIALNO))
    end    
    print(k,s)
 end
