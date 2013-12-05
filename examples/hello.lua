@@ -22,20 +22,7 @@ dwi.writeBotRight("World")
 
 -- Wait for the user to press a key on the dwi
 
-running = true
-
-while running do
-   k, s = dwi.getKey()
-   
-   dwi.writeBotUnits(dwi.UNITS_KG, dwi.UNITS_OTHER_PER_H)
-   if (k == dwi.KEY_5) then
-       print ('Got cha')
-       running = false
-   elseif (k == dwi.KEY_F1) then
-      print(dwi.readReg(dwi.REG_SERIALNO))
-   end    
-   print(k,s)
-end
+dwi.getKey()
 
 -- Cleanup the application and exit
 rinApp.cleanup()
