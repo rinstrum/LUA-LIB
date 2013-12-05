@@ -703,7 +703,7 @@ _M.firstKey = true    -- flag to catch any garbage
 -- @field KEY_POWER           
 -- @field KEY_ZERO            
 -- @field KEY_TARE            
--- @field KEY_GN              
+-- @field KEY_SEL             
 -- @field KEY_F1              
 -- @field KEY_F2              
 -- @field KEY_F3              

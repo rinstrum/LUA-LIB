@@ -211,7 +211,7 @@ local function primary(key, state)
      if key == K401.KEY_ZERO then
         return curState ~= IDLE
      -- TARE and GROSS/NET keys blocked
-     elseif key == K401.KEY_TARE or key == K401.KEY_GN then
+     elseif key == K401.KEY_TARE or key == K401.KEY_SEL then
         return true
      -- F1 to start/resume the filling process
      elseif key == K401.KEY_F1 then
