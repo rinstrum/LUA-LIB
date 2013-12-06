@@ -850,12 +850,12 @@ function _M.keyCallback(data, err)
     if data == 0 and _M.firstKey then
         return
     end
-    _M.firstKey = false 
+    _M.firstKey = false
     
-    -- Debug  - throw away up and idle events 
-    if state == "up" or data == _M.KEY_IDLE then
+    -- Debug  - throw away up and idle events
+    if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
        return
-    end  
+    end
     
     
     local groups = _M.keyBinds[key]

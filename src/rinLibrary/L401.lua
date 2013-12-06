@@ -483,7 +483,15 @@ _M.KEY_CANCEL			= 0x0013
 _M.KEY_UP				= 0x0014
 _M.KEY_DOWN				= 0x0015
 _M.KEY_OK				= 0x0016
-_M.KEY_SETUP			= 0x0017
+_M.KEY_SETUP            = 0x0017
+_M.KEY_PWR_ZERO         = 0x0018
+_M.KEY_PWR_TARE         = 0x0019
+_M.KEY_PWR_SEL          = 0x001A
+_M.KEY_PWR_F1           = 0x001B
+_M.KEY_PWR_F2           = 0x001C
+_M.KEY_PWR_F3           = 0x001D
+_M.KEY_PWR_CANCEL       = 0x001E
+_M.KEY_IDLE             = 0x001F
 
 --Lua key handling
 _M.REG_GET_KEY			= 0x0321
@@ -554,12 +562,12 @@ function _M.keyCallback(data, err)
 	if data == 0 and _M.firstKey then
 	    return
 	end
-    _M.firstKey = false	
+    _M.firstKey = false
 	
-	-- Debug  - throw away up and idle events 
-	if state == "up" or data == 30 then
+	-- Debug  - throw away up and idle events
+	if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
 	  return
-	end  
+	end
 	
 	local groups = _M.keyBinds[key]
 	local handled = false
