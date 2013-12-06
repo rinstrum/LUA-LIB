@@ -86,7 +86,6 @@ end
 -- @param ip IP address for the socket, "127.1.1.1" used as a default
 -- @param port port address for the socket 2222 used as default
 -- @return device object for this instrument
-
 function _M.addK400(model, ip, port)
     
     -- Create the socket
@@ -117,6 +116,9 @@ function _M.addK400(model, ip, port)
 
     _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
     
+    -- Flush the key presses
+    device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
+    
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
@@ -124,8 +126,6 @@ function _M.addK400(model, ip, port)
     device.configure(model)
     return device 
 end
-
-
     
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
