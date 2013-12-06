@@ -143,15 +143,6 @@ function _M.editReg(reg)
    
 end
 
-
-
-
-
-
-
-
-
-
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
 
@@ -167,10 +158,6 @@ _M.REG_SAFEPASS         = 0x001A
 _M.REG_SOFTMODEL        = 0x0003
 _M.REG_SOFTVER          = 0x0004
 _M.REG_SERIALNO         = 0x0005
-
-
-
-
 
 --- Instrument Readings.
 --@table readings
@@ -207,9 +194,6 @@ _M.REG_RAWADC           = 0x002D
 _M.REG_ALTNET           = 0x002E
 _M.REG_FULLSCALE        = 0x002F
 
-
-
-
 -- USER VARIABLES
 _M.REG_USERID_NAME1     = 0x0080
 _M.REG_USERID_NAME2     = 0x0081
@@ -237,8 +221,6 @@ _M.REG_USERNUM5         = 0x0314
 ---  General Utilities.
 -- General Functions for configuring the instrument
 -- @section general
-
-
 
 _M.REG_LCDMODE          = 0x000D
 -------------------------------------------------------------------------------
@@ -304,8 +286,6 @@ end
 function _M.saveSettings()
     _M.sendRegWait(_M.CMD_EX,_M.REG_SAVESETTING)
 end
-
-
 
 _M.fullscale = 3000
 _M.dp = 0 
@@ -373,8 +353,7 @@ end
 --- Streaming.
 -- This section is for functions associated with streaming registers 
 -- @section Streaming
- 
- 
+  
 --  Stream Register Definitions
 _M.REG_STREAMDATA       = 0x0040
 _M.REG_STREAMMODE       = 0x0041
@@ -423,9 +402,6 @@ _M.availRegisters = {   [_M.REG_STREAMREG1]= {['reg'] = 0,
                                               ['dp'] = 0}
                     }
 _M.streamRegisters = {}
-
-
-
 
 -------------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
@@ -510,6 +486,7 @@ function _M.removeStream(streamReg)
     _M.availRegisters[availReg].reg = 0
     _M.streamRegisters[streamReg] = nil
 end
+
 -------------------------------------------------------------------------------
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
@@ -528,13 +505,10 @@ function _M.setStreamFreq(freq)
     _M.freq = freq
 end
 
-
 -------------------------------------------------------------------------------
 --- Status Monitoring.
 -- Functions are associated with the status monitoring 
 -- @section status 
-
-
 
 --- Status Bits for REG_SYSSTATUS.
 --@table sysstatus
@@ -684,7 +658,6 @@ function _M.endStatus()
     _M.removeStream(_M.statID)
 end
 
-
 -------------------------------------------------------------------------------
 --- Key Handling.
 -- Functions associated with the handing key presses 
@@ -727,7 +700,6 @@ _M.firstKey = true    -- flag to catch any garbage
 -- @field KEY_PWR_F3     
 -- @field KEY_PWR_CANCEL 
 
-
 _M.KEY_0                = 0x0000
 _M.KEY_1                = 0x0001
 _M.KEY_2                = 0x0002
@@ -761,7 +733,6 @@ _M.KEY_PWR_F3           = 0x001D
 _M.KEY_PWR_CANCEL       = 0x001E
 _M.KEY_IDLE             = 0x001F
 
-
 --Lua key handling
 _M.REG_GET_KEY          = 0x0321
 _M.REG_FLUSH_KEYS       = 0x0322
@@ -781,9 +752,6 @@ _M.keyGroup = {}
 -- @field keyGroup.numpad   
 -- @field keyGroup.cursor   
 -- @field keyGroup.extended   
-
-
-
 
 _M.keyGroup.all         = {callback = nil}
 _M.keyGroup.primary     = {callback = nil}
@@ -825,9 +793,6 @@ _M.keyBinds = {
     [_M.KEY_PWR_F2  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
     [_M.KEY_PWR_F3  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
     [_M.KEY_PWR_CANCEL ]   = {_M.keyGroup.extended, _M.keyGroup.all}
-    
-    
-
 }
 
 -------------------------------------------------------------------------------
@@ -861,8 +826,7 @@ function _M.keyCallback(data, err)
     if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
        return
     end
-    
-    
+        
     local groups = _M.keyBinds[key]
     local handled = false
     if groups ~= nil then
@@ -1010,7 +974,6 @@ _M.setAutoBotLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_BOTTOM_LEFT,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
 
-
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 _M.BATTERY   = 0x0001
 _M.CLOCK     = 0x0002
@@ -1024,9 +987,6 @@ _M.WAIT45    = 0x0100
 _M.WAIT90    = 0x0200
 _M.WAIT135   = 0x0080
 _M.WAITALL   = 0x03C0
-
-
-
   
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Bottom Annunciators
@@ -1118,7 +1078,6 @@ function _M.clrBitsTopAnnuns(d)
   _M.writeTopAnnuns(_M.topAnnunState)
 end
 
-
 -- REG_DISP UNITS BIT SETTINGS
 _M.UNITS_NONE    = 0x00
 _M.UNITS_KG      = 0x01
@@ -1138,8 +1097,6 @@ _M.UNITS_OTHER_PER_S   = 0x12
 _M.UNITS_OTHER_PC      = 0x30
 _M.UNITS_OTHER_TOT     = 0x08
 
-
-
 function _M.writeBotUnits (units, other)
    local units = units or _M.UNITS_NONE
    local other = other or _M.UNITS_NONE
@@ -1158,7 +1115,6 @@ function _M.restoreLcd()
    _M.writeBotAnnuns(0)
    _M.writeBotUnits()
 end
-
 
 -------------------------------------------------------------------------------
 --- Buzzer Control.
@@ -1199,14 +1155,10 @@ function _M.buzz(times)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
-
-
-
 -------------------------------------------------------------------------------
 --- Analogue Output Control.
 -- Functions to configure and control the analogue output module
 -- @section analogue
-
 
 _M.REG_ANALOGUE_DATA = 0x0323
 _M.REG_ANALOGUE_TYPE = 0xA801
@@ -1220,6 +1172,7 @@ _M.curAnalogType = _M.CUR
 _M.writeAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA, 
                                          _M.CMD_WRFINALDEC, 
                                          "noReply")
+                                         
 -------------------------------------------------------------------------------
 -- Set the analog output type
 -- @param typ Type for output (.CUR or .VOLT)
@@ -1281,7 +1234,6 @@ end
 -- @section setpoint
 ----------------------------------------------------------------------------
 
-
 _M.REG_IO_STATUS    = 0x0051
 _M.REG_IO_ENABLE    = 0x0054
 
@@ -1329,9 +1281,6 @@ _M.TYPE_LGC_OR   = 10
 _M.TYPE_LGC_XOR  = 11
 _M.TYPE_BUZZER   = 12
 
-
-
-
 _M.lastOutputs = 0
 -- bits set if under LUA control, clear if under instrument control
 _M.lastIOEnable = 0    
@@ -1340,8 +1289,8 @@ _M.setp = {}
 
 _M.NUM_SETP = 16
  
- _M.setOutputs = _M.preconfigureMsg(_M.REG_IO_STATUS, _M.CMD_WRFINALDEC)
- _M.setOutputEnable = _M.preconfigureMsg(_M.REG_IO_ENABLE, _M.CMD_WRFINALDEC)
+_M.setOutputs = _M.preconfigureMsg(_M.REG_IO_STATUS, _M.CMD_WRFINALDEC)
+_M.setOutputEnable = _M.preconfigureMsg(_M.REG_IO_ENABLE, _M.CMD_WRFINALDEC)
 
 -------------------------------------------------------------------------------
 -- Turns IO Output on
@@ -1405,6 +1354,7 @@ end
 function _M.setpRegAddress(setp,reg)
   return (reg+((setp-1)*_M.REG_SETP_REPEAT)) 
 end
+
 -------------------------------------------------------------------------------
 -- Set Target for setpoint
 -- @param setp Setpoint 1..16
@@ -1478,7 +1428,6 @@ end
 function _M.setNumSetp(n)
   _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
 end
-
 
 -------------------------------------------------------------------------------
 --- Dialog Control.
@@ -1588,11 +1537,6 @@ function _M.edit(prompt, def, typ)
  
     return editVal, ok
 end
-
-
-
-
-
 
 _M.delayWaiting = false
 -------------------------------------------------------------------------------
@@ -1728,14 +1672,10 @@ function _M.selectOption(prompt, options, def, loop)
     return sel
 end
 
-
-
 -------------------------------------------------------------------------------
 --- Printing Utilities.
 -- Functions for printing
 -- @section printing
-
-
 
 -- Custom Print Strings
 
@@ -1775,8 +1715,6 @@ function _M.reqCustomTransmit(tokenStr)
     return s
 end
 
-
-
 -------------------------------------------------------------------------------
 --- Real Time Clock.
 -- Functions to control Real Time Clock
@@ -1802,7 +1740,6 @@ _M.TM_MMDDYY            = 2
 _M.TM_MMDDYYYY          = 3
 _M.TM_YYMMDD            = 4
 _M.TM_YYYYMMDD          = 5
-
 
 -------------------------------------------------------------------------------
 -- sets the instrument date format
@@ -1841,8 +1778,7 @@ function _M.RTCread(d)
   else
      _M.RTCdateFormat('year','month','day')
   end
-  
-  
+    
   local timestr, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_TIMECUR)
   
   if err then
@@ -1941,9 +1877,6 @@ _M.REG_CLRLIN           = 0x0105
 _M.REG_CALIBDIRZERO     = 0x0106
 _M.REG_CALIBDIRSPAN     = 0x0107
 
-
-
-
 _M.cmdString = {}
 _M.cmdString[0] = 'OK'
 _M.cmdString[1] = 'CANCEL'
@@ -2004,8 +1937,5 @@ end
 function _M.grossNetToggle()
     return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
 end
-
-
-
 
 return _M
