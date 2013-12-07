@@ -490,7 +490,10 @@ end
 -------------------------------------------------------------------------------
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
-    for k,v in pairs(_M.availRegisters) do 
+    _M.sendReg(_M.CMD_EX,
+                bit32.bor(_M.REG_LUA, _M.REG_STREAMDATA),
+                _M.STM_STOP)  -- stop streaming first
+    for k,v in pairs(_M.availRegisters) do
         _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUA, k), 0)
         v.reg = 0
     end
