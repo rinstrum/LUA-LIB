@@ -102,7 +102,6 @@ function _M.addK400(model, ip, portA, portB)
 
     _M.devices[#_M.devices+1] = device
   
-    
     local sA = assert(require "socket".tcp())
     sA:connect(ip, portA)
     sA:settimeout(0.1)
@@ -124,9 +123,6 @@ function _M.addK400(model, ip, portA, portB)
     -- Add a timer for the heartbeat (every 5s)
     _M.system.timers.addTimer(5000, 1000, device.sendMsg, "20110001:", true)
 
- 
-    
-    
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
     device.streamCleanup()  -- Clean up any existing streams on connect

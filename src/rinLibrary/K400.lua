@@ -9,7 +9,6 @@
 
 local bit32 = require "bit"
 
-
 local con = require "rinLibrary.rinCon"
 -- build rest of K400 on top of rinCon
 local _M = con  
@@ -25,14 +24,12 @@ _M.sendRegWaiting = false
 _M.sendRegData = ''
 _M.sendRegErr = ''
 
-
 -- Private function
 function _M.sendRegCallback(data, err)
     _M.sendRegWaiting = false
     _M.sendRegData = data
     _M.sendRegErr = err
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
@@ -42,8 +39,6 @@ end
 function _M.sendReg(cmd, reg, data)
   _M.send(nil, cmd, reg, data, "noReply")
 end
-
-
 
 -------------------------------------------------------------------------------
 -- Called to send command and wait for response
@@ -104,7 +99,6 @@ function _M.readReg(reg)
     end
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to write data to an instrument register 
 -- @param reg REG_  register 
@@ -120,8 +114,6 @@ end
 function _M.exReg(reg, data)
   _M.sendRegWait(_M.CMD_EX, reg, data)
 end
-
-
 
 _M.REG_EDIT_REG = 0x0320
 -------------------------------------------------------------------------------
@@ -329,6 +321,7 @@ function _M.toPrimary(v)
   v = math.floor(v+0.5)
   return(v)
 end
+
 -------------------------------------------------------------------------------
 -- called to convert hexadecimal return string to a floating point number
 -- @param data returned from _CMD_RDFINALHEX or from stream
@@ -455,8 +448,6 @@ function _M.addStream(streamReg, callback, onChange)
     _M.availRegisters[availReg].lastData = ''
     _,_M.availRegisters[availReg].dp = _M.getRegDP(streamReg)
     
-    
-    
     _M.streamRegisters[streamReg] = availReg
 
     _M.sendReg(_M.CMD_WRFINALHEX, 
@@ -493,10 +484,12 @@ function _M.streamCleanup()
     _M.sendReg(_M.CMD_EX,
                 bit32.bor(_M.REG_LUA, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
+    
     for k,v in pairs(_M.availRegisters) do
         _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUA, k), 0)
         v.reg = 0
     end
+    
     _M.streamRegisters = {}
 end
 
@@ -816,8 +809,7 @@ function _M.keyCallback(data, err)
     
     if bit32.band(data, 0x40) > 0 then
         state = "up"
-    end
-    
+    end    
 
     -- Debug - throw away first 0 key garbage
     if data == 0 and _M.firstKey then
@@ -990,7 +982,7 @@ _M.WAIT45    = 0x0100
 _M.WAIT90    = 0x0200
 _M.WAIT135   = 0x0080
 _M.WAITALL   = 0x03C0
-  
+
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Bottom Annunciators
 -- @param d holds bit locations
@@ -1145,6 +1137,7 @@ function _M.setBuzzLen(len)
    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
 
 end
+
 -------------------------------------------------------------------------------
 -- Called to trigger instrument buzzer
 -- @param times  - number of times to buzz, 1..4
@@ -1542,6 +1535,7 @@ function _M.edit(prompt, def, typ)
 end
 
 _M.delayWaiting = false
+
 -------------------------------------------------------------------------------
 -- Private function
 function _M.delayCallback()
