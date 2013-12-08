@@ -65,7 +65,26 @@ _M.TYP_BLOB             = 0x0A
 _M.TYP_EXECUTE          = 0x0B
 _M.TYP_BITFIELD         = 0x0C
 
-
+_M.typStrings = 
+{
+  [0x00] = "char",
+  [0x01] = "unsigned char",
+  [0x02] = "short",
+  [0x03] = "unsigned short",
+  [0x04] = "long",
+  [0x05] = "unsigned long",
+  [0x06] = "string",
+  [0x07] = "option",
+  [0x08] = "menu",
+  [0x09] = "weight",
+  [0x0A] = "blob",
+  [0x0B] = "execute",
+  [0x0C] = "unknown",
+  [0x0D] = "unknown",
+  [0x0E] = "unknown",
+  [0x0F] = "unknown",
+  [0x10] = "unknown" ,
+}
 
 
 
@@ -99,7 +118,39 @@ _M.errStrings =
 }
 
 _M.deviceRegisters = {}
-_M.errHandler = nil
+
+-------------------------------------------------------------------------------
+-- Default Error Handler, logs error to debug at WARN level with error string 
+-- and received command  
+-- takes arguments: Address, Command, Register, Data, Err String
+-- from message processing 
+function _M.defaultErrHandler(addr, cmd, reg, data, s)
+
+  tmps = str.format("%s (%02d%02d%04d:%s)",s,tonum(addr),tonum(cmd),tonum(reg),data) 
+  _M.dbg.printVar('rinCMD Error: ',tmps, _M.dbg.WARN) 
+
+end
+
+_M.errHandler = _M.defaultErrHandler
+
+-------------------------------------------------------------------------------
+-- Set your own routine to handle errors reported from the instrument
+-- @param errHandler Function for handling errors, 
+-- should take arguments: Address, Command, Register, Data, Err String.
+function _M.setErrHandler(errHandler)
+    _M.errHandler = errHandler
+end
+
+-------------------------------------------------------------------------------
+-- Removes the error handler
+-- @return original registered handler
+function _M.removeErrHandler()
+    local f = _M.errHandler
+    _M.errHandler = nil
+    return f
+end
+
+
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
@@ -107,9 +158,11 @@ _M.errHandler = nil
 function _M.socketACallback()
     local addr, cmd, reg, data, err = _M.processMsg(_M.recMsg())
     
-    if err and _M.addErrHandler then
-        _M.errHandler(cmd,reg,data,err)
-        return
+    if err then
+       if _M.errHandler then
+        _M.errHandler(addr,cmd,reg,data,err)
+       end
+       data = nil
     end
     
     local called = false
@@ -294,7 +347,6 @@ function _M.processMsg(msg)
     end
             
     if bit32.band(addr, _M.ADDR_ERR) == _M.ADDR_ERR then
-        _M.dbg.printVar('rinCMD Error: ',_M.errStrings[tonum(data,16)]..' ('..msg..')', _M.dbg.WARN) 
         addr = bit32.band(addr, 0x1F)
         return addr, cmd, reg, data, _M.errStrings[tonum(data,16)] 
     end
@@ -376,7 +428,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set up a callback for when data on a specific register is received
--- @param reg Register to give callback, (_M.REG_*), 0 is used to match anything received that has no other binding
+-- @param reg Register to give callback, (REG_*), 0 is used to match anything received that has no other binding
 -- @param callback Function to be run when data is received
 function _M.bindRegister(reg, callback)
     _M.deviceRegisters[reg] = callback
@@ -384,23 +436,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Unbind a register
--- @param reg Register to remove callback, (_M.REG_*)
+-- @param reg Register to remove callback, (REG_*)
 function _M.unbindRegister(reg)
     _M.deviceRegisters[reg] = nil
-end
-
--------------------------------------------------------------------------------
--- Handles errors that are not register related (e.g. bad CRC, bad delimiters)
--- @param errHandler Function for handling errors, 
--- should take arguments: Address, Command, Register, Data, Err String.
-function _M.setErrHandler(errHandler)
-    _M.errHandler = errHandler
-end
-
--------------------------------------------------------------------------------
--- Removes the error handler
-function _M.removeErrHandler()
-    _M.errHandler = nil
 end
 
 

@@ -72,7 +72,9 @@ function _M.sendRegWait(cmd, reg, data, t)
     end
     
     if f then
-        _M.bindRegister(reg, _M.handleReply)  
+        _M.bindRegister(reg, f)  
+    else 
+        _M.unbindRegister(reg)
     end
     
     _M.system.timers.removeTimer(tmr)   
@@ -131,7 +133,7 @@ function _M.editReg(reg)
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
      
-     if data and tonumber(data,16) ~= reg then 
+     if err or (data and tonumber(data,16) ~= reg) then 
        break
      end
      _M.delay(50)
@@ -431,6 +433,8 @@ _M.streamRegisters = {}
 -- @param err Potential error message
 function _M.streamCallback(data, err)
    
+    if err then return end
+    
     for k,v in pairs(_M.availRegisters) do
         if v.reg ~= 0 then
             local ind = (k - _M.REG_STREAMREG1) * 8
@@ -1695,10 +1699,18 @@ function _M.selectOption(prompt, options, def, loop)
         key = _M.getKey(_M.keyGroup.cursor)  
         if key == _M.KEY_DOWN then
             index = index - 1
-            if index == 0 and loop then index = #options end
+            if index == 0 and loop then 
+               index = #options
+            else
+               index = 1
+            end
         elseif key == _M.KEY_UP then
             index = index + 1
-            if index > #options and loop then index = 1 end
+            if index > #options and loop then 
+               index = 1 
+            else 
+               index = #options
+            end
         elseif key == _M.KEY_OK then 
             sel = options[index]
             editing = false
