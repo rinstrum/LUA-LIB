@@ -84,41 +84,51 @@ end
 -- streams and other services
 -- @param model Software model expected for the instrument (eg "K401")
 -- @param ip IP address for the socket, "127.1.1.1" used as a default
--- @param port port address for the socket 2222 used as default
+-- @param portA port address for the SERA socket (2222 used as default)
+-- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
-function _M.addK400(model, ip, port)
+function _M.addK400(model, ip, portA, portB)
     
     -- Create the socket
     local ip = ip or "127.1.1.1"
-    local port = port or 2222
-    local app = app or ""
+    local portA = portA or 2222
+    local portB = portB or 2223
+    
+    local model = model or ""
     
     local device = require "rinLibrary.K400"
     
-    package.loaded["rinLibrary.L401"] = nil
+    package.loaded["rinLibrary.K400"] = nil
 
     _M.devices[#_M.devices+1] = device
   
     
-    local s = assert(require "socket".tcp())
-    s:connect(ip, port)
-    s:settimeout(0.1)
+    local sA = assert(require "socket".tcp())
+    sA:connect(ip, portA)
+    sA:settimeout(0.1)
+    local sB = assert(require "socket".tcp())
+    sB:connect(ip, portB)
+    sB:settimeout(5.1)
     
     -- Connect to the K400, and attach system if using the system library
-    device.connect(app, s, _M)
+    device.connect(model, sA, sB, _M)
    
-    -- Register the L401 with system
-    _M.system.sockets.addSocket(device.socket, device.socketCallback)
+    -- Register the K400 with system
+    _M.system.sockets.addSocket(device.socketA, device.socketACallback)
+-- TODO:  Get second socket working 
+-- commented out to enable system to run, otherwise get a socket closed error
+--    _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
+
     -- Add a timer to send data every 5ms
     _M.system.timers.addTimer(5, 100, device.sendQueueCallback)
     -- Add a timer for the heartbeat (every 5s)
     _M.system.timers.addTimer(5000, 1000, device.sendMsg, "20110001:", true)
 
-    _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
+ 
+    
     
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
-    
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
@@ -143,6 +153,7 @@ function _M.cleanup()
 end
 
 _M.running = true
+_M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
 _M.dbg.printVar('------   Application Started   -----', '', _M.dbg.INFO)
 
 return _M

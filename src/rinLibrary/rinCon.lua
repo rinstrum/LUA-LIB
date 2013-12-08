@@ -15,7 +15,9 @@ local pairs = pairs
 local type = type
 
 local _M = {}
-_M.socket = nil   -- must be set to a connected socket for the module to work
+_M.socketA = nil   -- must be set to a connected socket for the module to work
+_M.socketB = nil   -- must be set to a connected socket for the module to work
+
 _M.dbg = require "rinLibrary.rinDebug"
 package.loaded["rinLibrary.rinDebug"] = nil
 
@@ -102,11 +104,11 @@ _M.errHandler = nil
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
-function _M.socketCallback()
-    local addr, cmd, reg, data, err = _M.getProcessed()
+function _M.socketACallback()
+    local addr, cmd, reg, data, err = _M.processMsg(_M.recMsg())
     
     if err and _M.addErrHandler then
-        _M.errHandler(err)
+        _M.errHandler(cmd,reg,data,err)
         return
     end
     
@@ -158,19 +160,22 @@ function _M.sendQueueCallback()
     if not _M.Qempty() then
         local msg = _M.popQ()
         _M.dbg.printVar('<<<', msg, _M.dbg.DEBUG)
-        _M.socket:send(msg)
+        _M.socketA:send(msg)
    end
 end
 
 -------------------------------------------------------------------------------
 -- Disconnect from the R400
 function _M.disconnect()
-    _M.socket:close()
-    _M.socket = nil
+    _M.socketA:close()
+    _M.socketA = nil
+    _M.socketB:close()
+    _M.socketB = nil
+
 end
 
 -------------------------------------------------------------------------------
--- Receive a message from a socket.
+-- Receive a rinCMD message from a socket linked to SERA.
 -- Receives one byte at a time, and ends the message based on specified 
 -- delimiters
 -- @return A string bounded by delimiters (nil if error)
@@ -182,7 +187,7 @@ function _M.recMsg()
 
     while true do
         prevchar = char
-        char, err = _M.socket:receive(1)
+        char, err = _M.socketA:receive(1)
 
         if err then break end
         
@@ -208,8 +213,8 @@ function _M.recMsg()
         return msg, nil
     end
     
-    _M.dbg.printVar("Receive failed: ", err, _M.dbg.ERROR)
-    os.exit(1)
+    _M.dbg.printVar("Receive SERA failed: ", err, _M.dbg.ERROR)
+--    os.exit(1)
     return nil, err
 end
 
@@ -290,7 +295,8 @@ function _M.processMsg(msg)
             
     if bit32.band(addr, _M.ADDR_ERR) == _M.ADDR_ERR then
         _M.dbg.printVar('rinCMD Error: ',_M.errStrings[tonum(data,16)]..' ('..msg..')', _M.dbg.WARN) 
-        return nil, nil, nil, data, _M.errStrings[tonum(data,16)] 
+        addr = bit32.band(addr, 0x1F)
+        return addr, cmd, reg, data, _M.errStrings[tonum(data,16)] 
     end
     
     addr = bit32.band(addr, 0x1F)
@@ -299,17 +305,6 @@ function _M.processMsg(msg)
     
 end
 
-
--------------------------------------------------------------------------------
--- Reads a processed message from the R400
--- @return address (0x00 to 0x1F)
--- @return command  (CMD_*)
--- @return register (REG_*)
--- @return data
--- @return error
-function _M.getProcessed()
-    return _M.processMsg(_M.recMsg())
-end
 
 -------------------------------------------------------------------------------
 -- Sends a raw message
@@ -396,7 +391,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Handles errors that are not register related (e.g. bad CRC, bad delimiters)
--- @param errHandler Function for handling errors, should take one argument.
+-- @param errHandler Function for handling errors, 
+-- should take arguments: Address, Command, Register, Data, Err String.
 function _M.setErrHandler(errHandler)
     _M.errHandler = errHandler
 end
@@ -406,5 +402,68 @@ end
 function _M.removeErrHandler()
     _M.errHandler = nil
 end
+
+
+
+_M.start = '\02'
+_M.end1 = '\03'
+_M.end2 = nil
+
+-------------------------------------------------------------------------------
+-- Designed to be registered with rinSystem. 
+function _M.socketBCallback()
+
+    local char, prevchar, err
+    local buffer = {}
+    local msg
+
+    while true do
+        prevchar = char
+        char, err = _M.socketB:receive(1)
+
+        if err then break end
+        
+        if char == start then
+            buffer = {}
+        end
+
+        table.insert(buffer,char)
+
+        if (end2) then
+           if (prevchar == end1 and char == end2) then
+              break
+           end
+        else
+          if (char == end2) then
+             break
+          end
+         end          
+    end
+    
+    if err == nil then
+        msg = table.concat(buffer)
+        _M.dbg.printVar('-->', msg, _M.dbg.DEBUG) 
+        return msg, nil
+    end
+    
+    _M.dbg.printVar("Receive SERB failed: ", err, _M.dbg.ERROR)
+--    os.exit(1)
+    return nil, err
+
+
+end
+
+-------------------------------------------------------------------------------
+-- Set delimiters for messages received from the socket linked to SERB 
+-- @param start character, nil if not used (eg '\02')
+-- @param end1, end2 end characters, nil if not used (eg '\r', '\n')
+function _M.setDelimiters(start, end1, end2)
+
+   _M.start = start
+   _M.end1 = end1
+   _M.end2 = end2
+end
+
+
 
 return _M

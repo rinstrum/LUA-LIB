@@ -256,15 +256,16 @@ end
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
 -- @param model Software model expected for the instrument (eg "K401")
--- @param sock TCP socket to connect
+-- @param sockA, sockB TCP sockets to connect  SERA and SERB ports
 -- @param app application framework
 _M.model = ''
-function _M.connect(model,sock, app)
+function _M.connect(model,sockA, sockB, app)
     _M.model = model
-    _M.socket = sock
+    _M.socketA = sockA
+    _M.socketB = sockB
     _M.app = app
     _M.system = app.system
-    local ip, port = sock:getpeername()
+    local ip, port = sockA:getpeername()
     local config = app.dbg.getDebugConfig()
     _M.dbg.configureDebug(config, ip)  -- configure debug port to match application debug but with local IP tag
 
