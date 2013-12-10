@@ -34,15 +34,12 @@ _M.CMD_RDRANGEMIN       = 0x02
 _M.CMD_RDRANGEMAX       = 0x03
 _M.CMD_RDRAW            = 0x04
 
-
 _M.CMD_RDLIT            = 0x05
 _M.CMD_WRRAW            = 0x06
 _M.CMD_RDDEFAULT        = 0x07
 _M.CMD_RDNAME           = 0x09
 _M.CMD_RDITEM           = 0x0D
 _M.CMD_RDPERMISSION     = 0x0F
-
-
 
 _M.CMD_RDFINALHEX       = 0x11
 _M.CMD_RDFINALDEC       = 0x16
@@ -85,9 +82,6 @@ _M.typStrings =
   [0x0F] = "unknown",
   [0x10] = "unknown" ,
 }
-
-
-
 
 --  Errors
 _M.ERR_UNKNOWN          = 0xC000
@@ -133,7 +127,6 @@ function _M.defaultErrHandler(addr, cmd, reg, data, s)
   else
     tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
   end
-
    
   _M.dbg.printVar('rinCMD Error: ',tmps, _M.dbg.WARN) 
 
@@ -157,8 +150,6 @@ function _M.removeErrHandler()
     _M.errHandler = nil
     return f
 end
-
-
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
@@ -232,7 +223,6 @@ function _M.disconnect()
     _M.socketA = nil
     _M.socketB:close()
     _M.socketB = nil
-
 end
 
 -------------------------------------------------------------------------------
@@ -449,8 +439,6 @@ function _M.unbindRegister(reg)
     _M.deviceRegisters[reg] = nil
 end
 
-
-
 _M.start = '\02'
 _M.end1 = '\03'
 _M.end2 = nil
@@ -496,20 +484,19 @@ function _M.socketBCallback()
 --    os.exit(1)
     return nil, err
 
-
 end
 
 -------------------------------------------------------------------------------
 -- Set delimiters for messages received from the socket linked to SERB 
--- @param start character, nil if not used (eg '\02')
--- @param end1, end2 end characters, nil if not used (eg '\r', '\n')
+-- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
+-- @param start start character, nil if not used
+-- @param end1 first end character, nil if not used
+-- @param end2 second end character, nil if not used
 function _M.setDelimiters(start, end1, end2)
 
    _M.start = start
    _M.end1 = end1
    _M.end2 = end2
 end
-
-
 
 return _M

@@ -35,11 +35,8 @@ _M.ip = ""
 
 -------------------------------------------------------------------------------
 -- Configures the level for debugging
--- @param level lualogging level, ('DEBUG','INFO','WARN','ERROR','FATAL', default is 'INFO'
--- @param timestamp true if logging is to include date/time stamps
 -- @param config Config file containing the logger type, level and timestamp option
--- @param string ip is an optional tag printed with each message, 
--- typically set to the IP address of the instrument but can be any description 
+-- @param ip optional tag printed with each message (usually IP address of the instrument)
 function _M.configureDebug(config, ip)
     
     _M.config = config
@@ -118,8 +115,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Prints variable v contents to stdio with optional name tag
--- @param v is a variable whose contents are to be printed
 -- @param name is the name of the variable (optional)
+-- @param v is a variable whose contents are to be printed
 -- @param level is the debug level for the message  INFO by default
 function _M.printVar(name, v, level)
     local level = level or _M.INFO
