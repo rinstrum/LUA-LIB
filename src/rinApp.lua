@@ -116,7 +116,7 @@ function _M.addK400(model, ip, portA, portB)
     _M.system.sockets.addSocket(device.socketA, device.socketACallback)
 -- TODO:  Get second socket working 
 -- commented out to enable system to run, otherwise get a socket closed error
---    _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
+    _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
 
     -- Add a timer to send data every 5ms
     _M.system.timers.addTimer(5, 100, device.sendQueueCallback)

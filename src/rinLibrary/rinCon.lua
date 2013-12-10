@@ -440,8 +440,8 @@ function _M.unbindRegister(reg)
 end
 
 _M.start = '\02'
-_M.end1 = '\03'
-_M.end2 = nil
+_M.end1 = nil
+_M.end2 = '\03'
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
@@ -457,21 +457,15 @@ function _M.socketBCallback()
 
         if err then break end
         
-        if char == start then
+        if char == _M.start then
             buffer = {}
         end
 
         table.insert(buffer,char)
 
-        if (end2) then
-           if (prevchar == end1 and char == end2) then
-              break
-           end
-        else
-          if (char == end2) then
-             break
-          end
-         end          
+        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end2) then
+            break
+        end          
     end
     
     if err == nil then
