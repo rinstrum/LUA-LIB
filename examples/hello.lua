@@ -21,7 +21,6 @@ dwi.writeBotLeft("Hello")
 dwi.writeBotRight("World")
 
 -- Wait for the user to press a key on the dwi
-
 dwi.getKey()
 
 -- Cleanup the application and exit

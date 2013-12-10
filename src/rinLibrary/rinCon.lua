@@ -125,8 +125,16 @@ _M.deviceRegisters = {}
 -- takes arguments: Address, Command, Register, Data, Err String
 -- from message processing 
 function _M.defaultErrHandler(addr, cmd, reg, data, s)
+  
+  local tmps
+  
+  if addr == nil then
+    tmps = str.format("%s (broken message)", s)
+  else
+    tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
+  end
 
-  tmps = str.format("%s (%02d%02d%04d:%s)",s,tonum(addr),tonum(cmd),tonum(reg),data) 
+   
   _M.dbg.printVar('rinCMD Error: ',tmps, _M.dbg.WARN) 
 
 end
