@@ -18,7 +18,7 @@ local dwi = rinApp.addK400("K401")
 
 -- Write "Hello world" to the LCD screen.
 dwi.writeBotLeft("Hello")
-dwi.writeBotRight("World")
+dwi.writeBotRight("World!")
 
 -- Wait for the user to press a key on the dwi
 dwi.getKey()
