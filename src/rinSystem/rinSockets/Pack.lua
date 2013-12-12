@@ -23,7 +23,7 @@ end
 -- Run the callback function associated with a socket
 -- @param sock Socket whose callback function should be executed.
 function _M.socketCallback(sock)
-	_M.socketCallbacks[sock](sock)
+	return _M.socketCallbacks[sock](sock)
 end
 
 -------------------------------------------------------------------------------

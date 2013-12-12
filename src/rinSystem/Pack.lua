@@ -32,7 +32,11 @@ function _M.handleEvents()
 	for i = 1,#waiting do
 		local con = waiting[i]
 		
-		sockets.socketCallback(con)
+		local call, err = sockets.socketCallback(con)
+		
+        if err == "closed" then
+		    sockets.removeSocket(con)   
+		end
 	end
 		
 end
