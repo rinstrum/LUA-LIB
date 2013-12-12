@@ -822,23 +822,26 @@ function _M.keyCallback(data, err)
        return
     end
         
-    local groups = _M.keyBinds[key]
+   
     local handled = false
+    local groups = _M.keyBinds[key]
     if groups ~= nil then
-        for i=1,#groups do
+       
+       if groups.directCallback and 
+              groups.directCallback(key, state) == true then
+          handled = true
+       end
+              
+      if not handled then      
+      for i=1,#groups do
                 if groups[i].callback and 
                         groups[i].callback(key, state) == true then
                     handled = true
                     break
                 end     
         end
-        
-        if not handled then 
-          if groups.directCallback and 
-                groups.directCallback(key, state) == true then
-            handled = true
-          end
-        end  
+      end  
+       
 
     end
     
@@ -1640,17 +1643,21 @@ function _M.selectOption(prompt, options, def, loop)
         key = _M.getKey(_M.keyGroup.cursor)  
         if key == _M.KEY_DOWN then
             index = index - 1
-            if index == 0 and loop then 
-               index = #options
-            else
-               index = 1
+            if index == 0 then
+              if loop then 
+                 index = #options
+               else
+                  index = 1
+               end
             end
         elseif key == _M.KEY_UP then
             index = index + 1
-            if index > #options and loop then 
-               index = 1 
-            else 
-               index = #options
+            if index > #options then
+               if loop then 
+                   index = 1 
+               else 
+                  index = #options
+               end   
             end
         elseif key == _M.KEY_OK then 
             sel = options[index]
