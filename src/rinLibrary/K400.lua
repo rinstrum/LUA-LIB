@@ -616,7 +616,7 @@ function _M.setRDGStatus(num)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RDG,num)
 end
 
--------------------------------------------------------------------------------
+-- -- -- -- -----------------------------------------------------------------------
 -- private function
 function _M.setIOStatus(mask)
     local mask = mask or 0
@@ -922,8 +922,33 @@ _M.botAnnunState = 0
 _M.topAnnunState = 0
 _M.waitPos = _M.WAIT
 
+_M.curTopLeft = ''
+_M.curTopRight = ''
 _M.curBotLeft = ''
 _M.curBotRight = ''
+
+
+
+-------------------------------------------------------------------------------
+-- Write string to Top Left of LCD, curTopLeft is set to s
+-- @param s string to display
+function _M.writeTopLeft(s)
+    if s then
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,  s)
+        _M.curTopLeft = s
+    end  
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Top Right of LCD, curTopRight is set to s
+-- @param s string to display
+function _M.writeTopRight(s)
+    if s then
+        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
+        _M.curTopRight = s
+    end   
+end   
+
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
@@ -948,13 +973,6 @@ end
 _M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
-
-_M.writeTopLeft     = _M.preconfigureMsg(_M.REG_DISP_TOP_LEFT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")                                      
-_M.writeTopRight    = _M.preconfigureMsg(_M.REG_DISP_TOP_RIGHT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")                                      
 _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
@@ -962,6 +980,7 @@ _M.writeTopUnits    = _M.preconfigureMsg(_M.REG_DISP_TOP_UNITS,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
   
+
 _M.setAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
@@ -1167,11 +1186,8 @@ _M.CUR = 0
 _M.VOLT = 1
 
 _M.curAnalogType = _M.CUR 
- 
-_M.writeAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA, 
-                                         _M.CMD_WRFINALDEC, 
-                                         "noReply")
-                                         
+
+                                        
 -------------------------------------------------------------------------------
 -- Set the analog output type
 -- @param typ Type for output (.CUR or .VOLT)
@@ -1191,9 +1207,26 @@ function _M.setAnalogType(typ)
     end
 end   
 
+-------------------------------------------------------------------------------
+-- Control behaviour of analog output outside of normal range.
+-- If clip is active then output will be clipped to the nominal range 
+-- otherwise the output will drive to the limit of the hardware
+-- @function setAnalogClip
+-- @param c 0 for clipping disabled, 1 for clipping enabled
+
 _M.setAnalogClip = _M.preconfigureMsg(  _M.REG_ANALOGUE_CLIP, 
                                         _M.CMD_WRFINALDEC, "noReply")
-  
+
+-------------------------------------------------------------------------------
+-- Sets the analog output to minimum 0 through to maximum 50,000
+-- @function setAnalogRaw
+-- @param v value in raw counts (0..50000)
+ 
+_M.setAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA, 
+                                         _M.CMD_WRFINALDEC, 
+                                         "noReply")
+
+                                        
 -------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
 -- @param val value 0.0 to 1.0
@@ -1302,6 +1335,9 @@ function _M.turnOn(IO)
       end
 end
 
+
+
+
 -------------------------------------------------------------------------------
 -- Turns IO Output off
 -- @param IO is output 1..32
@@ -1314,6 +1350,16 @@ function _M.turnOff(IO)
       end
       
 end
+
+-------------------------------------------------------------------------------
+-- Turns IO Output on
+-- @param IO is output 1..32
+-- @param t is time in milliseconds
+function _M.turnOnTimed(IO, t)
+  _M.turnOn(IO)
+  _M.system.timers.addTimer(0, t, _M.turnOff, IO)
+end
+
 
 -------------------------------------------------------------------------------
 -- Sets IO Output under LUA control
@@ -1339,7 +1385,7 @@ function _M.releaseOutput(IO)
     end 
 end
 
---------------------------------------------------------------------------------
+-- -- -- -- ------------------------------------------------------------------------
 -- Private function
 function _M.setpParam(setp,reg,v)
     _M.sendReg(_M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v)
@@ -1539,7 +1585,7 @@ end
 
 _M.delayWaiting = false
 
--------------------------------------------------------------------------------
+-- -- -- -- -----------------------------------------------------------------------
 -- Private function
 function _M.delayCallback()
     _M.delayWaiting = false
@@ -1560,7 +1606,7 @@ end
 
 _M.askOKWaiting = false
 _M.askOKResult = 0
--------------------------------------------------------------------------------
+-- -- -- -- -----------------------------------------------------------------------
 -- Private function
 function _M.askOKCallback(key, state)
     
@@ -1825,7 +1871,7 @@ function _M.RTCtick()
     end
 end
 
--------------------------------------------------------------------------------
+-- --- -- -- ----------------------------------------------------------------------
 -- Returns formated date/time string
 -- Private function
 function _M.RTCtostring()

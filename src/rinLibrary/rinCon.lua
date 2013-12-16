@@ -158,10 +158,10 @@ function _M.socketACallback()
     local addr, cmd, reg, data, err = _M.processMsg(_M.recMsg())
     
     if err then
-        if _M.errHandler then
-            _M.errHandler(addr,cmd,reg,data,err)
-        end
-        data = nil
+       if _M.errHandler then
+        _M.errHandler(addr,cmd,reg,data,err)
+       end
+       data = nil
     end
     
     local called = false
@@ -172,8 +172,6 @@ function _M.socketACallback()
     if not called and _M.deviceRegisters[0] then
        _M.deviceRegisters[0](data,err)
     end
-    
-    return addr, err    
 end
 
 _M.sendQ = {head = 0,tail = -1}
@@ -293,20 +291,15 @@ end
 -------------------------------------------------------------------------------
 -- Processes the message and feeds back the individual parts
 -- @param msg Message to be processed
--- @param err Error in receive (nil if none)
 -- @return address (0x00 to 0x1F)
 -- @return command  (CMD_*)
 -- @return register (REG_*)
 -- @return data
 -- @return error
-function _M.processMsg(msg, err)
+function _M.processMsg(msg)
     local validDelim = nil
     local newMsg
     local addr, cmd, reg, data
-    
-    if msg == nil and err == "closed" then
-        return nil, nil, nil, nil, err
-    end
     
     if msg == nil then
         return nil, nil, nil, nil, "msg was nil"
@@ -482,8 +475,9 @@ function _M.socketBCallback()
     end
     
     _M.dbg.printVar("Receive SERB failed: ", err, _M.dbg.ERROR)
-
+--    os.exit(1)
     return nil, err
+
 end
 
 -------------------------------------------------------------------------------

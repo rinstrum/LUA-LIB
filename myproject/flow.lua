@@ -36,23 +36,18 @@ local deltaTime = 0
 
 local lastWeight = 0
 local deltaWeight = 0
-local avDelta = 0
-local avLength = 5
 local accWeight = 0
 local flowRate = 0
 local maxFlowRate = 1000  -- kg/hr
 local batchTarget = 10000 -- kg
 local BATCH_TOTAL_OUTPUT = 4   -- configure which physical Output to drive
 
-
 local function sample()
    deltaWeight = curWeight - lastWeight
-   avDelta = ((avDelta * (avLength-1))+deltaWeight)/avLength
-   flowRate = avDelta * 3600000 / deltaTime   -- raw flow rate in kg/hour
+   flowRate = deltaWeight * 3600000 / deltaTime   -- raw flow rate in kg/hour
    accWeight = accWeight + deltaWeight   
    lastWeight = curWeight     
-   dwi.writeBotLeft(string.format("%9.0f",flowRate))
-   dwi.writeBotUnits(dwi.UNITS_KG, dwi.UNITS_OTHER_PER_H)
+   dwi.writeBotLeft(string.format("%9.1f",flowRate))
    dwi.setAnalogVal(flowRate/maxFlowRate)               -- set analogue output 4..20mA
    if accWeight > batchTarget then
       dwi.turnOnTimed(BATCH_TOTAL_OUTPUT,1000)   -- pulse output for 1 sec
@@ -62,11 +57,11 @@ end
 
 local function handleTimeStamp(data, err)
     deltaTime = data - lastTimeStamp
---    rinApp.dbg.printVar('Delta Time: ',deltaTime)  
+    rinApp.dbg.printVar('Delta Time: ',deltaTime)  
     lastTimeStamp = data
     sample()
 end
-dwi.addStream(dwi.REG_MSECLAST , handleTimeStamp,'change')
+dwi.addStream(dwi.REG_MSEC, handleTimeStamp,'change')
 
 
 
@@ -85,10 +80,13 @@ dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
 -- Handler to capture ABORT key and end program
 local function cancelPressed(key, state)
+    if state == 'long' then
       rinApp.running = false
       return true
+    end 
+    return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, cancelPressed)
+dwi.setKeyCallback(dwi.KEY_CANCEL, cancelPressed)
 
 
 -------------------------------------------------------------------------------
