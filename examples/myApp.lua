@@ -47,30 +47,14 @@ dwi.setStatusCallback(dwi.STAT_ZERO, statusChanged)
 -------------------------------------------------------------------------------
 -- local timer function runs at the rate set below
 -------------------------------------------------------------------------------
-local tickerStart = 500    -- time in millisec until timer events start triggering
-local tickerRepeat = 100  -- time in millisec that the timer repeats
+local tickerStart = 100    -- time in millisec until timer events start triggering
+local tickerRepeat = 5000  -- time in millisec that the timer repeats
 local tick = 0
 
-local zero_sim = 5000
-local full_sim = 40000
-local inc_sim = 100
-local sim = zero_sim
-local sim_dir = 1
-sim_start = true
 local function ticker()
 -- insert code here that you want to run on each timer event
-   dwi.writeAnalogRaw(sim)
-   if sim_start then
-      sim = sim + (sim_dir * inc_sim)
-      if (sim > full_sim) then
-         sim_dir = -1
-      end
-      if (sim < zero_sim) then
-         sim_dir = 1  
-      end
-    end      
-  
-   
+    tick = tick + 1
+    print('Ticks: ', tick)    
 end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 
@@ -81,12 +65,11 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -- Key Handler for F1 
 -------------------------------------------------------------------------------
 local function F1Pressed(key, state)
-    print('F1 Pressed')
+    
     if state == 'long' then
-        sim = zero_sim
+        print('Long F1 Pressed')
     else    
-      inc_sim = inc_sim * 2
-      if inc_sim > 1000 then inc_sim = 1000 end
+        print('F1 Pressed')
     end  
     return true    -- key handled here so don't send back to instrument for handling
 end
@@ -96,13 +79,11 @@ dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -- Key Handler for F2 
 -------------------------------------------------------------------------------
 local function F2Pressed(key, state)
-     print('F2 Pressed')
-     if state == 'long' then
-        sim = full_sim
-     else
-        inc_sim = inc_sim / 2
-        if (inc_sim < 100) then inc_sim = 100 end
-     end   
+    if state == 'long' then
+        print('Long F2 Pressed')
+    else    
+        print('F2 Pressed')
+    end  
     return true -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
@@ -111,8 +92,11 @@ dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
 -- Key Handler for F3 
 -------------------------------------------------------------------------------
 local function F3Pressed(key, state)
-    sim_start = not sim_start
-    print('\27[HF3 Pressed')
+    if state == 'long' then
+        print('Long F3 Pressed')
+    else    
+        print('F3 Pressed')
+    end  
     return true -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
@@ -144,8 +128,10 @@ dwi.writeBotRight(' .LUA')
 -- Main Application Loop
 -------------------------------------------------------------------------------
 while rinApp.running do
- -- dwi.delay(500)
- -- dwi.buzz(2)
+  local k = dwi.getKey()
+  if k == dwi.KEY_OK then
+     dwi.buzz(2)
+  end   
   rinApp.system.handleEvents()           -- handleEvents runs the event handlers 
 end  
 

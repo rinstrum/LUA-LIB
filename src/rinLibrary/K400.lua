@@ -115,25 +115,6 @@ function _M.exReg(reg, data)
   _M.sendRegWait(_M.CMD_EX, reg, data)
 end
 
-_M.REG_EDIT_REG = 0x0320
--------------------------------------------------------------------------------
---  Called to edit value of specified register
--- @param reg is register to edit
-function _M.editReg(reg)
-  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
-   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
-   while true do 
-     local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
-     
-     if err or (data and tonumber(data,16) ~= reg) then 
-       break
-     end
-     _M.delay(50)
-   end
-  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
-   return _M.sendRegWait(_M.CMD_RDLIT,reg)
-   
-end
 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
@@ -660,9 +641,8 @@ end
 -- @section key
    
 _M.firstKey = true    -- flag to catch any garbage
--- Keys
 
---- Status Bits for REG_SYSSTATUS.
+--- Keys.
 --@table keys
 -- @field KEY_0
 -- @field KEY_1               
@@ -739,16 +719,7 @@ _M.keyID = nil
 
 _M.keyGroup = {}
 
---- Key Groups.
---@table keygroups
--- @field keyGroup.all      
--- @field keyGroup.primary  
--- @field keyGroup.functions
--- @field keyGroup.keypad   
--- @field keyGroup.numpad   
--- @field keyGroup.cursor   
--- @field keyGroup.extended   
-
+-- Be sure to update the ldoc table below to match the defined keyGroups
 _M.keyGroup.all         = {callback = nil}
 _M.keyGroup.primary     = {callback = nil}
 _M.keyGroup.functions   = {callback = nil}
@@ -791,13 +762,38 @@ _M.keyBinds = {
     [_M.KEY_PWR_CANCEL ]   = {_M.keyGroup.extended, _M.keyGroup.all}
 }
 
+
+
+
 -------------------------------------------------------------------------------
+-- Setup key handling stream
+function _M.setupKeys()
+    _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+    _M.keyID = _M.addStream(_M.REG_GET_KEY, _M.keyCallback, 'change')
+end
+
+-------------------------------------------------------------------------------
+-- Cancel keypress handling
+-- @param flush Flush the current keypresses that have not yet been handled
+function _M.endKeys(flush)
+    if flush then
+        _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+    end
+
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+    
+    _M.removeStream(_M.keyID)
+end
+
+
+
+
+-- -- -- -------------------------------------------------------------------------
 -- Called when keys are streamed, send the keys to each group it is bound to 
 -- in order of priority, until one of them returns true.
 -- key states are 'short','long','up'
 -- Note: keybind tables should be sorted by priority
--- @param data Data on key streamed
--- @param err Potential error message
 function _M.keyCallback(data, err)
     
     local state = "short"
@@ -853,7 +849,8 @@ end
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
 -- @param key to monitor (KEY_* )
--- @param callback Function to run when there is an event on the keygroup
+-- @param callback Function to run when there is an event for that key.
+-- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
 -- @usage
 -- local function F1Pressed(key, state)
 --  if state == 'short' then
@@ -861,40 +858,32 @@ end
 --    end
 --    return true    -- F1 handled here so don't send back to instrument for handling
 --  end
---  K401.setKeyCallback(K401.KEY_F1, F1Pressed)
+--  dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 --
 function _M.setKeyCallback(key, callback)
     _M.keyBinds[key].directCallback = callback
 end
 
+
+--- Key Groups.
+--@table keygroups
+-- @field keyGroup.all      
+-- @field keyGroup.primary  
+-- @field keyGroup.functions
+-- @field keyGroup.keypad   
+-- @field keyGroup.numpad   
+-- @field keyGroup.cursor   
+-- @field keyGroup.extended   
+
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key group
 -- @param keyGroup A keygroup given in keyGroup.*
--- @param callback Function to run when there is an event on the keygroup
+-- @param callback Function to run when there is an event on the keygroup.
+-- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
 function _M.setKeyGroupCallback(keyGroup, callback)
     keyGroup.callback = callback
 end
 
--------------------------------------------------------------------------------
--- Setup key handling stream
-function _M.setupKeys()
-    _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
-    _M.keyID = _M.addStream(_M.REG_GET_KEY, _M.keyCallback, 'change')
-end
-
--------------------------------------------------------------------------------
--- Cancel keypress handling
--- @param flush Flush the current keypresses that have not yet been handled
-function _M.endKeys(flush)
-    if flush then
-        _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
-    end
-
-    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
-    
-    _M.removeStream(_M.keyID)
-end
 
 -------------------------------------------------------------------------------
 --- LCD Services.
@@ -976,21 +965,49 @@ _M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
 _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
-_M.writeTopUnits    = _M.preconfigureMsg(_M.REG_DISP_TOP_UNITS,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
-  
 
+-----------------------------------------------------------------------------
+-- link register address  with Top annunciators to update automatically 
+--@function setAutoTopAnnun
+--@param reg address of register to link Top Annunciator state to.
+-- Set to 0 to enable direct control of the area                                         
 _M.setAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
+
+-----------------------------------------------------------------------------
+-- link register address with Top Left display to update automatically.
+--@function setAutoTopLeft
+--@param reg address of register to link Top Left display to.     
+-- Set to 0 to enable direct control of the area                                    
 _M.setAutoTopLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_LEFT,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
+-----------------------------------------------------------------------------
+-- link register address with Bottom Left display to update automatically 
+--@function setAutoBotLeft
+--@param reg address of register to link Top Left display to.
+-- Set to 0 to enable direct control of the area                                         
 _M.setAutoBotLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_BOTTOM_LEFT,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
 
+--- Bottom LCD Annunciators
+--@table BotAnnuns
+-- @field BATTERY   
+-- @field CLOCK            
+-- @field BAT_LO           
+-- @field BAT_MIDL         
+-- @field BAT_MIDH         
+-- @field BAT_HI           
+-- @field BAT_FULL         
+-- @field WAIT             
+-- @field WAIT45           
+-- @field WAIT90           
+-- @field WAIT135          
+-- @field WAITALL          
+                                        
+                                         
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 _M.BATTERY   = 0x0001
 _M.CLOCK     = 0x0002
@@ -1059,6 +1076,30 @@ function _M.rotWAIT(dir)
   
 end
 
+
+--- Top LCD Annunciators
+--@table TopAnnuns
+-- @field SIGMA       
+-- @field BALANCE         
+-- @field COZ             
+-- @field HOLD            
+-- @field MOTION          
+-- @field NET             
+-- @field RANGE           
+-- @field ZERO            
+-- @field BAL_SEGA        
+-- @field BAL_SEGB        
+-- @field BAL_SEGC        
+-- @field BAL_SEGD      
+-- @field BAL_SEGE        
+-- @field BAL_SEGF        
+-- @field BAL_SEGG        
+-- @field RANGE_SEGADG    
+-- @field RANGE_SEGC      
+-- @field RANGE_SEGE      
+   
+
+
 -- REG_DISP_TOP_ANNUN BIT SETTINGS
 _M.SIGMA        = 0x00001
 _M.BALANCE      = 0x00002
@@ -1095,6 +1136,23 @@ function _M.clrBitsTopAnnuns(d)
   _M.writeTopAnnuns(_M.topAnnunState)
 end
 
+
+--- Main Units 
+--@table Units
+-- @field UNITS_NONE     
+-- @field UNITS_KG           
+-- @field UNITS_LB           
+-- @field UNITS_T            
+-- @field UNITS_G            
+-- @field UNITS_OZ           
+-- @field UNITS_N            
+-- @field UNITS_ARROW_L      
+-- @field UNITS_P            
+-- @field UNITS_L            
+-- @field UNITS_ARROW_H      
+
+
+
 -- REG_DISP UNITS BIT SETTINGS
 _M.UNITS_NONE    = 0x00
 _M.UNITS_KG      = 0x01
@@ -1108,12 +1166,34 @@ _M.UNITS_P       = 0x08
 _M.UNITS_L       = 0x09
 _M.UNITS_ARROW_H = 0x0A
 
+--- Additional modifiers on bottom display 
+--@table Other
+-- @field UNITS_OTHER_PER_H   
+-- @field UNITS_OTHER_PER_M       
+-- @field UNITS_OTHER_PER_S       
+-- @field UNITS_OTHER_PC          
+-- @field UNITS_OTHER_TOT         
+
 _M.UNITS_OTHER_PER_H   = 0x14
 _M.UNITS_OTHER_PER_M   = 0x11
 _M.UNITS_OTHER_PER_S   = 0x12
 _M.UNITS_OTHER_PC      = 0x30
 _M.UNITS_OTHER_TOT     = 0x08
 
+
+-------------------------------------------------------------------------------
+-- Set top units 
+-- @param units (.UNITS_NONE etc)
+function _M.writeTopUnits (units)
+   local units = units or _M.UNITS_NONE
+   _M.writeReg(_M.REG_DISP_TOP_UNITS,units)
+end
+
+
+-------------------------------------------------------------------------------
+-- Set bottom units 
+-- @param units (.UNITS_NONE etc)
+-- @param other (.UNITS_OTHER_PER_H etc)
 function _M.writeBotUnits (units, other)
    local units = units or _M.UNITS_NONE
    local other = other or _M.UNITS_NONE
@@ -1281,6 +1361,8 @@ _M.REG_SETP_NAME    = 0xA40E
 _M.REG_SETP_SOURCE  = 0xA406
 _M.REG_SETP_TARGET  = 0xA408
 _M.REG_SETP_HYS     = 0xA409
+_M.REG_SETP_SOURCE_REG = 0xA40A
+
 
 _M.LOGIC_HIGH = 0
 _M.LOGIC_LOW = 1
@@ -1290,14 +1372,14 @@ _M.ALARM_SINGLE = 1
 _M.ALARM_DOUBLE = 2
 _M.ALARM_FLASH = 3
 
-_M.GROSS = 0
-_M.NET = 1
-_M.DISP = 2
-_M.ALT_GROSS = 3
-_M.ALT_NET = 4
-_M.ALT_DISP = 5
-_M.PIECE = 6
-_M.REG = 7
+_M.SOURCE_GROSS = 0
+_M.SOURCE_NET = 1
+_M.SOURCE_DISP = 2
+_M.SOURCE_ALT_GROSS = 3
+_M.SOURCE_ALT_NET = 4
+_M.SOURCE_ALT_DISP = 5
+_M.SOURCE_PIECE = 6
+_M.SOURCE_REG = 7
 
 _M.TYPE_OFF      = 0
 _M.TYPE_ON       = 1
@@ -1323,6 +1405,8 @@ _M.NUM_SETP = 16
  
 _M.setOutputs = _M.preconfigureMsg(_M.REG_IO_STATUS, _M.CMD_WRFINALDEC)
 _M.setOutputEnable = _M.preconfigureMsg(_M.REG_IO_ENABLE, _M.CMD_WRFINALDEC)
+
+
 
 -------------------------------------------------------------------------------
 -- Turns IO Output on
@@ -1391,14 +1475,24 @@ function _M.setpParam(setp,reg,v)
     _M.sendReg(_M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v)
 end
 
---------------------------------------------------------------------------------
+-- -- -- --------------------------------------------------------------------------
 -- returns actual register address for a particular setpoint parameter
--- @param setp is setpoint 1..16
--- @param reg is REG_SETP_*
--- @return address of this registet for setpoint setp
+-- setp is setpoint 1..16
+-- reg is REG_SETP_*
+-- return address of this register for setpoint setp
 function _M.setpRegAddress(setp,reg)
   return (reg+((setp-1)*_M.REG_SETP_REPEAT)) 
 end
+
+-------------------------------------------------------------------------------
+-- Set the number of Setpoints 
+-- @param n is the number of setpoints 0..8
+function _M.setNumSetp(n)
+  _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
+end
+
+
+
 
 -------------------------------------------------------------------------------
 -- Set Target for setpoint
@@ -1417,6 +1511,22 @@ function _M.setpIO(setp, IO)
     _M.setpParam(setp,_M.REG_SETP_OUTPUT, IO)
 end
 
+--- Setpoint Types.
+--@table Types
+-- @field TYPE_OFF     
+-- @field TYPE_ON      
+-- @field TYPE_OVER    
+-- @field TYPE_UNDER   
+-- @field TYPE_COZ     
+-- @field TYPE_ZERO    
+-- @field TYPE_NET     
+-- @field TYPE_MOTION  
+-- @field TYPE_ERROR   
+-- @field TYPE_LGC_AND 
+-- @field TYPE_LGC_OR  
+-- @field TYPE_LGC_XOR 
+-- @field TYPE_BUZZER  
+
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
 -- @param setp is setpount 1..16
@@ -1429,11 +1539,18 @@ end
 -------------------------------------------------------------------------------
 -- Set the Logic for the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint logic type
+-- @param v is setpoint logic type (.LOGIC_HIGH, .LOGIC_LOW)
 function _M.setpLogic(setp, v)
   _M.setpParam(setp,_M.REG_SETP_LOGIC, v)
  
 end
+
+--- Setpoint Alarms Types.
+--@table Alarms
+-- @field ALARM_NONE      
+-- @field ALARM_SINGLE      
+-- @field ALARM_DOUBLE    
+-- @field ALARM_FLASH    
 
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint
@@ -1446,17 +1563,35 @@ end
 -------------------------------------------------------------------------------
 -- Set the Name of the setpoint
 -- @param setp is setpount 1..16
--- @param v is setpoint name
+-- @param v is setpoint name (8 character string)
 function _M.setpName(setp, v)
   _M.setpParam(setp,_M.REG_SETP_NAME, v)
 end
+
+
+--- Setpoint Source Types.
+--@table Source
+-- @field SOURCE_GROSS 
+-- @field SOURCE_NET 
+-- @field SOURCE_DISP 
+-- @field SOURCE_ALT_GROSS 
+-- @field SOURCE_ALT_NET 
+-- @field SOURCE_ALT_DISP 
+-- @field SOURCE_PIECE 
+-- @field SOURCE_REG 
+
 
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls
 -- @param setp is setpount 1..16
 -- @param v is setpoint source type
-function _M.setpSource(setp, v)
+-- @param reg is register address for setpoints using .SOURCE_REG type source data.  
+-- For other setpoint source types parameter reg is not required.
+function _M.setpSource(setp, v, reg)
   _M.setpParam(setp,_M.REG_SETP_SOURCE, v)
+  if (v == _M.SOURCE_REG) and reg then
+     _M.setpParam(setp,_M.REG_SETP_SOURCE_REG, reg)
+  end   
 end
 
 -------------------------------------------------------------------------------
@@ -1467,12 +1602,7 @@ function _M.setpHys(setp, v)
   _M.setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
 end
 
--------------------------------------------------------------------------------
--- Set the number of Setpoints 
--- @param n is the number of setpoints 0..8
-function _M.setNumSetp(n)
-  _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
-end
+
 
 -------------------------------------------------------------------------------
 --- Dialog Control.
@@ -1500,6 +1630,7 @@ function _M.getKey(keyGroup)
     _M.setKeyGroupCallback(keyGroup, _M.getKeyCallback)  
 
     _M.getKeyState = ''
+    _M.getKeyPressed = nil
     while _M.app.running and _M.getKeyState == '' do
         _M.system.handleEvents()
     end   
@@ -1583,6 +1714,31 @@ function _M.edit(prompt, def, typ)
     return editVal, ok
 end
 
+
+_M.REG_EDIT_REG = 0x0320
+-------------------------------------------------------------------------------
+--  Called to edit value of specified register
+-- @param reg is the address of the register to edit
+function _M.editReg(reg)
+  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+   while true do 
+     local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
+     
+     if err or (data and tonumber(data,16) ~= reg) then 
+       break
+     end
+     _M.delay(50)
+   end
+  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+   return _M.sendRegWait(_M.CMD_RDLIT,reg)
+   
+end
+
+
+
+
+
 _M.delayWaiting = false
 
 -- -- -- -- -----------------------------------------------------------------------
@@ -1642,6 +1798,8 @@ function _M.askOK(prompt, q)
     _M.writeBotLeft(q)
  
     _M.askOKWaiting = true
+    _M.askOKResult = _M.KEY_CANCEL
+    
     while _M.askOKWaiting and _M.app.running do
         _M.system.handleEvents()
     end   
