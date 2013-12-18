@@ -15,9 +15,19 @@ local dofile = dofile
 local bit32 = require "bit"
 
 local socks = require "rinSystem.rinSockets.Pack"
+local ini = require "rinLibrary.rinINI"
 
 local _M = {}
 _M.running = false
+_M.config = {
+         '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
+         '; logger can be any of the supported groups - eg console',
+         '; timestamp controls whether or not timestamps are added to messages, true or false',         
+         level = 'INFO',
+         timestamp = true,
+         logger = 'console',
+         console = { } 
+         }
 
 -- Create the rinApp resources
 _M.system = require "rinSystem.Pack"
@@ -27,28 +37,13 @@ _M.dbgconfig = require "debugConfig"
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
---"Usage: lua SCRIPTNAME [-- dbgconfig=PATH/TO/FILE]"
-local function handleArgs(args)
-    
-    for i=1,#args do
-    
-        local mid = string.find(args[i], "=")
-        
-        if mid == nil then
-            -- do nothing, because lua has no continue statement
-        elseif "dbgconfig" == string.sub(args[i], 1, mid - 1) then
-        
-            _M.dbconfig = dofile(string.sub(args[i], mid + 1, #args[i]))
-            
-            _M.dbg.configureDebug(_M.dbconfig, 'Application')
-            _M.dbg.printVar('', _M.dbg.LEVELS[_M.dbg.level])
-        end
-    end
-end
 
 _M.devices = {}
-_M.dbg.configureDebug(_M.dbgconfig, 'Application')
-handleArgs(arg)
+
+ini.loadINI('rinApp.ini',_M.config)
+--_M.dbg.info('',_M.config)
+_M.dbg.configureDebug(_M.config.level, _M.config.timestamp, 'Application')
+
 
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
@@ -60,22 +55,11 @@ local function userioCallback(sock)
     elseif data == 'exit' then
         _M.running = false
     else
-        local level = nil
-        
-        -- Get the level that corresponds to the text (should be UPPERCASE)
-        for k,v in pairs(_M.dbg.LEVELS) do
-            if data == v then
-                level = k
+        _M.dbg.setLevel(data)
+          -- Set the level in all devices connected
+        for k,v in pairs(_M.devices) do
+                v.dbg.setLevel(_M.dbg.level)
             end
-        end
-        
-        if level ~= nil then
-            -- Set the level in all devices connected
-            for k,v in pairs(_M.devices) do
-                v.dbg.config.logger:setLevel(level)
-            end
-            _M.dbg.config.logger:setLevel(level)
-        end
     end  
 end
 
@@ -145,11 +129,11 @@ function _M.cleanup()
         v.endKeys()
         v.delay(50)
      end 
-    _M.dbg.printVar('------   Application Finished  ------','', _M.dbg.INFO)
+    _M.dbg.info('','------   Application Finished  ------')
 end
 
 _M.running = true
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
-_M.dbg.printVar('------   Application Started   -----', '', _M.dbg.INFO)
+_M.dbg.info('','------   Application Started   -----')
 
 return _M

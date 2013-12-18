@@ -28,6 +28,24 @@ _M.ADDR_REPLY           = 0x20
 _M.ADDR_NOREPLY         = 0x00
 _M.ADDR_BROADCAST       = 0x00
 
+--- Instrument Commands.
+--@table rinCMD commands
+-- @field CMD_RDTYPE       Read Register Type
+-- @field CMD_RDRANGEMIN   Read data range minimum
+-- @field CMD_RDRANGEMAX   Read data range maximum
+-- @field CMD_RDRAW        Read Raw data
+-- @field CMD_RDLIT        Read literal data
+-- @field CMD_WRRAW        Write Raw data
+-- @field CMD_RDDEFAULT    Read default setting
+-- @field CMD_RDNAME       Read Name
+-- @field CMD_RDITEM       Read Item from item list
+-- @field CMD_RDPERMISSION Read register permissions
+-- @field CMD_RDFINALHEX   Read data in hexadecimal format
+-- @field CMD_RDFINALDEC   Read data in decimal format
+-- @field CMD_WRFINALHEX   Write data in hexadecimal format
+-- @field CMD_WRFINALDEC   Write data in decimal format
+-- @field CMD_EX           Execute with data as execute parameter
+
 -- Commands
 _M.CMD_RDTYPE           = 0x01
 _M.CMD_RDRANGEMIN       = 0x02

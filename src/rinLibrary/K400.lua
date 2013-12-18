@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Libary for K400 application support.
--- Providies wrappers for all device services
+-- Library for K400 application support.
+-- Provides wrappers for all device services
 -- @module rinLibrary.K400
 -- @author Darren Pearson
 -- @author Merrick Heley
@@ -20,6 +20,109 @@ package.loaded["rinLibrary.rinCon"] = nil
 -- Functions to read, write and execute commands on instrument registers directly
 -- @section registers
  
+
+_M.REG_KEYBUFFER        = 0x0008
+_M.REG_LCD              = 0x0009
+
+_M.REG_SAVESETTING      = 0x0010
+_M.REG_FULLPASS         = 0x0019
+_M.REG_SAFEPASS         = 0x001A
+
+--- System Registers.
+--@table sysRegisters
+-- @field REG_SOFTMODEL Software model eg. "K401"
+-- @field REG_SOFTVER Software Version eg "V1.00"
+-- @field REG_SERIALNO Serial Number
+_M.REG_SOFTMODEL        = 0x0003
+_M.REG_SOFTVER          = 0x0004
+_M.REG_SERIALNO         = 0x0005
+
+--- Instrument Reading Registers.
+--@table rdgRegisters
+-- @field REG_ADCSAMPLE   Sample number of current reading
+-- @field REG_SYSSTATUS   System Status Bits
+-- @field REG_SYSERR      System Error Bits
+-- @field REG_ABSMVV      Absolute mV/V reading (10,000 = 1mV/V)
+-- @field REG_GROSSNET    Gross or Net reading depending on operating mode
+-- @field REG_GROSS       Gross weight
+-- @field REG_NET         Net Weight
+-- @field REG_TARE        Tare Weight
+-- @field REG_PEAKHOLD    Peak Hold Weight
+-- @field REG_MANHOLD     Manually Held weight
+-- @field REG_GRANDTOTAL  Accumulated total
+-- @field REG_ALTGROSS    Gross weight in secondary units 
+-- @field REG_RAWADC      Raw ADC reading (2,560,000 = 1.0 mV/V)
+-- @field REG_ALTNET      Net weight in secondary units
+-- @field REG_FULLSCALE   Fullscale weight
+
+_M.REG_ADCSAMPLE        = 0x0020
+_M.REG_SYSSTATUS        = 0x0021
+_M.REG_SYSERR           = 0x0022
+_M.REG_ABSMVV           = 0x0023
+
+_M.REG_GROSSNET         = 0x0025
+_M.REG_GROSS            = 0x0026
+_M.REG_NET              = 0x0027
+_M.REG_TARE             = 0x0028
+_M.REG_PEAKHOLD         = 0x0029
+_M.REG_MANHOLD          = 0x002A
+_M.REG_GRANDTOTAL       = 0x002B
+_M.REG_ALTGROSS         = 0x002C
+_M.REG_RAWADC           = 0x002D
+_M.REG_ALTNET           = 0x002E
+_M.REG_FULLSCALE        = 0x002F
+
+
+--- Instrument User Variables.
+--@table usrRegisters
+-- @field REG_USERID_NAME1    Names of 5 User ID strings
+-- @field REG_USERID_NAME2    
+-- @field REG_USERID_NAME3    
+-- @field REG_USERID_NAME4    
+-- @field REG_USERID_NAME5    
+-- @field REG_USERNUM_NAME1   Names of 5 User ID numbers
+-- @field REG_USERNUM_NAME2   
+-- @field REG_USERNUM_NAME3   
+-- @field REG_USERNUM_NAME4   
+-- @field REG_USERNUM_NAME5   
+-- @field REG_USERID1         Data for 5 User ID strings
+-- @field REG_USERID2         the first 2 are integers
+-- @field REG_USERID3         the last 3 are weight values
+-- @field REG_USERID4         
+-- @field REG_USERID5       
+-- @field REG_USERNUM1        Data for 5 User ID numbers
+-- @field REG_USERNUM2      
+-- @field REG_USERNUM3      
+-- @field REG_USERNUM4      
+-- @field REG_USERNUM5      
+
+
+
+-- USER VARIABLES
+_M.REG_USERID_NAME1     = 0x0080
+_M.REG_USERID_NAME2     = 0x0081
+_M.REG_USERID_NAME3     = 0x0082
+_M.REG_USERID_NAME4     = 0x0083
+_M.REG_USERID_NAME5     = 0x0084
+_M.REG_USERNUM_NAME1    = 0x0316
+_M.REG_USERNUM_NAME2    = 0x0317
+_M.REG_USERNUM_NAME3    = 0x0318
+_M.REG_USERNUM_NAME4    = 0x0319
+_M.REG_USERNUM_NAME5    = 0x031A
+
+_M.REG_USERID1          = 0x0090
+_M.REG_USERID2          = 0x0092
+_M.REG_USERID3          = 0x0093
+_M.REG_USERID4          = 0x0094
+_M.REG_USERID5          = 0x0095
+_M.REG_USERNUM1         = 0x0310
+_M.REG_USERNUM2         = 0x0311
+_M.REG_USERNUM3         = 0x0312
+_M.REG_USERNUM4         = 0x0313
+_M.REG_USERNUM5         = 0x0314
+
+
+
 _M.sendRegWaiting = false
 _M.sendRegData = ''
 _M.sendRegErr = ''
@@ -30,6 +133,25 @@ function _M.sendRegCallback(data, err)
     _M.sendRegData = data
     _M.sendRegErr = err
 end
+
+--- Main Instrument Commands.
+--@table rinCMD
+-- @field CMD_RDLIT        Read literal data
+-- @field CMD_RDFINALHEX   Read data in hexadecimal format
+-- @field CMD_RDFINALDEC   Read data in decimal format
+-- @field CMD_WRFINALHEX   Write data in hexadecimal format
+-- @field CMD_WRFINALDEC   Write data in decimal format
+-- @field CMD_EX           Execute with data as execute parameter
+
+
+
+
+
+
+
+
+
+
 
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
@@ -114,81 +236,6 @@ end
 function _M.exReg(reg, data)
   _M.sendRegWait(_M.CMD_EX, reg, data)
 end
-
-
-_M.REG_KEYBUFFER        = 0x0008
-_M.REG_LCD              = 0x0009
-
-_M.REG_SAVESETTING      = 0x0010
-_M.REG_FULLPASS         = 0x0019
-_M.REG_SAFEPASS         = 0x001A
-
---- System Registers.
---@table system
--- @field REG_SOFTMODEL Software model eg. "K401"
--- @field REG_SOFTVER Software Version eg "V1.00"
--- @field REG_SERIALNO Serial Number
-_M.REG_SOFTMODEL        = 0x0003
-_M.REG_SOFTVER          = 0x0004
-_M.REG_SERIALNO         = 0x0005
-
---- Instrument Readings.
---@table readings
--- @field REG_ADCSAMPLE   Sample number of current reading
--- @field REG_SYSSTATUS   System Status Bits
--- @field REG_SYSERR      System Error Bits
--- @field REG_ABSMVV      Absolute mV/V reading (10,000 = 1mV/V)
--- @field REG_GROSSNET    Gross or Net reading depending on operating mode
--- @field REG_GROSS       Gross weight
--- @field REG_NET         Net Weight
--- @field REG_TARE        Tare Weight
--- @field REG_PEAKHOLD    Peak Hold Weight
--- @field REG_MANHOLD     Manually Held weight
--- @field REG_GRANDTOTAL  Accumulatd total
--- @field REG_ALTGROSS    Gross weight in secondary units 
--- @field REG_RAWADC      Raw ADC reading (2,560,000 = 1.0 mV/V)
--- @field REG_ALTNET      Net weight in secondary units
--- @field REG_FULLSCALE   Fullscale weight
-
-_M.REG_ADCSAMPLE        = 0x0020
-_M.REG_SYSSTATUS        = 0x0021
-_M.REG_SYSERR           = 0x0022
-_M.REG_ABSMVV           = 0x0023
-
-_M.REG_GROSSNET         = 0x0025
-_M.REG_GROSS            = 0x0026
-_M.REG_NET              = 0x0027
-_M.REG_TARE             = 0x0028
-_M.REG_PEAKHOLD         = 0x0029
-_M.REG_MANHOLD          = 0x002A
-_M.REG_GRANDTOTAL       = 0x002B
-_M.REG_ALTGROSS         = 0x002C
-_M.REG_RAWADC           = 0x002D
-_M.REG_ALTNET           = 0x002E
-_M.REG_FULLSCALE        = 0x002F
-
--- USER VARIABLES
-_M.REG_USERID_NAME1     = 0x0080
-_M.REG_USERID_NAME2     = 0x0081
-_M.REG_USERID_NAME3     = 0x0082
-_M.REG_USERID_NAME4     = 0x0083
-_M.REG_USERID_NAME5     = 0x0084
-_M.REG_USERNUM_NAME1    = 0x0316
-_M.REG_USERNUM_NAME2    = 0x0317
-_M.REG_USERNUM_NAME3    = 0x0318
-_M.REG_USERNUM_NAME4    = 0x0319
-_M.REG_USERNUM_NAME5    = 0x031A
-
-_M.REG_USERID1          = 0x0090
-_M.REG_USERID2          = 0x0092
-_M.REG_USERID3          = 0x0093
-_M.REG_USERID4          = 0x0094
-_M.REG_USERID5          = 0x0095
-_M.REG_USERNUM1         = 0x0310
-_M.REG_USERNUM2         = 0x0311
-_M.REG_USERNUM3         = 0x0312
-_M.REG_USERNUM4         = 0x0313
-_M.REG_USERNUM5         = 0x0314
 
 -------------------------------------------------------------------------------
 ---  General Utilities.
@@ -481,6 +528,7 @@ function _M.setStreamFreq(freq)
     local freq = freq or _M.freq
     _M.freq = freq
 end
+
 
 -------------------------------------------------------------------------------
 --- Status Monitoring.
@@ -884,6 +932,21 @@ function _M.setKeyGroupCallback(keyGroup, callback)
     keyGroup.callback = callback
 end
 
+-------------------------------------------------------------------------------
+-- Send an artificial  key press to the instrument 
+-- @param key (.KEY_*)
+-- @param status 'long' or 'short'
+function _M.sendKey(key,status)
+     if key then
+        local data = key
+        if status == 'long' then  
+            data = bit32.band(data, 0x80)
+        end 
+        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)        
+     end   
+ 
+        
+end
 
 -------------------------------------------------------------------------------
 --- LCD Services.
@@ -1261,12 +1324,24 @@ end
 _M.REG_ANALOGUE_DATA = 0x0323
 _M.REG_ANALOGUE_TYPE = 0xA801
 _M.REG_ANALOGUE_CLIP = 0xA806
+_M.REG_ANALOGUE_SOURCE = 0xA805  -- must be set to option 3 "COMMS" if we are to control it via the comms
   
 _M.CUR = 0
 _M.VOLT = 1
 
 _M.curAnalogType = _M.CUR 
 
+
+_M.ANALOG_COMMS = 3
+-------------------------------------------------------------------------------
+-- Set the analog output type
+-- @param src Source for output.  
+-- Must be set to ANALOG_COMMS to control directly
+function _M.setAnalogSource(src)
+   _M.sendReg(_M.CMD_WRFINALDEC,
+                _M.REG_ANALOGUE_SOURCE,
+                src) 
+end
                                         
 -------------------------------------------------------------------------------
 -- Set the analog output type
@@ -1311,7 +1386,7 @@ _M.setAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA,
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
 -- @param val value 0.0 to 1.0
 function _M.setAnalogVal(val)
-   _M.writeAnalogRaw(math.floor((50000*val)+0.5))
+   _M.setAnalogRaw(math.floor((50000*val)+0.5))
 end
 
  ------------------------------------------------------------------------------

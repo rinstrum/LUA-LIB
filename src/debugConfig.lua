@@ -18,7 +18,7 @@ require "logging.console"
 _M.logger = logging.console("%message\n")
 
 -- Set the logger level
-_M.level = logging.INFO
+_M.level = logging.DEBUG
 
 -- Set timestamp option (true if logging is to include date/time stamps)
 _M.timestamp = true
