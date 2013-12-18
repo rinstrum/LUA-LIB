@@ -15,7 +15,7 @@ INSTALL_DATA= $(INSTALL) -m 0644
 PKGNAME := $(shell sed -n -r "s/Package: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
 PKGVERS := $(shell sed -n -r "s/Version: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
 PKGARCH := $(shell sed -n -r "s/Architecture: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
-PKGNAMEVERS=$(PKGNAME)-$(subst .,,$(PKGVERS))
+PKGNAMEVERS=$(PKGNAME)-$(PKGVERS)
 RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
 
 SRC_BASE = *.lua
