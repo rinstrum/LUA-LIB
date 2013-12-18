@@ -1,8 +1,14 @@
 # Scratchpad
 myproject/
 
-opkg/
 M01/
 
 *~
+
+#Ignore everything in the opkg directory
+opkg/*
+#Except the CONTROL directory.
+#BEWARE - This ignore cannot appear in the opkg dir
+#otherwise it is packaged with the app, not good!
+!*/CONTROL*
 
