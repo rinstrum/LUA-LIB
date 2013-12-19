@@ -32,7 +32,9 @@ function _M.saveINI(fname, t)
     for k,v in pairs(t) do    -- do global vars first
         if type(v) ~= 'table' then
             v = tostring(v)
-            f:write(k,'=',v,'\n')
+            if string.sub(v,1,1) ~= ';' then  -- don't print comments again
+                 f:write(k,'=',v,'\n')
+            end     
         end
     end  
     

@@ -85,15 +85,15 @@ dwi.setStatusCallback(dwi.STAT_ZERO, statusChanged)
 -- local timer function runs at the rate set below
 -------------------------------------------------------------------------------
 local tickerStart = 100    -- time in millisec until timer events start triggering
-local tickerRepeat = 200  -- time in millisec that the timer repeats
+local tickerRepeat = 500  -- time in millisec that the timer repeats
 
-local editing = false
+
 local maxFlowRate = 500
 
 local function ticker()
 -- insert code here that you want to run on each timer event
    
-   if not editing then 
+   if not dwi.isEditing() then 
        dwi.writeBotLeft(string.format("%9.0f",flowRate))
     end   
  
@@ -177,12 +177,8 @@ dwi.enableOutput(PULSE_OUTPUT)
 -------------------------------------------------------------------------------
 while rinApp.running do
   if getMaterial then
-    editing = true
-    dwi.writeBotUnits(dwi.UNITS_NONE, dwi.UNITS_NONE)
     print (dwi.selectOption('MATERIAL',{'SEED','WHEAT','BARLEY'},'WHEAT',true),'  ','Selected.')
-    dwi.writeBotUnits(dwi.UNITS_KG, dwi.UNITS_OTHER_PER_H)
     getMaterial = false
-    editing = false
   end  
   rinApp.system.handleEvents()           -- handleEvents runs the event handlers 
 end  

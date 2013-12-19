@@ -14,7 +14,6 @@ local con = require "rinLibrary.rinCon"
 local _M = con  
 -- remove information that rinCON is already loaded to facilitate multiple connections
 package.loaded["rinLibrary.rinCon"] = nil
-
 -------------------------------------------------------------------------------
 --- Register Functions.
 -- Functions to read, write and execute commands on instrument registers directly
@@ -978,8 +977,29 @@ _M.curTopLeft = ''
 _M.curTopRight = ''
 _M.curBotLeft = ''
 _M.curBotRight = ''
+_M.curTopUnits = 0
+_M.curBotUnits = 0
+_M.curBotUnitsOther = 0
+
+_M.saveBotLeft = ''
+_M.saveBotRight = ''
+_M.saveBotUnits = 0
+_M.saveBotUnitsOther = 0 
 
 
+
+function _M.saveBot()
+   _M.saveBotLeft = _M.curBotLeft
+   _M.saveBotRight = _M.curBotRight
+   _M.saveBotUnits = _M.curBotUnits
+   _M.saveBotUnitsOther = _M.curBotUnitsOther
+end
+
+function _M.restoreBot()
+  _M.writeBotLeft(_M.saveBotLeft)
+  _M.writeBotRight(_M.saveBotRight)
+  _M.writeBotUnits(_M.saveBotUnits, _M.saveBotUnitsOther)
+end
 
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
@@ -1250,6 +1270,7 @@ _M.UNITS_OTHER_TOT     = 0x08
 function _M.writeTopUnits (units)
    local units = units or _M.UNITS_NONE
    _M.writeReg(_M.REG_DISP_TOP_UNITS,units)
+   _M.curTopUnits = units
 end
 
 
@@ -1261,6 +1282,8 @@ function _M.writeBotUnits (units, other)
    local units = units or _M.UNITS_NONE
    local other = other or _M.UNITS_NONE
    _M.writeReg(_M.REG_DISP_BOTTOM_UNITS,bit32.bor(bit32.lshift(other,8),units))
+   _M.curBotUnits = units
+   _M.curBotUnitsOther = other
 end
 
 -------------------------------------------------------------------------------
@@ -1714,7 +1737,16 @@ function _M.getKey(keyGroup)
     return _M.getKeyPressed, _M.getKeyState  
  
  end
-    
+
+_M.editing = false
+
+-------------------------------------------------------------------------------
+-- Check to see if editing routines active
+-- @return true of editing false otherwise
+function _M.isEditing()
+   return _M.editing
+end
+ 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a value
 -- @param prompt string displayed on bottom right LCD
@@ -1725,8 +1757,7 @@ function _M.edit(prompt, def, typ)
 
     local key, state
 
-    local bl = _M.curBotLeft
-    local br = _M.curBotRight
+    
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
@@ -1734,16 +1765,17 @@ function _M.edit(prompt, def, typ)
     
     local editVal = def 
     local editType = typ or 'integer'
+    _M.editing = true
     
+    _M.saveBot()
     _M.writeBotRight(prompt)
     _M.writeBotLeft(editVal)
 
-    local editing = true
     local first = true
     
         
     local ok = false  
-    while editing do
+    while _M.editing do
         key, state = _M.getKey(_M.keyGroup.keypad)
         if state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
@@ -1765,12 +1797,12 @@ function _M.edit(prompt, def, typ)
                    editVal = editVal .. '.'             
                 end
             elseif key == _M.KEY_OK then         
-                editing = false
+                _M.editing = false
                 ok = true
             elseif key == _M.KEY_CANCEL then    
                 if string.len(editVal) == 0 then
                     editVal = def
-                    editing = false
+                    _M.editing = false
                 else
                     editVal = string.sub(editVal,1,-2)
                 end 
@@ -1778,14 +1810,13 @@ function _M.edit(prompt, def, typ)
         elseif state == 'long' then
             if key == _M.KEY_CANCEL then
                 editVal = def
-                editing = false
+                _M.editing = false
             end
         end 
         _M.writeBotLeft(editVal..' ')
     end 
-    _M.writeBotRight(br)
-    _M.writeBotLeft(bl)
- 
+    _M.restoreBot()
+   
     return editVal, ok
 end
 
@@ -1862,15 +1893,15 @@ end
 function _M.askOK(prompt, q)
 
     local f = _M.keyGroup.keypad.callback
-    local bl = _M.curBotLeft
-    local br = _M.curBotRight
     local prompt = prompt or ''
     local q = q or ''  
   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
 
+    _M.saveBot()
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
+    _M.writeBotUnits(0,0)
  
     _M.askOKWaiting = true
     _M.askOKResult = _M.KEY_CANCEL
@@ -1880,8 +1911,7 @@ function _M.askOK(prompt, q)
     end   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
 
-    _M.writeBotRight(br)
-    _M.writeBotLeft(bl)
+    _M.restoreBot() 
     return _M.askOKResult  
   
 end  
@@ -1897,9 +1927,7 @@ end
 function _M.selectOption(prompt, options, def, loop)
     loop = loop or false
 
-    local bl = _M.curBotLeft
-    local br = _M.curBotRight
-
+  
     local options = options or {}
     local key = 0
 
@@ -1911,15 +1939,17 @@ function _M.selectOption(prompt, options, def, loop)
             end
         end
     end 
+
+    _M.editing = true
     
     local sel = def or ''  
-
+    _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
     _M.writeBotLeft(string.upper(options[index]))
+    _M.writeBotUnits(0,0)
 
-    local editing = true
-    while editing do
-        key = _M.getKey(_M.keyGroup.cursor)  
+    while _M.editing do
+        key = _M.getKey(_M.keyGroup.keypad)  
         if key == _M.KEY_DOWN then
             index = index - 1
             if index == 0 then
@@ -1940,18 +1970,17 @@ function _M.selectOption(prompt, options, def, loop)
             end
         elseif key == _M.KEY_OK then 
             sel = options[index]
-            editing = false
+            _M.editing = false
         elseif key == _M.KEY_CANCEL then
              sel = def
-          editing = false     
+          _M.editing = false     
       end
       _M.writeBotLeft(string.upper(options[index]))
       
     end  
       
-    _M.writeBotRight(br)
-    _M.writeBotLeft(bl)
- 
+    _M.restoreBot()  
+   
     return sel
 end
 

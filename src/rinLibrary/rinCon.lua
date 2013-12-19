@@ -223,15 +223,26 @@ function _M.Qempty()
     return (_M.sendQ.head > _M.sendQ.tail)
 end
 
+
+_M.Qidle = 0
+_M.Qbusy = 5
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
 function _M.sendQueueCallback()
-    if not _M.Qempty() then
-        local msg = _M.popQ()
+    if  not _M.Qempty() then
+      if (_M.Qidle < _M.Qbusy) then       
+       local msg = _M.popQ()
         _M.dbg.printVar('<<<', msg, _M.dbg.DEBUG)
         _M.socketA:send(msg)
-   end
+        _M.Qidle = _M.Qidle + 1
+      else
+         _M.Qidle = 0   -- throttle back as too many messages already on the way   
+      
+      end         
+    else
+       _M.Qidle = 0
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -394,7 +405,8 @@ function _M.sendMsg(msg, crc)
                                     str.format("%04X", _M.CCITT(msg)), 
                                     '\04'}))
     else
-        _M.sendRaw(table.concat({msg,'\13\10'}))
+      --  _M.sendRaw(table.concat({msg,'\13\10'}))
+      _M.sendRaw(table.concat({msg,';'}))
     end 
 end
 

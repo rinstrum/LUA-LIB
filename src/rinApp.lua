@@ -40,11 +40,11 @@ package.loaded["rinLibrary.rinDebug"] = nil
 
 _M.devices = {}
 
-ini.loadINI('rinApp.ini',_M.config)
---_M.dbg.info('',_M.config)
+
+_M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config.level, _M.config.timestamp, 'Application')
 
-
+_M.dbg.print(arg)
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
     local data = sock:receive("*l")
