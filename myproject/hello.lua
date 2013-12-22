@@ -16,7 +16,7 @@ package.path = package.path .. ";../src/?.lua"
 local rinApp = require "rinApp"
 
 -- Add control of an L401 at the given IP and port
-local K401 = rinApp.addK400("K401")
+local dwi = rinApp.addK400("K401")
 
 --- Test Comment.
 --@table wiring
@@ -25,13 +25,21 @@ local K401 = rinApp.addK400("K401")
 
 
 -- Write "Hello world" to the LCD screen.
-K401.writeBotLeft("Hello")
-K401.writeBotRight("There")
-K401.writeTopLeft("LEFT")
-K401.writeTopRight("RIGHT")
+dwi.writeBotLeft("Hello")
+dwi.writeBotRight("There")
+
+
+function printHandler(s)
+   print ('This received from Print Engine: ',s)
+end
+
+dwi.setSerBCallback(printHandler)
+
 
 -- Wait for the user to press a key on the L401
-K401.getKey()
+while rinApp.running do
+   rinApp.system.handleEvents()
+   end
 
 -- Cleanup the application and exit
 rinApp.cleanup()

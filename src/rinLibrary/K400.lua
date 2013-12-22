@@ -901,7 +901,7 @@ end
 -- @usage
 -- local function F1Pressed(key, state)
 --  if state == 'short' then
---       dbg.printVar ('F1 pressed')
+--       dbg.info('F1 pressed')
 --    end
 --    return true    -- F1 handled here so don't send back to instrument for handling
 --  end

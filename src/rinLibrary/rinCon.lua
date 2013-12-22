@@ -146,7 +146,7 @@ function _M.defaultErrHandler(addr, cmd, reg, data, s)
     tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
   end
    
-  _M.dbg.printVar('rinCMD Error: ',tmps, _M.dbg.WARN) 
+  _M.dbg.warn('rinCMD Error: ',tmps) 
 
 end
 
@@ -233,7 +233,7 @@ function _M.sendQueueCallback()
     if  not _M.Qempty() then
       if (_M.Qidle < _M.Qbusy) then       
        local msg = _M.popQ()
-        _M.dbg.printVar('<<<', msg, _M.dbg.DEBUG)
+        _M.dbg.debug('<<<', msg)
         _M.socketA:send(msg)
         _M.Qidle = _M.Qidle + 1
       else
@@ -289,11 +289,11 @@ function _M.recMsg()
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.printVar('>>>', msg, _M.dbg.DEBUG) 
+        _M.dbg.debug('>>>', msg) 
         return msg, nil
     end
     
-    _M.dbg.printVar("Receive SERA failed: ", err, _M.dbg.ERROR)
+    _M.dbg.error("Receive SERA failed: ", err)
 --    os.exit(1)
     return nil, err
 end
@@ -470,8 +470,8 @@ function _M.unbindRegister(reg)
 end
 
 _M.start = '\02'
-_M.end1 = nil
-_M.end2 = '\03'
+_M.end1 = '\03'
+_M.end2 = nil
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
@@ -490,23 +490,26 @@ function _M.socketBCallback()
         if char == _M.start then
             buffer = {}
         end
-
-        table.insert(buffer,char)
-
-        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end2) then
+ 
+        table.insert(buffer,char)  -- put char in the buffer
+        
+        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end1) then
             break
-        end          
+        end  
     end
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.printVar('-->', msg, _M.dbg.DEBUG) 
-        return msg, nil
+        _M.dbg.debug('-->', msg) 
+        if _M.SerBCallback then
+            _M.SerBCallback(string.sub(msg,2-2))
+        end  
+        return        
     end
     
-    _M.dbg.printVar("Receive SERB failed: ", err, _M.dbg.ERROR)
+    _M.dbg.error("Receive SERB failed: ", err)
 --    os.exit(1)
-    return nil, err
+
 
 end
 
@@ -517,10 +520,17 @@ end
 -- @param end1 first end character, nil if not used
 -- @param end2 second end character, nil if not used
 function _M.setDelimiters(start, end1, end2)
-
    _M.start = start
    _M.end1 = end1
    _M.end2 = end2
+end
+
+-------------------------------------------------------------------------------
+-- Set delimiters for messages received from the socket linked to SERB 
+-- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
+-- @callback funciton that takes a message strings as an argument
+function _M.setSerBCallback(f)
+  _M.SerBCallback = f
 end
 
 return _M
