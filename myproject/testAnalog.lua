@@ -124,14 +124,30 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 dwi.writeBotLeft('  MY APP')
 dwi.writeBotRight(' .LUA')
 
+levels = {}
+levels.fast = 9.0
+levels.medium = 6.0
+levels.slow = 2.0
+
+function editLevel()
+    sel = string.lower(dwi.selectOption('LEVEL',{'SLOW','MEDIUM','FAST'},'SLOW',true))
+	rinApp.dbg.info('',sel,levels[sel])
+	newLevel = dwi.edit('VOLTAGE',levels[sel],'number')
+	rinApp.dbg.info(newLevel)
+	if (newLevel < 10.0) and (newLevel > 0.0) then
+	   levels[sel] = newLevel
+	end   
+end
+
+
 
 -------------------------------------------------------------------------------
 -- Main Application Loop
 -------------------------------------------------------------------------------
 while rinApp.running do
   local k = dwi.getKey()
-  if k == dwi.KEY_OK then
-     dwi.buzz(2)
+  if k == dwi.KEY_UP or k == dwi.KEY_DOWN then
+     editLevel()
   end   
   rinApp.system.handleEvents()           -- handleEvents runs the event handlers 
 end  

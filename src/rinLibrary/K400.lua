@@ -1817,7 +1817,7 @@ function _M.edit(prompt, def, typ)
     end 
     _M.restoreBot()
    
-    return editVal, ok
+    return tonumber(editVal), ok
 end
 
 
