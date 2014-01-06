@@ -528,7 +528,7 @@ end
 -------------------------------------------------------------------------------
 -- Set delimiters for messages received from the socket linked to SERB 
 -- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
--- @callback funciton that takes a message strings as an argument
+-- @param f callback function that takes a message string as an argument
 function _M.setSerBCallback(f)
   _M.SerBCallback = f
 end
