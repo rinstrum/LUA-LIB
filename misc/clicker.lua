@@ -18,6 +18,7 @@ local function handleWeightStream(data, err)
 end
 local wgt = K401.addStream(K401.REG_GROSSNET, handleWeightStream, 'change')
 
+
 -------------------------------------------------------------------------------
 -- Timer to rotate activity annunciator on LCD screen
 local function twiddle()
@@ -41,6 +42,8 @@ local function click()
 end
 local clicker = rinApp.system.timers.addTimer(1000,50,click)  -- run click() every 500 msecs after an initial 50msec delay
 
+
+
 -------------------------------------------------------------------------------
 -- Callback to capture changes to Motion,Net and Zero status  
 local function statusChanged(status, active)
@@ -54,6 +57,7 @@ K401.setStatusCallback(K401.STAT_ZERO, statusChanged)
 -- statusChanged() called whenever Motion, Gross/Net or Zero status 
 -- changes on the instrument
 --------------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------------
 -- Key Handler for F1 
@@ -77,6 +81,7 @@ local function F2Pressed(key, state)
 end
 K401.setKeyCallback(K401.KEY_F2, F2Pressed)
 
+
 -------------------------------------------------------------------------------
 -- F3 handler : toggles date format from mm-dd-yy to dd-mm-yy      
 local function F3Pressed(key, state)
@@ -90,6 +95,7 @@ local function F3Pressed(key, state)
     return true
 end
 K401.setKeyCallback(K401.KEY_F3, F3Pressed)
+
 
 -------------------------------------------------------------------------------
 -- Handler to capture ABORT key and end program
@@ -143,3 +149,4 @@ end
 K401.turnOff(CLICKER_OUTPUT)       -- make sure CLICKER_OUTPUT is turned off before ending
 K401.releaseOutput(CLICKER_OUTPUT) -- release CLICKER_OUTPUT from LUA control
 rinApp.cleanup()                   -- shutdown application resources
+

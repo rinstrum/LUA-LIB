@@ -1,9 +1,11 @@
 # Scratchpad
+<<<<<<< HEAD
+backup/
+opkg/
+=======
 myproject/
+*.zip
 
-M01/
-
-*~
 
 #Ignore everything in the opkg directory
 opkg/*
