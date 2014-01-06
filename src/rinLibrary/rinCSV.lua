@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Offer functions for creating a multi-table database stored and recalled in .CSV format
+-- Functions for working with .CSV files and creating multi-table databases
 -- @module rinLibrary.rinCSV
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd
@@ -145,6 +145,8 @@ end
 --      fname name of .csv file associated with table - used to save/restore table contents
 --      labels{}  1d array of column labels
 --      data{{}}  2d array of data
+-- @return table in same format:
+
 function _M.saveCSV(t)
       local f = io.open(t.fname,"w+")
       f:write(_M.toCSV(t.labels) .. '\n')
@@ -152,6 +154,7 @@ function _M.saveCSV(t)
          f:write(_M.toCSV(row) .. '\n')
       end
       f:close()
+	  return (t)
 end
 
 
@@ -176,6 +179,7 @@ end
               _M.saveCSV(t)  -- file is empty so setup to hold t   
          else   
               if _M.equalCSV(t.labels, _M.fromCSV(s)) then   -- read in existing data   
+                 t.data = {}
                  for s in f:lines() do   
                      table.insert(t.data,_M.fromCSV(s))   
                  end   
@@ -194,10 +198,10 @@ end
 -------------------------------------------------------------------------------
 -- Adds line of data to a CSV file but does not update local data in table
 -- @param t is table describing CSV data
--- @param l line (1d array) of data to save
-function _M.logLineCSV(t,l)
+-- @param line is a row of data (1d array) to save
+function _M.logLineCSV(t,line)
       local f = io.open(t.fname,"a+")
-      f:write(_M.toCSV(l) .. '\n')
+      f:write(_M.toCSV(line) .. '\n')
       f:close()
 end
 
@@ -205,30 +209,99 @@ end
 -------------------------------------------------------------------------------
 -- Adds line of data to a table
 -- @param t is table holding CSV data
--- @param l line (1d array) of data to save
+-- @param line of data (1d array) to add to the table
+-- @return row location of line new line in table
   
-function _M.addLineCSV(t,l)
-      table.insert(t.data,l)
+function _M.addLineCSV(t,line)
+      table.insert(t.data,line)
+	  return(table.maxn(t.data))
 end 
 
+-------------------------------------------------------------------------------
+-- Makes a duplicate copy of a line of data
+-- @param line is the line of data (1-d array)
+-- @return duplicate copy of line
+function _M.dupLineCSV(line)
+  local t = {}
+  for k,v in pairs(line) do
+     t[k] = v
+	end
+  return t
+end
 
 -------------------------------------------------------------------------------
 -- Removes line of data in a table (does not save .CSV file)
 -- @param t is table holding CSV data
--- @param line is row number of table data 1..n to remove.
--- removes last line if line is nil
-function _M.remLineCSV(t,line)
-      table.remove(t.data)  -- remove last line from the table
+-- @param row is row number of table data 1..n to remove.
+-- removes last line of data if row is nil
+function _M.remLineCSV(t,row)
+      table.remove(t.data,line)  -- remove last line from the table
 end
-    
 
+-------------------------------------------------------------------------------
+-- Removes line of data in a table (does not save .CSV file)
+-- @param t is table holding CSV data
+-- @param val is value of the cell to find
+-- @param col is the column of data to match (default is col 1)
+-- @return row that val found in or nil if not found
+-- @return line of data found at that row with matching val data in column col
+function _M.getLineCSV(t,val,col)
+   local line = {}
+   local col = col or 1
+   local row = 0
+   for k,v in ipairs(t.data) do
+     if tostring(v[col]) == tostring(val) then
+	    line = v
+		row = k
+	  end	
+   end
+   if row == 0 then 
+      return nil, line
+   else
+      return row, line
+   end	  
+end
+
+-------------------------------------------------------------------------------
+-- Replaces a line of data in the table (does not save the .CSV file)
+-- @param t is table holding CSV data
+-- @param row is the row number of the line of data
+-- @param line is the line of data
+function _M.replaceLineCSV(t,row,line)
+    if row == nil then return end
+	if (row < 1) or (row > table.maxn(t.data)) then return end
+    t.data[row] = line
+end
+
+-------------------------------------------------------------------------------
+-- Returns the column number of a particular label
+-- @param t is table holding CSV data
+-- @param label is name of column to find (not case sensitive)
+-- @return column number of the label or nil if not found	
+function _M.labelCol(t,label)
+  
+  if label == nil then return nil end
+  label = tostring(label)
+  label = string.lower(label)
+
+  
+  for k,v in pairs(t.labels) do
+     if string.lower(v) == label then
+	    return k
+	 end 	
+  end
+  
+  return nil
+end	
+	
 -------------------------------------------------------------------------------
 -- Converts contents of the CSV table into a print friendly string
 -- @param t table to convert
 -- @param w width to pad each cell to
 function _M.tostringCSV(t,w)
     local csvtab = {}
- 
+    local w = w or 10
+	
     table.insert(csvtab, 'File: '.. t.fname..'\r\n') 
     table.insert(csvtab, _M.padCSV(t.labels,w))
     table.insert(csvtab, '\r\n')
@@ -325,7 +398,8 @@ end
 -- @param w width of each cell
 function _M.tostringDB(db,w)
     local csvtab = {}
- 
+    local w = w or 10
+	
     for k,t in pairs(db) do
         table.insert(csvtab, k..':\r\n') 
         table.insert(csvtab, 'File: '.. t.fname..'\r\n') 

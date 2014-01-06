@@ -123,6 +123,8 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 
 dwi.writeBotLeft('  MY APP')
 dwi.writeBotRight(' .LUA')
+dwi.setAnalogSource(dwi.ANALOG_COMMS)
+dwi.setAnalogType(dwi.VOLT)
 
 levels = {}
 levels.fast = 9.0
@@ -133,9 +135,10 @@ function editLevel()
     sel = string.lower(dwi.selectOption('LEVEL',{'SLOW','MEDIUM','FAST'},'SLOW',true))
 	rinApp.dbg.info('',sel,levels[sel])
 	newLevel = dwi.edit('VOLTAGE',levels[sel],'number')
-	rinApp.dbg.info(newLevel)
+	rinApp.dbg.info('',newLevel)
 	if (newLevel < 10.0) and (newLevel > 0.0) then
 	   levels[sel] = newLevel
+	   dwi.setAnalogVolt(levels[sel])
 	end   
 end
 

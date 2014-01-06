@@ -4,6 +4,7 @@ package.path = package.path .. ";../src/?.lua"
 -- Require the rinApp module
 local rinApp = require "rinApp"
 local csv = require "rinLibrary.rinCSV"
+local VT100 = require "rinLibrary.rinVT100"
 
 local dwi = rinApp.addK400("K401")
 
@@ -11,17 +12,17 @@ local dwi = rinApp.addK400("K401")
 
 -------------------------------------------------------------------------------
 -- Configure the registers.csv file structure
-csv.addTable('registers', 
-                {['fname'] = 'registers.csv',
+registers = csv.saveCSV(    {['fname'] = 'registers.csv',
                  ['labels'] = {'Address','Name','Type','Data','Literal'},
                  ['data'] = {}}
                 )
-csv.saveDB()  -- create csv file
 
 
+VT100.set(VT100.clrScreen())
+VT100.set(VT100.scrollSet(3,25))
 dwi.removeErrHandler()
-local reg_start = arg[1] or 1
-local reg_end = arg[2] or reg_start
+local reg_start = tonumber(arg[1]) or 1
+local reg_end = tonumber(arg[2]) or reg_start
 for reg = reg_start,reg_end do
    data, err = dwi.sendRegWait(dwi.CMD_RDFINALDEC,reg)
    if not err then
@@ -33,12 +34,16 @@ for reg = reg_start,reg_end do
          lit = lit or ''
          name = name or ''
          regstr = string.format('%4X',reg)
-         csv.addLineCSV('registers',{regstr,name,dwi.typStrings[typ],data,lit}) 
-         print(string.format('%4X (%s):',reg,dwi.typStrings[typ]),lit)
-       end
+         csv.logLineCSV(registers,{regstr,name,dwi.typStrings[typ],data,lit}) 
+         VT100.set(VT100.csrSave().. VT100.csrXY(1,1))
+		 print(string.format('%4X (%s): ',reg,dwi.typStrings[typ]),lit,VT100.clrEol(),VT100.csrRestore())
+      
+	  end
     end   
 end
 
-csv.saveDB()
 rinApp.cleanup()
+csv.loadCSV(registers)
+print(VT100.scrollAll()..VT100.clrScreen()..VT100.csrHome()..csv.tostringCSV(registers,15))
+
 

@@ -121,6 +121,42 @@ _M.REG_USERNUM4         = 0x0313
 _M.REG_USERNUM5         = 0x0314
 
 
+--- K412 Product Registers.
+--@table productRegisters
+-- @field REG_ACTIVE_PRODUCT_NO    Read the Active Product Number, Write to set the active product by number
+-- @field REG_ACTIVE_PRODUCT_NAME  Read the Active Product Name, Write to set Active Product by name
+-- @field REG_CLR_ALL_TOTALS       Clears all product totals (EXECUTE) 
+-- @field REG_CLR_DOCKET_TOTALS    Clears all docket sub-totals (EXECUTE)
+-- @field REG_SELECT_PRODUCT_NO    Read the Selected Product Number, Write to set the Selected product by number
+-- @field REG_SELECT_PRODUCT_NAME  Read the Selected Product Name, Write to set the Selected product by Name
+-- @field REG_SELECT_PRODUCT_DELETE Delete Selected Product (EXECUTE)
+-- @field REG_SELECT_PRODUCT_RENAME Write to change name of selected product
+
+
+
+_M.REG_ACTIVE_PRODUCT_NO        = 0xB000
+_M.REG_ACTIVE_PRODUCT_NAME      = 0xB006
+_M.REG_CLR_ALL_TOTALS           = 0xB002
+_M.REG_CLR_DOCKET_TOTALS        = 0xB004
+_M.REG_SELECT_PRODUCT_NO        = 0xB00F
+_M.REG_SELECT_PRODUCT_NAME      = 0xB010
+_M.REG_SELECT_PRODUCT_DELETE    = 0xB011
+_M.REG_SELECT_PRODUCT_RENAME    = 0xB012
+
+
+_M.REG_SYSERR           = 0x0022
+_M.REG_ABSMVV           = 0x0023
+
+_M.REG_GROSSNET         = 0x0025
+_M.REG_GROSS            = 0x0026
+_M.REG_NET              = 0x0027
+_M.REG_TARE             = 0x0028
+_M.REG_PEAKHOLD         = 0x0029
+_M.REG_MANHOLD          = 0x002A
+
+
+
+
 
 _M.sendRegWaiting = false
 _M.sendRegData = ''
@@ -581,12 +617,31 @@ _M.STAT_ERROR           = 0x00001000
 _M.STAT_ULOAD           = 0x00002000
 _M.STAT_OLOAD           = 0x00004000
 _M.STAT_NOTERROR        = 0x00008000
+
+-- K401 specific status bits
 _M.STAT_INIT            = 0x01000000
 _M.STAT_RTC             = 0x02000000
 _M.STAT_RDG             = 0x04000000
 _M.STAT_IO              = 0x08000000
 _M.STAT_SER1            = 0x10000000
 _M.STAT_SER2            = 0x20000000
+
+-- K412 specific status bits
+_M.STAT_IDLE            = 0x00010000
+_M.STAT_RUN             = 0x00020000
+_M.STAT_PAUSE           = 0x00040000
+_M.STAT_SLOW            = 0x00080000
+_M.STAT_MED             = 0x00100000
+_M.STAT_FAST            = 0x00200000
+_M.STAT_TIME            = 0x00400000
+_M.STAT_INPUT           = 0x00800000
+_M.STAT_NO_INFO         = 0x01000000
+_M.STAT_FILL            = 0x02000000
+_M.STAT_DUMP            = 0x04000000
+_M.STAT_PULSE           = 0x08000000
+_M.STAT_START           = 0x10000000
+_M.STAT_NO_TYPE         = 0x20000000
+_M.STAT_INIT			= 0x80000000
 
 _M.statBinds = {}
 _M.statID = nil          
@@ -1352,7 +1407,7 @@ _M.REG_ANALOGUE_SOURCE = 0xA805  -- must be set to option 3 "COMMS" if we are to
 _M.CUR = 0
 _M.VOLT = 1
 
-_M.curAnalogType = _M.CUR 
+_M.curAnalogType = -1 
 
 
 _M.ANALOG_COMMS = 3
@@ -1798,6 +1853,9 @@ function _M.edit(prompt, def, typ)
                 end
             elseif key == _M.KEY_OK then         
                 _M.editing = false
+				 if string.len(editVal) == 0 then
+                    editVal = def
+				 end	
                 ok = true
             elseif key == _M.KEY_CANCEL then    
                 if string.len(editVal) == 0 then
