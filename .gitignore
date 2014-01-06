@@ -2,6 +2,7 @@
 backup/
 opkg/
 M01/
+*.zip
 
 *~
 
