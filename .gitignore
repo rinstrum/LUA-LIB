@@ -1,8 +1,16 @@
 # Scratchpad
+<<<<<<< HEAD
 backup/
 opkg/
-M01/
+=======
+myproject/
 *.zip
 
-*~
+
+#Ignore everything in the opkg directory
+opkg/*
+#Except the CONTROL directory.
+#BEWARE - This ignore cannot appear in the opkg dir
+#otherwise it is packaged with the app, not good!
+!*/CONTROL*
 
