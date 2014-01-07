@@ -324,8 +324,9 @@ end
          
  -----------------------------------------------------------------------------------
 -- Adds a database table to the database, updates contents with t if already present
+-- @param db is the database table to populate
 -- @param name is the name of table
--- @param t database table to add
+-- @param t is the csv table to add
 -- database table is in the format 
 -- fname name of .csv file associated with table - used to save/restore table contents
 -- labels{}  1d array of column labels
