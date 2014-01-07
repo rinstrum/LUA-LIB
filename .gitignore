@@ -1,9 +1,17 @@
 # Scratchpad
 myproject/
 
+# Ignore build folder
 M01/
 
+# Ignore gedit backup files
 *~
+
+# Project files
+autostart/
+backup/
+myproject/
+misc/
 
 #Ignore everything in the opkg directory
 opkg/*
