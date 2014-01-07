@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Libary for K400 application support.
--- Providies wrappers for all device services
+-- Library for K400 application support.
+-- Provides wrappers for all device services
 -- @module rinLibrary.K400
 -- @author Darren Pearson
 -- @author Merrick Heley
