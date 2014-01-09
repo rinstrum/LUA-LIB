@@ -332,8 +332,8 @@ function _M.CCITT(data)
     
     for c = 1, #data do
         char = str.byte(data, c)
-        local x = bit32.bxor(bit32.arshift(crc, 8), char)
-        crc = bit32.band(bit32.bxor(crc*256, _M.crcTable[x]), 0xFFFF)
+        local x = bit32.bxor(floor(crc * 0.00390625), char)
+        crc = bit32.bxor(crc*256, _M.crcTable[x]) % 65536
     end
     
     return crc
