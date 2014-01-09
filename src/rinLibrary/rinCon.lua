@@ -335,8 +335,8 @@ function _M.CCITT(data)
     
     for c = 1, #data do
         char = byte(data, c)
-        local x = bxor(floor(crc * 0.00390625), char)
-        crc = bxor(crc*256, crcTable[x]) % 65536
+        local x = bxor(floor(crc * 0.00390625), char)   -- (crc >> 8) ^ char               producing an eight bit result
+        crc = bxor(crc * 256, crcTable[x]) % 65536      -- ((crc << 8) ^ magic) & 0xffff   producing a sixteen bit result
     end
     
     return crc
