@@ -1,6 +1,6 @@
 Package: L001-503
 Version: 1.0.0
-Description: L001.5xx.503 Rinstrum Lua Libraries for R400 Communications Protocol
+Description: L001-503 Rinstrum Lua Libraries for R400 Communications Protocol
 Section: rinstrum/libraries
 Priority: optional
 Maintainer: Merrick Heley
