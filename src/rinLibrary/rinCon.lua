@@ -6,8 +6,11 @@
 -------------------------------------------------------------------------------
 
 local bit32 = require "bit"
+local bxor = bit32.bxor
+local floor = math.floor
 
 local str = string
+local byte = str.byte
 local table = table
 local assert = assert
 local tonum = tonumber
@@ -281,7 +284,7 @@ end
 -- 		printf("0x%04x, ", 0xffff & (y<<12) ^ (y<<5) ^ y));
 -- 	}
 --
-_M.crcTable = {
+local crcTable = {
 -- Indicies in comments are in octal, add the row index to the column index.
 --    000     001     002     003     004     005     006     007
             0x1021, 0x2042, 0x3063, 0x4084, 0x50A5, 0x60C6, 0x70E7,	-- 000
@@ -317,7 +320,7 @@ _M.crcTable = {
     0xEF1F, 0xFF3E, 0xCF5D, 0xDF7C, 0xAF9B, 0xBFBA, 0x8FD9, 0x9FF8,	-- 360
     0x6E17, 0x7E36, 0x4E55, 0x5E74, 0x2E93, 0x3EB2, 0x0ED1, 0x1EF0 	-- 370
 }
-_M.crcTable[0] = 0;
+crcTable[0] = 0;
 
 -------------------------------------------------------------------------------
 -- Creates a CRC-CCITT (0xFFFF) of the given ASCII data
@@ -331,9 +334,9 @@ function _M.CCITT(data)
     local char
     
     for c = 1, #data do
-        char = str.byte(data, c)
-        local x = bit32.bxor(bit32.arshift(crc, 8), char)
-        crc = bit32.band(bit32.bxor(crc*256, _M.crcTable[x]), 0xFFFF)
+        char = byte(data, c)
+        local x = bxor(floor(crc * 0.00390625), char)   -- (crc >> 8) ^ char               producing an eight bit result
+        crc = bxor(crc * 256, crcTable[x]) % 65536      -- ((crc << 8) ^ magic) & 0xffff   producing a sixteen bit result
     end
     
     return crc
