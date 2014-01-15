@@ -937,7 +937,8 @@ _M.curBotRight = ''
 -- @param s string to display
 function _M.writeBotLeft(s)
     if s then
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,  s)
+        s = string.sub(s, 1, 9) -- Limit to 9 chars
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, s)
         _M.curBotLeft = s
     end  
 end
@@ -947,6 +948,7 @@ end
 -- @param s string to display
 function _M.writeBotRight(s)
     if s then
+        s = string.sub(s, 1, 8) -- Limit to 8 chars
         _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s)
         _M.curBotRight = s
     end   
