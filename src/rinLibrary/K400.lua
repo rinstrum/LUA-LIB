@@ -7,11 +7,21 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+-- build rest of K400 on top of rinCon
+local con = require "rinLibrary.rinCon"
+local _M = con  
+
+local string = string
+local tonumber = tonumber
+local package = package
+local type = type
+local math = math
+local pairs = pairs
+local ipairs = ipairs
+local tostring = tostring
+
 local bit32 = require "bit"
 
-local con = require "rinLibrary.rinCon"
--- build rest of K400 on top of rinCon
-local _M = con  
 -- remove information that rinCON is already loaded to facilitate multiple connections
 package.loaded["rinLibrary.rinCon"] = nil
 
