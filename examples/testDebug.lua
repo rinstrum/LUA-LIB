@@ -10,10 +10,15 @@ package.path = package.path .. ";../src/?.lua"
 
 local dbg = require "rinLibrary.rinDebug"
 
-
+require "logging.console"
+local config = {
+    logger = logging.console("%message\n"),
+    level = logging.INFO,
+    timestamp = true    
+}
 
 -- set rinDebug to show all messages with date/time stamping
-dbg.configureDebug(dbg.DEBUG, true)
+dbg.configureDebug(config, true)
 dbg.printVar('DEBUG level selected with timestamping')
 -- log debug messages at each level 
 dbg.printVar("Hello", '' ,dbg.DEBUG)  -- log simple message without label

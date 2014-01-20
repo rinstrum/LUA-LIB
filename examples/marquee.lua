@@ -13,8 +13,7 @@
 package.path = package.path .. ";../src/?.lua"
 
 local rinApp = require "rinApp"
-local K401 = rinApp.addK400("K401")
-
+local dwi = rinApp.addK400("K401")
 
 local msg = ''
 -------------------------------------------------------------------------------
@@ -29,13 +28,13 @@ local function slide()
     -- If there's nothing left to move, clear the screen
     -- and write the msg to false so we know we're done
     if msg == '' then
-        K401.writeBotLeft('')
+        dwi.writeBotLeft('')
         msg = false
         
     -- If there's something left to write, write a substring of 9 characters
     -- to the device and remove a character from the message
     else   
-        K401.writeBotLeft(string.format('%-9s',string.upper(string.sub(msg,1,9))))
+        dwi.writeBotLeft(string.format('%-9s',string.upper(string.sub(msg,1,9))))
         msg = string.sub(msg,2)
     end
 end
@@ -55,13 +54,13 @@ end
 -- Key handler
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
-    if key == K401.KEY_CANCEL and state == 'long' then 
+    if key == dwi.KEY_CANCEL and state == 'long' then 
         rinApp.running = false
     end
     return true     -- key handled so don't send back to instrument
 end
 
-K401.setKeyGroupCallback(K401.keyGroup.all, handleKey)
+dwi.setKeyGroupCallback(dwi.keyGroup.all, handleKey)
 
 -- Print a message
 showMarquee("This is a very long message for a small LCD screen")
