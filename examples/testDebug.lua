@@ -10,15 +10,16 @@ package.path = package.path .. ";../src/?.lua"
 
 local dbg = require "rinLibrary.rinDebug"
 
+local logging = require "logging"
 require "logging.console"
 local config = {
     logger = logging.console("%message\n"),
     level = logging.INFO,
-    timestamp = true    
+    timestamp = true  
 }
 
 -- set rinDebug to show all messages with date/time stamping
-dbg.configureDebug(config, true)
+dbg.configureDebug(config)
 dbg.printVar('DEBUG level selected with timestamping')
 -- log debug messages at each level 
 dbg.printVar("Hello", '' ,dbg.DEBUG)  -- log simple message without label
@@ -43,8 +44,13 @@ t.week = {'Sun','Mon','Tue','Wed','Thurs','Fri','Sat'}
 dbg.printVar('t = ', t, dbg.DEBUG )
 
 -- Setup rinDebug to only show Warnings without timestamps
-dbg.printVar("Argument 1 is ", arg[1], dbg.INFO)  	-- show contents of argument 1 passed to program
-dbg.configureDebug(arg[1], false)            		-- set debug level to arg[1] and see what gets logged, also remove timestamp
+local config = {
+    logger = logging.console("%message\n"),
+    level = logging.WARN,
+    timestamp = true  
+}
+
+dbg.configureDebug(config) -- Rerun configure
 dbg.printVar("Fatal logged",		'', dbg.FATAL)
 dbg.printVar("Error logged",		'', dbg.ERROR)
 dbg.printVar("Information logged",	'', dbg.INFO)
