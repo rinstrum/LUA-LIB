@@ -3,10 +3,17 @@ package.path = package.path .. ";../src/?.lua"
 local dbg = require "rinLibrary.rinDebug"
 
 
+local logging = require "logging"
+require "logging.console"
+local config = {
+    logger = logging.console("%message\n"),
+    level = logging.INFO,
+    timestamp = true  
+}
+dbg.configureDebug(config)
+
 a = 5
 dbg.printVar("a is :",a)
-
-dbg.configureDebug(arg[1], true)
 
 t = {}
 t.name = 'John'
@@ -14,7 +21,6 @@ t.wife = 'Sara'
 t.kid1 = 'Amy'
 dbg.printVar('Family:',t)
 dbg.printVar('kid:',t.kid1)
-
 
 local rinCSV = require "rinLibrary.rinCSV"
 -------------------------------------------------------------------------------
