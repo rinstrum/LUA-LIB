@@ -30,6 +30,23 @@ _M.ADDR_ERR             = 0x40
 _M.ADDR_REPLY           = 0x20
 _M.ADDR_NOREPLY         = 0x00
 _M.ADDR_BROADCAST       = 0x00
+--- Instrument Commands.
+--@table rinCMD commands
+-- @field CMD_RDTYPE       Read Register Type
+-- @field CMD_RDRANGEMIN   Read data range minimum
+-- @field CMD_RDRANGEMAX   Read data range maximum
+-- @field CMD_RDRAW        Read Raw data
+-- @field CMD_RDLIT        Read literal data
+-- @field CMD_WRRAW        Write Raw data
+-- @field CMD_RDDEFAULT    Read default setting
+-- @field CMD_RDNAME       Read Name
+-- @field CMD_RDITEM       Read Item from item list
+-- @field CMD_RDPERMISSION Read register permissions
+-- @field CMD_RDFINALHEX   Read data in hexadecimal format
+-- @field CMD_RDFINALDEC   Read data in decimal format
+-- @field CMD_WRFINALHEX   Write data in hexadecimal format
+-- @field CMD_WRFINALDEC   Write data in decimal format
+-- @field CMD_EX           Execute with data as execute parameter
 
 -- Commands
 _M.CMD_RDTYPE           = 0x01
@@ -131,7 +148,7 @@ function _M.defaultErrHandler(addr, cmd, reg, data, s)
     tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
   end
    
-  _M.dbg.printVar('rinCMD Error: ',tmps, _M.dbg.WARN) 
+  _M.dbg.warn('rinCMD Error: ',tmps) 
 
 end
 
@@ -142,6 +159,8 @@ _M.errHandler = _M.defaultErrHandler
 -- @param errHandler Function for handling errors, 
 -- should take arguments: Address, Command, Register, Data, Err String.
 function _M.setErrHandler(errHandler)
+
+
     _M.errHandler = errHandler
 end
 
@@ -176,7 +195,6 @@ function _M.socketACallback()
        _M.deviceRegisters[0](data,err)
     end
     
-    return addr, err    
 end
 
 _M.sendQ = {head = 0,tail = -1}
@@ -216,7 +234,7 @@ end
 function _M.sendQueueCallback()
     if not _M.Qempty() then
         local msg = _M.popQ()
-        _M.dbg.printVar('<<<', msg, _M.dbg.DEBUG)
+        _M.dbg.debug('<<<', msg)
         _M.socketA:send(msg)
    end
 end
@@ -265,11 +283,11 @@ function _M.recMsg()
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.printVar('>>>', msg, _M.dbg.DEBUG) 
+        _M.dbg.debug('>>>', msg) 
         return msg, nil
     end
     
-    _M.dbg.printVar("Receive SERA failed: ", err, _M.dbg.ERROR)
+    _M.dbg.error("Receive SERA failed: ", err)
 --    os.exit(1)
     return nil, err
 end
@@ -499,8 +517,8 @@ function _M.unbindRegister(reg)
 end
 
 _M.start = '\02'
-_M.end1 = nil
-_M.end2 = '\03'
+_M.end1 = '\03'
+_M.end2 = nil
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
@@ -522,18 +540,21 @@ function _M.socketBCallback()
 
         table.insert(buffer,char)
 
-        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end2) then
+        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end1) then
             break
         end          
     end
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.printVar('-->', msg, _M.dbg.DEBUG) 
-        return msg, nil
+        _M.dbg.debug('-->', msg) 
+        if _M.SerBCallback then
+            _M.SerBCallback(string.sub(msg,2-2))
+        end  
+        return        
     end
     
-    _M.dbg.printVar("Receive SERB failed: ", err, _M.dbg.ERROR)
+    _M.dbg.error("Receive SERB failed: ", err)
 
     return nil, err
 end
@@ -551,4 +572,11 @@ function _M.setDelimiters(start, end1, end2)
    _M.end2 = end2
 end
 
+-------------------------------------------------------------------------------
+-- Set delimiters for messages received from the socket linked to SERB 
+-- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
+-- @param f callback function that takes a message string as an argument
+function _M.setSerBCallback(f)
+  _M.SerBCallback = f
+end
 return _M
