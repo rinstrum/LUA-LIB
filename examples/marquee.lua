@@ -54,7 +54,7 @@ end
 -- Key handler
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
-    if key == dwi.KEY_CANCEL and state == 'long' then 
+    if key == dwi.KEY_PWR_CANCEL and state == 'long' then 
         rinApp.running = false
     end
     return true     -- key handled so don't send back to instrument
