@@ -23,9 +23,9 @@ local config = {
 
 
 -------------------------------------------------------------------------------
-dbg.printVar('Default Config = ', config)  	-- log contents of config table to console
+dbg.info('Default Config = ', config)  	-- log contents of config table to console
 local t = ini.loadINI('config.ini',config)  -- load INI file from disk using config table as default 
-dbg.printVar('Loaded Config =', t)         	-- log loaded settings to console
+dbg.info('Loaded Config =', t)         	-- log loaded settings to console
 
 
 

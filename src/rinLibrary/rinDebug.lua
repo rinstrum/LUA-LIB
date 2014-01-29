@@ -13,7 +13,13 @@ local print = print
 local require = require
 
 local logging = require "logging"
-local logger
+
+-- Set the default logger type 
+-- Refer to http://www.keplerproject.org/lualogging/manual.html
+require "logging.console"
+require "logging.socket"
+require "logging.file"
+_M.logger = logging.console("%message\n")
 
 _M.DEBUG    = logging.DEBUG
 _M.INFO     = logging.INFO
@@ -28,32 +34,98 @@ _M.LEVELS[_M.WARN]  = 'WARN'
 _M.LEVELS[_M.ERROR] = 'ERROR'
 _M.LEVELS[_M.FATAL] = 'FATAL'
 
-_M.config = nil
-_M.level = logging.INFO
-_M.useTimestamp = false
+_M.level = _M.INFO
+_M.lastLevel = _M.level
+
+
+_M.timestamp = false
 _M.ip = ""
+
+-- -- -- ------------------------------------------
+-- private function
+function _M.checkLevel(level)
+
+   local level = level or _M.INFO
+   if type(level) == 'string' then
+      level = string.upper(level)
+    end  
+   
+   local lev = _M.level
+   for k,v in pairs(_M.LEVELS) do
+     if k == level then
+        lev = k
+     elseif v == level then
+        lev = k
+     end
+    end
+   return lev  
+
+end
+
+-------------------------------------------------------------------------------
+-- Set Debug level
+-- @param level enumerated level constant or matching string.
+-- If no match level set to INFO
+function _M.setLevel(level)
+   _M.lastLevel = _M.level
+   _M.level = _M.checkLevel(level)
+   if _M.lastLevel ~= _M.level then
+      _M.logger:setLevel(_M.level) 
+   end	  
+end
+
+-------------------------------------------------------------------------------
+-- Restores Debug level to previous setting
+function _M.restoreLevel()
+   _M.level = _M.lastLevel
+end
+
+
+function _M.setLogger(config)
+
+  if config.logger == 'file' then
+     _M.logger = logging.file(config.file.filename,nil,"%message\n")
+  elseif config.logger == 'socket' then
+     _M.logger = logging.socket(config.socket.IP,config.socket.port,"%message\n")
+  else -- config.logger is 'console' by default 
+	 config.logger = 'console'
+	 _M.logger = logging.console("%message\n")
+  end
+end
+
+_M.config = {
+         level = 'INFO',
+         timestamp = true,
+         logger = 'console'
+		 }
+
+function _M.setConfig(config)
+    _M.config = config
+    _M.config.level = _M.checkLevel(_M.config.level)
+    _M.config.timestamp = config.timestamp or true
+    _M.setLogger(_M.config)
+end
+
 
 -------------------------------------------------------------------------------
 -- Configures the level for debugging
--- @param config Config file containing the logger type, level and timestamp option
+-- @param config is table of settings 
 -- @param ip optional tag printed with each message (usually IP address of the instrument)
+-- @usage
+-- dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'},'testDebug')
+
 function _M.configureDebug(config, ip)
     
-    _M.config = config
-    
-    logger = config.logger
-    _M.level = config.level
-    _M.useTimestamp = config.timestamp
-  
-    logger:setLevel(_M.level)
+	_M.setConfig(config)
+    _M.setLevel(_M.config.level)    
+    _M.timestamp = _M.config.timestamp
    
     if type(ip) == "string" then
         _M.ip = string.rep(" ", 15-#ip) .. ip
     end
 end
-
 -------------------------------------------------------------------------------
--- Configures the level for debugging
+-- returns debug configuration
 -- @return level lualogging level
 -- @return timestamp: true if timestamp logging is to included 
 -- @return ip 
@@ -113,57 +185,102 @@ function _M.varString(arg)
     end
 end
 
--------------------------------------------------------------------------------
--- Prints variable v contents to stdio with optional name tag
--- @param name is the name of the variable (optional)
--- @param v is a variable whose contents are to be printed
--- @param level is the debug level for the message  INFO by default
-function _M.printVar(name, v, level)
-    local level = level or _M.INFO
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at current debug level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
 
-    if name then
-        name = name .. ' '
-    else 
-        name = ''
-    end
-    
-    local timestamp = ''
-    if _M.useTimestamp then
-        timestamp = os.date("%Y-%m-%d %X ")
+function _M.print(prompt, ...)
+
+    local timestr = ''
+    if _M.timestamp then
+        timestr = os.date("%Y-%m-%d %X ")
     end
     
     if (_M.ip == nil) then
         _M.ip = ""
     end
     
-    logger:log(level, string.format("%s%s %s: %s",
-                                    timestamp,
-                                    _M.ip,
-                                    _M.LEVELS[level], 
-                                    name .. _M.varString(v)))
+    local prompt = prompt or ''
+    
+    if type(prompt) == 'string' then
+       s = prompt
+    else   
+       s = _M.varString(prompt) .. ' '
+    end
+    
+    if arg.n == 0 then
+      s = s .. _M.varString(nil)
+    else    
+      for i,v in ipairs(arg) do
+        s = s .. _M.varString(v) .. ' '
+      end  
+    end    
+
+    local level = _M.tempLevel or _M.level
+     s = string.format("%s%s %s: %s",timestr, _M.ip, _M.LEVELS[level], s)
+    _M.logger:log(level, s)
+    _M.tempLevel = nil
+                                   
+end
+
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at DEBUG level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
+function _M.debug(prompt,...)
+    _M.tempLevel = _M.DEBUG    
+    _M.print(prompt,unpack(arg))
+end
+
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at INFO level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
+function _M.info(prompt,...)
+    _M.tempLevel = _M.INFO    
+    _M.print(prompt,unpack(arg))
+    
+end
+
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at WARN level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
+
+function _M.warn(prompt,...)
+    _M.tempLevel = _M.WARN    
+    _M.print(prompt,unpack(arg))
+    
+end
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at ERROR level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
+function _M.error(prompt,...)
+    _M.tempLevel = _M.ERROR    
+    _M.print(prompt,unpack(arg))
+end
+
+-----------------------------------------------------------------------------------
+-- Prints variable contents to debugger at FATAL level with optional prompt
+-- @param prompt is an optional prompt printed before the arguments
+-- @param ... arguments to be printed
+function _M.fatal(prompt,...)
+    _M.tempLevel = _M.FATAL    
+    _M.print(prompt,unpack(arg))
 end
 
 -------------------------------------------------------------------------------
--- Function to test the module
-function _M.testDebug()
-    local a = nil
-    local b = "Hello"
-    local c = 25.7
-    local d = true
-    local e = {var = 1, tab = {a = 1, b= 2}}
-    local f = { fred = 'friend', 
-                address = nil, 
-                phone = 123456, 
-                happy = false, 
-                find = function() print("go look yourself") end
-              }
-
-    print (_M.varString(a))
-    print (_M.varString(b))
-    print (_M.varString(c))
-    print (_M.varString(d))
-    print (_M.varString(e))
-    print (_M.varString(f))
+-- Prints variable v contents to stdio with optional prompt
+-- included for backward compatibility - replaced by print
+-- @param prompt is an optional prompt
+-- @param v is a variable whose contents are to be printed
+-- @param level is the debug level for the message  INFO by default
+function _M.printVar(prompt,v,level)
+   _M.tempLevel = _M.checkLevel(level)
+   _M.print(prompt,v)
 end
+
 
 return _M
