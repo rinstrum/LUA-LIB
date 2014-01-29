@@ -10,7 +10,6 @@ package.path = package.path .. ";../src/?.lua"
 
 local dbg = require "rinLibrary.rinDebug"
 
-
 -- set rinDebug to show all messages with date/time stamping
 dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'},'testDebug')
 
@@ -46,7 +45,3 @@ dbg.error('',"Error logged")
 dbg.warn('',"Warning Logged")
 dbg.info('',"Information logged")
 dbg.debug('',"Debug logged")            -- May not print depending on arguement and default debug level
-
-
-
-

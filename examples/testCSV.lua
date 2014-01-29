@@ -10,10 +10,6 @@ package.path = package.path .. ";../src/?.lua"
 
 local csv = require "rinLibrary.rinCSV"
 
-
-
-
-
 -------------------------------------------------------------------------------
 -- Configure the registers.csv file structure
 db = {}   
@@ -33,7 +29,6 @@ print(csv.tostringDB(db,10))
 
 print(db.materials.data[1][2])
 
-
 log = csv.loadCSV({['fname'] = 'test1.csv',
                    ['labels'] = {'Target','Actual','Fill Time'},
                    ['data'] = {}})
@@ -46,10 +41,3 @@ csv.saveCSV(log)
 csv.logLineCSV(log,{1500,1450,30.0})
 csv.loadCSV(log)
 print(csv.tostringCSV(log,10))
-
-
-
-
-
-
-

@@ -38,7 +38,6 @@ _M.dbgconfig = require "debugConfig"
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
-
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config, 'Application')

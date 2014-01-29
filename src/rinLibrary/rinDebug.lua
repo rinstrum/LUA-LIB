@@ -37,7 +37,6 @@ _M.LEVELS[_M.FATAL] = 'FATAL'
 _M.level = _M.DEBUG
 _M.lastLevel = _M.level
 
-
 _M.timestamp = false
 _M.ip = ""
 
@@ -80,7 +79,6 @@ function _M.restoreLevel()
    _M.level = _M.lastLevel
 end
 
-
 function _M.setLogger(config)
 
   if config.logger == 'file' then
@@ -105,7 +103,6 @@ function _M.setConfig(config)
     _M.config.timestamp = config.timestamp or true
     _M.setLogger(_M.config)
 end
-
 
 -------------------------------------------------------------------------------
 -- Configures the level for debugging
@@ -281,6 +278,5 @@ function _M.printVar(prompt,v,level)
    _M.tempLevel = _M.checkLevel(level)
    _M.print(prompt,v)
 end
-
 
 return _M

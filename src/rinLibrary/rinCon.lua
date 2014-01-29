@@ -160,7 +160,6 @@ _M.errHandler = _M.defaultErrHandler
 -- should take arguments: Address, Command, Register, Data, Err String.
 function _M.setErrHandler(errHandler)
 
-
     _M.errHandler = errHandler
 end
 
@@ -431,7 +430,6 @@ function _M.processMsg(msg, err)
     return addr, cmd, reg, data
     
 end
-
 
 -------------------------------------------------------------------------------
 -- Sends a raw message

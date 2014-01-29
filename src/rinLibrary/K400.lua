@@ -81,7 +81,6 @@ _M.REG_RAWADC           = 0x002D
 _M.REG_ALTNET           = 0x002E
 _M.REG_FULLSCALE        = 0x002F
 
-
 --- Instrument User Variables.
 --@table usrRegisters
 -- @field REG_USERID_NAME1    Names of 5 User ID strings
@@ -104,8 +103,6 @@ _M.REG_FULLSCALE        = 0x002F
 -- @field REG_USERNUM3      
 -- @field REG_USERNUM4      
 -- @field REG_USERNUM5      
-
-
 
 -- USER VARIABLES
 _M.REG_USERID_NAME1     = 0x0080
@@ -130,7 +127,6 @@ _M.REG_USERNUM3         = 0x0312
 _M.REG_USERNUM4         = 0x0313
 _M.REG_USERNUM5         = 0x0314
 
-
 --- K412 Product Registers.
 --@table productRegisters
 -- @field REG_ACTIVE_PRODUCT_NO    Read the Active Product Number, Write to set the active product by number
@@ -142,8 +138,6 @@ _M.REG_USERNUM5         = 0x0314
 -- @field REG_SELECT_PRODUCT_DELETE Delete Selected Product (EXECUTE)
 -- @field REG_SELECT_PRODUCT_RENAME Write to change name of selected product
 
-
-
 _M.REG_ACTIVE_PRODUCT_NO        = 0xB000
 _M.REG_ACTIVE_PRODUCT_NAME      = 0xB006
 _M.REG_CLR_ALL_TOTALS           = 0xB002
@@ -152,7 +146,6 @@ _M.REG_SELECT_PRODUCT_NO        = 0xB00F
 _M.REG_SELECT_PRODUCT_NAME      = 0xB010
 _M.REG_SELECT_PRODUCT_DELETE    = 0xB011
 _M.REG_SELECT_PRODUCT_RENAME    = 0xB012
-
 
 _M.REG_SYSERR           = 0x0022
 _M.REG_ABSMVV           = 0x0023
@@ -163,8 +156,6 @@ _M.REG_NET              = 0x0027
 _M.REG_TARE             = 0x0028
 _M.REG_PEAKHOLD         = 0x0029
 _M.REG_MANHOLD          = 0x002A
-
-
 
 _M.sendRegWaiting = false
 _M.sendRegData = ''
@@ -1027,8 +1018,6 @@ _M.saveBotRight = ''
 _M.saveBotUnits = 0
 _M.saveBotUnitsOther = 0 
 
-
-
 function _M.saveBot()
    _M.saveBotLeft = _M.curBotLeft
    _M.saveBotRight = _M.curBotRight
@@ -1061,7 +1050,6 @@ function _M.writeTopRight(s)
         _M.curTopRight = s
     end   
 end   
-
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
@@ -1384,7 +1372,6 @@ _M.CUR = 0
 _M.VOLT = 1
 
 _M.curAnalogType = -1 
-
 
 _M.ANALOG_COMMS = 3
 -------------------------------------------------------------------------------
@@ -1710,8 +1697,6 @@ function _M.setpHys(setp, v)
   _M.setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
 end
 
-
-
 -------------------------------------------------------------------------------
 --- Dialog Control.
 -- Functions for user interface dialogues
@@ -1871,7 +1856,6 @@ function _M.delay(t)
     _M.system.timers.removeTimer(tmr)
 end
 
-
 _M.askOKWaiting = false
 _M.askOKResult = 0
 -------------------------------------------------------------------------------
@@ -2020,7 +2004,6 @@ function _M.printCustomTransmit(tokenStr, comPort)
     end 
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to request response based on custom transmit token string
