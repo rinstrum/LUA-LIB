@@ -34,7 +34,7 @@ _M.LEVELS[_M.WARN]  = 'WARN'
 _M.LEVELS[_M.ERROR] = 'ERROR'
 _M.LEVELS[_M.FATAL] = 'FATAL'
 
-_M.level = _M.INFO
+_M.level = _M.DEBUG
 _M.lastLevel = _M.level
 
 
