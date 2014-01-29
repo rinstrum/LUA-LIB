@@ -106,7 +106,6 @@ function _M.loadINI(fname, def)
     return t
 end
 
-
 -------------------------------------------------------------------------------
 -- returns table t contents in an INI format string
 -- @param t is table of settings
@@ -134,6 +133,5 @@ function _M.stringINI(t)
     
     return table.concat(initab)
 end
-
 
 return _M

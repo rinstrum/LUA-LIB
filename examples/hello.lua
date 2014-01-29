@@ -12,7 +12,6 @@ package.path = package.path .. ";../src/?.lua"
 -- Require the rinApp module
 local rinApp = require "rinApp"
 
-
 -- Add control of an dwi at the given IP and port
 local dwi = rinApp.addK400("K401")
 

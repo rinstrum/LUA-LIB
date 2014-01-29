@@ -44,7 +44,6 @@ end
 -- The timer has a 100ms delay before it starts for the first time
 local slider = rinApp.system.timers.addTimer(400, 100, slide)
 
-
 -- Format the string for slide
 local function showMarquee (s)
    msg = '        ' ..  s

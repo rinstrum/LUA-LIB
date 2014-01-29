@@ -21,11 +21,7 @@ local config = {
          batching = {target = 1000, freefall = 10} -- [batching] group settings
          }
 
-
 -------------------------------------------------------------------------------
 dbg.info('Default Config = ', config)  	-- log contents of config table to console
 local t = ini.loadINI('config.ini',config)  -- load INI file from disk using config table as default 
 dbg.info('Loaded Config =', t)         	-- log loaded settings to console
-
-
-

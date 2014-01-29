@@ -7,7 +7,6 @@
 
 local _M= {}
 
-
 -------------------------------------------------------------------------------
 -- Send an escape sequence to the terminal
 -- @param s string containing escape sequence to send
@@ -146,7 +145,6 @@ function _M.scrollSet(r1,r2)
    return(string.format('\27[%d;%dr',r1,r2))
 end 
 
-
 -- Screen Attributes
 --@table attr
 --@field BGattr  Background colours
@@ -168,9 +166,6 @@ end
 --@field FGCyan  
 --@field FGWhite
 
-
-
-
 _M.BGBlack = '40'
 _M.BGRed = '41'
 _M.BGGreen = '42'
@@ -188,7 +183,6 @@ _M.FGBlue = '34'
 _M.FGMagenta = '35'
 _M.FGCyan = '36'
 _M.FGWhite = '37'
-
 
 _M.lastFG = _M.FGWhite
 _M.lastBG = _M.BGBlack

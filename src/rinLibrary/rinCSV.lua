@@ -137,7 +137,6 @@ end
 -- Functions to manage CSV files directly
 -- @section CSV 
 
-
 -------------------------------------------------------------------------------
 -- Save table t to a .CSV file
 -- @param t database table to save.
@@ -156,8 +155,6 @@ function _M.saveCSV(t)
       f:close()
 	  return (t)
 end
-
-
 
 -------------------------------------------------------------------------------
 -- Reads a .CSV file and returns a table with the loaded contents
@@ -193,8 +190,6 @@ end
     return t     
   end        
 
-
-
 -------------------------------------------------------------------------------
 -- Adds line of data to a CSV file but does not update local data in table
 -- @param t is table describing CSV data
@@ -204,7 +199,6 @@ function _M.logLineCSV(t,line)
       f:write(_M.toCSV(line) .. '\n')
       f:close()
 end
-
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a table
@@ -319,8 +313,6 @@ end
 --- Database Utilities.
 -- Functions to manage multiple tables in a database
 -- @section Database 
-
-
          
  -----------------------------------------------------------------------------------
 -- Adds a database table to the database, updates contents with t if already present
@@ -413,6 +405,5 @@ function _M.tostringDB(db,w)
       end 
     return table.concat(csvtab)
 end
-
 
 return _M

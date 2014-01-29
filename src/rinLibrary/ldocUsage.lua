@@ -17,7 +17,6 @@
 -- @field FIELD2 Field 2 DescriptionREG_SOFTVER Software Version eg "V1.00"
 -- @field FIELD3 Field 3 DescriptionREG_SERIALNO Serial Number
 
-
 -------------------------------------------------------------------------------
 -- General Function Description goes here.
 -- @param p1 Parameter 1 description
@@ -32,7 +31,6 @@
 function myFunction(p1,p2)
  
 end
-
 
 -------------------------------------------------------------------------------
 -- Another Function Description goes here.
