@@ -34,7 +34,6 @@ _M.config = {
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
-_M.dbgconfig = require "debugConfig"
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
