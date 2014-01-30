@@ -203,7 +203,7 @@ function _M.print(prompt, ...)
         _M.ip = ""
     end
     
-    local prompt = prompt or ''
+    local prompt = prompt and prompt .. ' ' or ''
     
     if type(prompt) == 'string' then
        s = prompt
