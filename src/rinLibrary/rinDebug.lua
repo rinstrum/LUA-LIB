@@ -11,6 +11,10 @@ local string = string
 local type = type 
 local print = print
 local require = require
+local unpack = unpack
+local tostring = tostring
+local os = os
+local ipairs = ipairs
 
 local logging = require "logging"
 
@@ -110,11 +114,10 @@ end
 -- @param ip optional tag printed with each message (usually IP address of the instrument)
 -- @usage
 -- dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'},'testDebug')
-
 function _M.configureDebug(config, ip)
     
 	_M.setConfig(config)
-    _M.setLevel(_M.config.level)    
+    _M.setLevel(_M.config.level)
     _M.timestamp = _M.config.timestamp
    
     if type(ip) == "string" then
@@ -190,6 +193,8 @@ end
 function _M.print(prompt, ...)
 
     local timestr = ''
+    local s
+    
     if _M.timestamp then
         timestr = os.date("%Y-%m-%d %X ")
     end
