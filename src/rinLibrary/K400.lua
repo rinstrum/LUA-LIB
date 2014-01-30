@@ -1980,7 +1980,7 @@ end
 
 -- Custom Print Strings
 
-_M.REG_PRINTPORT        = 0x0317
+_M.REG_PRINTPORT        = 0xA317
 _M.REG_PRINTTOKENSTR    = 0x004C
 _M.REG_REPLYTOKENSTR    = 0x004D
 
@@ -1988,7 +1988,6 @@ _M.PRINT_SER1A          = 0
 _M.PRINT_SER1B          = 1
 _M.PRINT_SER2A          = 2
 _M.PRINT_SER2B          = 3
-_M.REG_PRINTPORT        = 0x0317
 _M.curPrintPort         = 0xFF
 
 -------------------------------------------------------------------------------
