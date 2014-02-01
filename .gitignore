@@ -20,3 +20,4 @@ opkg/*
 #otherwise it is packaged with the app, not good!
 !*/CONTROL*
 
+/examples/rinApp.ini

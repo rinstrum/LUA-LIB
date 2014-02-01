@@ -180,20 +180,18 @@ function _M.socketACallback()
     
     if err then
         if _M.errHandler then
-            _M.errHandler(addr,cmd,reg,data,err)
+            _M.errHandler(addr, cmd, reg, data, err)
         end
         data = nil
     end
     
-    local called = false
     if _M.deviceRegisters[reg] then
         _M.deviceRegisters[reg](data, err)
-        called = true
-    end
-    if not called and _M.deviceRegisters[0] then
-       _M.deviceRegisters[0](data,err)
+    elseif _M.deviceRegisters[0] then
+        _M.deviceRegisters[0](data, err)
     end
     
+    return data, err
 end
 
 _M.sendQ = {head = 0,tail = -1}
@@ -233,8 +231,13 @@ end
 function _M.sendQueueCallback()
     if not _M.Qempty() then
         local msg = _M.popQ()
-        _M.dbg.debug('<<<', msg)
-        _M.socketA:send(msg)
+        local ret, err = _M.socketA:send(msg)
+        
+        if err then
+            _M.dbg.warn('FAILED TRANSMIT', msg)
+        else
+            _M.dbg.debug('<<<', msg)
+        end
    end
 end
 
