@@ -517,9 +517,9 @@ function _M.unbindRegister(reg)
     _M.deviceRegisters[reg] = nil
 end
 
-_M.start = '\02'
-_M.end1 = '\03'
-_M.end2 = nil
+_M.start = nil
+_M.end1 = '\13'
+_M.end2 = '\10'
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
@@ -534,23 +534,24 @@ function _M.socketBCallback()
         char, err = _M.socketB:receive(1)
 
         if err then break end
-        
         if char == _M.start then
             buffer = {}
         end
-
         table.insert(buffer,char)
-
-        if (_M.end2 and prevchar == _M.end1 and char == _M.end2) or (char == _M.end1) then
+        if (_M.end2) then
+           if (prevchar == _M.end1 and char == _M.end2) then
             break
+           end
+         elseif (char == _M.end1) then
+            break       
         end          
     end
     
-    if err == nil then
+    if err == nil or (err == 'timeout' and #buffer > 0) then
         msg = table.concat(buffer)
         _M.dbg.debug('-->', msg) 
         if _M.SerBCallback then
-            _M.SerBCallback(string.sub(msg,2-2))
+            _M.SerBCallback(msg)
         end  
         return        
     end
@@ -567,7 +568,15 @@ end
 -- @param end1 first end character, nil if not used
 -- @param end2 second end character, nil if not used
 function _M.setDelimiters(start, end1, end2)
-
+   if type(start) == 'number' then
+      start = string.char(start)
+    end
+   if type(end1) == 'number' then
+      end1 = string.char(end1)
+    end
+   if type(end2) == 'number' then
+      end2 = string.char(end2)
+    end
    _M.start = start
    _M.end1 = end1
    _M.end2 = end2

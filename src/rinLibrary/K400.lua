@@ -1990,6 +1990,20 @@ _M.PRINT_SER2A          = 2
 _M.PRINT_SER2B          = 3
 _M.curPrintPort         = 0xFF
 
+
+-------------------------------------------------------------------------------
+-- Takes a string s and returns a formatted CustomTransmit string with all 
+-- non-printable characters escaped in \xx format
+-- @param s  string to convert
+-- @return string with all non-printable characters escaped in \xx format
+function _M.expandCustomTransmit(s)
+
+  return string.format('%s',string.gsub(s,"[^\32-\126]",      
+                        function(x) 
+                            return string.format("\\%02X",string.byte(x))
+                        end))
+end
+
 -------------------------------------------------------------------------------
 -- Send custom print token string to instrument comms port
 -- @param tokenStr  string containing custom print tokens
