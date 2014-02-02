@@ -626,7 +626,7 @@ _M.STAT_DUMP            = 0x04000000
 _M.STAT_PULSE           = 0x08000000
 _M.STAT_START           = 0x10000000
 _M.STAT_NO_TYPE         = 0x20000000
-_M.STAT_INIT			= 0x80000000
+_M.STAT_INIT            = 0x80000000
 
 _M.statBinds = {}
 _M.statID = nil          
@@ -869,6 +869,9 @@ function _M.endKeys(flush)
     
     _M.removeStream(_M.keyID)
 end
+
+_M.runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
+
 -- Called when keys are streamed, send the keys to each group it is bound to 
 -- in order of priority, until one of them returns true.
 -- key states are 'short','long','up'
@@ -904,23 +907,35 @@ function _M.keyCallback(data, err)
     local groups = _M.keyBinds[key]
     if groups ~= nil then
        
-       if groups.directCallback and 
-              groups.directCallback(key, state) == true then
-          handled = true
+       if groups.directCallback then 
+            if _M.runningKeyCallback == groups.directCallback then
+               _M.dbg.warn('Attempt to call Key Event Handler recursively : ', key) 
+               return
+            end    
+            _M.runningKeyCallback = groups.directCallback
+            if groups.directCallback(key, state) == true then
+                handled = true
+            end    
+            _M.runningKeyCallback = nil
        end
               
       if not handled then      
-      for i=1,#groups do
-                if groups[i].callback and 
-                        groups[i].callback(key, state) == true then
+          for i=1,#groups do
+            if groups[i].callback then
+                if _M.runningKeyCallback == groups[i].callback then
+                    _M.dbg.warn('Attempt to call Key Group Event Handler recursively : ', key) 
+                    return
+                end    
+                _M.runningKeyCallback = groups[i].callback
+                if groups[i].callback(key, state) == true then
                     handled = true
                     break
                 end     
-        end
-      end  
-       
-
-    end
+            end
+          end 
+          _M.runningKeyCallback = nil           
+       end
+     end  
     
     if not handled then
         _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
@@ -1791,9 +1806,9 @@ function _M.edit(prompt, def, typ)
                 end
             elseif key == _M.KEY_OK then         
                 _M.editing = false
-				 if string.len(editVal) == 0 then
+                 if string.len(editVal) == 0 then
                     editVal = def
-				 end	
+                 end    
                 ok = true
             elseif key == _M.KEY_CANCEL then    
                 if string.len(editVal) == 0 then
@@ -1820,8 +1835,17 @@ _M.REG_EDIT_REG = 0x0320
 -------------------------------------------------------------------------------
 --  Called to edit value of specified register
 -- @param reg is the address of the register to edit
-function _M.editReg(reg)
-  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
+-- @param prompt is true if name of register to be displayed during editing, 
+-- or set to a literal prompt to display
+function _M.editReg(reg,prompt)
+   if (prompt) then
+      _M.saveBot()
+      if type(prompt) == 'string' then
+         _M.writeBotRight(prompt)
+      else
+         _M.writeBotRight(_M.sendRegWait(_M.CMD_RDNAME,reg))
+      end   
+   end
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
@@ -1831,7 +1855,9 @@ function _M.editReg(reg)
      end
      _M.delay(50)
    end
-  -- _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+   if prompt then
+      _M.restoreBot()
+   end
    return _M.sendRegWait(_M.CMD_RDLIT,reg)
    
 end
@@ -1862,7 +1888,9 @@ _M.askOKResult = 0
 -- Private function
 function _M.askOKCallback(key, state)
     
-    if state ~= 'short' then return false end
+    if state ~= 'short' then 
+        return false 
+    end
     
     if key == _M.KEY_OK then
         _M.askOKWaiting = false
