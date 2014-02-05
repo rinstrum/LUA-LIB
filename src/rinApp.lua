@@ -94,8 +94,6 @@ function _M.addK400(model, ip, portA, portB)
    
     -- Register the K400 with system
     _M.system.sockets.addSocket(device.socketA, device.socketACallback)
--- TODO:  Get second socket working 
--- commented out to enable system to run, otherwise get a socket closed error
     _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
 
     -- Add a timer to send data every 5ms
@@ -112,6 +110,33 @@ function _M.addK400(model, ip, portA, portB)
     device.configure(model)
     return device 
 end
+   
+
+
+
+   
+_M.mainLoop = nil
+
+-------------------------------------------------------------------------------
+-- called to register application's main loop
+-- @param f Mail Loop function to call 
+function _M.setMainLoop(f)
+   _M.mainLoop = f
+end    
+    
+-------------------------------------------------------------------------------
+-- Main rinApp program loop
+function _M.run()
+    while _M.running do
+        if _M.mainLoop then
+           _M.mainLoop()
+        end   
+        _M.system.handleEvents()           -- handleEvents runs the event handlers 
+    end  
+
+end    
+    
+    
     
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services

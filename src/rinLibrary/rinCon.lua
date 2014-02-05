@@ -538,6 +538,9 @@ function _M.socketBCallback()
             buffer = {}
         end
         table.insert(buffer,char)
+        if #buffer > 50 then
+           break
+        end   
         if (_M.end2) then
            if (prevchar == _M.end1 and char == _M.end2) then
             break
