@@ -84,10 +84,10 @@ function _M.addK400(model, ip, portA, portB)
   
     local sA = assert(require "socket".tcp())
     sA:connect(ip, portA)
-    sA:settimeout(0.1)
+    sA:settimeout(0.010)
     local sB = assert(require "socket".tcp())
     sB:connect(ip, portB)
-    sB:settimeout(5.1)
+    sB:settimeout(0.001)
     
     -- Connect to the K400, and attach system if using the system library
     device.connect(model, sA, sB, _M)
