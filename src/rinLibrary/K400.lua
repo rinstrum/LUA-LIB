@@ -393,6 +393,27 @@ function _M.toFloat(data, dp)
    return data
 end
 
+
+
+-------------------------------------------------------------------------------
+-- Read a RIS file and send valid commands to the device
+-- @param filename Name of the RIS file
+function _M.loadRIS(filename)
+    local file = assert(io.open(filename, "r"))
+    for line in file:lines() do
+         if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
+            _,cmd,reg,data,err = _M.processMsg(line)
+            if err then
+               _M.dbg.error('RIS error: ',err)
+            end   
+            _M.sendRegWait(cmd,reg,data)
+         end
+    end
+    file:close()
+end
+
+
+
 -------------------------------------------------------------------------------- 
 --- Streaming.
 -- This section is for functions associated with streaming registers 
