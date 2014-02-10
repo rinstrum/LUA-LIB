@@ -1829,22 +1829,45 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets IO Output under LUA control
--- @param IO is input 1..32
-function _M.enableOutput(IO)
-   local curIOEnable =  bit32.bor(_M.lastIOEnable, bit32.lshift(0x0001,(IO-1)))
+-- @param ... list of IO to enable (input 1..32)
+-- @usage
+-- dwi.enableOutput(1,2,3,4)
+-- dwi.turnOn(1)
+-- dwi.turnOff(2)
+-- dwi.turnOnTimed(3,500)  -- pulse output 3 for 500 milliseconds
+-- dwi.releaseOutput(1,2,3,4)
+
+function _M.enableOutput(...)
+    local curIOEnable =  _M.lastIOEnable
+    
+    for i,v in ipairs(arg) do
+        v = tonumber(v)
+        curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
+       end  
    if (curIOEnable ~= _M.lastIOEnable) then
       _M.setOutputEnable(curIOEnable)
       _M.lastIOEnable = curIOEnable
     end  
-    
 end
 
 -------------------------------------------------------------------------------
 -- Sets IO Output under instrument control
--- @param IO is output 1..32
-function _M.releaseOutput(IO)
-    local curIOEnable =  bit32.band(_M.lastIOEnable, 
-                                bit32.bnot(bit32.lshift(0x0001,(IO-1))))
+-- @param ... list of IO to release to the instrument(input 1..32)
+-- @usage
+-- dwi.enableOutput(1,2,3,4)
+-- dwi.turnOn(1)
+-- dwi.turnOff(2)
+-- dwi.turnOnTimed(3,500)  -- pulse output 3 for 500 milliseconds
+-- dwi.releaseOutput(1,2,3,4)
+function _M.releaseOutput(...)
+    local curIOEnable =  _M.lastIOEnable
+    
+    for i,v in ipairs(arg) do
+        v = tonumber(v)
+        curIOEnable = bit32.band(curIOEnable, 
+                                   bit32.bnot(bit32.lshift(0x0001,(v-1))))
+       end  
+
     if (curIOEnable ~= _M.lastIOEnable) then
         _M.setOutputEnable(curIOEnable)
         _M.lastIOEnable = curIOEnable
