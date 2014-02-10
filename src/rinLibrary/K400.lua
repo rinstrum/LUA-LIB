@@ -459,6 +459,11 @@ _M.streamRegisters = {}
 function _M.streamCallback(data, err)
    
     if err then return end
+    if (string.len(data) % 8 ~= 0) or
+       (string.find(data,'%X')) then 
+          _M.dbg.error('Corrupt Stream Data: ',data)
+          return
+    end      
     
     for k,v in pairs(_M.availRegistersUser) do
         if v.reg ~= 0 then
