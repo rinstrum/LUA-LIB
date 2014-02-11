@@ -135,16 +135,28 @@ end
 -------------------------------------------------------------------------------
 -- Converts table t into a string
 -- @param t is a table
-function _M.tableString(t)
-    local s = '{'
+-- @param margin is a blank string to enable pretty formatting of t 
+function _M.tableString(t,margin)
+    local s = ''
+    local pad = ''
+    local margin = margin or 0
+    
+    if margin > 0 then
+       pad = '{'
+    end   
+    local first = true   
     for k,v in pairs(t) do
          if v == nil then
-             s = s .. (string.format('%s = <nil>, ',k))
+             s = s .. (string.format('%s%s = <nil>, ',pad,k))
         elseif type(v) == "table" then
-            s = s .. string.format('%s = %s, ',k,_M.tableString(v))
+            s = s .. string.format('%s%s = %s, ',pad,k,_M.tableString(v,margin+#k+4))
         else
-            s = s .. string.format('%s = %s, ',k,_M.varString(v))
+            s = s .. string.format('%s%s = %s, ',pad,k,_M.varString(v))
         end
+        if first then
+             first = false
+             pad = '\n'..string.rep(' ', margin+1)
+        end    
     end
     if #s < 3 then
         return ('{}')
@@ -157,8 +169,10 @@ end
 -------------------------------------------------------------------------------
 -- Converts arg into a string
 -- @param arg is any variable
-function _M.varString(arg)
+-- @param margin is the number of spaces to leave on each line of a table display
+function _M.varString(arg,margin)
     local t
+    local margin = margin or 0
 
     if arg == nil then
         return '<nil>'
@@ -177,9 +191,11 @@ function _M.varString(arg)
     elseif t == "boolean" then
         if arg then return "true" else return "false" end
     elseif t == "table" then
-        return _M.tableString(arg)
+        return _M.tableString(arg,margin)
     elseif t == "function" then
         return "<function>"
+    elseif t == "userdata" then
+        return string.format("%s",tostring(arg))
     else
         return "<unknown>"
     end
@@ -203,24 +219,27 @@ function _M.print(prompt, ...)
         _M.ip = ""
     end
     
-    local prompt = prompt and prompt .. ' ' or ''
+    local level = _M.tempLevel or _M.level
+    local header = string.format("%s%s %s: ",timestr, _M.ip, _M.LEVELS[level])
+    local margin = #header
     
     if type(prompt) == 'string' then
-       s = prompt
+       s = prompt .. ' '
+       margin = margin + #s
     else   
-       s = _M.varString(prompt) .. ' '
+       s = _M.varString(prompt,margin) .. ' '
     end
     
     if arg.n == 0 then
       s = s .. _M.varString(nil)
     else    
       for i,v in ipairs(arg) do
-        s = s .. _M.varString(v) .. ' '
+        s = s .. _M.varString(v,margin) .. ' '
       end  
     end    
 
-    local level = _M.tempLevel or _M.level
-     s = string.format("%s%s %s: %s",timestr, _M.ip, _M.LEVELS[level], s)
+    
+     s = string.format("%s%s",header, s)
     _M.logger:log(level, s)
     _M.tempLevel = nil
                                    

@@ -389,16 +389,20 @@ function _M.processMsg(msg, err)
             validDelim = "CRC"
             newMsg = str.sub(msg, 2, -6)    
         end
-    
+ 
     elseif str.sub(msg, -2, -1) == '\r\n' then
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -3)
-    
+   
+    elseif str.sub(msg, -1, -1) == '\r' then
+        validDelim = "NORM"
+        newMsg = str.sub(msg, 1, -2)
+ 
     elseif str.sub(msg,-1,-1) == ';' then
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -2)
     end
-    
+  
     if validDelim == nil then 
         return nil, nil, nil, nil, "bad delimiters" 
         
