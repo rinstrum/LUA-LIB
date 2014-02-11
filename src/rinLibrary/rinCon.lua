@@ -16,6 +16,7 @@ local assert = assert
 local tonum = tonumber
 local pairs = pairs
 local type = type
+local string = string
 
 local _M = {}
 _M.socketA = nil   -- must be set to a connected socket for the module to work

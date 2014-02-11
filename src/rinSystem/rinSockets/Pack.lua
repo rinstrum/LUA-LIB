@@ -7,6 +7,9 @@
 
 local _M = {}
 
+local table = table
+local pairs = pairs
+
 _M.sockets = {}
 _M.socketCallbacks = {}
 
