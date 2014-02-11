@@ -291,7 +291,12 @@ function _M.recMsg()
     end
     
     _M.dbg.error("Receive SERA failed: ", err)
---    os.exit(1)
+    
+    if err == "closed" or err == "Transport endpoint is not connected" then
+        _M.dbg.fatal("Critical error on SERA. Exiting.", err)
+        os.exit(1)
+    end
+    
     return nil, err
 end
 
@@ -378,6 +383,10 @@ function _M.processMsg(msg, err)
     local addr, cmd, reg, data
     
     if msg == nil and err == "closed" then
+        return nil, nil, nil, nil, err
+    end
+    
+    if msg == nil and err == "Transport endpoint is not connected" then
         return nil, nil, nil, nil, err
     end
     

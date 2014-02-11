@@ -34,8 +34,8 @@ function _M.handleEvents()
 		
 		local call, err = sockets.socketCallback(con)
 		
-        if err == "closed" then
-		    sockets.removeSocket(con)   
+        if err == "closed" or err == "Transport endpoint is not connected" then
+		    sockets.removeSocket(con)
 		end
 	end
 		
