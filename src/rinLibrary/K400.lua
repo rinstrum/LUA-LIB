@@ -399,7 +399,11 @@ end
 -- Read a RIS file and send valid commands to the device
 -- @param filename Name of the RIS file
 function _M.loadRIS(filename)
-    local file = assert(io.open(filename, "r"))
+    local file = io.open(filename, "r")
+    if not file then
+      _M.dbg.warn('RIS file not found')
+      return
+    end  
     for line in file:lines() do
          if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
             _,cmd,reg,data,err = _M.processMsg(line)
