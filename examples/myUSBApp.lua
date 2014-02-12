@@ -62,6 +62,34 @@ dwi.setIOCallback(1, handleIO1)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
+-- Callback for USB registration 
+local function usbRegisterHandler(ev)
+   for k,v in pairs(ev) do
+     rinApp.dbg.info(k,v[2])
+   end
+end
+rinApp.setUSBRegisterCallback(usbRegisterHandler)
+-------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- Callback for general USB device events
+local function usbEventHandler(ev)
+   rinApp.dbg.debug(ev)
+end
+rinApp.setUSBEventCallback(usbEventHandler)
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+-- Callback for USB keyboard events
+local function kbdHandler(key)
+   rinApp.dbg.info('Key is :', key)       
+end
+rinApp.setUSBKBDCallback(kbdHandler)
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
 -- Callback for local timer
 local tickerStart = 100    -- time in millisec until timer events start triggering
 local tickerRepeat = 200  -- time in millisec that the timer repeats
@@ -109,6 +137,7 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 dwi.writeBotLeft('  MY APP')
 dwi.writeBotRight(' .LUA')
 
+rinApp.initUSB()                   -- Call to setup USB interface
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
