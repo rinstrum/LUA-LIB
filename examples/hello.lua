@@ -7,21 +7,27 @@
 -- for a key press before exit
 -------------------------------------------------------------------------------
 -- Include the src directory
-package.path = package.path .. ";../src/?.lua"
+package.path = "/home/src/?.lua;" .. package.path 
 
--- Require the rinApp module
-local rinApp = require "rinApp"
+-------------------------------------------------------------------------------
+local rinApp = require "rinApp"     --  load in the application framework
 
--- Add control of an dwi at the given IP and port
-local dwi = rinApp.addK400("K401")
+--=============================================================================
+-- Connect to the instruments you want to control
+--=============================================================================
+local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+
+--=============================================================================
+-- Main Application 
+--=============================================================================
 
 -- Write "Hello world" to the LCD screen.
 dwi.writeBotLeft("Hello")
 dwi.writeBotRight("World")
 
--- Wait for the user to press a key on the dwi
-dwi.getKey()
+dwi.getKey()  -- Wait for the user to press a key on the dwi
 
--- Cleanup the application and exit
+--=============================================================================
+-- Clean Up 
+--=============================================================================
 rinApp.cleanup()
-os.exit()

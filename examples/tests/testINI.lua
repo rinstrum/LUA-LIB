@@ -6,7 +6,7 @@
 -- 
 -------------------------------------------------------------------------------
 -- Include the src directory
-package.path = package.path .. ";../src/?.lua"
+package.path = "/home/src/?.lua;" .. package.path 
 
 local ini = require "rinLibrary.rinINI"
 local dbg = require "rinLibrary.rinDebug"
