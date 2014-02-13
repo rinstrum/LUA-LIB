@@ -63,14 +63,14 @@ end
 -- Called to connect to the K400 instrument, and establish the timers,
 -- streams and other services
 -- @param model Software model expected for the instrument (eg "K401")
--- @param ip IP address for the socket, "127.1.1.1" used as a default
+-- @param ip IP address for the socket, "127.0.0.1" used as a default
 -- @param portA port address for the SERA socket (2222 used as default)
 -- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
 function _M.addK400(model, ip, portA, portB)
     
     -- Create the socket
-    local ip = ip or "127.1.1.1"
+    local ip = ip or "127.0.0.1"
     local portA = portA or 2222
     local portB = portB or 2223
     
