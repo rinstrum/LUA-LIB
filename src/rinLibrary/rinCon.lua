@@ -5,6 +5,7 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local sockets = require "rinSystem.rinSockets.Pack"
 local bit32 = require "bit"
 local bxor = bit32.bxor
 local floor = math.floor
@@ -196,51 +197,6 @@ function _M.socketACallback()
 end
 
 _M.sendQ = {head = 0,tail = -1}
-
--------------------------------------------------------------------------------
--- Add 1 to the queue and put the message on the end of the queue 
--- @param msg Message to add to the end of the queue
-function _M.pushQ(msg)
-    local tail = _M.sendQ.tail + 1
-    _M.sendQ.tail = tail
-    _M.sendQ[tail] = msg
-end
-
--------------------------------------------------------------------------------
--- Remove the message from the front of the queue, and return the message
--- @return Message removed from the queue
-function _M.popQ()
-    local head = _M.sendQ.head
-    if head > _M.sendQ.tail then return nil end
- 
-    local msg = _M.sendQ[head]
-    _M.sendQ[head] = nil
-    _M.sendQ.head = head + 1
-    return msg
-end
-
--------------------------------------------------------------------------------
--- Check if the queue is empty
--- @return True if empty, false otherwise
-function _M.Qempty()
-    return (_M.sendQ.head > _M.sendQ.tail)
-end
-
--------------------------------------------------------------------------------
--- Designed to be registered with rinSystem. If a message error occurs, pass it
--- to the error handler.
-function _M.sendQueueCallback()
-    if not _M.Qempty() then
-        local msg = _M.popQ()
-        local ret, err = _M.socketA:send(msg)
-        
-        if err then
-            _M.dbg.warn('FAILED TRANSMIT', msg)
-        else
-            _M.dbg.debug('<<<', msg)
-        end
-   end
-end
 
 -------------------------------------------------------------------------------
 -- Disconnect from the R400
@@ -452,7 +408,8 @@ end
 -- Sends a raw message
 -- @param raw  string to send 
 function _M.sendRaw(raw)
-   _M.pushQ(raw)   --  queue message to be sent on next timeout
+   --_M.pushQ(raw)   --  queue message to be sent on next timeout
+   sockets.writeSocket(_M.socketA, raw)
 end
 
 -------------------------------------------------------------------------------

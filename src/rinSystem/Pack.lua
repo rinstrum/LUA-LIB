@@ -23,12 +23,19 @@ _M.sockets = sockets
 function _M.handleEvents()
 
 	local key, time = timers.getSoonest()
-	local waiting, rec, err = socket.select(sockets.sockets, nil, time)
+    local writers = sockets.getWriterSockets()
+	local waiting, rec, err = socket.select(sockets.sockets, writers, time)
 	
 	if err == "timeout" then
 		timers.runKey(key)
 	end
-	
+
+	for i = 1, #rec do
+    	local con = rec[i]
+
+    	sockets.processWriteSocket(con)
+    end
+
 	for i = 1,#waiting do
 		local con = waiting[i]
 		
