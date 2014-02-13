@@ -26,7 +26,10 @@ end
 -- Run the callback function associated with a socket
 -- @param sock Socket whose callback function should be executed.
 function _M.socketCallback(sock)
-	return _M.socketCallbacks[sock](sock)
+    local callback = _M.socketCallbacks[sock]
+    if callback then
+        return callback(sock)
+    end
 end
 
 -------------------------------------------------------------------------------
