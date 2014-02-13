@@ -408,7 +408,6 @@ end
 -- Sends a raw message
 -- @param raw  string to send 
 function _M.sendRaw(raw)
-   --_M.pushQ(raw)   --  queue message to be sent on next timeout
    sockets.writeSocket(_M.socketA, raw)
 end
 
