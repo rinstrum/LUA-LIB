@@ -8,17 +8,12 @@
 local socket = require "socket"
 --local posix = require "posix"
 
-local _M = {}
-local timers = {}
-
-local tonumber = tonumber
-local string = string
-local tostring = tostring
-local table = table
-local pairs = pairs
 local unpack = unpack
 local floor = math.floor
 local max = math.max
+
+local _M = {}
+local timers = {}
 
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
@@ -110,11 +105,7 @@ end
 -- @return Delay in seconds
 function _M.delayUntilNext()
 	if timers[1] ~= nil then
-    	local delay = timers[1].when - monotonictime()
-        if delay < 0 then
-        	delay = 0
-        end
-    	return delay
+    	return max(0, timers[1].when - monotonictime())
     end
 	return nil
 end
