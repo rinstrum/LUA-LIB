@@ -1,10 +1,10 @@
 -------------------------------------------------------------------------------
--- Hello
+-- multi-device
 -- 
--- Traditional Hello World example
+-- Demonstrates how the libraries can control multiple devices
 -- 
--- Configures a rinApp application, displays 'Hello World' on screen and waits
--- for a key press before exit
+-- Displays 'hello' to two instruments and closes when a button is pressed on
+-- a certain instrument.
 -------------------------------------------------------------------------------
 -- Include the src directory
 package.path = "/home/src/?.lua;" .. package.path 
@@ -15,19 +15,24 @@ local rinApp = require "rinApp"     --  load in the application framework
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwiA = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwiB = rinApp.addK400("K401", "10.0.0.2", 2222)
 
 --=============================================================================
 -- Main Application 
 --=============================================================================
 
 -- Write "Hello world" to the LCD screen.
-dwi.writeBotLeft("Hello")
-dwi.writeBotRight("World")
+dwiA.writeBotLeft("Hello")
+dwiA.writeBotRight("A")
 
-dwi.getKey()  -- Wait for the user to press a key on the dwi
+dwiB.writeBotLeft("Hello")
+dwiB.writeBotRight("B")
+
+dwiA.getKey()  -- Wait for the user to press a key on the dwi
 
 --=============================================================================
 -- Clean Up 
 --=============================================================================
 rinApp.cleanup()
+

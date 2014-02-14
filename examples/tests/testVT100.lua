@@ -1,4 +1,6 @@
-package.path = package.path .. ";../src/?.lua"
+-- Include the src directory
+package.path = "/home/src/?.lua;" .. package.path 
+
 
 VT100 = require "rinLibrary.rinVT100"
   
