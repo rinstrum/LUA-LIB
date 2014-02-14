@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- Offer functions for timers that are compatible with the app framework
 -- @module rinSystem.rinTimers
--- @author Merrick Heley
--- @copyright 2013 Rinstrum Pty Ltd
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
 local socket = require "socket"
@@ -18,6 +18,7 @@ local table = table
 local pairs = pairs
 local unpack = unpack
 local floor = math.floor
+local max = math.max
 
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
@@ -84,19 +85,14 @@ end
 -- @param delay Initial delay for timer
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
--- @return Timer key
+-- @return Timer key which should be considered a read only object
 function _M.addTimer(time, delay, callback, ...)
-	if delay < 0 then
-    	return nil
-    end
-
-	local refTime = monotonictime() + delay / 1000
-	
-    evt = {	when = refTime,
-    		rept = time / 1000,
-            cb   = callback,
-            args = {...}
-          }
+    local evt = {
+    	when = monotonictime() + max(0, delay) / 1000,
+    	rept = time / 1000,
+        cb   = callback,
+        args = {...}
+    }
     return push(evt)
 end
 
