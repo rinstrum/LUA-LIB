@@ -15,6 +15,7 @@ local unpack = unpack
 local tostring = tostring
 local os = os
 local ipairs = ipairs
+local math = math
 
 local logging = require "logging"
 
@@ -148,7 +149,10 @@ function _M.tableString(t,margin)
     for k,v in pairs(t) do
          k = tostring(k)
          if v == nil then
-             s = s .. (string.format('%s%s = <nil>, ',pad,k))
+            s = s .. (string.format('%s%s = <nil>, ',pad,k))
+        elseif type(v) == "table" and type(k) == "number" then
+            local lenk = math.floor(math.log10(k)) + 1
+            s = s .. string.format('%s%s = %s, ',pad,k,_M.tableString(v,margin+lenk+4))
         elseif type(v) == "table" then
             s = s .. string.format('%s%s = %s, ',pad,k,_M.tableString(v,margin+#k+4))
         else
@@ -164,7 +168,7 @@ function _M.tableString(t,margin)
     else
         -- take off the last 2 chars for the last member of the table
         return string.sub(s,1,-3) .. '}'     
-    end  
+    end
 end
 
 -------------------------------------------------------------------------------

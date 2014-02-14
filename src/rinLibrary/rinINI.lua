@@ -12,6 +12,8 @@ local type = type
 local pairs = pairs
 local string = string
 local table = table
+local ipairs = ipairs
+local tostring = tostring
 
 -------------------------------------------------------------------------------
 -- Saves table t as a .INI name (fname)

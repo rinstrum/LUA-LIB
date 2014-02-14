@@ -158,14 +158,14 @@ end
 -- Called to connect to the K400 instrument, and establish the timers,
 -- streams and other services
 -- @param model Software model expected for the instrument (eg "K401")
--- @param ip IP address for the socket, "127.1.1.1" used as a default
+-- @param ip IP address for the socket, "127.0.0.1" used as a default
 -- @param portA port address for the SERA socket (2222 used as default)
 -- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
 function _M.addK400(model, ip, portA, portB)
     
     -- Create the socket
-    local ip = ip or "127.1.1.1"
+    local ip = ip or "127.0.0.1"
     local portA = portA or 2222
     local portB = portB or 2223
     
@@ -191,8 +191,6 @@ function _M.addK400(model, ip, portA, portB)
     _M.system.sockets.addSocket(device.socketA, device.socketACallback)
     _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
 
-    -- Add a timer to send data every 5ms
-    _M.system.timers.addTimer(5, 100, device.sendQueueCallback)
     -- Add a timer for the heartbeat (every 5s)
     _M.system.timers.addTimer(5000, 1000, device.sendMsg, "2017032F:10", true)
 

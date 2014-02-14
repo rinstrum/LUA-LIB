@@ -22,20 +22,27 @@ _M.sockets = sockets
 -- Issues a callback to any connection or timer that has an event on it.
 function _M.handleEvents()
 
-	local key, time = timers.getSoonest()
-	local waiting, rec, err = socket.select(sockets.sockets, nil, time)
+	local time = timers.delayUntilNext()
+    local writers = sockets.getWriterSockets()
+	local waiting, rec, err = socket.select(sockets.sockets, writers, time)
 	
 	if err == "timeout" then
-		timers.runKey(key)
+		timers.processTimeouts()
 	end
-	
+
+	for i = 1, #rec do
+    	local con = rec[i]
+
+    	sockets.processWriteSocket(con)
+    end
+
 	for i = 1,#waiting do
 		local con = waiting[i]
 		
 		local call, err = sockets.socketCallback(con)
 		
-        if err == "closed" then
-		    sockets.removeSocket(con)   
+        if err == "closed" or err == "Transport endpoint is not connected" then
+		    sockets.removeSocket(con)
 		end
 	end
 		
