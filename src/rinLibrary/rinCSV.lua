@@ -229,11 +229,11 @@ end
 -- @param row is row number of table data 1..n to remove.
 -- removes last line of data if row is nil
 function _M.remLineCSV(t,row)
-      table.remove(t.data,line)  -- remove last line from the table
+      table.remove(t.data,row)  -- remove last line from the table
 end
 
 -------------------------------------------------------------------------------
--- Removes line of data in a table (does not save .CSV file)
+-- Returns a line of data from the table with matching val in column col
 -- @param t is table holding CSV data
 -- @param val is value of the cell to find
 -- @param col is the column of data to match (default is col 1)
