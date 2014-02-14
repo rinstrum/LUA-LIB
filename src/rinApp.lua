@@ -94,27 +94,6 @@ function _M.setUSBKBDCallback(f)
 end
 
 
-local FUNC_KEY = {
-    [input.KEY_F1] = 'F1',
-    [input.KEY_F2] = 'F2',
-    [input.KEY_F3] = 'F3',
-    [input.KEY_F4] = 'F4',
-    [input.KEY_F5] = 'F5',
-    [input.KEY_F6] = 'F6',
-    [input.KEY_F7] = 'F7',
-    [input.KEY_F8] = 'F8',
-    [input.KEY_F9] = 'F9',
-    [input.KEY_F10] = 'F10',
-    [input.KEY_F11] = 'F11',
-    [input.KEY_F12] = 'F12',
-    [input.KEY_ESC] = '\b \b',
-    [input.KEY_UP] = 'UP',
-    [input.KEY_DOWN] = 'DN',
-    [input.KEY_LEFT] = 'LT',
-    [input.KEY_RIGHT] = 'RT'
-}
-
-
 
 _M.eventDevices = {}
 function _M.eventCallback(sock)
@@ -123,10 +102,7 @@ function _M.eventCallback(sock)
       if _M.userUSBEventCallback then
           _M.userUSBEventCallback(ev)
       end    
-      local key = _M.kb_lib.getAscii(ev)
-      if not key and ev.value == 1 then
-             key = FUNC_KEY[ev.code]
-      end    
+      local key = _M.kb_lib.getR400Keys(ev)
       if key and _M.userUSBKBDCallback then
             _M.userUSBKBDCallback(key)
       end   
