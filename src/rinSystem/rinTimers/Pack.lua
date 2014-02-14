@@ -44,8 +44,7 @@ local function push(event)
     timers[n] = event
     while n > 1 and timers[p].when > when do
     	timers[p], timers[n] = timers[n], timers[p]
-        n = p
-        p = floor(0.5 * n)
+        n, p = p, floor(0.5 * n)
     end
     return event
 end
@@ -64,15 +63,13 @@ local function pop()
 	if s > 0 then
         local when = timers[1].when
 
-	    local n = 1
-        local p = 2 * n
+	    local n, p = 1, 2
         if s > p and timers[p].when > timers[p+1].when then
     	    p = p + 1
         end
         while s >= p and timers[p].when < when do
     	    timers[p], timers[n] = timers[n], timers[p]
-            n = p
-            p = 2 * n
+            n, p = p, 2 * p
             if s > p and timers[p].when > timers[p+1].when then
         	    p = p + 1
             end
