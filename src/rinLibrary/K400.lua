@@ -1246,15 +1246,13 @@ end
 -- @param key (.KEY_*)
 -- @param status 'long' or 'short'
 function _M.sendKey(key,status)
-     if key then
+    if key then
         local data = key
-        if status == 'long' then  
-            data = bit32.band(data, 0x80)
-        end 
-        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)        
-     end   
- 
-        
+        if status == 'long' then
+            data = bit32.bor(data, 0x80)
+        end
+        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
+    end
 end
 
 -------------------------------------------------------------------------------
