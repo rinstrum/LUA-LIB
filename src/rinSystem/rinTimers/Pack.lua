@@ -98,8 +98,7 @@ function _M.addTimer(time, delay, callback, ...)
     evt = {	when = refTime,
     		rept = time / 1000,
             cb   = callback,
-            args = {...},
-            exec = true
+            args = {...}
           }
     return push(evt)
 end
@@ -108,7 +107,9 @@ end
 -- Remove a timer from the timer list
 -- @param key Key for a timer
 function _M.removeTimer(key)
-	key.exec = false
+	key.cb = nil
+    key.args = nil
+    key.rept = nil
 end
 
 -------------------------------------------------------------------------------
@@ -132,7 +133,7 @@ function _M.processTimeouts()
     while timers[1] ~= nil and timers[1].when <= now do
     	local event = pop()
         -- callback
-        if event.exec then
+        if event and event.cb then
         	event.cb(unpack(event.args))
             -- reschedule
             if event.rept and event.rept > 0 then
