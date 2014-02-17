@@ -7,7 +7,6 @@
 -- Include the src directory
 package.path = "/home/src/?.lua;" .. package.path 
 
-
 local csv = require "rinLibrary.rinCSV"
 
 -------------------------------------------------------------------------------
@@ -24,7 +23,6 @@ csv.addTableDB(db,'recipes',
                  ['data'] = {{1,1,1000,0,0}}}
                 )
 
-               
 csv.loadDB(db)  
 print('Database Contents:')
 print(csv.tostringDB(db,10))
@@ -36,8 +34,6 @@ print("Material Data for material 'CEMENT'")
 local row, line = csv.getLineCSV(db.materials,'CEMENT',2)
 print(' Row : ', row)
 print('Line : ',csv.tostringLine(line,10))
-
-
 
 print('---------------------------------------------------')
 print('Logging Data to File')

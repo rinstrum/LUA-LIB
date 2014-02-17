@@ -36,7 +36,6 @@ t.fred = 'friend'
 t.week = {'Sun','Mon','Tue','Wed','Thurs','Fri','Sat'}
 dbg.debug('t = ', t)
 
-
 -- Setup rinDebug to only show messages at  or above level specified
 dbg.info("Argument 1 is ", arg[1])    -- show contents of argument 1 passed to program
 dbg.setLevel(arg[1])     -- set debug level to arg[1] and see what gets logged

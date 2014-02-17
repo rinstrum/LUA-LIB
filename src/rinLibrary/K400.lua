@@ -393,8 +393,6 @@ function _M.toFloat(data, dp)
    return data
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Read a RIS file and send valid commands to the device
 -- @param filename Name of the RIS file
@@ -415,8 +413,6 @@ function _M.loadRIS(filename)
     end
     file:close()
 end
-
-
 
 -------------------------------------------------------------------------------- 
 --- Streaming.
@@ -446,7 +442,6 @@ _M.STM_FREQ_ONCHANGE    = 5
 _M.freqLib = _M.STM_FREQ_ONCHANGE
 _M.freqUser = _M.STM_FREQ_ONCHANGE
 
-
 _M.availRegistersUser = {
                         [_M.REG_STREAMREG1]= {['reg'] = 0, 
                                               ['callback'] = nil, 
@@ -475,7 +470,6 @@ _M.availRegistersUser = {
                                               ['dp'] = 0}
                     }
 _M.streamRegisters = {}
-
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
@@ -549,7 +543,6 @@ function _M.addStream(streamReg, callback, onChange)
     return streamReg
 end
 
-
 -------------------------------------------------------------------------------
 -- Remove a stream from the device 
 -- @param streamReg Register to be removed(_M.REG_*)
@@ -593,7 +586,6 @@ _M.availRegistersLib = {
                                               ['dp'] = 0}
                     }
 _M.streamRegistersLib = {}
-
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the callbacks for Library streams
@@ -664,7 +656,6 @@ function _M.addStreamLib(streamReg, callback, onChange)
     return streamReg
 end
 
-
 -------------------------------------------------------------------------------
 -- Remove a stream from the library set of streams 
 -- @param streamReg Register to be removed(_M.REG_*)
@@ -680,10 +671,6 @@ function _M.removeStreamLib(streamReg)
     _M.streamRegistersLib[streamReg] = nil
 end
 
-
-
-
-
 -------------------------------------------------------------------------------
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
@@ -693,8 +680,7 @@ function _M.streamCleanup()
     _M.sendReg(_M.CMD_EX,
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
-      
-   
+
     for k,v in pairs(_M.availRegistersUser) do
         _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
         v.reg = 0
@@ -807,7 +793,6 @@ _M.statID = nil
 _M.IOBinds = {}
 _M.IOID = nil          
 
-
 -------------------------------------------------------------------------------
 -- Called when status changes are streamed 
 -- @param data Data on status streamed
@@ -871,7 +856,6 @@ function _M.setIOCallback(IO, callback)
     _M.IOBinds[status]['lastStatus'] = 0xFF
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to get current instrument status 
 -- @return 32 bits of status data with bits as per STAT_ definitions
@@ -886,7 +870,6 @@ function _M.getCurIO()
   return _M.curIO
 end
 
-
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
 function _M.setupStatus()
@@ -894,7 +877,6 @@ function _M.setupStatus()
     _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
     _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
 end
-
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
@@ -929,7 +911,6 @@ function _M.waitIO(IO, state)
      _M.system.handleEvents()
    end 
 end
-
 
 -------------------------------------------------------------------------------
 -- Control the use of RTC status bit
@@ -1168,8 +1149,7 @@ function _M.keyCallback(data, err)
     if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
        return
     end
-        
-   
+
     local handled = false
     local groups = _M.keyBinds[key]
     if groups ~= nil then
@@ -1401,8 +1381,7 @@ _M.setAutoBotLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_BOTTOM_LEFT,
 -- @field WAIT90           
 -- @field WAIT135          
 -- @field WAITALL          
-                                        
-                                         
+
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 _M.BATTERY   = 0x0001
 _M.CLOCK     = 0x0002
@@ -2055,7 +2034,6 @@ function _M.edit(prompt, def, typ)
 
     local key, state
 
-    
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
@@ -2070,8 +2048,7 @@ function _M.edit(prompt, def, typ)
     _M.writeBotLeft(editVal)
 
     local first = true
-    
-        
+
     local ok = false  
     while _M.editing do
         key, state = _M.getKey(_M.keyGroup.keypad)
@@ -2234,7 +2211,6 @@ end
 function _M.selectOption(prompt, options, def, loop)
     loop = loop or false
 
-  
     local options = options or {}
     local key = 0
 
@@ -2291,8 +2267,6 @@ function _M.selectOption(prompt, options, def, loop)
     return sel
 end
 
-
-
 -------------------------------------------------------------------------------
 --- Printing Utilities.
 -- Functions for printing
@@ -2309,7 +2283,6 @@ _M.PRINT_SER1B          = 1
 _M.PRINT_SER2A          = 2
 _M.PRINT_SER2B          = 3
 _M.curPrintPort         = 0xFF
-
 
 -------------------------------------------------------------------------------
 -- Takes a string s and returns a formatted CustomTransmit string with all 
@@ -2384,7 +2357,6 @@ function _M.sendDateFormat(fmt)
   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_TIMEFORMAT,fmt)
 end
 
- 
 _M.RTC = {hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 2010}
 _M.RTC['first'] = 'day'
 _M.RTC['second'] = 'month'

@@ -45,7 +45,6 @@ dwi.writeBotLeft(' ')
 dwi.writeBotRight(' ')
 dbg.info('',dwi.editReg(0x1121,true))
 
-
 -------------------------------------------------------------------------------
 -- Key Handler for F1 
 -------------------------------------------------------------------------------
@@ -57,7 +56,6 @@ local function F1Pressed(key, state)
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
-
 
 -------------------------------------------------------------------------------
 -- Handler to capture PWR+ABORT key and end program
@@ -78,7 +76,6 @@ while rinApp.running do
   end   
   rinApp.system.handleEvents()           -- handleEvents runs the event handlers 
 end  
-
 
 rinApp.cleanup()  -- shutdown application resources
 os.exit()

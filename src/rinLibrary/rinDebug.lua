@@ -243,7 +243,6 @@ function _M.print(prompt, ...)
       end  
     end    
 
-    
      s = string.format("%s%s",header, s)
     _M.logger:log(level, s)
     _M.tempLevel = nil

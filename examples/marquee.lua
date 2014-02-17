@@ -11,13 +11,11 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
-
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
-
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -69,7 +67,6 @@ local function handleKey(key, state)
 end
 dwi.setKeyGroupCallback(dwi.keyGroup.all, handleKey)
 
-
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
 local function pwrCancelPressed(key, state)
@@ -101,13 +98,9 @@ end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
-
 --=============================================================================
 -- Clean Up 
 --=============================================================================
 -- Put any application clean up here
 
-
 rinApp.cleanup()                   -- shutdown application resources
-
-

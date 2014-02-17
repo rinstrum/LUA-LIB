@@ -15,7 +15,6 @@ local ipairs = ipairs
 
 local dbg = require "rinLibrary.rinDebug"
 
- 
 -------------------------------------------------------------------------------
 --- CSV Utilities.
 -- Functions to convert data to and from .CSV format
@@ -103,8 +102,6 @@ function _M.fromCSV(s)
     return (t)          
   
 end  
-         
- 
 
 -------------------------------------------------------------------------------
 -- Checks labels to ensure database table is the same structure  
@@ -129,8 +126,6 @@ function _M.equalCSV(labels, check)
     return true
         
 end 
-
- 
 
 -------------------------------------------------------------------------------
 --- CSV Functions.
@@ -297,7 +292,6 @@ function _M.labelCol(t,label)
   label = tostring(label)
   label = string.lower(label)
 
-  
   for k,v in pairs(t.labels) do
      if string.lower(v) == label then
 	    return k
@@ -365,8 +359,7 @@ end
 function _M.numColsCSV(t)
    return (#t.labels)
 end
-    
-    
+
 -------------------------------------------------------------------------------
 --- Database Utilities.
 -- Functions to manage multiple tables in a database
@@ -395,7 +388,6 @@ end
     end    -- add database table to database
   end
 
- 
 -------------------------------------------------------------------------------
 -- Restores database contents from CSV files
 -- Only loads in database tables already registered with database
@@ -428,9 +420,7 @@ function _M.remLineDB(db,name,line)
       table.remove(db[name].data,line)  -- remove last line from the table
       _M.saveCSV(db[name])  -- save the table to .CSV file (overwriting the old one)
 end
-    
-    
-    
+
 -------------------------------------------------------------------------------
 -- Save database to multiple CSV files
 -- @param db database table
@@ -440,9 +430,7 @@ function _M.saveDB(db)
      _M.saveCSV(t) 
      end
 end
-    
-    
-    
+
 -------------------------------------------------------------------------------
 -- Converts contents of the database into a print friendly string
 -- @param db database table

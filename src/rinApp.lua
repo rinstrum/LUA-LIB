@@ -18,8 +18,6 @@ local io = io
 local socks = require "rinSystem.rinSockets.Pack"
 local ini = require "rinLibrary.rinINI"
 
-
-
 local _M = {}
 _M.running = false
 _M.config = {
@@ -41,7 +39,6 @@ _M.usb = require "devicemounter"
 _M.ev_lib = require "ev_lib"
 _M.kb_lib = require "kb_lib"
 local input = require "linux.input"
-
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
@@ -78,7 +75,6 @@ function _M.setUSBRegisterCallback(f)
    _M.userUSBRegisterCallback = f
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
 -- @param f  Callback function takes event table as a parameter
@@ -91,8 +87,6 @@ end
 function _M.setUSBKBDCallback(f)
    _M.userUSBKBDCallback = f
 end
-
-
 
 _M.eventDevices = {}
 function _M.eventCallback(sock)
@@ -209,9 +203,7 @@ function _M.initUSB()
   _M.system.sockets.addSocket(_M.usb.init(),usbSockCallback)
   _M.usb.registerCallback(_M.usbCallback)
   _M.usb.checkDev()  -- call to check if any usb devices already mounted
-end   
-
-
+end
    
 _M.mainLoop = nil
 
@@ -232,9 +224,7 @@ function _M.run()
         _M.system.handleEvents()           -- handleEvents runs the event handlers 
     end  
 
-end    
-    
-    
+end
     
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
@@ -249,7 +239,6 @@ function _M.cleanup()
      end 
     _M.dbg.info('','------   Application Finished  ------')
 end
-
 
 io.output():setvbuf('no')
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)

@@ -11,13 +11,11 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
-
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
-
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -79,7 +77,6 @@ end
 rinApp.setUSBEventCallback(usbEventHandler)
 -------------------------------------------------------------------------------
 
-
 -------------------------------------------------------------------------------
 -- Callback for USB keyboard events
 local function kbdHandler(key)
@@ -87,7 +84,6 @@ local function kbdHandler(key)
 end
 rinApp.setUSBKBDCallback(kbdHandler)
 -------------------------------------------------------------------------------
-
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
@@ -101,7 +97,6 @@ end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 
-
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
@@ -114,7 +109,6 @@ local function F1Pressed(key, state)
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -149,13 +143,9 @@ end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
-
 --=============================================================================
 -- Clean Up 
 --=============================================================================
 -- Put any application clean up here
 
-
 rinApp.cleanup()                   -- shutdown application resources
-
-

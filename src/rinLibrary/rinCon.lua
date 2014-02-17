@@ -387,8 +387,7 @@ function _M.processMsg(msg, err)
     cmd = tonum(str.sub(newMsg,3,4), 16)
     reg = tonum(str.sub(newMsg, 5, 8), 16)
     data = str.sub(newMsg, semiPos+1, -1)
-    
-    
+
     if not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex msg"
     end
@@ -442,8 +441,7 @@ function _M.send(addr, cmd, reg, data, reply, crc)
     local data = data or ""
     local reply = reply or 'reply'
     if reply == 'reply' then addr = bit32.bor(addr,_M.ADDR_REPLY) end
-    
-    
+
     if cmd == _M.CMD_WRFINALHEX then
         if type(data) == 'number' then
            data = str.format("%X",data)
