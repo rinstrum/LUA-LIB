@@ -60,6 +60,19 @@ local function userioCallback(sock)
 end
 
 -------------------------------------------------------------------------------
+-- Create a new TCP socket and connect to the specified address
+-- @param ip IP address for the socket
+-- @param port Port address for the socket
+-- @param timeout The timeout associated with the socket
+-- @return the socket
+local function createTCPsocket(ip, port, timeout)
+    local s = assert(require "socket".tcp())
+    s:connect(ip, port)
+    s:settimeout(timeout)
+    return s
+end
+
+-------------------------------------------------------------------------------
 -- Called to connect to the K400 instrument, and establish the timers,
 -- streams and other services
 -- @param model Software model expected for the instrument (eg "K401")
@@ -82,12 +95,8 @@ function _M.addK400(model, ip, portA, portB)
 
     _M.devices[#_M.devices+1] = device
   
-    local sA = assert(require "socket".tcp())
-    sA:connect(ip, portA)
-    sA:settimeout(0.010)
-    local sB = assert(require "socket".tcp())
-    sB:connect(ip, portB)
-    sB:settimeout(0.001)
+  	local sA = createTCPsocket(ip, portA, 0.010)
+    local sB = createTCPsocket(ip, portB, 0.001)
     
     -- Connect to the K400, and attach system if using the system library
     device.connect(model, sA, sB, _M)

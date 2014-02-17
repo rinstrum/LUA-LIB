@@ -12,9 +12,7 @@ package.loaded["rinLibrary.rinDebug"] = nil
 local table = table
 local pairs = pairs
 
-_M.sockets = {}
-_M.socketCallbacks = {}
-
+local sockets = {}
 local writers = {}
 
 -------------------------------------------------------------------------------
@@ -22,33 +20,15 @@ local writers = {}
 -- @param sock Socket to add to the list
 -- @param callback Callback for the socket
 function _M.addSocket(sock, callback)
-	table.insert(_M.sockets, sock)
-	_M.socketCallbacks[sock] = callback
-end
-
--------------------------------------------------------------------------------
--- Run the callback function associated with a socket
--- @param sock Socket whose callback function should be executed.
-function _M.socketCallback(sock)
-    local callback = _M.socketCallbacks[sock]
-    if callback then
-        return callback(sock)
-    end
+    sockets[sock] = callback
 end
 
 -------------------------------------------------------------------------------
 -- Remove a socket from the socket list
 -- @param sock Socket to remove from the list
 function _M.removeSocket(sock)
-	for k,v in pairs(_M.sockets) do
-		if v == sock then
-			table.remove(_M.sockets, k)
-			break
-		end
-	end
-	
-	_M.socketCallbacks[sock] = nil
     writers[sock] = nil
+    sockets[sock] = nil
 end
 
 -------------------------------------------------------------------------------
@@ -69,6 +49,21 @@ end
 -------------------------------------------------------------------------------
 -- Get a set of sockets that have pending write data
 -- @return Set of sockets, nil if there are none
+function _M.getReaderSockets()
+	local r = {}
+	for i, v in pairs(sockets) do
+	  	table.insert(r, i)
+    end
+
+	if #r == 0 then
+    	r = nil
+    end
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Get a set of sockets that can safely be written to
+-- @return Set of sockets, nil if there are none
 function _M.getWriterSockets()
 	local r = {}
 	for i, v in pairs(writers) do
@@ -81,6 +76,19 @@ function _M.getWriterSockets()
     	r = nil
     end
     return r
+end
+
+-------------------------------------------------------------------------------
+-- Read a readable socket
+-- @param socks A readable socket
+function _M.processReadSocket(sock)
+    local callback = sockets[sock]
+    if callback then
+        local call, err = callback(sock)
+        if err == "closed" or err == "Transport endpoint is not connected" then
+		    _M.removeSocket(sock)
+	    end
+    end
 end
 
 -------------------------------------------------------------------------------
