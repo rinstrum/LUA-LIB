@@ -4,9 +4,9 @@
 -- Show capabilities of the rinCSV library
 -- 
 -------------------------------------------------------------------------------
-
 -- Include the src directory
-package.path = package.path .. ";../src/?.lua"
+package.path = "/home/src/?.lua;" .. package.path 
+
 
 local csv = require "rinLibrary.rinCSV"
 
@@ -16,18 +16,31 @@ db = {}
 csv.addTableDB(db,'materials', 
                 {['fname'] = 'materials.csv',
                  ['labels'] = {'Mat.No','Name','Density'},
-                 ['data'] = {}}
+                 ['data'] = {{1,'CEMENT',1.0}}}
                 )
 csv.addTableDB(db,'recipes', 
                 {['fname'] = 'recipe.csv',
                  ['labels'] = {'Rec.No','Mat1','Target1','Mat2','Target2'},
-                 ['data'] = {}}
+                 ['data'] = {{1,1,1000,0,0}}}
                 )
-                
-csv.loadDB(db)  
-print(csv.tostringDB(db,10))
 
-print(db.materials.data[1][2])
+               
+csv.loadDB(db)  
+print('Database Contents:')
+print(csv.tostringDB(db,10))
+print('Material Table Details')
+print(string.format('%d Columns, %d Rows',csv.numColsCSV(db.materials),csv.numRowsCSV(db.materials)))
+print('Names from Column 2')
+print(csv.tostringCol(csv.getColCSV(db.materials,2)))
+print("Material Data for material 'CEMENT'")
+local row, line = csv.getLineCSV(db.materials,'CEMENT',2)
+print(' Row : ', row)
+print('Line : ',csv.tostringLine(line,10))
+
+
+
+print('---------------------------------------------------')
+print('Logging Data to File')
 
 log = csv.loadCSV({['fname'] = 'test1.csv',
                    ['labels'] = {'Target','Actual','Fill Time'},

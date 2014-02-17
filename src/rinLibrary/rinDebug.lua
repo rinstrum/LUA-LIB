@@ -147,6 +147,7 @@ function _M.tableString(t,margin)
     end   
     local first = true   
     for k,v in pairs(t) do
+         k = tostring(k)
          if v == nil then
             s = s .. (string.format('%s%s = <nil>, ',pad,k))
         elseif type(v) == "table" and type(k) == "number" then

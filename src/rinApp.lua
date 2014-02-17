@@ -13,9 +13,12 @@ local pairs = pairs
 local require = require
 local dofile = dofile
 local bit32 = require "bit"
+local io = io
 
 local socks = require "rinSystem.rinSockets.Pack"
 local ini = require "rinLibrary.rinINI"
+
+
 
 local _M = {}
 _M.running = false
@@ -34,6 +37,11 @@ _M.config = {
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
+_M.usb = require "devicemounter"
+_M.ev_lib = require "ev_lib"
+_M.kb_lib = require "kb_lib"
+local input = require "linux.input"
+
 
 package.loaded["rinLibrary.rinDebug"] = nil
 
@@ -57,6 +65,82 @@ local function userioCallback(sock)
                 v.dbg.setLevel(_M.dbg.level)
             end
     end  
+end
+
+_M.userUSBRegisterCallback = nil
+_M.userUSBEventCallback = nil
+_M.userUSBKBDCallback = nil
+
+-------------------------------------------------------------------------------
+-- Called to register a callback to run whenever a USB device change is detected
+-- @param f  Callback function takes event table as a parameter
+function _M.setUSBRegisterCallback(f)
+   _M.userUSBRegisterCallback = f
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to register a callback to run whenever a USB device event is detected
+-- @param f  Callback function takes event table as a parameter
+function _M.setUSBEventCallback(f)
+   _M.userUSBEventCallback = f
+end
+-------------------------------------------------------------------------------
+-- Called to register a callback to run whenever a USB Keyboard event is processed
+-- @param f  Callback function takes key string as a parameter
+function _M.setUSBKBDCallback(f)
+   _M.userUSBKBDCallback = f
+end
+
+
+
+_M.eventDevices = {}
+function _M.eventCallback(sock)
+   local ev = _M.ev_lib.getEvent(sock)
+   if ev then
+      if _M.userUSBEventCallback then
+          _M.userUSBEventCallback(ev)
+      end    
+      local key = _M.kb_lib.getR400Keys(ev)
+      if key and _M.userUSBKBDCallback then
+            _M.userUSBKBDCallback(key)
+      end   
+    end      
+end
+
+function _M.usbCallback(t)
+   _M.dbg.debug('',t)
+   for k,v in pairs(t) do
+      if v[1] == 'event' then
+         if v[2] == 'added' then
+            _M.eventDevices[k] = _M.ev_lib.openEvent(k)
+            _M.system.sockets.addSocket(_M.eventDevices[k],_M.eventCallback) 
+         elseif v[2] == 'removed' then
+           -- _M.system.sockets.removeSocket(_M.eventDevices[k])
+            _M.eventDevices[k] = nil
+         end   
+      end    
+    end  
+   if _M.userUSBRegisterCallback then
+      _M.userUSBRegisterCallback(t)
+   end   
+end
+
+local function usbSockCallback(sock)
+   local ret = _M.usb.receiveCallback()
+end
+
+-------------------------------------------------------------------------------
+-- Create a new TCP socket and connect to the specified address
+-- @param ip IP address for the socket
+-- @param port Port address for the socket
+-- @param timeout The timeout associated with the socket
+-- @return the socket
+local function createTCPsocket(ip, port, timeout)
+    local s = assert(require "socket".tcp())
+    s:connect(ip, port)
+    s:settimeout(timeout)
+    return s
 end
 
 -------------------------------------------------------------------------------
@@ -118,7 +202,14 @@ function _M.addK400(model, ip, portA, portB)
     return device 
 end
    
+-------------------------------------------------------------------------------
+-- called to initialise the USB port if in use
 
+function _M.initUSB()   
+  _M.system.sockets.addSocket(_M.usb.init(),usbSockCallback)
+  _M.usb.registerCallback(_M.usbCallback)
+  _M.usb.checkDev()  -- call to check if any usb devices already mounted
+end   
 
 
    
@@ -152,7 +243,6 @@ function _M.cleanup()
     for k,v in pairs(_M.devices) do
         v.restoreLcd()
         v.lcdControl('default')
-
         v.streamCleanup()
         v.endKeys()
         v.delay(50)
@@ -160,8 +250,9 @@ function _M.cleanup()
     _M.dbg.info('','------   Application Finished  ------')
 end
 
-_M.running = true
-_M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
-_M.dbg.info('','------   Application Started   -----')
 
+io.output():setvbuf('no')
+_M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
+_M.running = true
+_M.dbg.info('','------   Application Started Latest -----')
 return _M
