@@ -24,26 +24,19 @@ function _M.handleEvents()
 
 	local time = timers.delayUntilNext()
     local writers = sockets.getWriterSockets()
-	local waiting, rec, err = socket.select(sockets.sockets, writers, time)
+    local readers = sockets.getReaderSockets()
+	local read, write, err = socket.select(readers, writers, time)
 	
 	if err == "timeout" then
 		timers.processTimeouts()
 	end
 
-	for i = 1, #rec do
-    	local con = rec[i]
-
-    	sockets.processWriteSocket(con)
+	for i = 1, #write do
+    	sockets.processWriteSocket(write[i])
     end
 
-	for i = 1,#waiting do
-		local con = waiting[i]
-		
-		local call, err = sockets.socketCallback(con)
-		
-        if err == "closed" or err == "Transport endpoint is not connected" then
-		    sockets.removeSocket(con)
-		end
+	for i = 1, #read do
+    	sockets.processReadSocket(read[i])
 	end
 		
 end

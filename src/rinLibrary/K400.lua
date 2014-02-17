@@ -1316,9 +1316,10 @@ end
 -- @param s string to display
 function _M.writeTopLeft(s)
     if s then
+        s = string.sub(s, 1, 11) -- Limit to 11 chars
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,  s)
         _M.curTopLeft = s
-    end  
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -1326,20 +1327,21 @@ end
 -- @param s string to display
 function _M.writeTopRight(s)
     if s then
+        s = string.sub(s, 1, 7) -- Limit to 7 chars
         _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
         _M.curTopRight = s
-    end   
-end   
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
 -- @param s string to display
 function _M.writeBotLeft(s)
     if s then
-        s = string.sub(s, 1, 9) -- Limit to 9 chars
+        s = string.sub(s, 1, 17) -- Limit to 17 chars
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, s)
         _M.curBotLeft = s
-    end  
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -1347,11 +1349,11 @@ end
 -- @param s string to display
 function _M.writeBotRight(s)
     if s then
-        s = string.sub(s, 1, 8) -- Limit to 8 chars
+        s = string.sub(s, 1, 15) -- Limit to 15 chars
         _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s)
         _M.curBotRight = s
-    end   
-end   
+    end
+end
 
 _M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
                                          _M.CMD_WRFINALHEX,
