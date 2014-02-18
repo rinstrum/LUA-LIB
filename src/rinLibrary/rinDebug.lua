@@ -245,7 +245,7 @@ end
 -- @param ... arguments to be printed
 function _M.debug(prompt,...)
     _M.tempLevel = _M.DEBUG    
-    _M.print(prompt,unpack(arg))
+    _M.print(prompt, ...)
 end
 
 -----------------------------------------------------------------------------------
@@ -254,7 +254,7 @@ end
 -- @param ... arguments to be printed
 function _M.info(prompt,...)
     _M.tempLevel = _M.INFO    
-    _M.print(prompt,unpack(arg))
+    _M.print(prompt, ...)
     
 end
 
@@ -265,7 +265,7 @@ end
 
 function _M.warn(prompt,...)
     _M.tempLevel = _M.WARN    
-    _M.print(prompt,unpack(arg))
+    _M.print(prompt, ...)
     
 end
 -----------------------------------------------------------------------------------
@@ -274,7 +274,7 @@ end
 -- @param ... arguments to be printed
 function _M.error(prompt,...)
     _M.tempLevel = _M.ERROR    
-    _M.print(prompt,unpack(arg))
+    _M.print(prompt, ...)
 end
 
 -----------------------------------------------------------------------------------
@@ -283,7 +283,7 @@ end
 -- @param ... arguments to be printed
 function _M.fatal(prompt,...)
     _M.tempLevel = _M.FATAL    
-    _M.print(prompt,unpack(arg))
+    _M.print(prompt, ...)
 end
 
 -------------------------------------------------------------------------------
