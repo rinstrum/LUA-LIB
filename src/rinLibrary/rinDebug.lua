@@ -43,7 +43,6 @@ _M.level = _M.DEBUG
 _M.lastLevel = _M.level
 
 _M.timestamp = false
-_M.ip = ""
 
 -- -- -- ------------------------------------------
 -- private function
@@ -112,26 +111,21 @@ end
 -------------------------------------------------------------------------------
 -- Configures the level for debugging
 -- @param config is table of settings 
--- @param ip optional tag printed with each message (usually IP address of the instrument)
 -- @usage
--- dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'},'testDebug')
-function _M.configureDebug(config, ip)
+-- dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'})
+function _M.configureDebug(config)
     
 	_M.setConfig(config)
     _M.setLevel(_M.config.level)
     _M.timestamp = _M.config.timestamp
-   
-    if type(ip) == "string" then
-        _M.ip = string.rep(" ", 15-#ip) .. ip
-    end
+
 end
 -------------------------------------------------------------------------------
 -- returns debug configuration
 -- @return level lualogging level
 -- @return timestamp: true if timestamp logging is to included 
--- @return ip 
 function _M.getDebugConfig()
-    return _M.config, _M.ip
+    return _M.config
 end
 -------------------------------------------------------------------------------
 -- Converts table t into a string
@@ -220,12 +214,8 @@ function _M.print(prompt, ...)
         timestr = os.date("%Y-%m-%d %X ")
     end
     
-    if (_M.ip == nil) then
-        _M.ip = ""
-    end
-    
     local level = _M.tempLevel or _M.level
-    local header = string.format("%s%s %s: ",timestr, _M.ip, _M.LEVELS[level])
+    local header = string.format("%s %s: ",timestr, _M.LEVELS[level])
     local margin = #header
     
     if type(prompt) == 'string' then
@@ -241,7 +231,7 @@ function _M.print(prompt, ...)
       for i,v in ipairs(arg) do
         s = s .. _M.varString(v,margin) .. ' '
       end  
-    end    
+    end
 
      s = string.format("%s%s",header, s)
     _M.logger:log(level, s)

@@ -24,7 +24,6 @@ _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
 
 _M.dbg = require "rinLibrary.rinDebug"
-package.loaded["rinLibrary.rinDebug"] = nil
 
 -- Addresses control bits
 _M.ADDR_RESP            = 0x80
@@ -242,7 +241,7 @@ function _M.recMsg()
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.debug('>>>', msg) 
+        _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg) 
         return msg, nil
     end
     
@@ -520,7 +519,7 @@ function _M.socketBCallback()
     
     if err == nil or (err == 'timeout' and #buffer > 0) then
         msg = table.concat(buffer)
-        _M.dbg.debug('-->', msg) 
+        _M.dbg.debug(_M.socketB:getpeerinfo(), '-->', msg) 
         if _M.SerBCallback then
             _M.SerBCallback(msg)
         end  

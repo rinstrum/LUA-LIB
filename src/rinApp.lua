@@ -40,11 +40,9 @@ _M.ev_lib = require "ev_lib"
 _M.kb_lib = require "kb_lib"
 local input = require "linux.input"
 
-package.loaded["rinLibrary.rinDebug"] = nil
-
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
-_M.dbg.configureDebug(_M.config, 'Application')
+_M.dbg.configureDebug(_M.config)
 
 -- captures input from terminal to change debug level
 local function userioCallback(sock)

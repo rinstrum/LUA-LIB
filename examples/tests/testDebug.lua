@@ -11,7 +11,7 @@ package.path = "/home/src/?.lua;" .. package.path
 local dbg = require "rinLibrary.rinDebug"
 
 -- set rinDebug to show all messages with date/time stamping
-dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'},'testDebug')
+dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'})
 dbg.print('','DEBUG level selected with timestamping')
 dbg.debug('Test: ',1,2,3)
 -- log debug messages at each level 
