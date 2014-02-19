@@ -60,16 +60,56 @@ local function userioCallback(sock)
 end
 
 -------------------------------------------------------------------------------
--- Create a new TCP socket and connect to the specified address
--- @param ip IP address for the socket
--- @param port Port address for the socket
--- @param timeout The timeout associated with the socket
--- @return the socket
-local function createTCPsocket(ip, port, timeout)
-    local s = assert(require "socket".tcp())
-    s:connect(ip, port)
-    s:settimeout(timeout)
-    return s
+-- Callback function for client connections on the port 2224 socket.
+local function socket2224PassthroughCallback(sock)
+	local device = _M.devices[1]
+	local msg, err = device.recMsg(sock)
+    if err then
+    	_M.dbg.info("read eror ", err)
+    else
+    	device.sendRaw(msg) -- write to socket A
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Stream A call back routine to determine if a message should be forwarded or
+-- not for a particular socket.
+-- @param sock The socket to be written to
+-- @param msg The raw message to write
+-- @param command  (CMD_*)
+-- @param register (REG_*)
+-- @param data
+-- @param err
+-- @return nil for no forwarding or
+-- @return a message to be set (which can be modified or not)
+local function streamAprocessor(sock, msg, cmd, reg, data, err)
+    return msg
+end
+
+-------------------------------------------------------------------------------
+-- Three callback functions that are called when a new socket connection is
+-- established.  These functions should add the socket to the sockets management
+-- module and set any required timouts
+local function socket2224Callback(newSocket, ip, port)
+	_M.system.sockets.addSocket(newSocket, socket2224PassthroughCallback)
+    _M.system.sockets.setSocketTimeout(newSocket, 0.010)
+    _M.dbg.info('-- new connection on port 2224 from', ip, port)
+    socks.addSocketSet("bi", newSocket, streamAprocessor)
+end
+
+local function socket2225Callback(newSocket, ip, port)
+	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
+    _M.system.sockets.setSocketTimeout(newSocket, 0.001)
+    _M.dbg.info('-- new unidirectional connection on port 2225 from', ip, port)
+    socks.addSocketSet("uni", newSocket, nil)
+end
+
+local function socket2226Callback(newSocket, ip, port)
+	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
+    _M.system.sockets.setSocketTimeout(newSocket, 0.001)
+    _M.dbg.info('-- new connection on port 2226 from', ip, port)
+    socks.addSocketSet("uni", newSocket, nil)
+    socks.addSocketSet("debug", newSocket, nil)
 end
 
 -------------------------------------------------------------------------------
@@ -95,8 +135,8 @@ function _M.addK400(model, ip, portA, portB)
 
     _M.devices[#_M.devices+1] = device
   
-  	local sA = createTCPsocket(ip, portA, 0.010)
-    local sB = createTCPsocket(ip, portB, 0.001)
+  	local sA = _M.system.sockets.createTCPsocket(ip, portA, 0.010)
+    local sB = _M.system.sockets.createTCPsocket(ip, portB, 0.001)
     
     -- Connect to the K400, and attach system if using the system library
     device.connect(model, sA, sB, _M)
@@ -107,6 +147,11 @@ function _M.addK400(model, ip, portA, portB)
 
     -- Add a timer for the heartbeat (every 5s)
     _M.system.timers.addTimer(5000, 1000, device.sendMsg, "2017032F:10", true)
+
+	-- Create the extra ports
+    _M.system.sockets.createServerSocket(2224, socket2224Callback)
+    _M.system.sockets.createServerSocket(2225, socket2225Callback)
+    _M.system.sockets.createServerSocket(2226, socket2226Callback)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
@@ -140,11 +185,8 @@ function _M.run()
         end   
         _M.system.handleEvents()           -- handleEvents runs the event handlers 
     end  
+end
 
-end    
-    
-    
-    
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
 -- enabled by configure() 

@@ -2,6 +2,7 @@
 -- Offer functions for sockets that are compatible with the app framework
 -- @module rinSystem.rinSockets
 -- @author Merrick Heley
+-- @author Pauli
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
@@ -14,13 +15,30 @@ local pairs = pairs
 
 local sockets = {}
 local writers = {}
+local sockSet = {}
+
+-------------------------------------------------------------------------------
+-- Callback function that ignoes incoming data for a read only socket.
+-- @param sock The socket to read all available data from
+function _M.flushReadSocket(sock)
+	local ch, err = nil, nil
+    while err == nil do
+		ch, err = sock:receive(1)
+    end
+    if err ~= "timeout" then
+        _M.removeSocket(sock)
+        dbg.info("Socket closed down", ch, err)
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Add a socket to the socket list
 -- @param sock Socket to add to the list
 -- @param callback Callback for the socket
+-- @return a handle to the socket
 function _M.addSocket(sock, callback)
     sockets[sock] = callback
+    return sock
 end
 
 -------------------------------------------------------------------------------
@@ -29,6 +47,35 @@ end
 function _M.removeSocket(sock)
     writers[sock] = nil
     sockets[sock] = nil
+    _M.removeAllSocketSet(sock)
+end
+
+-------------------------------------------------------------------------------
+-- Create a server/listening socket
+-- @param sock The socket to listen on
+-- @param callback The callback that will be invoked when a new connection is established
+function _M.listenSocket(sock, callback)
+	_M.addSocket(sock, function (s)
+    					   -- s and sock are identical here
+	                       local client, error = s:accept()
+                           if error then
+                               dbg.warn('FAILED ACCEPT', error)
+	                       elseif client then
+    	                       local ip, port = client:getpeername()
+                               if callback then
+        	                       callback(client, ip, port)
+                               end
+                           end
+    				   end
+                )
+end
+
+-------------------------------------------------------------------------------
+-- Set the socket's timeout threshold
+-- @param sock The socket to alter
+-- @param timeout The socket's timeout in seconds
+function _M.setSocketTimeout(sock, timeout)
+	sock:settimeout(timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -82,7 +129,7 @@ end
 -- Read a readable socket
 -- @param socks A readable socket
 function _M.processReadSocket(sock)
-    local callback = sockets[sock]
+	local callback = sockets[sock]
     if callback then
         local call, err = callback(sock)
         if err == "closed" or err == "Transport endpoint is not connected" then
@@ -117,5 +164,101 @@ function _M.processWriteSocket(sock)
         return ret, err
     end
 end
+
+-------------------------------------------------------------------------------
+-- Create a TCP socket connected to the specified address
+-- @param ip IP address for the socket
+-- @param port Port address for the socket
+-- @param timeout The timeout associated with the socket
+-- @return the socket
+function _M.createTCPsocket(ip, port, timeout)
+    local s = assert(require "socket".tcp())
+    s:connect(ip, port)
+    _M.setSocketTimeout(s, timeout)
+    return s
+end
+
+-------------------------------------------------------------------------------
+-- Create a new TCP socket and connect to the specified address
+-- @param port Port address for the socket
+-- @param callback The read callback for the socket
+-- @return the socket
+-- @return error code
+function _M.createServerSocket(port, callback)
+	local server, err = socket.bind('*', port)
+	if server then
+    	_M.setSocketTimeout(server, 0)
+	    _M.listenSocket(server, callback)
+	end
+    return server, err
+end
+
+-------------------------------------------------------------------------------
+-- Add the specified socket into the named socket set.  Optionally supply
+-- a callback routine that can filter the packet stream.
+-- @param name The name of the socket set
+-- @param sock The socket to add
+-- @param callback The filter callback.  Pass nil for no filtering.
+--
+-- The callback function looks like:
+-- function callback(sock, msg, ...)
+-- @param sock The socket to be written to
+-- @param msg The message to be written
+-- @param ... variable numbers of extra arguments depending on source
+-- @return msg The message that will actually be sent or nil for no message
+function _M.addSocketSet(name, sock, callback)
+	if name == nil or sock == nil then return end
+	if sockSet[name] == nil then
+    	sockSet[name] = {}
+    end
+    local cb = callback
+    if cb == nil then
+    	cb = function (s, m) return m end
+    end
+ 	sockSet[name][sock] = cb
+end
+
+-------------------------------------------------------------------------------
+-- Remove the specified socket from the named socket set.
+-- @param name The name of the socket set
+-- @param sock The socket to remove
+function _M.removeSocketSet(name, sock)
+	if name == nil or sock == nil or sockSet[name] == nil then return end
+	sockSet[name][sock] = nil
+end
+
+-------------------------------------------------------------------------------
+-- Remove the specified socket from all socket sets.
+-- @param sock The socket to remove
+function _M.removeAllSocketSet(sock)
+	if sock ~= nil then
+	    for i, v in pairs(sockSet) do
+    	    v[sock] = nil
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Write the specified message to all sockets in the named set.
+-- @param name The socket set to write to
+-- @param msg The message to write
+-- @param ... Optional arguments which will be passed to each call back filter.
+function _M.writeSet(name, msg, ...)
+	if name and msg then
+        local s = sockSet[name]
+        if s ~= nil then
+            for sock, cb in pairs(s) do
+    	        local m = msg
+    	        if cb then
+        	        m = cb(sock, msg, unpack(arg))
+                end
+                if m then
+                	_M.writeSocket(sock, m)
+                end
+            end
+        end
+    end
+end
+
 
 return _M

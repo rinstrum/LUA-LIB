@@ -178,7 +178,14 @@ end
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
 function _M.socketACallback()
-    local addr, cmd, reg, data, err = _M.processMsg(_M.recMsg())
+	local msg, e = _M.recMsg(_M.socketA)
+
+    if e == "closed" or e == "Transport endpoint is not connected" then
+        _M.dbg.fatal("Critical error. Exiting.", e)
+        os.exit(1)
+    end
+
+    local addr, cmd, reg, data, err = _M.processMsg(msg, e)
     
     if err then
         if _M.errHandler then
@@ -192,6 +199,7 @@ function _M.socketACallback()
     elseif _M.deviceRegisters[0] then
         _M.deviceRegisters[0](data, err)
     end
+	sockets.writeSet("bi", msg, cmd, reg, data, err)
     
     return data, err
 end
@@ -211,16 +219,17 @@ end
 -- Receive a rinCMD message from a socket linked to SERA.
 -- Receives one byte at a time, and ends the message based on specified 
 -- delimiters
+-- @param sock A readable socket that has pending data
 -- @return A string bounded by delimiters (nil if error)
 -- @return An error message (nil if no error)
-function _M.recMsg()
+function _M.recMsg(sock)
     local char, prevchar, err
     local buffer = {}
     local msg
 
     while true do
         prevchar = char
-        char, err = _M.socketA:receive(1)
+        char, err = sock:receive(1)
 
         if err then break end
         
@@ -246,11 +255,10 @@ function _M.recMsg()
         return msg, nil
     end
     
-    _M.dbg.error("Receive SERA failed: ", err)
+    _M.dbg.error("Receive failed: ", err)
     
     if err == "closed" or err == "Transport endpoint is not connected" then
-        _M.dbg.fatal("Critical error on SERA. Exiting.", err)
-        os.exit(1)
+    	sockets.removeSocket(sock)
     end
     
     return nil, err
@@ -525,7 +533,8 @@ function _M.socketBCallback()
         _M.dbg.debug('-->', msg) 
         if _M.SerBCallback then
             _M.SerBCallback(msg)
-        end  
+        end
+        sockets.writeSet("uni", msg)
         return        
     end
     
