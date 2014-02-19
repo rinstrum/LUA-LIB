@@ -1,6 +1,7 @@
-package.path = package.path .. ";../src/?.lua"
+-- Include the src directory
+package.path = "/home/src/?.lua;" .. package.path 
 
-VT100 = require "rinLibrary.rinVT100"
+local VT100 = require "rinLibrary.rinVT100"
   
 VT100.set(VT100.clrAttr()..VT100.clrScreen()) 
 local data = 100 

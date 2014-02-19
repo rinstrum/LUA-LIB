@@ -68,7 +68,6 @@ You probably want to chown these to a system user: " >&2
 		ls -ld $large_uid_files
 		echo >&2
 	fi
-	    
 
 	if [ ! -f "$CONTROL/control" ]; then
 		echo "*** Error: Control file $pkg_dir/$CONTROL/control not found." >&2
@@ -185,7 +184,6 @@ while getopts "cg:ho:vO" opt; do
 	    echo $usage  >&2
 	esac
 done
-
 
 shift $(($OPTIND - 1))
 

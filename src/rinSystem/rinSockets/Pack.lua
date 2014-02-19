@@ -8,7 +8,6 @@
 
 local _M = {}
 local dbg = require "rinLibrary.rinDebug"
-package.loaded["rinLibrary.rinDebug"] = nil
 
 local table = table
 local pairs = pairs
@@ -159,7 +158,7 @@ function _M.processWriteSocket(sock)
         if err then
             dbg.warn('FAILED TRANSMIT', msg)
         else
-            dbg.debug('<<<', msg)
+            dbg.debug(sock:getpeername(), '<<<', msg)
         end
         return ret, err
     end

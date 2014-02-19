@@ -1,23 +1,32 @@
 -------------------------------------------------------------------------------
--- Marquee
+-- myApp
 -- 
--- Allows for marquee messages to be displayed across the screen
--- 
--- POSSIBLE EXERCISE: 
--- Write a keyboard callback that allows dynamic editing of the scrolling speed
--- when the up and down keys are pressed
--- 
--- Hint: you will have to stop and start the slide timer
+-- Application template
+--    
+-- Copy this file to your project directory and insert the specific code of 
+-- your application
 -------------------------------------------------------------------------------
 -- Include the src directory
-package.path = package.path .. ";../src/?.lua"
+package.path = "/home/src/?.lua;" .. package.path 
+-------------------------------------------------------------------------------
+local rinApp = require "rinApp"     --  load in the application framework
 
-local rinApp = require "rinApp"
-local dwi = rinApp.addK400("K401")
+--=============================================================================
+-- Connect to the instruments you want to control
+--=============================================================================
+local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+
+--=============================================================================
+-- Register All Event Handlers and establish local application variables
+--=============================================================================
 
 local msg = ''
 -------------------------------------------------------------------------------
--- This is a timer callback that moves a message across the screen
+-- Callback for local timer
+local slideStart = 100    -- time in millisec until timer events start triggering
+local slideRepeat = 400  -- time in millisec that the timer repeats
+
 local function slide()
 
     -- Check if message is finished
@@ -39,10 +48,8 @@ local function slide()
     end
 end
 
--- Start a time that will call slide
--- The timer has a 400ms delay between iterations, which can be easily altered
--- The timer has a 100ms delay before it starts for the first time
-local slider = rinApp.system.timers.addTimer(400, 100, slide)
+rinApp.system.timers.addTimer(slideRepeat,slideStart,slide)
+-------------------------------------------------------------------------------
 
 -- Format the string for slide
 local function showMarquee (s)
@@ -50,7 +57,7 @@ local function showMarquee (s)
 end
 
 -------------------------------------------------------------------------------
--- Key handler
+-- Callback to handle F1 key event 
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
     if key == dwi.KEY_PWR_CANCEL and state == 'long' then 
@@ -58,18 +65,42 @@ local function handleKey(key, state)
     end
     return true     -- key handled so don't send back to instrument
 end
-
 dwi.setKeyGroupCallback(dwi.keyGroup.all, handleKey)
 
--- Print a message
+-------------------------------------------------------------------------------
+-- Callback to handle PWR+ABORT key and end application
+local function pwrCancelPressed(key, state)
+    if state == 'long' then
+      rinApp.running = false
+      return true
+    end 
+    return false
+end
+dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+-------------------------------------------------------------------------------
+
+--=============================================================================
+-- Initialisation 
+--=============================================================================
+--  This is a good place to put your initialisation code 
+-- (eg, setup outputs or put a message on the LCD etc)
+
 showMarquee("This is a very long message for a small LCD screen")
 
--- Loop and print key presses to the screen
--- If abort is pressed, break the loop
-while rinApp.running do
-   rinApp.system.handleEvents()
+--=============================================================================
+-- Main Application Loop
+--=============================================================================
+-- mainLoop gets continually called by the framework
+-- Main Application logic goes here
+function mainLoop()
+     
 end
+rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
+rinApp.run()                       -- run the application framework
 
--- Clean up and exit
-rinApp.system.timers.removeTimer(slider)
-rinApp.cleanup()
+--=============================================================================
+-- Clean Up 
+--=============================================================================
+-- Put any application clean up here
+
+rinApp.cleanup()                   -- shutdown application resources

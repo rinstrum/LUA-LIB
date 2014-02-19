@@ -24,7 +24,6 @@ _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
 
 _M.dbg = require "rinLibrary.rinDebug"
-package.loaded["rinLibrary.rinDebug"] = nil
 
 -- Addresses control bits
 _M.ADDR_RESP            = 0x80
@@ -251,7 +250,7 @@ function _M.recMsg(sock)
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.debug('>>>', msg) 
+        _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg) 
         return msg, nil
     end
     
@@ -395,8 +394,7 @@ function _M.processMsg(msg, err)
     cmd = tonum(str.sub(newMsg,3,4), 16)
     reg = tonum(str.sub(newMsg, 5, 8), 16)
     data = str.sub(newMsg, semiPos+1, -1)
-    
-    
+
     if not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex msg"
     end
@@ -450,8 +448,7 @@ function _M.send(addr, cmd, reg, data, reply, crc)
     local data = data or ""
     local reply = reply or 'reply'
     if reply == 'reply' then addr = bit32.bor(addr,_M.ADDR_REPLY) end
-    
-    
+
     if cmd == _M.CMD_WRFINALHEX then
         if type(data) == 'number' then
            data = str.format("%X",data)
@@ -530,7 +527,7 @@ function _M.socketBCallback()
     
     if err == nil or (err == 'timeout' and #buffer > 0) then
         msg = table.concat(buffer)
-        _M.dbg.debug('-->', msg) 
+        _M.dbg.debug(_M.socketB:getpeerinfo(), '-->', msg) 
         if _M.SerBCallback then
             _M.SerBCallback(msg)
         end

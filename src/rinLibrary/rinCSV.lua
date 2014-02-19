@@ -15,7 +15,6 @@ local ipairs = ipairs
 
 local dbg = require "rinLibrary.rinDebug"
 
- 
 -------------------------------------------------------------------------------
 --- CSV Utilities.
 -- Functions to convert data to and from .CSV format
@@ -103,8 +102,6 @@ function _M.fromCSV(s)
     return (t)          
   
 end  
-         
- 
 
 -------------------------------------------------------------------------------
 -- Checks labels to ensure database table is the same structure  
@@ -129,8 +126,6 @@ function _M.equalCSV(labels, check)
     return true
         
 end 
-
- 
 
 -------------------------------------------------------------------------------
 --- CSV Functions.
@@ -229,11 +224,11 @@ end
 -- @param row is row number of table data 1..n to remove.
 -- removes last line of data if row is nil
 function _M.remLineCSV(t,row)
-      table.remove(t.data,line)  -- remove last line from the table
+      table.remove(t.data,row)  -- remove last line from the table
 end
 
 -------------------------------------------------------------------------------
--- Removes line of data in a table (does not save .CSV file)
+-- Returns a line of data from the table with matching val in column col
 -- @param t is table holding CSV data
 -- @param val is value of the cell to find
 -- @param col is the column of data to match (default is col 1)
@@ -244,7 +239,7 @@ function _M.getLineCSV(t,val,col)
    local col = col or 1
    local row = 0
    for k,v in ipairs(t.data) do
-     if tostring(v[col]) == tostring(val) then
+     if string.lower(tostring(v[col])) == string.lower(tostring(val)) then
 	    line = v
 		row = k
 	  end	
@@ -254,6 +249,25 @@ function _M.getLineCSV(t,val,col)
    else
       return row, line
    end	  
+end
+
+-------------------------------------------------------------------------------
+-- Returns a column of data in a 1-D table
+-- @param t is table holding CSV data
+-- @param col is the column of data to match (default is col 1)
+-- @return a column of data
+-- @usage
+-- names = csv.getColCSV(db.material,2)           -- gather all material names
+-- sel = dwi.selectOption('SELECT',names,names[1],true)    -- chose a material
+--   
+function _M.getColCSV(t,col)
+   local column = {}
+   local col = col or 1
+ 
+   for k,v in ipairs(t.data) do
+      table.insert(column,v[col])
+   end
+   return column
 end
 
 -------------------------------------------------------------------------------
@@ -278,7 +292,6 @@ function _M.labelCol(t,label)
   label = tostring(label)
   label = string.lower(label)
 
-  
   for k,v in pairs(t.labels) do
      if string.lower(v) == label then
 	    return k
@@ -292,6 +305,7 @@ end
 -- Converts contents of the CSV table into a print friendly string
 -- @param t table to convert
 -- @param w width to pad each cell to
+-- @return string
 function _M.tostringCSV(t,w)
     local csvtab = {}
     local w = w or 10
@@ -307,8 +321,45 @@ function _M.tostringCSV(t,w)
     return table.concat(csvtab)
 end
 
-    
-    
+-------------------------------------------------------------------------------
+-- Converts contents of the 1-D column of data into a print friendly string
+-- @param c column of data convert
+-- @return string
+function _M.tostringCol(c)
+   local t = {}
+   for _,v in ipairs(c) do
+       table.insert(t,v)
+       table.insert(t,'\r\n')
+   end
+   return table.concat(t)   
+end
+
+-------------------------------------------------------------------------------
+-- Converts contents of the row into a print friendly string
+-- @param line of data to convert
+-- @param w width to pad each cell to
+-- @return string
+function _M.tostringLine(line,w)
+   local w = w or 10
+   return(_M.padCSV(line,w))
+end
+
+-------------------------------------------------------------------------------
+-- returns the number of rows of data in CSV table
+-- @param t CSV table
+-- @returns number of rows
+function _M.numRowsCSV(t)
+  return(#t.data)
+end
+
+-------------------------------------------------------------------------------
+-- returns the number of columns of data in CSV table
+-- @param t CSV table
+-- @returns number of columns
+function _M.numColsCSV(t)
+   return (#t.labels)
+end
+
 -------------------------------------------------------------------------------
 --- Database Utilities.
 -- Functions to manage multiple tables in a database
@@ -337,7 +388,6 @@ end
     end    -- add database table to database
   end
 
- 
 -------------------------------------------------------------------------------
 -- Restores database contents from CSV files
 -- Only loads in database tables already registered with database
@@ -370,9 +420,7 @@ function _M.remLineDB(db,name,line)
       table.remove(db[name].data,line)  -- remove last line from the table
       _M.saveCSV(db[name])  -- save the table to .CSV file (overwriting the old one)
 end
-    
-    
-    
+
 -------------------------------------------------------------------------------
 -- Save database to multiple CSV files
 -- @param db database table
@@ -382,9 +430,7 @@ function _M.saveDB(db)
      _M.saveCSV(t) 
      end
 end
-    
-    
-    
+
 -------------------------------------------------------------------------------
 -- Converts contents of the database into a print friendly string
 -- @param db database table

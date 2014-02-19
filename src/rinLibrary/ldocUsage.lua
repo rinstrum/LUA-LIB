@@ -9,7 +9,6 @@
 --- Section Comments.
 -- Description of the section goes here
 -- @section sectionName
- 
 
 --- Table Definition.
 --@table tableName
