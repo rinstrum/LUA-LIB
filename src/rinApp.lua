@@ -182,7 +182,7 @@ function _M.addK400(model, ip, portA, portB)
     _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
 
     -- Add a timer for the heartbeat (every 5s)
-    _M.system.timers.addTimer(5000, 1000, device.sendMsg, "2017032F:10", true)
+    _M.system.timers.addTimer(5000, 0, device.sendMsg, "2017032F:10", true)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
