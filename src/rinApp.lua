@@ -107,8 +107,8 @@ function _M.usbCallback(t)
          if v[2] == 'added' then
             _M.eventDevices[k] = _M.ev_lib.openEvent(k)
             _M.system.sockets.addSocket(_M.eventDevices[k],_M.eventCallback) 
-         elseif v[2] == 'removed' then
-           -- _M.system.sockets.removeSocket(_M.eventDevices[k])
+         elseif v[2] == 'removed' and _M.eventDevices[k] ~= nil then
+            _M.system.sockets.removeSocket(_M.eventDevices[k])
             _M.eventDevices[k] = nil
          end   
       end    
