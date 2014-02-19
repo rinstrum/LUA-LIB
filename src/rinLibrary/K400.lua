@@ -1213,8 +1213,10 @@ end
 -- @field keyGroup.numpad   
 -- @field keyGroup.cursor   
 -- @field keyGroup.extended   
+
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key group
+-- Return true in the callback to prevent the handling from being passed along to the next keygroup
 -- @param keyGroup A keygroup given in keyGroup.*
 -- @param callback Function to run when there is an event on the keygroup
 -- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
