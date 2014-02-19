@@ -527,7 +527,7 @@ function _M.socketBCallback()
     
     if err == nil or (err == 'timeout' and #buffer > 0) then
         msg = table.concat(buffer)
-        _M.dbg.debug(_M.socketB:getpeerinfo(), '-->', msg) 
+        _M.dbg.debug(_M.socketB:getpeername(), '-->', msg) 
         if _M.SerBCallback then
             _M.SerBCallback(msg)
         end
