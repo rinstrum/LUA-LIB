@@ -123,19 +123,6 @@ local function usbSockCallback(sock)
 end
 
 -------------------------------------------------------------------------------
--- Create a new TCP socket and connect to the specified address
--- @param ip IP address for the socket
--- @param port Port address for the socket
--- @param timeout The timeout associated with the socket
--- @return the socket
-local function createTCPsocket(ip, port, timeout)
-    local s = assert(require "socket".tcp())
-    s:connect(ip, port)
-    s:settimeout(timeout)
-    return s
-end
-
--------------------------------------------------------------------------------
 -- Callback function for client connections on the port 2224 socket.
 local function socket2224PassthroughCallback(sock)
 	local device = _M.devices[1]
