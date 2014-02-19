@@ -23,9 +23,9 @@ _M.running = false
 _M.config = {
          '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
          '; logger can be any of the supported groups - eg console, socket,file',
-         '; timestamp controls whether or not timestamps are added to messages, true or false',         
+         "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",         
          level = 'INFO',
-         timestamp = true,
+         timestamp = 'on',
          logger = 'console',
 		 socket = {IP='192.168.1.20', port=2224},
          file = {filename = 'debug.log'}

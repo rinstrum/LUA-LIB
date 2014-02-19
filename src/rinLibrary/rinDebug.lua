@@ -42,7 +42,7 @@ _M.LEVELS[_M.FATAL] = 'FATAL'
 _M.level = _M.DEBUG
 _M.lastLevel = _M.level
 
-_M.timestamp = false
+_M.timestamp = 'off'
 
 -- -- -- ------------------------------------------
 -- private function
@@ -97,14 +97,14 @@ end
 
 _M.config = {
          level = 'INFO',
-         timestamp = true,
+         timestamp = 'on',
          logger = 'console'
 		 }
 
 function _M.setConfig(config)
     _M.config = config
     _M.config.level = _M.checkLevel(_M.config.level)
-    _M.config.timestamp = config.timestamp or true
+    _M.config.timestamp = config.timestamp or 'on'
     _M.setLogger(_M.config)
 end
 
@@ -112,7 +112,7 @@ end
 -- Configures the level for debugging
 -- @param config is table of settings 
 -- @usage
--- dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'})
+-- dbg.configureDebug({level = 'DEBUG',timestamp = 'on', logger = 'console'})
 function _M.configureDebug(config)
     
 	_M.setConfig(config)
@@ -121,9 +121,8 @@ function _M.configureDebug(config)
 
 end
 -------------------------------------------------------------------------------
--- returns debug configuration
--- @return level lualogging level
--- @return timestamp: true if timestamp logging is to included 
+-- returns debug configuration table
+-- @return config table eg{level = 'DEBUG',timestamp = 'on', logger = 'console'}
 function _M.getDebugConfig()
     return _M.config
 end
@@ -210,7 +209,7 @@ function _M.print(prompt, ...)
     local timestr = ''
     local s
     
-    if _M.timestamp then
+    if _M.timestamp == 'on' then
         timestr = os.date("%Y-%m-%d %X ")
     end
     
