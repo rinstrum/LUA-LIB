@@ -250,7 +250,7 @@ function _M.recMsg(sock)
     
     if err == nil then
         msg = table.concat(buffer)
-        _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg) 
+        _M.dbg.debug(sock:getpeername(), '>>>', msg) 
         return msg, nil
     end
     
