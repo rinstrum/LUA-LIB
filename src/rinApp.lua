@@ -150,6 +150,17 @@ local function streamAprocessor(sock, msg, cmd, reg, data, err)
 end
 
 -------------------------------------------------------------------------------
+-- Stream B call back routine to determine if a message should be forwarded or
+-- not for a particular socket.
+-- @param sock The socket to be written to
+-- @param msg The raw message to write
+-- @return nil for no forwarding or
+-- @return a message to be set (which can be modified or not)
+local function streamBprocessor(sock, msg, cmd, reg, data, err)
+    return msg
+end
+
+-------------------------------------------------------------------------------
 -- Three callback functions that are called when a new socket connection is
 -- established.  These functions should add the socket to the sockets management
 -- module and set any required timouts
@@ -164,7 +175,7 @@ local function socket2225Callback(newSocket, ip, port)
 	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
     _M.system.sockets.setSocketTimeout(newSocket, 0.001)
     _M.dbg.info('-- new unidirectional connection on port 2225 from', ip, port)
-    socks.addSocketSet("uni", newSocket, nil)
+    socks.addSocketSet("uni", newSocket, streamBprocessor)
 end
 
 local function socket2226Callback(newSocket, ip, port)
