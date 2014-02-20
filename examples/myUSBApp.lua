@@ -137,7 +137,7 @@ rinApp.initUSB()                   -- Call to setup USB interface
 --=============================================================================
 -- mainLoop gets continually called by the framework
 -- Main Application logic goes here
-function mainLoop()
+local function mainLoop()
      
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
