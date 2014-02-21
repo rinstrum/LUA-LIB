@@ -345,7 +345,6 @@ _M.settings.curDispMode = _M.DISPMODE_PRIMARY
 _M.settings.hiRes = false
 _M.settings.curRange = 1
 
- 
 function _M.readSettings()
     _M.settings.fullscale = _M.getRegDP(_M.REG_FULLSCALE)
     for mode = _M.DISPMODE_PRIMARY, _M.DISPMODE_SECONDARY do
@@ -366,8 +365,6 @@ function _M.readSettings()
     end
     --_M.dbg.info('Settings = ',_M.settings)    
 end
-
- 
  
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
@@ -383,7 +380,6 @@ function _M.configure(model)
      
     _M.readSettings()
     
-      
     if err then 
       _M.model = ''
       return err
@@ -835,7 +831,6 @@ _M.STAT_START           = 0x10000000
 _M.STAT_NO_TYPE         = 0x20000000
 _M.STAT_INIT            = 0x80000000
 
-
 -- Extended status bits
 _M.ESTAT_HIRES           = 0x00000001
 _M.ESTAT_DISPMODE        = 0x00000006
@@ -849,13 +844,11 @@ _M.ESTAT_IO              = 0x08000000
 _M.ESTAT_SER1            = 0x10000000
 _M.ESTAT_SER2            = 0x20000000
 
-
 _M.statBinds = {}
 _M.statID = nil          
 
 _M.eStatBinds = {}
 _M.eStatID = nil          
-
 
 _M.IOBinds = {}
 _M.IOID = nil          
@@ -928,7 +921,6 @@ function _M.setIOCallback(IO, callback)
     _M.IOBinds[status]['lastStatus'] = 0xFF
 end
 
-
 -------------------------------------------------------------------------------
 -- Called when extended status changes are streamed 
 -- @param data Data on status streamed
@@ -982,8 +974,6 @@ function _M.setEStatusMainCallback(eStat, callback)
     _M.eStatBinds[eStat]['mainf'] = callback
     _M.eStatBinds[eStat]['lastStatus'] = 0xFF
 end
-
-
 
 -------------------------------------------------------------------------------
 -- Called to get current instrument status 
@@ -1049,14 +1039,12 @@ function _M.allStatusSet(...)
   return  ret
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO 
 -- @return 32 bits of IO data 
 function _M.getCurIO()
   return _M.curIO
 end
-
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
@@ -1143,8 +1131,6 @@ function _M.releaseIOStatus(IO)
     end 
 end
 
-
-
 function _M.handleRTC(status, active)
     _M.RTCtick()
 end
@@ -1166,7 +1152,6 @@ function _M.setupStatus()
     _M.setEStatusMainCallback(_M.ESTAT_INIT, _M.handleINIT)
     _M.setRTCStatus(true)
 end
-
 
 -------------------------------------------------------------------------------
 -- Cancel status handling
@@ -2751,8 +2736,6 @@ function _M.grossNetToggle()
     return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Called to trigger initial stream reads and establish initial conditions
 function _M.init()
@@ -2761,8 +2744,7 @@ function _M.init()
    end
    for k,v in pairs(_M.availRegistersUser) do
             v.lastData = ''
-   end
-   
+   end   
      
    _M.send(nil,_M.CMD_RDFINALHEX,
               bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),

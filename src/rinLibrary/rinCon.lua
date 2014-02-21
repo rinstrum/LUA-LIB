@@ -203,7 +203,6 @@ function _M.socketACallback()
     return data, err
 end
 
-
 -------------------------------------------------------------------------------
 -- Disconnect from the R400
 function _M.disconnect()

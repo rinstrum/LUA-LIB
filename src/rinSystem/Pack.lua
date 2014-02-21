@@ -17,7 +17,6 @@ local _M = {}
 _M.timers = timers
 _M.sockets = sockets
 
-
 _M.evQ = {head = 0,tail = -1}
 
 function _M.qEvent(f,...)
@@ -25,7 +24,6 @@ function _M.qEvent(f,...)
   _M.evQ.tail = tail
   _M.evQ[tail] = {['evF'] = f, ['evParam'] = arg}
 end
-
 
 -------------------------------------------------------------------------------
 -- Main function for handling events
@@ -38,7 +36,6 @@ function _M.handleEvents()
        _M.evQ[head].evF(unpack(_M.evQ[head].evParam))
        _M.evQ[head] = nil
     end
-
 
     local time = timers.delayUntilNext()
     local writers = sockets.getWriterSockets()
