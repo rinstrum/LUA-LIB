@@ -993,6 +993,64 @@ function _M.getCurStatus()
 end
 
 -------------------------------------------------------------------------------
+-- Called to check state of current instrument status 
+-- @return true if any of the status bits are set in cur instrument status
+-- @usage
+-- dwi.enableOutput(5) 
+-- if dwi.anyStatus(dwi.STAT_MOTION,
+--                  dwi.STAT_ERR,
+--                  dwi.STAT_OLOAD,
+--                  dwi.STAT_ULOAD) then
+--     dwi.turnOn(5)  -- turn on output 5 if motion or any errors
+-- else
+--     dwi.turnOff(5)
+-- end 
+function _M.anyStatusSet(...)
+  local ret = false
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     if bit32.band(_M.curStatus,v) then
+        ret = true
+     end
+   end     
+  
+  return  ret
+end
+
+-------------------------------------------------------------------------------
+-- Called to check state of current instrument status 
+-- @return true if all of the status bits are set in cur instrument status
+-- @usage
+-- dwi.enableOutput(5) 
+-- if dwi.anyStatus(dwi.STAT_NOTMOTION,
+--                  dwi.STAT_NOTZERO,
+--                  dwi.STAT_GROSS) then
+--     dwi.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
+-- else
+--     dwi.turnOff(5)
+-- end 
+function _M.allStatusSet(...)
+  local ret = true
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     if bit32.band(_M.curStatus,v) == 0 then
+        ret = false
+     end
+   end     
+  
+  return  ret
+end
+
+
+-------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO 
 -- @return 32 bits of IO data 
 function _M.getCurIO()
