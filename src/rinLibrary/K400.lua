@@ -553,7 +553,7 @@ end
 -- @param streamReg Register to stream from (_M.REG_*)
 -- @param callback Function to bind to streaming register
 -- @param onChange Change parameter
--- return streamReg indentity
+-- return streamReg identity
 function _M.addStream(streamReg, callback, onChange)
     local availReg = nil
     
