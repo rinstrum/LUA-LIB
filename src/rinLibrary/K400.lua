@@ -643,6 +643,11 @@ _M.streamRegistersLib = {}
 function _M.streamCallbackLib(data, err)
    
     if err then return end
+    if (string.len(data) % 8 ~= 0) or
+       (string.find(data,'%X')) then 
+          _M.dbg.error('Corrupt Stream Data: ',data)
+          return
+    end      
     
     for k,v in pairs(_M.availRegistersLib) do
         if v.reg ~= 0 then
@@ -864,8 +869,12 @@ function _M.statusCallback(data, err)
     for k,v in pairs(_M.statBinds) do
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
-           v.lastStatus = status
-           v.f(k, status ~= 0)
+           if v.running then
+               _M.dbg.warn('Event lost: ',k,status)
+           else
+              v.lastStatus = status
+              v.f(k, status ~= 0)
+           end   
         end     
     end
 end
@@ -889,8 +898,12 @@ function _M.IOCallback(data, err)
     for k,v in pairs(_M.IOBinds) do
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
-           v.lastStatus = status
-           v.f(v.IO, status ~= 0)
+           if v.running then
+               _M.dbg.warn('Event lost: ',k,status)
+           else
+              v.lastStatus = status
+              v.f(v.IO, status ~= 0)
+           end   
         end     
     end
 end
