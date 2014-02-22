@@ -128,7 +128,7 @@ local function socket2224PassthroughCallback(sock)
 	local device = _M.devices[1]
 	local msg, err = device.recMsg(sock)
     if err then
-    	_M.dbg.info("read eror ", err)
+    	_M.dbg.info("read error ", err)
     else
     	device.sendRaw(msg) -- write to socket A
     end
