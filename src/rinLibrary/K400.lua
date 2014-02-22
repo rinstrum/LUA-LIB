@@ -1164,10 +1164,7 @@ function _M.setupStatus()
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC, _M.handleRTC)
     _M.setEStatusMainCallback(_M.ESTAT_INIT, _M.handleINIT)
-    
-
     _M.setRTCStatus(true)
-    
 end
 
 
