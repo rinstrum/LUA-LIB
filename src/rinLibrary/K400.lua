@@ -2696,4 +2696,24 @@ function _M.grossNetToggle()
     return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
 end
 
+
+
+-------------------------------------------------------------------------------
+-- Called to trigger initial stream reads and establish initial conditions
+function _M.init()
+   for k,v in pairs(_M.availRegistersLib) do
+            v.lastData = ''
+   end
+   for k,v in pairs(_M.availRegistersUser) do
+            v.lastData = ''
+   end
+   
+     
+   _M.send(nil,_M.CMD_RDFINALHEX,
+              bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
+              '','reply')
+   _M.send(nil,_M.CMD_RDFINALHEX,
+              bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
+              '', 'reply')
+end
 return _M

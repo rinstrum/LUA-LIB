@@ -256,6 +256,14 @@ function _M.setMainLoop(f)
 end    
     
 -------------------------------------------------------------------------------
+-- Initialise rinApp and all connected devices
+function _M.init()
+    for i,v in ipairs(_M.devices) do
+        v.init() 
+    end 
+end    
+    
+-------------------------------------------------------------------------------
 -- Main rinApp program loop
 function _M.run()
     while _M.running do
