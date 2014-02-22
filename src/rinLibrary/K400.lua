@@ -327,14 +327,52 @@ function _M.saveSettings()
     _M.sendRegWait(_M.CMD_EX,_M.REG_SAVESETTING)
 end
 
-_M.fullscale = 3000
-_M.dp = 0 
+_M.REG_PRIMARY_DISPMODE   = 0x0306
+_M.REG_SECONDARY_DISPMODE = 0x0307
 
+_M.DISPMODE_PRIMARY      = 1
+_M.DISPMODE_PIECES       = 2
+_M.DISPMODE_SECONDARY    = 3
+_M.units = {"  ","kg","lb","t ","g ","oz","N ","  ","p ","l ","  "}
+_M.countby = {1,2,5,10,20,50,100,200,500}
+_M.settings = {}
+_M.settings.fullscale = 3000
+_M.settings.dispmode = {}
+_M.settings.dispmode[_M.DISPMODE_PRIMARY] =   {reg = _M.REG_PRIMARY_DISPMODE, units = _M.units[2], dp = 0, countby = {1,2,5}}
+_M.settings.dispmode[_M.DISPMODE_PIECES] =    {reg = 0,                       units = _M.units[9], dp = 0, countby = {1,1,1}}
+_M.settings.dispmode[_M.DISPMODE_SECONDARY] = {reg = _M.REG_SECONDARY_DISPMODE,units = _M.units[3], dp = 0, countby = {2,5,10}}
+_M.settings.curDispMode = _M.DISPMODE_PRIMARY
+_M.settings.hiRes = false
+_M.settings.curRange = 1
+
+ 
+function _M.readSettings()
+    _M.settings.fullscale = _M.getRegDP(_M.REG_FULLSCALE)
+    for mode = _M.DISPMODE_PRIMARY, _M.DISPMODE_SECONDARY do
+        if _M.settings.dispmode[mode].reg ~= 0 then
+            local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
+            if data and not err then 
+              --  _M.dbg.info('Data: ', data)
+                data = tonumber(data,16)
+                _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
+                _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
+                _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
+                _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
+                _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+            else
+                _M.dbg.warn('Incorrect read: ',data,err)
+            end
+        end
+    end
+    --_M.dbg.info('Settings = ',_M.settings)    
+end
+
+ 
+ 
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
 -- @return nil if ok or error string if model doesn't match
 function _M.configure(model)
-    _M.fullscale, _M.dp = _M.getRegDP(_M.REG_FULLSCALE)
     local s, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SOFTMODEL)
     if not err then 
         _M.model = s
@@ -343,6 +381,9 @@ function _M.configure(model)
     
      _M.dbg.printVar(_M.model,_M.serialno,_M.dbg.INFO)
      
+    _M.readSettings()
+    
+      
     if err then 
       _M.model = ''
       return err
@@ -363,7 +404,7 @@ function _M.toPrimary(v)
  if type(v) == 'string' then
     v = tonumber(v)
   end   
- for i = 1,_M.dp do
+ for i = 1,_M.settings.dispmode[_M.settings.curDispMode].dp do
     v = v*10
   end
   v = math.floor(v+0.5)
@@ -376,7 +417,7 @@ end
 -- @param dp decimal position 
 -- @return floating point number
 function _M.toFloat(data, dp)
-   local dp = dp or _M.dp  -- use instrument dp if not specified otherwise
+   local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
    
    data = tonumber(data,16)
    if data > 0x7FFFFFFF then
@@ -444,27 +485,32 @@ _M.availRegistersUser = {
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
                                               ['lastData'] = '',
-                                              ['dp'] = 0}, 
+                                              ['dp'] = 0,
+                                              ['typ'] = _M.TYP_LONG}, 
                         [_M.REG_STREAMREG2]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
                                               ['lastData'] = '',
-                                              ['dp'] = 0}, 
+                                              ['dp'] = 0,
+                                              ['typ'] = _M.TYP_LONG}, 
                         [_M.REG_STREAMREG3]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
                                               ['lastData'] = '',
-                                              ['dp'] = 0}, 
+                                              ['dp'] = 0,
+                                              ['typ'] = _M.TYP_LONG}, 
                         [_M.REG_STREAMREG4]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
                                               ['lastData'] = '',
-                                              ['dp'] = 0}, 
+                                              ['dp'] = 0,
+                                              ['typ'] = _M.TYP_LONG}, 
                         [_M.REG_STREAMREG5]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
                                               ['lastData'] = '',
-                                              ['dp'] = 0}
+                                              ['dp'] = 0,
+                                              ['typ'] = _M.TYP_LONG}
                     }
 _M.streamRegisters = {}
 
@@ -488,8 +534,12 @@ function _M.streamCallback(data, err)
             
             if substr and substr ~= "" then         
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
-                     v.lastData = substr                
-                     v.callback(_M.toFloat(substr,v.dp), err)
+                     v.lastData = substr
+                     if v.typ == _M.TYP_WEIGHT and _M.settings.hiRes then 
+                         _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp+1), err)
+                     else                     
+                         _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                     end    
                 end
             end
         end
@@ -524,6 +574,8 @@ function _M.addStream(streamReg, callback, onChange)
     _M.availRegistersUser[availReg].onChange = onChange
     _M.availRegistersUser[availReg].lastData = ''
     _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
+    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
+    _M.availRegistersUser[availReg].typ = typ
     
     _M.streamRegistersUser[streamReg] = availReg
 
@@ -600,7 +652,7 @@ function _M.streamCallbackLib(data, err)
             if substr and substr ~= "" then         
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
                      v.lastData = substr                
-                     v.callback(_M.toFloat(substr,v.dp), err)
+                     _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp), err)
                 end
             end
         end
@@ -736,6 +788,7 @@ _M.SYS_ZERO             = 0x00000400
 _M.SYS_NET              = 0x00000200
 
 _M.REG_LUA_STATUS   = 0x0329
+_M.REG_LUA_ESTAT    = 0x0305
 _M.REG_LUA_STAT_RTC = 0x032A
 _M.REG_LUA_STAT_RDG = 0x032B
 _M.REG_LUA_STAT_IO  = 0x032A
@@ -760,13 +813,6 @@ _M.STAT_ERROR           = 0x00001000
 _M.STAT_ULOAD           = 0x00002000
 _M.STAT_OLOAD           = 0x00004000
 _M.STAT_NOTERROR        = 0x00008000
--- K401 specific status bits
-_M.STAT_INIT            = 0x01000000
-_M.STAT_RTC             = 0x02000000
-_M.STAT_RDG             = 0x04000000
-_M.STAT_IO              = 0x08000000
-_M.STAT_SER1            = 0x10000000
-_M.STAT_SER2            = 0x20000000
 -- K412 specific status bits
 _M.STAT_IDLE            = 0x00010000
 _M.STAT_RUN             = 0x00020000
@@ -784,8 +830,27 @@ _M.STAT_START           = 0x10000000
 _M.STAT_NO_TYPE         = 0x20000000
 _M.STAT_INIT            = 0x80000000
 
+
+-- Extended status bits
+_M.ESTAT_HIRES           = 0x00000001
+_M.ESTAT_DISPMODE        = 0x00000006
+_M.ESTAT_DISPMODE_RS     = 1
+_M.ESTAT_RANGE           = 0x00000018
+_M.ESTAT_RANGE_RS        = 3
+_M.ESTAT_INIT            = 0x01000000
+_M.ESTAT_RTC             = 0x02000000
+_M.ESTAT_RDG             = 0x04000000
+_M.ESTAT_IO              = 0x08000000
+_M.ESTAT_SER1            = 0x10000000
+_M.ESTAT_SER2            = 0x20000000
+
+
 _M.statBinds = {}
 _M.statID = nil          
+
+_M.eStatBinds = {}
+_M.eStatID = nil          
+
 
 _M.IOBinds = {}
 _M.IOID = nil          
@@ -813,9 +878,6 @@ function _M.setStatusCallback(stat, callback)
     _M.statBinds[stat] = {}
     _M.statBinds[stat]['f'] = callback
     _M.statBinds[stat]['lastStatus'] = 0xFF
-    if stat == _M.STAT_RTC then  
-        _M.setRTCStatus(true)
-    end
 end
 
 -------------------------------------------------------------------------------
@@ -853,6 +915,63 @@ function _M.setIOCallback(IO, callback)
     _M.IOBinds[status]['lastStatus'] = 0xFF
 end
 
+
+-------------------------------------------------------------------------------
+-- Called when extended status changes are streamed 
+-- @param data Data on status streamed
+-- @param err Potential error message
+function _M.eStatusCallback(data, err)
+   if bit32.band(data,_M.ESTAT_HIRES) > 0 then
+       _M.settings.hiRes = true
+   else 
+       _M.settings.hiRes = false
+   end    
+     
+   _M.settings.curDispMode = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_DISPMODE),_M.ESTAT_DISPMODE_RS)
+   _M.settings.curRange    = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_RANGE),_M.ESTAT_RANGE_RS)
+   
+    for k,v in pairs(_M.eStatBinds) do
+       local status = bit32.band(data,k)
+       if status ~= v.lastStatus  then
+           if v.running then
+               _M.dbg.warn('Event lost: ',k,status)
+           else
+              v.running = true
+              v.lastStatus = status
+              if v.mainf then
+                  v.mainf(k,status ~= 0)
+              end    
+              if v.f then
+                  v.f(k, status ~= 0)
+              end  
+              v.running = false      
+            end              
+        end     
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for an extended status bit
+-- @param eStat ESTAT_ status bit
+-- @param callback Function to run when there is an event on change in status
+function _M.setEStatusCallback(eStat, callback)
+    _M.eStatBinds[eStat] = _M.eStatBinds[eStat] or {}
+    _M.eStatBinds[eStat]['f'] = callback
+    _M.eStatBinds[eStat]['lastStatus'] = 0xFF
+end
+
+-------------------------------------------------------------------------------
+-- Set the main library callback function for an extended status bit
+-- @param eStat ESTAT_ status bit
+-- @param callback Function to run when there is an event on change in status
+function _M.setEStatusMainCallback(eStat, callback)
+    _M.eStatBinds[eStat] = _M.eStatBinds[eStat] or {}
+    _M.eStatBinds[eStat]['mainf'] = callback
+    _M.eStatBinds[eStat]['lastStatus'] = 0xFF
+end
+
+
+
 -------------------------------------------------------------------------------
 -- Called to get current instrument status 
 -- @return 32 bits of status data with bits as per STAT_ definitions
@@ -867,13 +986,6 @@ function _M.getCurIO()
   return _M.curIO
 end
 
--------------------------------------------------------------------------------
--- Setup status monitoring via a stream
-function _M.setupStatus()
-    _M.curStatus = 0 
-    _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
-    _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
-end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
@@ -960,10 +1072,39 @@ function _M.releaseIOStatus(IO)
     end 
 end
 
+
+
+function _M.handleRTC(status, active)
+    _M.RTCtick()
+end
+
+function _M.handleINIT(status, active)
+    _M.readSettings()
+    _M.RTCread()
+    _M.dbg.info('INIT')
+end
+-------------------------------------------------------------------------------
+-- Setup status monitoring via a stream
+function _M.setupStatus()
+    _M.curStatus = 0 
+    _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
+    _M.eStatID = _M.addStreamLib(_M.REG_LUA_ESTAT, _M.eStatusCallback, 'change')
+    _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
+    _M.RTCread()
+    _M.setEStatusMainCallback(_M.ESTAT_RTC, _M.handleRTC)
+    _M.setEStatusMainCallback(_M.ESTAT_INIT, _M.handleINIT)
+    
+
+    _M.setRTCStatus(true)
+    
+end
+
+
 -------------------------------------------------------------------------------
 -- Cancel status handling
 function _M.endStatus()
     _M.removeStream(_M.statID)
+    _M.removeStream(_M.eStatID)
     _M.removeStream(_M.IOID)
 end
 
