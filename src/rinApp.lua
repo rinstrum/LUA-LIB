@@ -23,9 +23,9 @@ _M.running = false
 _M.config = {
          '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
          '; logger can be any of the supported groups - eg console, socket,file',
-         '; timestamp controls whether or not timestamps are added to messages, true or false',         
+         "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",         
          level = 'INFO',
-         timestamp = true,
+         timestamp = 'on',
          logger = 'console',
 		 socket = {IP='192.168.1.20', port=2224},
          file = {filename = 'debug.log'}
@@ -128,7 +128,7 @@ local function socket2224PassthroughCallback(sock)
 	local device = _M.devices[1]
 	local msg, err = device.recMsg(sock)
     if err then
-    	_M.dbg.info("read eror ", err)
+    	_M.dbg.info("read error ", err)
     else
     	device.sendRaw(msg) -- write to socket A
     end
@@ -253,6 +253,14 @@ _M.mainLoop = nil
 -- @param f Mail Loop function to call 
 function _M.setMainLoop(f)
    _M.mainLoop = f
+end    
+    
+-------------------------------------------------------------------------------
+-- Initialise rinApp and all connected devices
+function _M.init()
+    for i,v in ipairs(_M.devices) do
+        v.init() 
+    end 
 end    
     
 -------------------------------------------------------------------------------
