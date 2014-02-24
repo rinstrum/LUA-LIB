@@ -249,7 +249,7 @@ function _M.writeSet(name, msg, ...)
             for sock, cb in pairs(s) do
     	        local m = msg
     	        if cb then
-        	        m = cb(sock, msg, unpack(arg))
+        	        m = cb(sock, msg, ...)
                 end
                 if m then
                 	_M.writeSocket(sock, m)

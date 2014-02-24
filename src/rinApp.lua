@@ -156,7 +156,7 @@ end
 -- @param msg The raw message to write
 -- @return nil for no forwarding or
 -- @return a message to be set (which can be modified or not)
-local function streamBprocessor(sock, msg, cmd, reg, data, err)
+local function streamBprocessor(sock, msg)
     return msg
 end
 
