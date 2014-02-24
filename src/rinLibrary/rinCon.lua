@@ -203,7 +203,6 @@ function _M.socketACallback()
     return data, err
 end
 
-
 -------------------------------------------------------------------------------
 -- Disconnect from the R400
 function _M.disconnect()
@@ -531,7 +530,7 @@ function _M.socketBCallback()
             _M.SerBCallback(msg)
         end
         sockets.writeSet("uni", msg)
-        return        
+        return nil, nil
     end
     
     _M.dbg.error("Receive SERB failed: ", err)

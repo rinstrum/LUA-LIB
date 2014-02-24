@@ -20,9 +20,9 @@ local sockSet = {}
 -- Callback function that ignoes incoming data for a read only socket.
 -- @param sock The socket to read all available data from
 function _M.flushReadSocket(sock)
-	local ch, err = nil, nil
+	local ch, err, extra = nil, nil, nil
     while err == nil do
-		ch, err = sock:receive(1)
+		ch, err, extra = sock:receive(10000)
     end
     if err ~= "timeout" then
         _M.removeSocket(sock)
@@ -249,7 +249,7 @@ function _M.writeSet(name, msg, ...)
             for sock, cb in pairs(s) do
     	        local m = msg
     	        if cb then
-        	        m = cb(sock, msg, unpack(arg))
+        	        m = cb(sock, msg, ...)
                 end
                 if m then
                 	_M.writeSocket(sock, m)
@@ -258,6 +258,5 @@ function _M.writeSet(name, msg, ...)
         end
     end
 end
-
 
 return _M
