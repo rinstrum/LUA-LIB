@@ -997,10 +997,10 @@ end
 -- @return true if any of the status bits are set in cur instrument status
 -- @usage
 -- dwi.enableOutput(5) 
--- if dwi.anyStatus(dwi.STAT_MOTION,
---                  dwi.STAT_ERR,
---                  dwi.STAT_OLOAD,
---                  dwi.STAT_ULOAD) then
+-- if dwi.anyStatusSet(dwi.STAT_MOTION,
+--                     dwi.STAT_ERR,
+--                     dwi.STAT_OLOAD,
+--                     dwi.STAT_ULOAD) then
 --     dwi.turnOn(5)  -- turn on output 5 if motion or any errors
 -- else
 --     dwi.turnOff(5)
@@ -1026,9 +1026,9 @@ end
 -- @return true if all of the status bits are set in cur instrument status
 -- @usage
 -- dwi.enableOutput(5) 
--- if dwi.anyStatus(dwi.STAT_NOTMOTION,
---                  dwi.STAT_NOTZERO,
---                  dwi.STAT_GROSS) then
+-- if dwi.allStatusSet(dwi.STAT_NOTMOTION,
+--                     dwi.STAT_NOTZERO,
+--                     dwi.STAT_GROSS) then
 --     dwi.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
 -- else
 --     dwi.turnOff(5)
