@@ -1059,6 +1059,61 @@ end
 
 
 -------------------------------------------------------------------------------
+-- Called to check state of current IO 
+-- @return true if any of the listed IO are active
+-- @usage
+-- dwi.enableOutput(3) 
+-- if not dwi.anyIOSet(1,2,4,5) then
+--     dwi.turnOn(3)  -- turn on output 3 if no other outputs on
+-- else
+--     dwi.turnOff(3)
+-- end 
+function _M.anyIOSet(...)
+  local ret = false
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     if bit32.band(_M.curIO,v) then
+        ret = true
+     end
+   end     
+  
+  return  ret
+end
+
+-------------------------------------------------------------------------------
+-- Called to check state of IO 
+-- @return true if all of the listed IO are active
+-- @usage
+-- dwi.enableOutput(3) 
+-- if dwi.allIOSet(1,2) then
+--     dwi.turnOn(3)  -- turn on output 3 if IO 1 and 2 both on
+-- else
+--     dwi.turnOff(3)
+-- end 
+function _M.allIOSet(...)
+  local ret = true
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     if bit32.band(_M.curIO,v) == 0 then
+        ret = false
+     end
+   end     
+  
+  return  ret
+end
+
+
+
+
+-------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
 -- @param stat status bits to monitor
 -- @usage
