@@ -530,7 +530,7 @@ function _M.socketBCallback()
             _M.SerBCallback(msg)
         end
         sockets.writeSet("uni", msg)
-        return        
+        return nil, nil
     end
     
     _M.dbg.error("Receive SERB failed: ", err)
