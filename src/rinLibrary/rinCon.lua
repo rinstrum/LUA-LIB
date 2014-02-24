@@ -203,8 +203,6 @@ function _M.socketACallback()
     return data, err
 end
 
-_M.sendQ = {head = 0,tail = -1}
-
 -------------------------------------------------------------------------------
 -- Disconnect from the R400
 function _M.disconnect()
