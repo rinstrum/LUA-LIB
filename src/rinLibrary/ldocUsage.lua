@@ -23,10 +23,7 @@
 -- @return return description
 -- @see anotherFunction
 -- @usage
---    
 --       a = myFunction(1,2)  -- comment in example code
---
---
 function myFunction(p1,p2)
  
 end
@@ -40,10 +37,7 @@ end
 -- @return  returns description
 -- @see string.sub
 -- @usage
---    
 --       b = anotherFunction(1,2)  -- comment in example code
---
---
 function anotherFunction(p1,p2)
  
 end
