@@ -1003,7 +1003,7 @@ function _M.anyStatusSet(...)
   end
   
   for i,v in ipairs(arg) do
-     if bit32.band(_M.curStatus,v) then
+     if bit32.band(_M.curStatus,v) ~= 0 then
         ret = true
      end
    end     
@@ -1046,6 +1046,19 @@ function _M.getCurIO()
   return _M.curIO
 end
 
+function _M.getCurIOStr()
+  local s = {}
+  for i = 31,0,-1 do
+    if bit32.band(_M.curIO,bit32.lshift(0x01,i)) ~= 0 then
+        ch = '1'
+    else
+        ch = '0' 
+    end        
+    table.insert(s,ch)
+  end  
+  return(table.concat(s))
+end
+
 -------------------------------------------------------------------------------
 -- Called to check state of current IO 
 -- @return true if any of the listed IO are active
@@ -1064,7 +1077,8 @@ function _M.anyIOSet(...)
   end
   
   for i,v in ipairs(arg) do
-     if bit32.band(_M.curIO,v) then
+     
+     if bit32.band(bit32.lshift(0x01,v-1),_M.curIO) ~= 0 then
         ret = true
      end
    end     
@@ -1090,7 +1104,7 @@ function _M.allIOSet(...)
   end
   
   for i,v in ipairs(arg) do
-     if bit32.band(_M.curIO,v) == 0 then
+     if bit32.band(bit32.lshift(0x01,v-1),_M.curIO) == 0 then
         ret = false
      end
    end     
