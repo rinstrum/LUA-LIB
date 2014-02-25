@@ -47,6 +47,8 @@ install:
 	$(INSTALL_EXEC) examples/*.lua $(DEST_DIR)/home/lualib_examples
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
 	lua /usr/local/share/lua/5.1/ldoc.lua src --dir $(DEST_DIR)/$(WWW_DIR)/libdocs
+	
+	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
 # Rule to create M01 release target
 $(RELEASE_M01_TARGET): override DEST_DIR=$(BUILDDIR)/$(STAGE_DIR)

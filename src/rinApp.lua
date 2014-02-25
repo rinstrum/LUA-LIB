@@ -291,5 +291,5 @@ end
 io.output():setvbuf('no')
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
 _M.running = true
-_M.dbg.info('','------   Application Started Latest -----')
+_M.dbg.info('','------   Application Started %LATEST% -----')
 return _M
