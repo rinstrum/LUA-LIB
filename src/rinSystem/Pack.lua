@@ -17,10 +17,6 @@ local _M = {}
 _M.timers = timers
 _M.sockets = sockets
 
-function _M.qEvent(f,...)
-	return timers.addEvent(f, ...)
-end
-
 -------------------------------------------------------------------------------
 -- Main function for handling events
 -- Issues a callback to any connection or timer that has an event on it.

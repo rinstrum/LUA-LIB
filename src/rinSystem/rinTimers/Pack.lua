@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 
 local socket = require "socket"
---local posix = require "posix"
 
 local unpack = unpack
 local floor = math.floor
@@ -18,15 +17,23 @@ local timers = {}
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
 -- @return a monotonic seconds based counter
---
--- We use socket.gettime() here, although posix.clock_gettime would be
--- preferable but we can't guarantee posix compatibility.  The socket.gettime()
--- call returns a value that is suspiciously like that returned by time(2).
--- The time(2) call is coarse and not guaranteed to be monotonic.
 local function monotonictime()
 	return socket.gettime()
-	--local s, n = posix.clock_gettime("monotonic")
-	--return s + n * 0.000000001
+end
+
+-- Attempt to automatically detect if we're running on a posix based system
+-- and if we are, we ditch socket.gettime() and use posix.clock_gettime.
+-- The latter is preferable because it is guaranteed monotonic and not impacted
+-- by system clock changes.  The socket.gettime() call returns a value that
+-- is suspiciously like that returned by time(2).  The time(2) call is coarse
+-- and not guaranteed to be monotonic.
+if pcall(function() require "posix" end) then
+	local posix = posix
+    local function monotonictime_posix()
+	    local s, n = posix.clock_gettime("monotonic")
+	    return s + n * 0.000000001
+    end
+	monotonictime = monotonictime_posix
 end
 
 -------------------------------------------------------------------------------
