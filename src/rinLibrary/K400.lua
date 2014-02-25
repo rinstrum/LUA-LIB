@@ -157,16 +157,7 @@ _M.REG_TARE             = 0x0028
 _M.REG_PEAKHOLD         = 0x0029
 _M.REG_MANHOLD          = 0x002A
 
-_M.sendRegWaiting = false
-_M.sendRegData = ''
-_M.sendRegErr = ''
 
--- Private function
-function _M.sendRegCallback(data, err)
-    _M.sendRegWaiting = false
-    _M.sendRegData = data
-    _M.sendRegErr = err
-end
 --- Main Instrument Commands.
 --@table rinCMD
 -- @field CMD_RDLIT        Read literal data
@@ -196,18 +187,27 @@ end
 function _M.sendRegWait(cmd, reg, data, t)
     
     local t = t or 500
+      
     
     if reg == nil then
           return nil, 'Nil Register'
     end 
     
+    local waiting = true
+    local regData = ''
+    local regError = ''
+    local function waitf(data, err)
+          regData = data
+          regErr = err
+          waiting = false
+    end  
+    
     local f = _M.deviceRegisters[reg]
-    _M.bindRegister(reg, _M.sendRegCallback)  
-    _M.sendRegWaiting = true
+    _M.bindRegister(reg, waitf)  
     _M.send(nil, cmd, reg, data, "reply")
-    local tmr = _M.system.timers.addTimer(0, t, _M.sendRegCallback, nil, "Timeout")
+    local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
 
-    while _M.sendRegWaiting do
+    while waiting do
         _M.system.handleEvents()
     end
     
@@ -218,7 +218,7 @@ function _M.sendRegWait(cmd, reg, data, t)
     end
     
     _M.system.timers.removeTimer(tmr)   
-    return _M.sendRegData, _M.sendRegErr    
+    return regData, regErr    
 end
 
 -------------------------------------------------------------------------------
