@@ -352,12 +352,16 @@ function _M.readSettings()
             local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
             if data and not err then 
               --  _M.dbg.info('Data: ', data)
-                data = tonumber(data,16)
-                _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
-                _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
-                _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
-                _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
-                _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+                data = tonumber(data, 16)
+                if data ~= nil then
+                    _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
+                    _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
+                    _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
+                    _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
+                    _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+                else
+	                _M.dbg.warn('Bad settings data: ', data)
+                end
             else
                 _M.dbg.warn('Incorrect read: ',data,err)
             end
