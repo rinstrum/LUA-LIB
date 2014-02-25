@@ -26,9 +26,9 @@ local monotonictime = socket.gettime
 -- is suspiciously like that returned by time(2).  The time(2) call is coarse
 -- and not guaranteed to be monotonic.
 if pcall(function() require "posix" end) then
-	local posix = posix
+	local clock_gettime = posix.clock_gettime
     monotonictime = function ()
-	    local s, n = posix.clock_gettime("monotonic")
+	    local s, n = clock_gettime("monotonic")
 	    return s + n * 0.000000001
     end
 end
