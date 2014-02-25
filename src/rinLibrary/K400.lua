@@ -1995,9 +1995,20 @@ _M.REG_SETP_LOGIC   = 0xA403
 _M.REG_SETP_ALARM   = 0xA404
 _M.REG_SETP_NAME    = 0xA40E
 _M.REG_SETP_SOURCE  = 0xA406
-_M.REG_SETP_TARGET  = 0xA408
 _M.REG_SETP_HYS     = 0xA409
 _M.REG_SETP_SOURCE_REG = 0xA40A
+
+_M.REG_SETP_TIMING  = 0xA410
+_M.REG_SETP_RESET   = 0xA411
+_M.REG_SETP_PULSE_NUM = 0xA412
+_M.REG_SETP_TIMING_DELAY  = 0xA40C
+_M.REG_SETP_TIMING_ON     = 0xA40D
+
+
+
+-- targets are stored in the product database rather than the setpoint one
+_M.REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
+
 
 _M.LOGIC_HIGH = 0
 _M.LOGIC_LOW = 1
@@ -2006,6 +2017,12 @@ _M.ALARM_NONE = 0
 _M.ALARM_SINGLE = 1
 _M.ALARM_DOUBLE = 2
 _M.ALARM_FLASH = 3
+
+_M.TIMING_LEVEL = 0
+_M.TIMING_EDGE  = 1
+_M.TIMING_PULSE = 2
+_M.TIMING_LATCH = 3
+
 
 _M.SOURCE_GROSS = 0
 _M.SOURCE_NET = 1
@@ -2120,11 +2137,6 @@ function _M.releaseOutput(...)
     end 
 end
 
---------------------------------------------------------------------------------
--- Private function
-function _M.setpParam(setp,reg,v)
-    _M.sendReg(_M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v)
-end
 
 --------------------------------------------------------------------------------
 -- returns actual register address for a particular setpoint parameter
@@ -2132,8 +2144,22 @@ end
 -- @param reg is REG_SETP_*
 -- @return address of this registet for setpoint setp
 function _M.setpRegAddress(setp,reg)
-  return (reg+((setp-1)*_M.REG_SETP_REPEAT)) 
+  if (setp > _M.NUM_SETP) or (setp < 1) then
+     _M.dbg.error('Setpoint Invalid: ', setp)
+     return(0)
+  elseif reg == _M.REG_SETP_TARGET then
+     return (reg+setp-1)
+  else
+     return (reg+((setp-1)*_M.REG_SETP_REPEAT))
+  end     
 end
+
+--------------------------------------------------------------------------------
+-- Private function
+function _M.setpParam(setp,reg,v)
+   _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
+end
+
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints 
 -- @param n is the number of setpoints 0..8
@@ -2146,8 +2172,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.setpParam(setp,_M.REG_SETP_TARGET, _M.toPrimary(target))
-    _M.saveSettings()
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), target)
 end
 
 -------------------------------------------------------------------------------
