@@ -220,7 +220,7 @@ function _M.addK400(model, ip, portA, portB)
     _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
 
     -- Add a timer for the heartbeat (every 5s)
-    _M.system.timers.addTimer(5000, 0, device.sendMsg, "2017032F:10", true)
+    _M.system.timers.addTimer(5.000, 0, device.sendMsg, "2017032F:10", true)
 
 	-- Create the extra ports
     _M.system.sockets.createServerSocket(2224, socket2224Callback)
@@ -283,7 +283,7 @@ function _M.cleanup()
         v.lcdControl('default')
         v.streamCleanup()
         v.endKeys()
-        v.delay(50)
+        v.delay(0.050)
      end 
     _M.dbg.info('','------   Application Finished  ------')
 end

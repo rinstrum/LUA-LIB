@@ -15,7 +15,7 @@ local dbg = rinApp.dbg
 -- Put a message on LCD and remove after 2 second delay
 dwi.writeBotLeft("DIALOG")
 dwi.writeBotRight("TEST")
-dwi.delay(2000)
+dwi.delay(2.000)
 dwi.writeBotLeft("")
 dwi.writeBotRight("")
 
@@ -27,7 +27,7 @@ dbg.info(' Value: ', id)
 -- and then buzz after 0.5 second delay  
 local val = dwi.edit('BUZZ',2)
 if dwi.askOK('OK?',string.format('BUZZ = %d',val)) == dwi.KEY_OK then   -- confirm buzz amount
-   dwi.delay(500)
+   dwi.delay(0.500)
    dwi.buzz(val)
 end   
 
@@ -35,7 +35,7 @@ end
 -- Prompt user to select from a list of options. Options list will loop.
 -- (e.g. if user presses 'up' key when option is large, loop back to small.
 local sel = dwi.selectOption('SELECT',{'SMALL','MEDIUM','LARGE'},'SMALL',true)
-dwi.delay(10)
+dwi.delay(0.010)
 -- show selected option (on device and console) and wait until key pressed
 dwi.writeBotLeft(sel)
 dwi.writeBotRight('SELECTED')

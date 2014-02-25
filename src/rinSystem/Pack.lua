@@ -17,12 +17,8 @@ local _M = {}
 _M.timers = timers
 _M.sockets = sockets
 
-_M.evQ = {head = 0,tail = -1}
-
 function _M.qEvent(f,...)
-  local tail = _M.evQ.tail+1
-  _M.evQ.tail = tail
-  _M.evQ[tail] = {['evF'] = f, ['evParam'] = arg}
+	return timers.addEvent(f, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -30,13 +26,6 @@ end
 -- Issues a callback to any connection or timer that has an event on it.
 function _M.handleEvents()
    
-    while _M.evQ.head <= _M.evQ.tail do
-       local head = _M.evQ.head
-       _M.evQ.head = head+1
-       _M.evQ[head].evF(unpack(_M.evQ[head].evParam))
-       _M.evQ[head] = nil
-    end
-
     local time = timers.delayUntilNext()
     local writers = sockets.getWriterSockets()
     local readers = sockets.getReaderSockets()

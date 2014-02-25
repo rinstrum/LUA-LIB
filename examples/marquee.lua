@@ -24,8 +24,8 @@ dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 local msg = ''
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local slideStart = 100    -- time in millisec until timer events start triggering
-local slideRepeat = 400  -- time in millisec that the timer repeats
+local slideStart = 0.100    -- time in millisec until timer events start triggering
+local slideRepeat = 0.400  -- time in millisec that the timer repeats
 
 local function slide()
 

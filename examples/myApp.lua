@@ -61,8 +61,8 @@ dwi.setIOCallback(1, handleIO1)
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local tickerStart = 100    -- time in millisec until timer events start triggering
-local tickerRepeat = 200  -- time in millisec that the timer repeats
+local tickerStart = 0.100    -- time in millisec until timer events start triggering
+local tickerRepeat = 0.200  -- time in millisec that the timer repeats
 
 local function ticker()
 -- insert code here that you want to run on each timer event

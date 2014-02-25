@@ -82,9 +82,12 @@ end
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
 function _M.addTimer(time, delay, callback, ...)
+	if callback == nil then
+    	return nil
+    end
     local evt = {
-    	when = monotonictime() + max(0, delay) / 1000,
-    	rept = time / 1000,
+    	when = monotonictime() + max(0, delay),
+    	rept = time,
         cb   = callback,
         args = {...}
     }
@@ -92,12 +95,31 @@ function _M.addTimer(time, delay, callback, ...)
 end
 
 -------------------------------------------------------------------------------
+-- Add an event to the timer list
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+local lastEventTimer = nil
+function _M.addEvent(callback, ...)
+	-- We schedule the first such event timer now and any future ones
+    -- a hundred microseconds in the future to preserve order of execution.
+	local delay = 0
+	if lastEventTimer ~= nil then
+    	delay = max(0, _M.delayUntilTimer(lastEventTimer) + .0001)
+    end
+	lastEventTimer = _M.addTimer(0, delay, callback, ...)
+    return lastEventTimer
+end
+
+-------------------------------------------------------------------------------
 -- Remove a timer from the timer list
 -- @param key Key for a timer
 function _M.removeTimer(key)
-	key.cb = nil
-    key.args = nil
-    key.rept = nil
+	if key ~= nil then
+		key.cb = nil
+    	key.args = nil
+    	key.rept = nil
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -108,6 +130,13 @@ function _M.delayUntilNext()
     	return max(0, timers[1].when - monotonictime())
     end
 	return nil
+end
+
+-------------------------------------------------------------------------------
+-- Get the time until the specified timer expires
+-- @return Delay in seconds
+function _M.delayUntilTimer(event)
+	return event.when - monotonictime()
 end
 
 -------------------------------------------------------------------------------
