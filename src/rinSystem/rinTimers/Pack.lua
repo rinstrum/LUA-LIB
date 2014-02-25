@@ -17,9 +17,7 @@ local timers = {}
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
 -- @return a monotonic seconds based counter
-local function monotonictime()
-	return socket.gettime()
-end
+local monotonictime = socket.gettime
 
 -- Attempt to automatically detect if we're running on a posix based system
 -- and if we are, we ditch socket.gettime() and use posix.clock_gettime.
@@ -29,11 +27,10 @@ end
 -- and not guaranteed to be monotonic.
 if pcall(function() require "posix" end) then
 	local posix = posix
-    local function monotonictime_posix()
+    monotonictime = function ()
 	    local s, n = posix.clock_gettime("monotonic")
 	    return s + n * 0.000000001
     end
-	monotonictime = monotonictime_posix
 end
 
 -------------------------------------------------------------------------------
