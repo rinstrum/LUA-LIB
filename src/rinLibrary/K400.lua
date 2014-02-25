@@ -1936,12 +1936,13 @@ _M.setAnalogClip = _M.preconfigureMsg(  _M.REG_ANALOGUE_CLIP,
                                         _M.CMD_WRFINALDEC, "noReply")
 -------------------------------------------------------------------------------
 -- Sets the analog output to minimum 0 through to maximum 50,000
--- @function setAnalogRaw
--- @param v value in raw counts (0..50000)
- 
-_M.setAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA, 
-                                         _M.CMD_WRFINALDEC, 
-                                         "noReply")
+-- @param raw value in raw counts (0..50000)
+function _M.setAnalogRaw(raw)
+   if _M.lastAnalogue ~= raw then 
+       _M.send(nil, _M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw, 'noReply')
+       _M.lastAnalogue = raw
+   end    
+end                                         
 -------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
 -- @param val value 0.0 to 1.0
