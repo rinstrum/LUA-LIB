@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 
 local socket = require "socket"
---local posix = require "posix"
 
 local unpack = unpack
 local floor = math.floor
@@ -18,15 +17,20 @@ local timers = {}
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
 -- @return a monotonic seconds based counter
---
--- We use socket.gettime() here, although posix.clock_gettime would be
--- preferable but we can't guarantee posix compatibility.  The socket.gettime()
--- call returns a value that is suspiciously like that returned by time(2).
--- The time(2) call is coarse and not guaranteed to be monotonic.
-local function monotonictime()
-	return socket.gettime()
-	--local s, n = posix.clock_gettime("monotonic")
-	--return s + n * 0.000000001
+local monotonictime = socket.gettime
+
+-- Attempt to automatically detect if we're running on a posix based system
+-- and if we are, we ditch socket.gettime() and use posix.clock_gettime.
+-- The latter is preferable because it is guaranteed monotonic and not impacted
+-- by system clock changes.  The socket.gettime() call returns a value that
+-- is suspiciously like that returned by time(2).  The time(2) call is coarse
+-- and not guaranteed to be monotonic.
+if pcall(function() require "posix" end) then
+	local clock_gettime = posix.clock_gettime
+    monotonictime = function ()
+	    local s, n = clock_gettime("monotonic")
+	    return s + n * 0.000000001
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -82,9 +86,12 @@ end
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
 function _M.addTimer(time, delay, callback, ...)
+	if callback == nil then
+    	return nil
+    end
     local evt = {
-    	when = monotonictime() + max(0, delay) / 1000,
-    	rept = time / 1000,
+    	when = monotonictime() + max(0, delay),
+    	rept = time,
         cb   = callback,
         args = {...}
     }
@@ -92,12 +99,31 @@ function _M.addTimer(time, delay, callback, ...)
 end
 
 -------------------------------------------------------------------------------
+-- Add an event to the timer list
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+local lastEventTimer = nil
+function _M.addEvent(callback, ...)
+	-- We schedule the first such event timer now and any future ones
+    -- a hundred microseconds in the future to preserve order of execution.
+	local delay = 0
+	if lastEventTimer ~= nil then
+    	delay = max(0, _M.delayUntilTimer(lastEventTimer) + .0001)
+    end
+	lastEventTimer = _M.addTimer(0, delay, callback, ...)
+    return lastEventTimer
+end
+
+-------------------------------------------------------------------------------
 -- Remove a timer from the timer list
 -- @param key Key for a timer
 function _M.removeTimer(key)
-	key.cb = nil
-    key.args = nil
-    key.rept = nil
+	if key ~= nil then
+		key.cb = nil
+    	key.args = nil
+    	key.rept = nil
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -108,6 +134,13 @@ function _M.delayUntilNext()
     	return max(0, timers[1].when - monotonictime())
     end
 	return nil
+end
+
+-------------------------------------------------------------------------------
+-- Get the time until the specified timer expires
+-- @return Delay in seconds
+function _M.delayUntilTimer(event)
+	return event.when - monotonictime()
 end
 
 -------------------------------------------------------------------------------

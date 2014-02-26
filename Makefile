@@ -44,9 +44,15 @@ install:
 	$(INSTALL_EXEC) src/rinSystem/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem
 	$(INSTALL_EXEC) src/rinSystem/rinSockets/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinSockets
 	$(INSTALL_EXEC) src/rinSystem/rinTimers/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
-	$(INSTALL_EXEC) examples/*.lua $(DEST_DIR)/home/lualib_examples
+	
+	cp -rp examples/* $(DEST_DIR)/home/lualib_examples
+	find $(DEST_DIR)/home/lualib_examples -type d -exec chmod 775 {} \;
+	find $(DEST_DIR)/home/lualib_examples -type f -exec chmod 755 {} \;
+	
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
 	lua /usr/local/share/lua/5.1/ldoc.lua src --dir $(DEST_DIR)/$(WWW_DIR)/libdocs
+	
+	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
 # Rule to create M01 release target
 $(RELEASE_M01_TARGET): override DEST_DIR=$(BUILDDIR)/$(STAGE_DIR)

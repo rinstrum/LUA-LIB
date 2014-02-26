@@ -181,13 +181,12 @@ end
 -- @param cmd CMD_  command
 -- @param reg REG_  register 
 -- @param data to send
--- @param t timeout in msec
+-- @param t timeout in sec
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 function _M.sendRegWait(cmd, reg, data, t)
     
-    local t = t or 500
-      
+    local t = t or 0.500
     
     if reg == nil then
           return nil, 'Nil Register'
@@ -352,12 +351,16 @@ function _M.readSettings()
             local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
             if data and not err then 
               --  _M.dbg.info('Data: ', data)
-                data = tonumber(data,16)
-                _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
-                _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
-                _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
-                _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
-                _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+                data = tonumber(data, 16)
+                if data ~= nil then
+                    _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
+                    _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
+                    _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
+                    _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
+                    _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+                else
+	                _M.dbg.warn('Bad settings data: ', data)
+                end
             else
                 _M.dbg.warn('Incorrect read: ',data,err)
             end
@@ -532,9 +535,9 @@ function _M.streamCallback(data, err)
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
                      v.lastData = substr
                      if v.typ == _M.TYP_WEIGHT and _M.settings.hiRes then 
-                         _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp+1), err)
+                         _M.system.timers.addEvent(v.callback, _M.toFloat(substr,v.dp+1), err)
                      else                     
-                         _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                         _M.system.timers.addEvent(v.callback, _M.toFloat(substr,v.dp), err)
                      end    
                 end
             end
@@ -653,7 +656,7 @@ function _M.streamCallbackLib(data, err)
             if substr and substr ~= "" then         
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
                      v.lastData = substr                
-                     _M.system.qEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                     _M.system.timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
                 end
             end
         end
@@ -2084,7 +2087,7 @@ end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param IO is output 1..32
--- @param t is time in milliseconds
+-- @param t is time in seconds
 function _M.turnOnTimed(IO, t)
   _M.turnOn(IO)
   _M.system.timers.addTimer(0, t, _M.turnOff, IO)
@@ -2097,7 +2100,7 @@ end
 -- dwi.enableOutput(1,2,3,4)
 -- dwi.turnOn(1)
 -- dwi.turnOff(2)
--- dwi.turnOnTimed(3,500)  -- pulse output 3 for 500 milliseconds
+-- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
 -- dwi.releaseOutput(1,2,3,4)
 
 function _M.enableOutput(...)
@@ -2120,7 +2123,7 @@ end
 -- dwi.enableOutput(1,2,3,4)
 -- dwi.turnOn(1)
 -- dwi.turnOff(2)
--- dwi.turnOnTimed(3,500)  -- pulse output 3 for 500 milliseconds
+-- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
 -- dwi.releaseOutput(1,2,3,4)
 function _M.releaseOutput(...)
     local curIOEnable =  _M.lastIOEnable
@@ -2408,7 +2411,7 @@ function _M.editReg(reg,prompt)
      if err or (data and tonumber(data,16) ~= reg) then 
        break
      end
-     _M.delay(50)
+     _M.delay(0.050)
    end
    if prompt then
       _M.restoreBot()
@@ -2426,8 +2429,8 @@ function _M.delayCallback()
 end
 
 -------------------------------------------------------------------------------
--- Called to delay for t msec while keeping event handlers running
--- @param t delay time in msec 
+-- Called to delay for t sec while keeping event handlers running
+-- @param t delay time in sec 
 function _M.delay(t)
     local tmr = _M.system.timers.addTimer(0, t, _M.delayCallback)
     _M.delayWaiting = true
