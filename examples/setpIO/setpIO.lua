@@ -82,8 +82,8 @@ local chimeTimes = {}  -- off time, on time in tenths of second
 local chimePos = 0           -- 0 for off, > 0 to keep track of chime position
 local chimeCounter = 0       -- counts down the chime ticks
 
-local chimerStart  = 100    -- time in millisec until timer events start triggering
-local chimerRepeat = 100  -- time in millisec that the timer repeats
+local chimerStart  = 0.100    -- time in seconds until timer events start triggering
+local chimerRepeat = 0.100    -- time in second that the timer repeats
 
 
 local function chimer()
@@ -151,8 +151,8 @@ dwi.setIOCallback(CHIME_OUTPUT, handleIO)
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local tickerStart = 100    -- time in millisec until timer events start triggering
-local tickerRepeat = 200  -- time in millisec that the timer repeats
+local tickerStart = 0.100    -- time in sec until timer events start triggering
+local tickerRepeat = 0.200    -- time in sec that the timer repeats
 
 
 local function ticker()
@@ -166,7 +166,7 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
     rinApp.dbg.info('curIO: ',dwi.getCurIOStr())   
-    dwi.turnOnTimed(8,250)  -- reset setpoints 1 and 2
+    dwi.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
     dwi.writeReg(dwi.REG_USERNUM1,1)  -- trigger pulses output on setpoint 4
     dwi.writeReg(dwi.REG_USERNUM1,0)
     dwi.RTC.sec = 58
