@@ -1908,7 +1908,8 @@ _M.ANALOG_COMMS = 3
 function _M.setAnalogSource(src)
    _M.sendReg(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_SOURCE,
-                src) 
+                src)
+  _M.saveSettings()                
 end
                                          
 -------------------------------------------------------------------------------
