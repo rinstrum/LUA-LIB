@@ -214,17 +214,14 @@ end
 -- @param sock The socket to be written to
 -- @param msg The message to be written
 -- @param ... variable numbers of extra arguments depending on source
+-- @param silent If true, surpresses debug output for message on this socket
 -- @return msg The message that will actually be sent or nil for no message
-function _M.addSocketSet(name, sock, callback)
+function _M.addSocketSet(name, sock, callback, silent)
 	if name == nil or sock == nil then return end
 	if sockSet[name] == nil then
     	sockSet[name] = {}
     end
-    local cb = callback
-    if cb == nil then
-    	cb = function (s, m) return nil end
-    end
- 	sockSet[name][sock] = cb
+ 	sockSet[name][sock] = { cb = callback, supress = silent }
 end
 
 -------------------------------------------------------------------------------
@@ -256,14 +253,16 @@ function _M.writeSet(name, msg, ...)
 	if name and msg then
         local s = sockSet[name]
         if s ~= nil then
-            for sock, cb in pairs(s) do
-    	        local m = msg
-    	        if cb then
-        	        m = cb(sock, msg, ...)
-                end
-                if m then
-                	_M.writeSocket(sock, m)
-                    suppressSocketDebug(sock)
+            for sock, set in pairs(s) do
+                local cb = set.cb
+    	        if cb ~= nil then
+        	        local m = cb(sock, msg, ...)
+                    if m ~= nil then
+                	    _M.writeSocket(sock, m)
+                        if set.supress then
+	                        suppressSocketDebug(sock)
+                        end
+                    end
                 end
             end
         end
