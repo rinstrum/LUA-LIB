@@ -182,7 +182,6 @@ local function socket2226Callback(newSocket, ip, port)
 	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
     _M.system.sockets.setSocketTimeout(newSocket, 0.001)
     _M.dbg.info('-- new connection on port 2226 from', ip, port)
-    socks.addSocketSet("uni", newSocket, nil)
     socks.addSocketSet("debug", newSocket, nil)
 end
 
