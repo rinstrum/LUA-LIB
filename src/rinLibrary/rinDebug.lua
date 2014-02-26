@@ -22,7 +22,6 @@ local logging = require "logging"
 -- Set the default logger type 
 -- Refer to http://www.keplerproject.org/lualogging/manual.html
 require "logging.console"
-require "logging.socket"
 require "logging.file"
 _M.logger = logging.console("%message\n")
 
@@ -87,8 +86,6 @@ function _M.setLogger(config)
 
   if config.logger == 'file' then
      _M.logger = logging.file(config.file.filename,nil,"%message\n")
-  elseif config.logger == 'socket' then
-     _M.logger = logging.socket(config.socket.IP,config.socket.port,"%message\n")
   else -- config.logger is 'console' by default 
 	 config.logger = 'console'
 	 _M.logger = logging.console("%message\n")
