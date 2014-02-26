@@ -198,7 +198,6 @@ function _M.socketACallback()
     elseif _M.deviceRegisters[0] then
         _M.deviceRegisters[0](data, err)
     end
-	sockets.writeSet("bi", msg, cmd, reg, data, err)
     
     return data, err
 end
@@ -566,4 +565,17 @@ end
 function _M.setSerBCallback(f)
   _M.SerBCallback = f
 end
+
+-------------------------------------------------------------------------------
+-- Callback when a new connection is incoming on the external debug stream.
+-- @param sock The newly connected socket
+-- @param ip The source IP address of the socket
+-- @param port The source port of the socket
+function _M.socketDebugAcceptCallback(sock, ip, port)
+	sockets.addSocket(sock, sockets.flushReadSocket)
+    sockets.setSocketTimeout(sock, 0.001)
+    sockets.addSocketSet("debug", sock, function (s, m) return m end, true)
+    _M.dbg.info('debug connection from', ip, port)
+end
+
 return _M

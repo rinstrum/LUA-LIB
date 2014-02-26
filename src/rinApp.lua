@@ -150,17 +150,6 @@ local function streamAprocessor(sock, msg, cmd, reg, data, err)
 end
 
 -------------------------------------------------------------------------------
--- Stream B call back routine to determine if a message should be forwarded or
--- not for a particular socket.
--- @param sock The socket to be written to
--- @param msg The raw message to write
--- @return nil for no forwarding or
--- @return a message to be set (which can be modified or not)
-local function streamBprocessor(sock, msg)
-    return msg
-end
-
--------------------------------------------------------------------------------
 -- Three callback functions that are called when a new socket connection is
 -- established.  These functions should add the socket to the sockets management
 -- module and set any required timouts
@@ -168,22 +157,8 @@ local function socket2224Callback(newSocket, ip, port)
 	_M.system.sockets.addSocket(newSocket, socket2224PassthroughCallback)
     _M.system.sockets.setSocketTimeout(newSocket, 0.010)
     _M.dbg.info('-- new connection on port 2224 from', ip, port)
-    socks.addSocketSet("bi", newSocket, streamAprocessor)
 end
 
-local function socket2225Callback(newSocket, ip, port)
-	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
-    _M.system.sockets.setSocketTimeout(newSocket, 0.001)
-    _M.dbg.info('-- new unidirectional connection on port 2225 from', ip, port)
-    socks.addSocketSet("uni", newSocket, streamBprocessor)
-end
-
-local function socket2226Callback(newSocket, ip, port)
-	_M.system.sockets.addSocket(newSocket, _M.system.sockets.flushReadSocket)
-    _M.system.sockets.setSocketTimeout(newSocket, 0.001)
-    _M.dbg.info('-- new connection on port 2226 from', ip, port)
-    socks.addSocketSet("debug", newSocket, function (s, m) return m end, true)
-end
 
 -------------------------------------------------------------------------------
 -- Called to connect to the K400 instrument, and establish the timers,
@@ -221,10 +196,9 @@ function _M.addK400(model, ip, portA, portB)
     -- Add a timer for the heartbeat (every 5s)
     _M.system.timers.addTimer(5.000, 0, device.sendMsg, "2017032F:10", true)
 
-	-- Create the extra ports
+	-- Create the extra debug port
     _M.system.sockets.createServerSocket(2224, socket2224Callback)
-    _M.system.sockets.createServerSocket(2225, socket2225Callback)
-    _M.system.sockets.createServerSocket(2226, socket2226Callback)
+    _M.system.sockets.createServerSocket(2226, device.socketDebugAcceptCallback)
 	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n") end)
 
     -- Flush the key presses
