@@ -1219,10 +1219,11 @@ function _M.setupStatus()
     _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
     _M.eStatID = _M.addStreamLib(_M.REG_LUA_ESTAT, _M.eStatusCallback, 'change')
     _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
+    _M.SETPID =  _M.addStreamLib(_M.REG_SETPSTATUS, _M.SETPCallback, 'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC, _M.handleRTC)
     _M.setEStatusMainCallback(_M.ESTAT_INIT, _M.handleINIT)
-    _M.setRTCStatus(true)
+    _M.writeRTCStatus(true)
 end
 
 -------------------------------------------------------------------------------
