@@ -207,7 +207,7 @@ end
 -- a callback routine that can filter the packet stream.
 -- @param name The name of the socket set
 -- @param sock The socket to add
--- @param callback The filter callback.  Pass nil for no filtering.
+-- @param callback The filter callback.  Pass nil for complete filtering.
 --
 -- The callback function looks like:
 -- function callback(sock, msg, ...)
@@ -222,7 +222,7 @@ function _M.addSocketSet(name, sock, callback)
     end
     local cb = callback
     if cb == nil then
-    	cb = function (s, m) return m end
+    	cb = function (s, m) return nil end
     end
  	sockSet[name][sock] = cb
 end
