@@ -138,6 +138,16 @@ function _M.processReadSocket(sock)
 end
 
 -------------------------------------------------------------------------------
+-- Suppress debug messages to a socket
+-- @param socks A socket
+local function suppressSocketDebug(sock)
+    local queue = writers[sock]
+    if queue ~= nil then
+    	queue.suppress = true
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Write a writable socket
 -- @param socks A writable socket
 function _M.processWriteSocket(sock)
@@ -157,7 +167,7 @@ function _M.processWriteSocket(sock)
         
         if err then
             dbg.warn('FAILED TRANSMIT', msg)
-        else
+        elseif not queue.suppress then
             dbg.debug(sock:getpeername(), '<<<', msg)
         end
         return ret, err
@@ -253,6 +263,7 @@ function _M.writeSet(name, msg, ...)
                 end
                 if m then
                 	_M.writeSocket(sock, m)
+                    suppressSocketDebug(sock)
                 end
             end
         end

@@ -19,6 +19,9 @@ local math = math
 
 local logging = require "logging"
 
+-- Local variables
+local secondaryLogFunction = nil
+
 -- Set the default logger type 
 -- Refer to http://www.keplerproject.org/lualogging/manual.html
 require "logging.console"
@@ -197,6 +200,13 @@ function _M.varString(arg,margin)
 end
 
 -----------------------------------------------------------------------------------
+-- Set a secondary debug capability
+-- @param logfunction The function to call for extra logging
+function _M.setDebugCallback(logfunction)
+	secondaryLogFunction = logfunction
+end
+
+-----------------------------------------------------------------------------------
 -- Prints variable contents to debugger at current debug level with optional prompt
 -- @param prompt is an optional prompt printed before the arguments
 -- @param ... arguments to be printed
@@ -231,6 +241,9 @@ function _M.print(prompt, ...)
 
      s = string.format("%s%s",header, s)
     _M.logger:log(level, s)
+    if secondaryLogFunction ~= nil then
+    	secondaryLogFunction(s)
+    end
     _M.tempLevel = nil
                                    
 end

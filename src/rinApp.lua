@@ -22,7 +22,7 @@ local _M = {}
 _M.running = false
 _M.config = {
          '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
-         '; logger can be any of the supported groups - eg console, socket,file',
+         '; logger can be any of the supported groups - eg console or file',
          "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",         
          level = 'INFO',
          timestamp = 'on',
@@ -225,6 +225,7 @@ function _M.addK400(model, ip, portA, portB)
     _M.system.sockets.createServerSocket(2224, socket2224Callback)
     _M.system.sockets.createServerSocket(2225, socket2225Callback)
     _M.system.sockets.createServerSocket(2226, socket2226Callback)
+	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n") end)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
