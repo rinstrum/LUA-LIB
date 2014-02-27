@@ -157,16 +157,7 @@ _M.REG_TARE             = 0x0028
 _M.REG_PEAKHOLD         = 0x0029
 _M.REG_MANHOLD          = 0x002A
 
-_M.sendRegWaiting = false
-_M.sendRegData = ''
-_M.sendRegErr = ''
 
--- Private function
-function _M.sendRegCallback(data, err)
-    _M.sendRegWaiting = false
-    _M.sendRegData = data
-    _M.sendRegErr = err
-end
 --- Main Instrument Commands.
 --@table rinCMD
 -- @field CMD_RDLIT        Read literal data
@@ -201,13 +192,21 @@ function _M.sendRegWait(cmd, reg, data, t)
           return nil, 'Nil Register'
     end 
     
+    local waiting = true
+    local regData = ''
+    local regError = ''
+    local function waitf(data, err)
+          regData = data
+          regErr = err
+          waiting = false
+    end  
+    
     local f = _M.deviceRegisters[reg]
-    _M.bindRegister(reg, _M.sendRegCallback)  
-    _M.sendRegWaiting = true
+    _M.bindRegister(reg, waitf)  
     _M.send(nil, cmd, reg, data, "reply")
-    local tmr = _M.system.timers.addTimer(0, t, _M.sendRegCallback, nil, "Timeout")
+    local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
 
-    while _M.sendRegWaiting do
+    while waiting do
         _M.system.handleEvents()
     end
     
@@ -218,7 +217,7 @@ function _M.sendRegWait(cmd, reg, data, t)
     end
     
     _M.system.timers.removeTimer(tmr)   
-    return _M.sendRegData, _M.sendRegErr    
+    return regData, regErr    
 end
 
 -------------------------------------------------------------------------------
@@ -796,8 +795,9 @@ _M.REG_LUA_STATUS   = 0x0329
 _M.REG_LUA_ESTAT    = 0x0305
 _M.REG_LUA_STAT_RTC = 0x032A
 _M.REG_LUA_STAT_RDG = 0x032B
-_M.REG_LUA_STAT_IO  = 0x032A
+_M.REG_LUA_STAT_IO  = 0x032C
 _M.REG_IOSTATUS     = 0x0051
+_M.REG_SETPSTATUS  = 0x032E 
 
 _M.lastIOStatus = 0
 
@@ -855,7 +855,11 @@ _M.eStatBinds = {}
 _M.eStatID = nil          
 
 _M.IOBinds = {}
-_M.IOID = nil          
+_M.IOID = nil   
+
+_M.SETPBinds = {}
+_M.SETPTID = nil   
+       
 
 -------------------------------------------------------------------------------
 -- Called when status changes are streamed 
@@ -867,10 +871,12 @@ function _M.statusCallback(data, err)
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
            if v.running then
-               _M.dbg.warn('Event lost: ',k,status)
+               _M.dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
            else
+              v.running = true
               v.lastStatus = status
               v.f(k, status ~= 0)
+              v.running = false
            end   
         end     
     end
@@ -890,20 +896,40 @@ end
 -- Called when IO status changes are streamed 
 -- @param data Data on IO status streamed
 -- @param err Potential error message
+
+-------------------------------------------------------------------------------
+-- Called when SETP status changes are streamed 
+-- @param data Data on SETP status streamed
+-- @param err Potential error message
 function _M.IOCallback(data, err)
     _M.curIO = data    
-    for k,v in pairs(_M.IOBinds) do
+    for k,v in pairs(_M.IOBinds) do       
        local status = bit32.band(data,k)
+       if k == 0 then  --handle the all IO case
+          status = _M.curIO
+       end   
        if status ~= v.lastStatus  then
            if v.running then
-               _M.dbg.warn('Event lost: ',k,status)
+               if k == 0 then
+                   _M.dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
+               else
+                   _M.dbg.warn('IO Event lost: ',v.IO,status ~=0)
+               end    
            else
+              v.running = true
               v.lastStatus = status
-              v.f(v.IO, status ~= 0)
+              if k == 0 then
+                  v.f(status)
+              else
+                  v.f(v.IO, status ~= 0)
+              end    
+              v.running = false
            end   
         end     
     end
 end
+
+
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a IO 
@@ -922,8 +948,97 @@ function _M.setIOCallback(IO, callback)
     _M.IOBinds[status] = {}
     _M.IOBinds[status]['IO'] = IO
     _M.IOBinds[status]['f'] = callback
-    _M.IOBinds[status]['lastStatus'] = 0xFF
+    _M.IOBinds[status]['lastStatus'] = 0xFFFFFFFF
 end
+
+
+-------------------------------------------------------------------------------
+-- Set a callback function that is called whenever any IO status changes 
+-- @param callback Function taking current IO status as a parameter
+-- @usage
+-- function handleIO(data)
+--    -- 4 bits of status information for IO 3..6 turned into a grading indication 
+--    curGrade = bit32.rshift(bit32.band(data,0x03C),2) 
+-- end
+-- dwi.setAllIOCallback(handleIO)
+--
+function _M.setAllIOCallback(callback)
+    _M.IOBinds[0] = {}   -- setup a callback for all SETP changes 
+    _M.IOBinds[0]['IO'] = 'All'
+    _M.IOBinds[0]['f'] = callback
+    _M.IOBinds[0]['lastStatus'] = 0xFFFFFF
+end
+
+
+-------------------------------------------------------------------------------
+-- Called when SETP status changes are streamed 
+-- @param data Data on SETP status streamed
+-- @param err Potential error message
+function _M.SETPCallback(data, err)
+    _M.curSETP = bit32.band(data, 0xFFFF)    
+    for k,v in pairs(_M.SETPBinds) do       
+       local status = bit32.band(data,k)
+       if k == 0 then  --handle the all setp case
+          status = _M.curSETP
+       end   
+       if status ~= v.lastStatus  then
+           if v.running then
+               if k == 0 then
+                   _M.dbg.warn('SETP Event lost: ',v.SETP,string.format('%04X',status))
+               else
+                   _M.dbg.warn('SETP Event lost: ',v.SETP,status ~=0)
+               end    
+           else
+              v.running = true
+              v.lastStatus = status
+              if k == 0 then
+                  v.f(status)
+              else
+                  v.f(v.SETP, status ~= 0)
+              end    
+              v.running = false
+           end   
+        end     
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for a SETP 
+-- @param SETP 1..16
+-- @param callback Function taking SETP and on/off status as parameters
+-- @usage
+-- function handleSETP1(SETP, active)
+--    if (active) then
+--       print (SETP,' is on!')
+--    end
+-- end
+-- dwi.setSETPCallback(1,handleSETP1)
+--
+function _M.setSETPCallback(SETP, callback)
+    local status = bit32.lshift(0x00000001,SETP-1)
+    _M.SETPBinds[status] = {}
+    _M.SETPBinds[status]['SETP'] = SETP
+    _M.SETPBinds[status]['f'] = callback
+    _M.SETPBinds[status]['lastStatus'] = 0xFF
+end
+
+-------------------------------------------------------------------------------
+-- Set a callback function that is called whenever any SETP status changes 
+-- @param callback Function taking current SETP status as a parameter
+-- @usage
+-- function handleSETP(data)
+--    -- 4 bits of status information for SETP 3..6 turned into a grading indication 
+--    curGrade = bit32.rshift(bit32.band(data,0x03C),2) 
+-- end
+-- dwi.setAllSETPCallback(handleSETP)
+--
+function _M.setAllSETPCallback(callback)
+    _M.SETPBinds[0] = {}   -- setup a callback for all SETP changes 
+    _M.SETPBinds[0]['SETP'] = 'All'
+    _M.SETPBinds[0]['f'] = callback
+    _M.SETPBinds[0]['lastStatus'] = 0xFFFFFF
+end
+
 
 -------------------------------------------------------------------------------
 -- Called when extended status changes are streamed 
@@ -943,7 +1058,7 @@ function _M.eStatusCallback(data, err)
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
            if v.running then
-               _M.dbg.warn('Event lost: ',k,status)
+              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X %08X',k,status))
            else
               v.running = true
               v.lastStatus = status
@@ -991,10 +1106,10 @@ end
 -- @return true if any of the status bits are set in cur instrument status
 -- @usage
 -- dwi.enableOutput(5) 
--- if dwi.anyStatus(dwi.STAT_MOTION,
---                  dwi.STAT_ERR,
---                  dwi.STAT_OLOAD,
---                  dwi.STAT_ULOAD) then
+-- if dwi.anyStatusSet(dwi.STAT_MOTION,
+--                     dwi.STAT_ERR,
+--                     dwi.STAT_OLOAD,
+--                     dwi.STAT_ULOAD) then
 --     dwi.turnOn(5)  -- turn on output 5 if motion or any errors
 -- else
 --     dwi.turnOff(5)
@@ -1007,7 +1122,7 @@ function _M.anyStatusSet(...)
   end
   
   for i,v in ipairs(arg) do
-     if bit32.band(_M.curStatus,v) then
+     if bit32.band(_M.curStatus,v) ~= 0 then
         ret = true
      end
    end     
@@ -1020,9 +1135,9 @@ end
 -- @return true if all of the status bits are set in cur instrument status
 -- @usage
 -- dwi.enableOutput(5) 
--- if dwi.anyStatus(dwi.STAT_NOTMOTION,
---                  dwi.STAT_NOTZERO,
---                  dwi.STAT_GROSS) then
+-- if dwi.allStatusSet(dwi.STAT_NOTMOTION,
+--                     dwi.STAT_NOTZERO,
+--                     dwi.STAT_GROSS) then
 --     dwi.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
 -- else
 --     dwi.turnOff(5)
@@ -1049,6 +1164,132 @@ end
 function _M.getCurIO()
   return _M.curIO
 end
+
+-------------------------------------------------------------------------------
+-- Called to get current state of the 32 bits of IO as a string of 1s and 0s 
+-- @return 32 characters of IO data
+-- @local 
+function _M.getBitStr(data,bits)
+  local s = {}
+  for i = bits-1,0,-1 do
+    if bit32.band(data,bit32.lshift(0x01,i)) ~= 0 then
+        ch = '1'
+    else
+        ch = '0' 
+    end        
+    table.insert(s,ch)
+  end  
+  return(table.concat(s))
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to get current state of the 32 bits of IO as a string of 1s and 0s 
+-- @return 32 characters of IO data 
+function _M.getCurIOStr()
+  return getBitStr(_M.curIO,32)
+end
+
+
+local function anyBitSet(data,...)
+  local ret = false
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     
+     if bit32.band(bit32.lshift(0x01,v-1),data) ~= 0 then
+        ret = true
+     end
+   end     
+  
+  return  ret
+end
+
+local function allBitSet(data,...)
+  local ret = true
+  
+  if arg.n == 0 then
+     return false
+  end
+  
+  for i,v in ipairs(arg) do
+     if bit32.band(bit32.lshift(0x01,v-1),data) == 0 then
+        ret = false
+     end
+   end     
+  
+  return  ret
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to check state of current IO 
+-- @return true if any of the listed IO are active
+-- @usage
+-- dwi.enableOutput(3) 
+-- if not dwi.anyIOSet(1,2,4,5) then
+--     dwi.turnOn(3)  -- turn on output 3 if no other outputs on
+-- else
+--     dwi.turnOff(3)
+-- end 
+function _M.anyIOSet(...)
+  return anyBitSet(_M.curIO,...)
+end
+
+-------------------------------------------------------------------------------
+-- Called to check state of IO 
+-- @return true if all of the listed IO are active
+-- @usage
+-- dwi.enableOutput(3) 
+-- if dwi.allIOSet(1,2) then
+--     dwi.turnOn(3)  -- turn on output 3 if IO 1 and 2 both on
+-- else
+--     dwi.turnOff(3)
+-- end 
+function _M.allIOSet(...)
+   return(allBitSet(_M.curIO,...))
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to get current state of the 16 setpoints 
+-- @return 16 bits of SETP status data 
+function _M.getCurSETP()
+  return _M.curSETP
+end
+
+-------------------------------------------------------------------------------
+-- Called to check state of current IO 
+-- @return true if any of the listed IO are active
+-- @usage
+-- dwi.enableOutput(1) 
+-- if not dwi.anySETPSet(1,2) then
+--     dwi.turnOn(1)  -- turn on output 1 if setpoints 1 and 2 are both inactive 
+-- else
+--     dwi.turnOff(1)
+-- end 
+function _M.anySETPSet(...)
+  return anyBitSet(_M.curSETP,...)
+end
+
+-------------------------------------------------------------------------------
+-- Called to check state of IO 
+-- @return true if all of the listed IO are active
+-- @usage
+-- dwi.enableOutput(1) 
+-- if dwi.allSETPSet(1,2) then
+--     dwi.turnOn(1)  -- turn on output 1 if Setpoints 1 and 2 are active
+-- else
+--     dwi.turnOff(1)
+-- end 
+function _M.allIOSet(...)
+  return(allBitSet(_M.curSETP,...))
+end
+
+
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
@@ -1084,56 +1325,35 @@ function _M.waitIO(IO, state)
    end 
 end
 
+
+-------------------------------------------------------------------------------
+-- Wait until SETP is in a particular state 
+-- @param SETP 1..16
+-- @param state true to wait for SETP to come on or false to wait for it to go off
+-- @usage
+-- dwi.waitSETP(1,true) -- wait until Setpoint 1 turns on
+--
+function _M.waitSETP(SETP, state)
+   local mask = bit32.lshift(0x00000001,(SETP-1))
+   while true do
+     local data = bit32.band(_M.curSETP,mask) 
+     if (state and data ~= 0) or 
+        (not state and data == 0) then 
+          break
+     end
+     _M.system.handleEvents()
+   end 
+end
+
 -------------------------------------------------------------------------------
 -- Control the use of RTC status bit
 -- @param s true to enable RTC change monitoring, false to disable
-function _M.setRTCStatus(s)
+function _M.writeRTCStatus(s)
    local s = s or true
    if s then s = 1 else s = 0 end
    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
 end
 
--------------------------------------------------------------------------------
--- Control the use of reading count status bit.  This is useful if weight 
--- readings are not collected via an on change stream register directly
--- @param num Sets amount of readings to trigger a reading count status change
-function _M.setRDGStatus(num)
-    local num = num or 0
-    if num > 255 then num = 255 end
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RDG,num)
-end
-
--------------------------------------------------------------------------------
--- private function
-function _M.setIOStatus(mask)
-    local mask = mask or 0
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_IO,mask)
-end
-
--------------------------------------------------------------------------------
--- sets status IO bit to recognise this IO 
--- @param IO is output 1..32
-function _M.enableIOStatus(IO)
-    local curIOStatus =  bit32.bor(_M.lastIOStatus, 
-                                    bit32.lshift(0x0001,(IO-1)))
-    if (curIOStatus ~= _M.lastIOStatus) then
-        _M.setIOStatus(curIOStatus)
-        _M.lastIOStatus = curIOStatus
-    end  
-    
-end
-
--------------------------------------------------------------------------------
--- sets IO status IO bit to ignore this IO 
--- @param IO is output 1..32
-function _M.releaseIOStatus(IO)
-    local curIOStatus =  bit32.band(_M.lastIOStatus,
-                                    bit32.bnot(bit32.lshift(0x0001,(IO-1))))
-    if (curIOStatus ~= _M.lastIOStatus) then
-        _M.setIOStatus(curIOStatus)
-        _M.lastIOStatus = curIOStatus
-    end 
-end
 
 function _M.handleRTC(status, active)
     _M.RTCtick()
@@ -1142,7 +1362,6 @@ end
 function _M.handleINIT(status, active)
     _M.readSettings()
     _M.RTCread()
-    _M.dbg.info('INIT')
 end
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
@@ -1151,10 +1370,11 @@ function _M.setupStatus()
     _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
     _M.eStatID = _M.addStreamLib(_M.REG_LUA_ESTAT, _M.eStatusCallback, 'change')
     _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
+    _M.SETPID =  _M.addStreamLib(_M.REG_SETPSTATUS, _M.SETPCallback, 'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC, _M.handleRTC)
     _M.setEStatusMainCallback(_M.ESTAT_INIT, _M.handleINIT)
-    _M.setRTCStatus(true)
+    _M.writeRTCStatus(true)
 end
 
 -------------------------------------------------------------------------------
@@ -1163,7 +1383,21 @@ function _M.endStatus()
     _M.removeStream(_M.statID)
     _M.removeStream(_M.eStatID)
     _M.removeStream(_M.IOID)
+    _M.removeStream(_M.SETPID)
 end
+
+-------------------------------------------------------------------------------
+-- Cancel IO status handling
+function _M.endIOStatus()
+   _M.removeStream(_M.IOID)
+end
+-------------------------------------------------------------------------------
+-- Cancel SETP status handling
+function _M.endSETPStatus()
+   _M.removeStream(_M.SETPID)
+end
+
+   
 
 -------------------------------------------------------------------------------
 --- Key Handling.
@@ -1839,7 +2073,8 @@ _M.ANALOG_COMMS = 3
 function _M.setAnalogSource(src)
    _M.sendReg(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_SOURCE,
-                src) 
+                src)
+  _M.saveSettings()                
 end
                                          
 -------------------------------------------------------------------------------
@@ -1871,12 +2106,13 @@ _M.setAnalogClip = _M.preconfigureMsg(  _M.REG_ANALOGUE_CLIP,
                                         _M.CMD_WRFINALDEC, "noReply")
 -------------------------------------------------------------------------------
 -- Sets the analog output to minimum 0 through to maximum 50,000
--- @function setAnalogRaw
--- @param v value in raw counts (0..50000)
- 
-_M.setAnalogRaw   = _M.preconfigureMsg(_M.REG_ANALOGUE_DATA, 
-                                         _M.CMD_WRFINALDEC, 
-                                         "noReply")
+-- @param raw value in raw counts (0..50000)
+function _M.setAnalogRaw(raw)
+   if _M.lastAnalogue ~= raw then 
+       _M.send(nil, _M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw, 'noReply')
+       _M.lastAnalogue = raw
+   end    
+end                                         
 -------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
 -- @param val value 0.0 to 1.0
@@ -1929,9 +2165,20 @@ _M.REG_SETP_LOGIC   = 0xA403
 _M.REG_SETP_ALARM   = 0xA404
 _M.REG_SETP_NAME    = 0xA40E
 _M.REG_SETP_SOURCE  = 0xA406
-_M.REG_SETP_TARGET  = 0xA408
 _M.REG_SETP_HYS     = 0xA409
 _M.REG_SETP_SOURCE_REG = 0xA40A
+
+_M.REG_SETP_TIMING  = 0xA410
+_M.REG_SETP_RESET   = 0xA411
+_M.REG_SETP_PULSE_NUM = 0xA412
+_M.REG_SETP_TIMING_DELAY  = 0xA40C
+_M.REG_SETP_TIMING_ON     = 0xA40D
+
+
+
+-- targets are stored in the product database rather than the setpoint one
+_M.REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
+
 
 _M.LOGIC_HIGH = 0
 _M.LOGIC_LOW = 1
@@ -1940,6 +2187,12 @@ _M.ALARM_NONE = 0
 _M.ALARM_SINGLE = 1
 _M.ALARM_DOUBLE = 2
 _M.ALARM_FLASH = 3
+
+_M.TIMING_LEVEL = 0
+_M.TIMING_EDGE  = 1
+_M.TIMING_PULSE = 2
+_M.TIMING_LATCH = 3
+
 
 _M.SOURCE_GROSS = 0
 _M.SOURCE_NET = 1
@@ -2054,11 +2307,6 @@ function _M.releaseOutput(...)
     end 
 end
 
---------------------------------------------------------------------------------
--- Private function
-function _M.setpParam(setp,reg,v)
-    _M.sendReg(_M.CMD_WRFINALDEC, reg+((setp-1)*_M.REG_SETP_REPEAT), v)
-end
 
 --------------------------------------------------------------------------------
 -- returns actual register address for a particular setpoint parameter
@@ -2066,8 +2314,22 @@ end
 -- @param reg is REG_SETP_*
 -- @return address of this registet for setpoint setp
 function _M.setpRegAddress(setp,reg)
-  return (reg+((setp-1)*_M.REG_SETP_REPEAT)) 
+  if (setp > _M.NUM_SETP) or (setp < 1) then
+     _M.dbg.error('Setpoint Invalid: ', setp)
+     return(0)
+  elseif reg == _M.REG_SETP_TARGET then
+     return (reg+setp-1)
+  else
+     return (reg+((setp-1)*_M.REG_SETP_REPEAT))
+  end     
 end
+
+--------------------------------------------------------------------------------
+-- Private function
+function _M.setpParam(setp,reg,v)
+   _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
+end
+
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints 
 -- @param n is the number of setpoints 0..8
@@ -2080,8 +2342,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.setpParam(setp,_M.REG_SETP_TARGET, _M.toPrimary(target))
-    _M.saveSettings()
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), target)
 end
 
 -------------------------------------------------------------------------------
@@ -2536,7 +2797,7 @@ _M.REG_TIMESEC          = 0x0157
 
 _M.REG_MSEC1000         = 0x015C
 _M.REG_MSEC             = 0x015D
-_M.REG_MSECLAST        = 0x015F
+_M.REG_MSECLAST         = 0x015F
 _M.TM_DDMMYY            = 0
 _M.TM_DDMMYYYY          = 1
 _M.TM_MMDDYY            = 2

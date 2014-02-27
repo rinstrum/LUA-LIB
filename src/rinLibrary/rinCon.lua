@@ -559,8 +559,7 @@ function _M.setDelimiters(start, end1, end2)
 end
 
 -------------------------------------------------------------------------------
--- Set delimiters for messages received from the socket linked to SERB 
--- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
+-- Set callback function for the SerB data stream 
 -- @param f callback function that takes a message string as an argument
 function _M.setSerBCallback(f)
   _M.SerBCallback = f
