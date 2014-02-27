@@ -111,10 +111,17 @@ rinApp.system.sockets.createServerSocket(2224, socketBidirectionalAccept)
 -- @param sock The socket in question (you'll usually ignore this)
 -- @param msg The message to be filtered
 -- @return The message to be sent or nil for no message
+-- It is important to note that this function is called for things you
+-- write to the socket set as well as system messages.
 local function unidirectionFilter(sock, msg)
 	-- We'll keep all messages that contain a capital G and discard the rest
 	if string.find(msg, "G") ~= nil then
     	return msg
+    end
+    -- Allow our own message but we change it to demonstrate message edit
+    -- capabilities.
+    if msg == "IDLE" then
+    	return " uni-idle "
     end
     return nil
 end
@@ -149,7 +156,7 @@ end
 -------------------------------------------------------------------------------
 -- Timer call back that injects extra information into the unidirection sockets
 local function unidirectionalTimedMessages()
-	rinApp.system.sockets.writeSet("uni", " uni-idle ")
+	rinApp.system.sockets.writeSet("uni", "IDLE")
 end
 
 -------------------------------------------------------------------------------
