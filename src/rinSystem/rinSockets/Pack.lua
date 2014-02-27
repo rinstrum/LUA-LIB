@@ -78,6 +78,21 @@ function _M.setSocketTimeout(sock, timeout)
 end
 
 -------------------------------------------------------------------------------
+-- Read a message from a socket
+-- @param sock Socket to read from
+-- @return The message received
+function _M.readSocket(sock)
+	local m, err, extra = nil, nil, nil
+	m, err, extra = sock:receive(70000)
+    if err == nil then
+    	return m, nil
+    elseif err ~= "timeout" then
+        return nil, err
+    end
+    return extra, nil
+end
+
+-------------------------------------------------------------------------------
 -- Write a message to a socket
 -- @param sock Socket to write to
 -- @param msg Data to write
