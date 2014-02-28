@@ -445,6 +445,11 @@ function _M.loadRIS(filename)
     end  
     for line in file:lines() do
          if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
+            local endCh = string.sub(line, -1, -1)
+            if endCh ~= '\r' and endCh ~= '\n' then
+                 line = line .. ';'
+            end     
+       
             _,cmd,reg,data,err = _M.processMsg(line)
             if err then
                _M.dbg.error('RIS error: ',err)

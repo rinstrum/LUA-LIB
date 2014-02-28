@@ -368,6 +368,10 @@ function _M.processMsg(msg, err)
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -2)
  
+    elseif str.sub(msg, -1, -1) == '\n' then
+        validDelim = "NORM"
+        newMsg = str.sub(msg, 1, -2)
+ 
     elseif str.sub(msg,-1,-1) == ';' then
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -2)
