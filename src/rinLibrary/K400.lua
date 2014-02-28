@@ -399,13 +399,15 @@ end
 -- Called to convert a floating point value to a decimal integer based on then
 -- primary instrument weighing settings 
 -- @param v is value to convert
+-- @param dp decimal position (if nil then instrument dp used) 
 -- @return floating point value suitable for a WRFINALDEC
-function _M.toPrimary(v)
+function _M.toPrimary(v, dp)
+ local dp = dp or _M.settings.dispmode[_M.settings.curDispMode].dp  -- use instrument dp if not specified otherwise
  
  if type(v) == 'string' then
     v = tonumber(v)
   end   
- for i = 1,_M.settings.dispmode[_M.settings.curDispMode].dp do
+ for i = 1,dp do
     v = v*10
   end
   v = math.floor(v+0.5)
@@ -415,7 +417,7 @@ end
 -------------------------------------------------------------------------------
 -- called to convert hexadecimal return string to a floating point number
 -- @param data returned from _CMD_RDFINALHEX or from stream
--- @param dp decimal position 
+-- @param dp decimal position (if nil then instrument dp used)
 -- @return floating point number
 function _M.toFloat(data, dp)
    local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
