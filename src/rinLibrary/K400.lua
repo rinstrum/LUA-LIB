@@ -172,8 +172,9 @@ _M.REG_MANHOLD          = 0x002A
 -- @param cmd CMD_  command
 -- @param reg REG_  register 
 -- @param data to send
-function _M.sendReg(cmd, reg, data)
-  _M.send(nil, cmd, reg, data, "noReply")
+-- @param crc - 'crc' if message sent with crc, false (default) otherwise
+function _M.sendReg(cmd, reg, data, crc)
+  _M.send(nil, cmd, reg, data, "noReply",crc)
 end
 
 -------------------------------------------------------------------------------
@@ -184,6 +185,7 @@ end
 -- @param t timeout in sec
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
+-- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendRegWait(cmd, reg, data, t, crc)
     
     local t = t or 0.500
@@ -203,7 +205,7 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
     
     local f = _M.deviceRegisters[reg]
     _M.bindRegister(reg, waitf)  
-    _M.send(nil, cmd, reg, data, "reply")
+    _M.send(nil, cmd, reg, data, "reply", crc)
     local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
 
     while waiting do
