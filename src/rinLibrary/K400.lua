@@ -2347,7 +2347,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), target)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
