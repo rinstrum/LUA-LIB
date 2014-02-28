@@ -901,13 +901,9 @@ function _M.setStatusCallback(stat, callback)
     _M.statBinds[stat]['lastStatus'] = 0xFF
 end
 
--------------------------------------------------------------------------------
--- Called when IO status changes are streamed 
--- @param data Data on IO status streamed
--- @param err Potential error message
 
 -------------------------------------------------------------------------------
--- Called when SETP status changes are streamed 
+-- Called when IO status changes are streamed 
 -- @param data Data on SETP status streamed
 -- @param err Potential error message
 function _M.IOCallback(data, err)
