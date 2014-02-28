@@ -446,8 +446,8 @@ function _M.send(addr, cmd, reg, data, reply, crc)
     local reply = reply or 'reply'
     if reply == 'reply' then addr = bit32.bor(addr,_M.ADDR_REPLY) end
 
-    if cmd == _M.CMD_WRFINALHEX then
-        if type(data) == 'number' then
+    if cmd == _M.CMD_WRFINALHEX or cmd == _M.CMD_EX then
+      if type(data) == 'number' then
            data = str.format("%X",data)
         end   
      end 
