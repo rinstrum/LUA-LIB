@@ -184,7 +184,7 @@ end
 -- @param t timeout in sec
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
-function _M.sendRegWait(cmd, reg, data, t)
+function _M.sendRegWait(cmd, reg, data, t, crc)
     
     local t = t or 0.500
     
