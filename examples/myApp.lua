@@ -13,9 +13,22 @@ local rinApp = require "rinApp"     --  load in the application framework
 
 --=============================================================================
 -- Connect to the instruments you want to control
+-- Define any Application variables you wish to use 
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+
+
+
+
+
+
+
+
+
+
+
+
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -55,9 +68,41 @@ local function handleIO1(IO, active)
      print ('IO 1 is off ')
   end   
 end
-dwi.setIOCallback(1, handleIO1)
+dwi.setIOCallback(1, handleIO5)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
+
+
+local function handleIO(data)
+   rinApp.dbg.info(' IO: ', string.format('%08X',data))
+end
+dwi.setAllIOCallback(handleIO)
+
+-------------------------------------------------------------------------------
+-- Callback to capture changes to instrument status  
+local function handleSETP1(SETP, active)
+-- status is a copy of the instrument status bits and active is true or false to show if active or not
+  if active then 
+     print ('SETP 1 is on ')
+  else
+     print ('SETP 1 is off ')
+  end   
+end
+dwi.setSETPCallback(1, handleSETP1)
+-- set callback to capture changes on IO1
+-------------------------------------------------------------------------------
+
+
+-------------------------------------------------------------------------------
+-- Callback to capture changes to instrument status  
+local function handleSETP(data)
+-- status is a copy of the instrument status bits and active is true or false to show if active or not
+   rinApp.dbg.info('SETP: ',string.format('%04X',data))   
+end
+dwi.setAllSETPCallback(handleSETP)
+-- set callback to capture changes on IO1
+-------------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
@@ -71,6 +116,7 @@ end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 
+
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
@@ -78,7 +124,7 @@ local function F1Pressed(key, state)
         print('Long F1 Pressed')
     else    
         print('F1 Pressed')
-    end  
+    end
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
@@ -96,6 +142,15 @@ end
 dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -------------------------------------------------------------------------------
 
+-------------------------------------------------------------------------------
+-- Callback to handle changes in instrument settings
+local function settingsChanged(status, active)
+end
+dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
+-------------------------------------------------------------------------------
+  
+
+
 --=============================================================================
 -- Initialisation 
 --=============================================================================
@@ -105,20 +160,39 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 dwi.writeBotLeft('  MY APP')
 dwi.writeBotRight(' .LUA')
 
+
+
+
+
+
+-------------------------------------------------------------------------------
+
+
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
--- mainLoop gets continually called by the framework
+-- Define your application loop
+-- mainLoop() gets called by the framework after any event has been processed
 -- Main Application logic goes here
 local function mainLoop()
      
+     
+     
 end
-rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
-rinApp.run()                       -- run the application framework
+
 
 --=============================================================================
 -- Clean Up 
 --=============================================================================
--- Put any application clean up here
+-- Define anything for the Application to do when it exits
+-- cleanup() gets called by framework when the application finishes
+local function cleanup()
+     
+end
 
-rinApp.cleanup()                   -- shutdown application resources
+--=============================================================================
+-- run the application 
+rinApp.setMainLoop(mainLoop)
+rinApp.setCleanup(cleanup)
+rinApp.run()                       
+--=============================================================================
