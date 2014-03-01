@@ -1063,7 +1063,7 @@ function _M.eStatusCallback(data, err)
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
            if v.running then
-              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X %08X',k,status))
+              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
            else
               v.running = true
               v.lastStatus = status
