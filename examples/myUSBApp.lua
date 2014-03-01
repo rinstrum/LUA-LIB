@@ -10,12 +10,26 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local usbKBD = require "rinLibrary/rinUSBKBD"
+usbKBD.link(rinApp)
 
 --=============================================================================
 -- Connect to the instruments you want to control
+-- Define any Application variables you wish to use 
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+
+
+
+
+
+
+
+
+
+
+
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -79,8 +93,15 @@ rinApp.setUSBEventCallback(usbEventHandler)
 
 -------------------------------------------------------------------------------
 -- Callback for USB keyboard events
+barcodeKeys = {}
+barcode = nil
 local function kbdHandler(key)
-   rinApp.dbg.info('Key is :', key)       
+   rinApp.dbg.info('Key is :', key)
+   if key == '\n' then
+      barcode = table.concat(barcodeKeys)
+   else
+      table.insert(barcodeKeys,key)
+   end      
 end
 rinApp.setUSBKBDCallback(kbdHandler)
 -------------------------------------------------------------------------------
@@ -100,11 +121,7 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
-    if state == 'long' then
-        print('Long F1 Pressed')
-    else    
-        print('F1 Pressed')
-    end  
+    print (usbKBD.edit(dwi,'NAME','FRED','string')) 
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
@@ -128,24 +145,40 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.writeBotLeft('  MY APP')
+dwi.writeBotLeft('  USB APP')
 dwi.writeBotRight(' .LUA')
 
 rinApp.initUSB()                   -- Call to setup USB interface
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
--- mainLoop gets continually called by the framework
+-- Define your application loop
+-- mainLoop() gets called by the framework after any event has been processed
 -- Main Application logic goes here
 local function mainLoop()
      
+     if barcode then
+         print (barcode, ': ',curWeight)
+         barcode = nil
+         barcodeKeys = {}
+     end
+     
+     
 end
-rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
-rinApp.run()                       -- run the application framework
+
 
 --=============================================================================
 -- Clean Up 
 --=============================================================================
--- Put any application clean up here
+-- Define anything for the Application to do when it exits
+-- cleanup() gets called by framework when the application finishes
+local function cleanup()
+     
+end
 
-rinApp.cleanup()                   -- shutdown application resources
+--=============================================================================
+-- run the application 
+rinApp.setMainLoop(mainLoop)
+rinApp.setCleanup(cleanup)
+rinApp.run()                       
+--=============================================================================
