@@ -3025,5 +3025,7 @@ function _M.init()
    _M.send(nil,_M.CMD_RDFINALHEX,
               bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
               '', 'reply')
+   _M.sendKey(_M.KEY_CANCEL,'long')
+             
 end
 return _M
