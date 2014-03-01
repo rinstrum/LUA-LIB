@@ -2029,7 +2029,7 @@ _M.REG_BUZZ_NUM =  0x0328
 _M.BUZZ_SHORT = 0
 _M.BUZZ_MEDIUM = 1
 _M.BUZZ_LONG = 2
-
+_M.lastBuzzLen = nil
 -------------------------------------------------------------------------------
 -- Called to set the length of the buzzer sound
 -- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
@@ -2037,21 +2037,24 @@ function _M.setBuzzLen(len)
 
    local len = len or _M.BUZZ_SHORT
    if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
-   
-   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
+   if len ~= _M.lastBuzzLen then
+      _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
+      _M.lastBuzLen = len
+   end  
 
 end
 
 -------------------------------------------------------------------------------
 -- Called to trigger instrument buzzer
 -- @param times  - number of times to buzz, 1..4
-function _M.buzz(times)
+-- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
+function _M.buzz(times, len)
     local times = times or 1
+    local len = len or _M.BUZZ_SHORT
     times = tonumber(times)
     if times > 4 then 
         times = 4 
     end
-
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
