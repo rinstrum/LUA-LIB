@@ -34,8 +34,7 @@ _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
 
 _M.REG_SAVESETTING      = 0x0010
-_M.REG_FULLPASS         = 0x0019
-_M.REG_SAFEPASS         = 0x001A
+
 
 --- System Registers.
 --@table sysRegisters
@@ -223,6 +222,43 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
 end
 
 -------------------------------------------------------------------------------
+-- processes the return string from CMD_RDLIT command
+-- if data is a floating point number then the converted number is returned
+-- otherwise the original data string is returned
+-- @param data returned from _CMD_RDLIT 
+-- @return floating point number or data string
+function _M.literalToFloat(data)
+      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
+      if not a then
+           return data
+      else
+       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
+       return tonumber(data)    
+      end   
+end
+
+
+-------------------------------------------------------------------------------
+-- called to convert hexadecimal return string to a floating point number
+-- @param data returned from _CMD_RDFINALHEX or from stream
+-- @param dp decimal position (if nil then instrument dp used)
+-- @return floating point number
+function _M.toFloat(data, dp)
+   local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
+   
+   data = tonumber(data,16)
+   if data > 0x7FFFFFFF then
+        data = data - 0xFFFFFFFF - 1
+    end
+    
+   for i = dp,1,-1 do
+      data = data / 10
+   end
+   
+   return data
+end
+
+-------------------------------------------------------------------------------
 -- Called to read register contents
 -- @param reg REG_  register 
 -- @return data received from instrument, nil if error
@@ -232,16 +268,10 @@ function _M.readReg(reg)
     
     data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
-       _M.dbg.printVar('Read Error', err, _M.dbg.DEBUG)
+       _M.dbg.debug('Read Error', err)
        return nil, err
     else
-      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
-      if not a then
-           return data, nil
-      else
-       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
-       return tonumber(data),nil    
-      end   
+       return _M.literalToFloat(data), nil
     end
 end
 
@@ -414,25 +444,6 @@ function _M.toPrimary(v, dp)
   return(v)
 end
 
--------------------------------------------------------------------------------
--- called to convert hexadecimal return string to a floating point number
--- @param data returned from _CMD_RDFINALHEX or from stream
--- @param dp decimal position (if nil then instrument dp used)
--- @return floating point number
-function _M.toFloat(data, dp)
-   local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
-   
-   data = tonumber(data,16)
-   if data > 0x7FFFFFFF then
-        data = data - 0xFFFFFFFF - 1
-    end
-    
-   for i = dp,1,-1 do
-      data = data / 10
-   end
-   
-   return data
-end
 
 -------------------------------------------------------------------------------
 -- Read a RIS file and send valid commands to the device
@@ -3163,6 +3174,7 @@ _M.REG_EDIT_REG = 0x0320
 -- @param reg is the address of the register to edit
 -- @param prompt is true if name of register to be displayed during editing, 
 -- or set to a literal prompt to display
+-- @return value of reg
 function _M.editReg(reg,prompt)
    if (prompt) then
       _M.saveBot()
@@ -3184,8 +3196,7 @@ function _M.editReg(reg,prompt)
    if prompt then
       _M.restoreBot()
    end
-   return _M.sendRegWait(_M.CMD_RDLIT,reg)
-   
+   return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
 end
 
 _M.delayWaiting = false
@@ -3523,7 +3534,6 @@ end
 
 -------------------------------------------------------------------------------
 -- Commands
---  TODO:  Finalise these commands to return proper error messages etc
 -------------------------------------------------------------------------------
 _M.REG_ADC_ZERO         = 0x0300                  -- Execute registers
 _M.REG_ADC_TARE         = 0x0301                  
@@ -3549,6 +3559,35 @@ _M.REG_CLRLIN           = 0x0105
 _M.REG_CALIBDIRZERO     = 0x0106
 _M.REG_CALIBDIRSPAN     = 0x0107
 
+
+--- Command Return Constants and strings.
+--@table Command
+-- @field CMD_OK          'OK'     command executed successfully          
+-- @field CMD_CANCEL      'CANCEL'
+-- @field CMD_INPROG      'IN PROG'
+-- @field CMD_ERROR       'ERROR'
+-- @field CMD_OL_UL       'OL-UL'
+-- @field CMD_BUSY        'BUSY'
+-- @field CMD_MOTION      'MOTION'
+-- @field CMD_BAND        'BAND'
+-- @field CMD_RESLOW      'RES LOW'
+-- @field CMD_COMMAND     'COMMAND'
+-- @field CMD_DUPLIC      'DUPLIC'
+-- @field CMD_HIRES       'HI RES'
+
+_M.CMD_OK         = 0
+_M.CMD_CANCEL     = 1
+_M.CMD_INPROG     = 2
+_M.CMD_ERROR      = 3
+_M.CMD_OL_UL      = 4
+_M.CMD_BUSY       = 5
+_M.CMD_MOTION     = 6
+_M.CMD_BAND       = 7
+_M.CMD_RESLOW     = 8
+_M.CMD_COMMAND    = 9
+_M.CMD_DUPLIC     = 10
+_M.CMD_HIRES      = 11
+
 _M.cmdString = {}
 _M.cmdString[0] = 'OK'
 _M.cmdString[1] = 'CANCEL'
@@ -3558,25 +3597,33 @@ _M.cmdString[4] = 'OL-UL'
 _M.cmdString[5] = 'BUSY'
 _M.cmdString[6] = 'MOTION'
 _M.cmdString[7] = 'BAND'
-_M.cmdString[8] = 'RES'
+_M.cmdString[8] = 'RES LOW'
 _M.cmdString[9] = 'COMMAND'
-_M.cmdString[10] = 'DUPLIC'
+_M.cmdString[10] = 'DUPLICATE'
 _M.cmdString[11] = 'HI RES'
 
--------------------------------------------------------------------------------
--- <<COMMENT>>
-function _M.zero()
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15000)
- 
-    msg = tonumber(msg)
-    return msg, _M.cmdString[msg]
-end
+
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Called to execute a Zero command
+-- @return CMD_ constant followed by command return string
+function _M.zero()
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to execute a Tare command
+-- @return CMD_ constant followed by command return string
 function _M.tare()
- 
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15000)
+
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -3586,43 +3633,310 @@ function _M.tare()
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Called to execute a Pre-set Tare command
+-- @param pt is the preset tare value 
+-- @return CMD_ constant followed by command return string
 function _M.presetTare(pt)
     local pt = pt or 0
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to set Gross Mode
+-- @return CMD_ constant followed by command return string
 function _M.gross()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,nil,1000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_GROSS,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to set Net mode
+-- @return CMD_ constant followed by command return string
 function _M.net()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_NET,1000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_NET,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to toggle Gross Net status
+-- @return CMD_ constant followed by command return string
 function _M.grossNetToggle()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_TOGGLE,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
+
+_M.REG_FULLPCODEDATA     = 0x00D0
+_M.REG_SAFEPCODEDATA     = 0x00D1
+_M.REG_OPERPCODEDATA     = 0x00D2
+
+
+_M.REG_FULLPCODE         = 0x0019
+_M.REG_SAFEPCODE         = 0x001A
+_M.REG_OPERPCODE         = 0x001B
+
+_M.passcodes = {}
+_M.passcodes.full = {}
+_M.passcodes.safe = {}
+_M.passcodes.oper = {}
+_M.passcodes.full.pcode     = _M.REG_FULLPCODE
+_M.passcodes.full.pcodeData = _M.REG_FULLPCODEDATA
+_M.passcodes.safe.pcode     = _M.REG_SAFEPCODE
+_M.passcodes.safe.pcodeData = _M.REG_SAFEPCODEDATA
+_M.passcodes.oper.pcode     = _M.REG_OPERPCODE
+_M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
+
+
+-------------------------------------------------------------------------------
+-- Command to check to see if passcode entry required and prompt if so
+-- @param pc = 'full','safe','oper'
+-- @param code = passcode to unlock, nil to prompt user
+-- @return true if unlocked false otherwise
+function _M.checkPasscode(pc, code)
+    local pc = pc or 'full'
+    local pcode = _M.passcodes[pc].pcode
+    local f = _M.removeErrHandler()
+    while true do    
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
+       if not msg then
+          if code then
+             pass = code
+             code = nil
+          else   
+             pass, ok = _M.edit('PCODE','','passcode')
+             if not ok then
+                _M.setErrHandler(f)
+                return false
+             end 
+          end              
+          msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(pass,0),1.0) 
+       else
+          break
+       end   
+    end    
+    _M.setErrHandler(f)
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Command to lock instrument
+-- @param pc = 'full','safe','oper'
+function _M.lockPasscode(pcode)
+    local pc = pc or 'full'
+    local pcode = _M.passcodes[pc].pcode
+    local pcodeData = _M.passcodes[pc].pcodeData
+ 
+    local f = _M.removeErrHandler()
+    msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
+    if msg then
+       msg = bit32.bxor(tonumber(msg,16),0xFF)  
+       msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(msg,0),1.0) 
+    end    
+    _M.setErrHandler(f)
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Zero
+-- @return CMD_ constant followed by command return string
+function _M.calibrateZero()
+    
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBZERO,nil,1.0)
+    if not msg then
+        return msg, err
+    end    
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end   
+end
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span
+-- @param span weight value for calibration
+-- @return CMD_ constant followed by command return string
+function _M.calibrateSpan(span)
+    
+    if type(span) == 'string' then
+       span = tonumber(span)
+    end   
+    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(span),1.0)
+    if not msg then
+        return msg, err
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBSPAN,nil,1.0)
+    if not msg then
+        return msg, err
+    end    
+
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end 
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Zero using MV/V signal
+-- @param MVV signal for zero
+-- @return CMD_ constant followed by command return string
+function _M.calibrateZeroMVV(MVV)
+    if type(MVV) == 'string' then
+       MVV = tonumber(MVV)
+    end   
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRZERO,_M.toPrimary(MVV,4),1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span using MV/V signal
+-- @param MVV signal for fullscale
+-- @return CMD_ constant followed by command return string
+function _M.calibrateSpanMVV(MVV)
+    if type(MVV) == 'string' then
+       MVV = tonumber(MVV)
+    end   
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRSPAN,_M.toPrimary(MVV,4),1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate linearisation point
+-- @param pt is the linearisation point 1..10 
+-- @param val is the weight value for the current linearisation point
+-- @return CMD_ constant followed by command return string
+function _M.calibrateLin(pt, val)
+    if type(pt) == 'string' then
+       pt = tonumber(pt)
+    end   
+
+    if (pt < 1) or (pt > 10) then
+        return nil, 'Linearisation point out of range' 
+    end
+    
+    if type(val) == 'string' then
+       val = tonumber(val)
+    end   
+    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(val),1.0)
+    if not msg then
+        return msg, err
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBLIN,pt,1.0)
+    if not msg then
+        return msg, err
+    end    
+
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end 
+end
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span
+-- @param pt is the linearisation point 1..10 
+-- @param val is the weight value for the current linearisation point
+-- @return CMD_ constant followed by command return string
+function _M.clearLin(pt)
+    if type(pt) == 'string' then
+       pt = tonumber(pt)
+    end   
+
+    if (pt < 1) or (pt > 10) then
+        return nil, 'Linearisation point out of range' 
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
 
 -------------------------------------------------------------------------------
 -- Called to trigger initial stream reads and establish initial conditions
 function _M.init()
+   local streamUser = false
    for k,v in pairs(_M.availRegistersLib) do
             v.lastData = ''
    end
    for k,v in pairs(_M.availRegistersUser) do
+            if v.reg ~= 0 then
+                streamUser = true
+            end    
             v.lastData = ''
    end   
-     
-   _M.send(nil,_M.CMD_RDFINALHEX,
-              bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
-              '','reply')
+   
+   
+   if streamUser then
+      _M.send(nil,_M.CMD_RDFINALHEX,
+                 bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
+                 '','reply')
+    end             
    _M.send(nil,_M.CMD_RDFINALHEX,
               bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
               '', 'reply')
