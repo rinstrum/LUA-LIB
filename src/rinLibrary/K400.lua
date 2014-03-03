@@ -2426,24 +2426,16 @@ function _M.editReg(reg,prompt)
    
 end
 
-_M.delayWaiting = false
-
--------------------------------------------------------------------------------
--- Private function
-function _M.delayCallback()
-    _M.delayWaiting = false
-end
-
 -------------------------------------------------------------------------------
 -- Called to delay for t sec while keeping event handlers running
 -- @param t delay time in sec 
 function _M.delay(t)
-    local tmr = _M.system.timers.addTimer(0, t, _M.delayCallback)
-    _M.delayWaiting = true
-    while _M.delayWaiting do
+	local delayWaiting = true
+    _M.system.timers.addTimer(0, t, function () delayWaiting = false end)
+
+    while delayWaiting do
         _M.system.handleEvents()
     end  
-    _M.system.timers.removeTimer(tmr)
 end
 
 _M.askOKWaiting = false
