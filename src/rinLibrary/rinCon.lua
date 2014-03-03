@@ -146,7 +146,7 @@ function _M.defaultErrHandler(addr, cmd, reg, data, s)
   if addr == nil then
     tmps = str.format("%s (broken message)", s)
   else
-    tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
+    tmps = str.format("%s (%02X%02X%04X:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
   end
    
   _M.dbg.warn('rinCMD Error: ',tmps) 
