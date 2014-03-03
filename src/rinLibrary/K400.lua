@@ -3897,7 +3897,6 @@ end
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param pt is the linearisation point 1..10 
--- @param val is the weight value for the current linearisation point
 -- @return CMD_ constant followed by command return string
 function _M.clearLin(pt)
     if type(pt) == 'string' then
