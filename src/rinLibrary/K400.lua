@@ -949,11 +949,16 @@ end
 -- dwi.setIOCallback(1,handleIO1)
 --
 function _M.setIOCallback(IO, callback)
-    local status = bit32.lshift(0x00000001,IO-1)
-    _M.IOBinds[status] = {}
-    _M.IOBinds[status]['IO'] = IO
-    _M.IOBinds[status]['f'] = callback
-    _M.IOBinds[status]['lastStatus'] = 0xFFFFFFFF
+    
+    if callback then
+       local status = bit32.lshift(0x00000001,IO-1)
+       _M.IOBinds[status] = {}
+       _M.IOBinds[status]['IO'] = IO
+       _M.IOBinds[status]['f'] = callback
+       _M.IOBinds[status]['lastStatus'] = 0xFFFFFFFF
+    else
+       _M.dbg.warn('','setIOCallback:  nil value for callback function')
+    end       
 end
 
 
