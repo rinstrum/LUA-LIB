@@ -18,7 +18,7 @@ local rinApp = require "rinApp"     --  load in the application framework
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 
-
+local mode = 'idle'
 
 
 
@@ -68,7 +68,7 @@ local function handleIO1(IO, active)
      print ('IO 1 is off ')
   end   
 end
-dwi.setIOCallback(1, handleIO5)
+dwi.setIOCallback(1, handleIO1)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
@@ -104,18 +104,6 @@ dwi.setAllSETPCallback(handleSETP)
 -------------------------------------------------------------------------------
 
 
--------------------------------------------------------------------------------
--- Callback for local timer
-local tickerStart = 0.100    -- time in millisec until timer events start triggering
-local tickerRepeat = 0.200  -- time in millisec that the timer repeats
-
-local function ticker()
--- insert code here that you want to run on each timer event
-    dwi.rotWAIT(1)
-end
-rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
--------------------------------------------------------------------------------
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
@@ -123,12 +111,28 @@ local function F1Pressed(key, state)
     if state == 'long' then
         print('Long F1 Pressed')
     else    
-        print('F1 Pressed')
+        if mode == 'idle' then
+            mode = 'run'
+        end    
     end
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
+
+-------------------------------------------------------------------------------
+-- Callback to handle F2 key event 
+local function F2Pressed(key, state)
+    if state == 'long' then
+        print('Long F1 Pressed')
+    else    
+        mode = 'idle'
+    end
+    return true    -- key handled here so don't send back to instrument for handling
+end
+dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
+-------------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -150,19 +154,24 @@ dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
 -------------------------------------------------------------------------------
   
 
+-------------------------------------------------------------------------------
+-- Callback for local timer
+local tickerStart = 0.100    -- time in millisec until timer events start triggering
+local tickerRepeat = 0.200  -- time in millisec that the timer repeats
+local function ticker()
+-- insert code here that you want to run on each timer event
+    dwi.rotWAIT(1)
+end
+rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
+-------------------------------------------------------------------------------
+  
+  
 
 --=============================================================================
 -- Initialisation 
 --=============================================================================
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
-
-dwi.writeBotLeft('  MY APP')
-dwi.writeBotRight(' .LUA')
-
-
-
-
 
 
 -------------------------------------------------------------------------------
@@ -175,9 +184,31 @@ dwi.writeBotRight(' .LUA')
 -- mainLoop() gets called by the framework after any event has been processed
 -- Main Application logic goes here
 local function mainLoop()
-     
-     
-     
+   if mode == 'idle' then
+      dwi.writeTopLeft('MY APP')
+      dwi.writeBotLeft('F1-START F2-FINISH',1.5)
+      dwi.writeBotRight('')
+   elseif mode == 'run' then
+      dwi.writeTopLeft()
+      dwi.writeBotLeft('')
+      dwi.writeBotRight('PLACE')
+      if dwi.allStatusSet(dwi.STAT_NOTZERO, dwi.STAT_NOTMOTION) then
+         dwi.writeReg(dwi.REG_USERNUM3,dwi.toPrimary(curWeight))
+         dwi.setAutoBotLeft(dwi.REG_USERNUM3)         
+         dwi.writeBotRight('CAPTURED')
+         dwi.buzz(2)
+         dwi.delay(1)
+         dwi.writeBotRight('...')
+         mode = 'wait'
+      end
+    elseif mode == 'wait' then      
+       if dwi.anyStatusSet(dwi.STAT_MOTION) then
+           dwi.writeBotRight('')
+           dwi.buzz(1)
+           dwi.delay(0.5)
+           mode = 'run'
+       end
+    end       
 end
 
 

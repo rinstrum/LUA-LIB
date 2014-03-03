@@ -1708,8 +1708,12 @@ _M.curBotRight = ''
 _M.curTopUnits = 0
 _M.curBotUnits = 0
 _M.curBotUnitsOther = 0
+_M.curAutoTopLeft = 0
+_M.curAutoBotLeft = 0
 
 _M.saveBotLeft = ''
+_M.saveAutoTopLeft = 0
+_M.saveAutoBotLeft = 0
 _M.saveBotRight = ''
 _M.saveBotUnits = 0
 _M.saveBotUnitsOther = 0 
@@ -1727,14 +1731,155 @@ function _M.restoreBot()
   _M.writeBotUnits(_M.saveBotUnits, _M.saveBotUnitsOther)
 end
 
+
+local function strLenR400(s)
+   local len = 0
+   local dotFound = true
+   for i = 1,#s do
+     local ch = string.sub(s,i,i)
+     if not dotFound and  ch == '.' then
+         dotFound = true
+     else
+        if ch ~= '.' then
+           dotFound = false
+        end   
+        len = len + 1
+     end   
+   end    
+  return(len)
+end
+
+
+local function strSubR400(s,stPos,endPos)
+   local len = 0
+   local dotFound = true
+   local substr = ''
+   if stPos < 1 then
+       stPos = #s + stPos + 1
+   end
+   if endPos < 1 then
+       endPos = #s + endPos + 1
+   end
+   
+   for i = 1,#s do
+     local ch = string.sub(s,i,i)
+     if not dotFound and  ch == '.' then
+         dotFound = true
+     else
+        if ch ~= '.' then
+           dotFound = false
+        end   
+        len = len + 1
+     end   
+     if (len >= stPos) and (len <= endPos) then
+          substr = substr .. ch
+     end     
+   end    
+  return(substr)
+end
+
+
+-- takes a string and pads ... with . . . for R420 to handle
+local function padDots(s)
+    if #s == 0 then
+        return s
+    end         
+    local str = string.gsub(s,'%.%.','%. %.')
+    str = string.gsub(str,'%.%.','%. %.')
+    if string.sub(str,1,1) == '.' then
+        str = ' '..str
+    end    
+    return(str)    
+end
+
+
+
+-- local function to split a long string into shorter strings of multiple words
+-- that fit into length len
+local function splitWords(s,len)
+  local t = {}
+  local p = ''
+  local len = len or 8
+  
+  if strLenR400(s) <= len then
+     table.insert(t,s)
+     return t
+     end
+     
+  for w in string.gmatch(s, "%S+") do 
+    if strLenR400(p) + strLenR400(w) < len then
+       if p == '' then
+          p = w
+       else   
+          p = p .. ' '..w
+       end          
+    elseif strLenR400(p) > len then
+       table.insert(t,strSubR400(p,1,len))
+       p = strSubR400(p,len+1,-1)
+       if strLenR400(p) + strLenR400(w) < len then
+           p = p .. ' ' .. w
+       else
+          table.insert(t,p)
+          p = w
+       end           
+    else
+       if #p > 0 then
+           table.insert(t,p)
+       end    
+       p = w
+    end   
+   end
+   
+   while strLenR400(p) > len do
+      table.insert(t,strSubR400(p,1,len))
+      p = strSubR400(p,len+1,-1)
+   end
+   if #p > 0 or #t == 0 then
+     table.insert(t,p)
+   end  
+ return t
+end
+
+function _M.slideTopLeft()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+             string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
+     end
+    _M.slideTopLeftPos = _M.slideTopLeftPos + 1
+    if _M.slideTopLeftPos > #_M.slideTopLeftWords then
+       _M.slideTopLeftPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
+end
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
 -- @param s string to display
-function _M.writeTopLeft(s)
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeTopLeft(s,t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
+    end
     if s then
-        s = string.sub(s, 1, 11) -- Limit to 11 chars
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,  s)
-        _M.curTopLeft = s
+        if s ~= _M.curTopLeft then
+            _M.writeAutoTopLeft(0)
+            _M.curTopLeft = s
+            _M.slideTopLeftWords = splitWords(s,6)
+            _M.slideTopLeftPos = 1
+            if _M.slideTopLeftTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+                 string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
+            if #_M.slideTopLeftWords > 1 then
+                _M.slideTopLeftTimer = _M.system.timers.addTimer(t,t,_M.slideTopLeft)
+            end    
+        end
+    elseif _M.curAutoTopLeft == 0 then
+       _M.writeAutoTopLeft(_M.saveAutoTopLeft)
     end
 end
 
@@ -1743,31 +1888,104 @@ end
 -- @param s string to display
 function _M.writeTopRight(s)
     if s then
-        s = string.sub(s, 1, 7) -- Limit to 7 chars
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
-        _M.curTopRight = s
+        if s ~= _M.curTopRight then
+           _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
+           _M.curTopRight = s
+        end   
     end
 end
+
+
+
+
+function _M.slideBotLeft()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+             string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
+     end
+    _M.slideBotLeftPos = _M.slideBotLeftPos + 1
+    if _M.slideBotLeftPos > #_M.slideBotLeftWords then
+       _M.slideBotLeftPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
+end
+
+
+
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
 -- @param s string to display
-function _M.writeBotLeft(s)
-    if s then
-        s = string.sub(s, 1, 17) -- Limit to 17 chars
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, s)
-        _M.curBotLeft = s
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeBotLeft(s, t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
     end
+    
+    if s then
+        if s ~= _M.curBotLeft then
+            _M.writeAutoBotLeft(0)
+            _M.curBotLeft = s
+            _M.slideBotLeftWords = splitWords(s,9)
+            _M.slideBotLeftPos = 1
+            if _M.slideBotLeftTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideBotLeftTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+                 string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
+            if #_M.slideBotLeftWords > 1 then
+                _M.slideBotLeftTimer = _M.system.timers.addTimer(t,t,_M.slideBotLeft)
+            end    
+        end
+    elseif _M.curAutoBotLeft == 0 then
+       _M.writeAutoBotLeft(_M.saveAutoBotLeft)
+    end
+end
+
+
+function _M.slideBotRight()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+             string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
+     end
+    _M.slideBotRightPos = _M.slideBotRightPos + 1
+    if _M.slideBotRightPos > #_M.slideBotRightWords then
+       _M.slideBotRightPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
 end
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Right of LCD, curBotRight is set to s
 -- @param s string to display
-function _M.writeBotRight(s)
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeBotRight(s, t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
+    end
+
     if s then
-        s = string.sub(s, 1, 15) -- Limit to 15 chars
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s)
-        _M.curBotRight = s
+     if s ~= _M.curBotRight then
+            _M.curBotRight = s
+            _M.slideBotRightWords = splitWords(s,8)
+            _M.slideBotRightPos = 1
+            if _M.slideBotRightTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideBotRightTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+                 string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
+            if #_M.slideBotRightWords > 1 then
+                _M.slideBotRightTimer = _M.system.timers.addTimer(t,t,_M.slideBotRight)
+            end    
+        end
     end
 end
 
@@ -1780,28 +1998,67 @@ _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
 
 -----------------------------------------------------------------------------
 -- link register address  with Top annunciators to update automatically 
---@function setAutoTopAnnun
+--@function writeAutoTopAnnun
 --@param reg address of register to link Top Annunciator state to.
 -- Set to 0 to enable direct control of the area                                         
-_M.setAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
+_M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
+
+_M.setAutoTopAnnun = _M.writeAutoTopAnnun                                         
 -----------------------------------------------------------------------------
--- link register address with Top Left display to update automatically.
---@function setAutoTopLeft
---@param reg address of register to link Top Left display to.     
--- Set to 0 to enable direct control of the area                                    
-_M.setAutoTopLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_LEFT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
------------------------------------------------------------------------------
--- link register address with Bottom Left display to update automatically 
---@function setAutoBotLeft
+-- link register address with Top Left display to update automatically 
 --@param reg address of register to link Top Left display to.
 -- Set to 0 to enable direct control of the area                                         
-_M.setAutoBotLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_BOTTOM_LEFT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
+function _M.writeAutoTopLeft(reg)
+   if reg ~= _M.curAutoTopLeft then
+       if _M.slideTopLeftTimer then     -- remove any running display
+          _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+       end 
+       _M.curTopLeft = nil   
+       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
+       _M.saveAutoTopLeft = _M.curAutoTopLeft
+       _M.curAutoTopLeft = reg
+   end    
+end        
+
+_M.setAutoTopLeft = _M.writeAutoTopLeft
+
+-----------------------------------------------------------------------------
+-- reads the current Top Left auto update register 
+-- @return register that is being used for auto update, 0 if none                                         
+function _M.readAutoTopLeft()
+   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_TOP_LEFT)
+   reg = tonumber(reg)
+   _M.curAutoTopLeft = reg
+   return reg
+end        
+-----------------------------------------------------------------------------
+-- link register address with Bottom Left display to update automatically 
+--@param reg address of register to link Bottom Left display to.
+-- Set to 0 to enable direct control of the area                                         
+function _M.writeAutoBotLeft(reg)
+   if reg ~= _M.curAutoBotLeft then
+       if _M.slideBotLeftTimer then     -- remove any running display
+          _M.system.timers.removeTimer(_M.slideBotLeftTimer)
+       end 
+       _M.curBotLeft = nil   
+       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
+       _M.saveAutoBotLeft = _M.curAutoBotLeft
+       _M.curAutoBotLeft = reg
+   end    
+end                                         
+_M.setAutoBotLeft = _M.writeAutoBotLeft
+
+-----------------------------------------------------------------------------
+-- reads the current Bottom Left auto update register 
+-- @return register that is being used for auto update, 0 if none                                         
+function _M.readAutoBotLeft()
+   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOT_LEFT)
+   reg = tonumber(reg)
+   _M.curAutoBotLeft = reg
+   return reg
+end        
 
 --- Bottom LCD Annunciators
 --@table BotAnnuns
@@ -2005,9 +2262,9 @@ end
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 function _M.restoreLcd()
-   _M.setAutoTopAnnun(0)
-   _M.setAutoTopLeft(_M.REG_GROSSNET)
-   _M.setAutoBotLeft(0)
+   _M.writeAutoTopAnnun(0)
+   _M.writeAutoTopLeft(_M.REG_GROSSNET)
+   _M.writeAutoBotLeft(0)
    _M.writeTopRight('')
    _M.writeBotLeft('')
    _M.writeBotRight('')
