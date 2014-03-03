@@ -3552,6 +3552,7 @@ _M.ADCHIRES_DB          = 3                       -- R420 database setting
 
 --  Calibrate
 _M.REG_CALIBWGT         = 0x0100
+
 _M.REG_CALIBZERO        = 0x0102
 _M.REG_CALIBSPAN        = 0x0103
 _M.REG_CALIBLIN         = 0x0104
