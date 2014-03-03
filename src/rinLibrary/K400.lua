@@ -2296,7 +2296,7 @@ function _M.setBuzzLen(len)
    if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
    if len ~= _M.lastBuzzLen then
       _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
-      _M.lastBuzLen = len
+      _M.lastBuzzLen = len
    end  
 
 end
@@ -2312,6 +2312,7 @@ function _M.buzz(times, len)
     if times > 4 then 
         times = 4 
     end
+    _M.setBuzzLen(len)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
