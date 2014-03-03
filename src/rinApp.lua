@@ -224,16 +224,23 @@ end
 -------------------------------------------------------------------------------
 -- Initialise rinApp and all connected devices
 function _M.init()
+    if _M.initialised then
+        return
+    end    
     _M.initUSB()
     for i,v in ipairs(_M.devices) do
         v.init() 
-    end 
+    end
+    _M.initialised = true    
 end    
 
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
 -- enabled by configure() 
 function _M.cleanup()
+    if _M.cleanedUp then
+        return
+    end        
     if _M.userCleanup then
       _M.userCleanup()
     end
@@ -245,6 +252,7 @@ function _M.cleanup()
         v.delay(0.050)
      end 
     _M.dbg.info('','------   Application Finished  ------')
+    _M.cleanedUp = true
 end
 
     
