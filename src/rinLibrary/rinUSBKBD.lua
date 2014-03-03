@@ -67,13 +67,18 @@ end
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
 -- @param typ type of value to enter ('integer','number','string' 
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
-function _M.edit(dwi, prompt, def, typ)
+function _M.edit(dwi, prompt, def, typ, units, unitsOther)
 
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
      end     
+    
+    local u = units or 0
+    local uo = unitsOther or 0 
     
     local editVal = def 
     local editType = typ or 'integer'
@@ -82,7 +87,7 @@ function _M.edit(dwi, prompt, def, typ)
     dwi.saveBot()
     dwi.writeBotRight(prompt)
     dwi.writeBotLeft(editVal)
-
+    dwi.writeBotUnits(u, uo)
     local first = true
 
     local ok = false  
