@@ -2755,21 +2755,339 @@ _M.editing = false
 function _M.isEditing()
    return _M.editing
 end
-    
+
+_M.scrUpdTm = 0.5  -- screen update frequency in mSec
+_M.blink = false   -- blink cursor for string editing
+_M.inMenu = false  -- true when a menu is active, prevents entering another menu
+
+
+-----------------------------------------------------------------------------------------------
+-- return a character for the key pressed, according to the number of times it has been pressed
+-- @param k key pressed
+-- @param p number of times key has been pressed
+-- @return letter, number or symbol character represented on the number key pad
+-----------------------------------------------------------------------------------------------
+
+_M.keyChar = function(k, p)
+
+    local n = math.fmod(p, 4)   -- fmod returns the remainder of the integer division
+
+    if k == _M.KEY_1 then
+        if n == 1 then          -- one key press
+            return "$"
+        elseif n == 2 then      -- two key presses
+            return "/"
+        elseif n == 3 then      -- three key presses
+            return "\\"
+        elseif n == 0 then      -- four key presses
+            return "1"
+        end
+    elseif k == _M.KEY_2 then
+        if n == 1 then          -- one key press
+            return "A"
+        elseif n == 2 then      -- two key presses
+            return "B"
+        elseif n == 3 then      -- three key presses
+            return "C"
+        elseif n == 0 then      -- four key presses
+            return "2"
+        end
+    elseif k == _M.KEY_3 then
+        if n == 1 then          -- one key press
+            return "D"
+        elseif n == 2 then      -- two key presses
+            return "E"
+        elseif n == 3 then      -- three key presses
+            return "F"
+        elseif n == 0 then      -- four key presses
+            return "3"
+        end
+    elseif k == _M.KEY_4 then
+        if n == 1 then          -- one key press
+            return "G"
+        elseif n == 2 then      -- two key presses
+            return "H"
+        elseif n == 3 then      -- three key presses
+            return "I"
+        elseif n == 0 then      -- four key presses
+            return "4"
+        end
+    elseif k == _M.KEY_5 then
+        if n == 1 then          -- one key press
+            return "J"
+        elseif n == 2 then      -- two key presses
+            return "K"
+        elseif n == 3 then      -- three key presses
+            return "L"
+        elseif n == 0 then      -- four key presses
+            return "5"
+        end
+    elseif k == _M.KEY_6 then
+        if n == 1 then          -- one key press
+            return "M"
+        elseif n == 2 then      -- two key presses
+            return "N"
+        elseif n == 3 then      -- three key presses
+            return "O"
+        elseif n == 0 then      -- four key presses
+            return "6"
+        end
+    elseif k == _M.KEY_7 then
+        n = math.fmod(p, 5)     -- special case with 5 options
+        if n == 1 then          -- one key press
+            return "P"
+        elseif n == 2 then      -- two key presses
+            return "Q"
+        elseif n == 3 then      -- three key presses
+            return "R"
+        elseif n == 4 then      -- four key presses
+            return "S"
+        elseif n == 0 then      -- five key presses
+            return "7"
+        end
+    elseif k == _M.KEY_8 then
+        if n == 1 then          -- one key press
+            return "T"
+        elseif n == 2 then      -- two key presses
+            return "U"
+        elseif n == 3 then      -- three key presses
+            return "V"
+        elseif n == 0 then      -- four key presses
+            return "8"
+        end
+    elseif k == _M.KEY_9 then
+        n = math.fmod(p, 5)     -- special case with 5 options
+        if n == 1 then          -- one key press
+            return "W"
+        elseif n == 2 then      -- two key presses
+            return "X"
+        elseif n == 3 then      -- three key presses
+            return "Y"
+        elseif n == 4 then      -- three key presses
+            return "Z"
+        elseif n == 0 then      -- five key presses
+            return "9"
+        end
+    elseif k == _M.KEY_0 then
+        n = math.fmod(p, 2)     -- special case with 2 options
+        if n == 1 then          -- one key press
+            return " "
+        elseif n == 0 then      -- two key presses
+            return "0"
+        end
+    end
+    return nil      -- key passed to function is not a number key
+end
+
+function sTrim(s)       -- removes whitespace from strings
+    return s:match'^%s*(.*%S)' or ''
+end
+
+_M.sEditVal = ' '       -- default edit value for sEdit()
+_M.sEditIndex = 1       -- starting index for sEdit()
+_M.sEditKeyTimer = 0    -- counts time since a key pressed for sEdit() - in _M.scrUpdTm increments
+_M.sEditKeyTimeout = 4  -- number of counts before starting a new key in sEdit()
+
+local function blinkCursor()
+--  used in sEdit() function below
+    _M.sEditKeyTimer = _M.sEditKeyTimer + 1 -- increment key press timer for sEdit()
+    local str
+    local pre
+    local suf
+    local max = #_M.sEditVal
+    _M.blink = not _M.blink
+    if _M.blink then
+        pre = string.sub(_M.sEditVal, 1, _M.sEditIndex-1)
+        if _M.sEditIndex < max then
+            suf = string.sub(_M.sEditVal, _M.sEditIndex+1, -1)
+        else
+            suf = ''
+        end
+        str = pre .. "_" .. suf
+    else
+        str = _M.sEditVal
+    end
+--  print(str)  -- debug
+    _M.writeBotLeft(str)
+end
+
 -------------------------------------------------------------------------------
--- Called to prompt operator to enter a value
+-- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','string' 
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
-function _M.edit(prompt, def, typ)
+
+_M.sEdit = function(prompt, def, maxLen, units, unitsOther)
+
+    _M.editing = true               -- is editing occurring
+    local key, state                -- instrument key values
+    local pKey = nil                -- previous key pressed
+    local presses = 0               -- number of consecutive presses of a key
+    
+    if def then                     -- if a string is supplied
+        def = sTrim(def)            -- trim any whitespace
+    end
+    
+    local default = def or ' '      -- default string to edit, if no default passed to function, default to one space
+    _M.sEditVal = tostring(default) -- edit string
+    local sLen = #_M.sEditVal       -- length of string being edited
+    _M.sEditIndex = sLen            -- index in string of character being edited
+    local ok = false                -- OK button was pressed to accept editing
+    local strTab = {}               -- temporary table holding edited string characters
+    local blink = false             -- cursor display variable
+    local u = units or 0            -- optional units defaults to none
+    local uo = unitsOther or 0      -- optional other units defaults to none
+    
+    cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    _M.saveBot()
+
+    if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
+        local i = 0
+        repeat
+            i = i + 1
+            strTab[i] = string.sub(_M.sEditVal, i, i)   -- convert the string to a table for easier character manipulation 
+        until i >= sLen or i >= maxLen                  -- check length of string against maxLen
+--      print('strTab = ' .. table.concat(strTab))  -- debug
+    end
+    
+    if def then         -- if a default string is given
+        pKey = 'def'    -- give pKey a value so we start editing from the end
+    end
+
+    _M.writeBotRight(prompt)        -- write the prompt
+    _M.writeBotLeft(_M.sEditVal)    -- write the default string to edit
+    _M.writeBotUnits(u,uo)          -- display optional units
+
+    while _M.editing do
+        key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
+        if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
+            pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
+        end
+        _M.sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
+        
+        if state == "short" then                            -- short key presses for editing
+            if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
+--              print('i:' .. _M.sEditIndex .. ' l:' .. sLen)   -- debug
+                if key == pKey then         -- if same as the previous key pressed
+                    presses = presses + 1   -- add 1 to number of presses of this key
+                else
+                    presses = 1             -- otherwise reset presses to 1
+                    if pKey and (_M.sEditIndex >= sLen) and (strTab[_M.sEditIndex] ~= " ") then     -- if not first key pressed
+                        _M.sEditIndex = _M.sEditIndex + 1       -- new key pressed, increment the character position
+                    end
+                    pKey = key              -- remember the key pressed
+                end
+--              print('i:' .. _M.sEditIndex)    -- debug
+                strTab[_M.sEditIndex] = _M.keyChar(key, presses)    -- update the string (table) with the new character
+            --
+            elseif (key == _M.KEY_DP) and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
+                if (pKey and (_M.sEditIndex >= sLen)) or (strTab[_M.sEditIndex] == " ") then    -- if not first key pressed and not space at end
+                    _M.sEditIndex = _M.sEditIndex + 1           -- new key pressed, increment the character position
+                end
+                strTab[_M.sEditIndex] = "."                 -- update the string (table) with the new character
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_UP then                    -- up key, previous character
+                _M.sEditIndex = _M.sEditIndex - 1               -- decrease index
+                if _M.sEditIndex < 1 then                       -- if at first character
+                    _M.sEditIndex = sLen                            -- go to last character
+                end
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_DOWN then          -- down key, next character
+                _M.sEditIndex = _M.sEditIndex + 1       -- increment index
+                if _M.sEditIndex > sLen then            -- if at last character
+                    if strTab[sLen] ~= " " then         -- and last character is not a space
+                        if sLen < maxLen then               -- and length of string < maximum
+                            sLen = sLen + 1                     -- increase length of string
+                            strTab[sLen] = " "                  -- and add a space to the end
+                        else                                -- string length = maximum
+                            _M.sEditIndex = 1                   -- go to the first character
+                        end
+                    else                                -- otherwise (last character is a space)
+                        if sLen > 1 then                    -- as long as the string is more than 1 character long
+                            strTab[sLen] = nil              -- delete the last character
+                            sLen = sLen - 1                 -- decrease the length of the string
+                            _M.sEditIndex = 1               -- and go to the first character
+                        end
+                    end
+                end
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_PLUSMINUS then     -- plus/minus key - insert a character
+                if sLen < maxLen then
+                    sLen = sLen + 1                     -- increase the length of the string
+                end
+                for i = sLen, _M.sEditIndex+1, -1 do
+                    strTab[i] = strTab[i-1]             -- shuffle the characters along
+                end
+                strTab[_M.sEditIndex] = " "             -- insert a space
+                pKey = key                          -- remember the key pressed
+            --
+            elseif key == _M.KEY_OK then        -- OK key
+                _M.editing = false                      -- finish editing
+                ok = true                           -- accept changes
+            --
+            elseif key == _M.KEY_CANCEL then    -- cancel key
+                if _M.sEditIndex < sLen then
+                    for i = _M.sEditIndex, sLen-1 do    -- delete current character
+                        strTab[i] = strTab[i+1]         -- shuffle characters along
+                    end
+                end
+                strTab[sLen] = nil                  -- clear last character
+                _M.sEditIndex = _M.sEditIndex - 1   -- decrease length of string
+                pKey = key                          -- remember the key pressed
+            end
+        elseif state == "long" then         -- long key press only for cancelling editing
+            if key == _M.KEY_CANCEL then    -- cancel key
+                _M.sEditVal = default               -- reinstate default string
+                _M.editing = false                  -- finish editing
+            end
+        end
+        if _M.editing or ok then                    -- if editing or OK is selected
+            _M.sEditVal = table.concat(strTab)      -- update edited string
+            sLen = #_M.sEditVal
+--          print('eVal = \'' .. _M.sEditVal .. '\'')   -- debug
+        end
+    end
+
+    _M.restoreBot() -- restore previously displayed messages
+
+    _M.system.timers.removeTimer(cursorTmr) -- remove cursor blink timer
+    return _M.sEditVal, ok                  -- return edited string and OK status
+end
+
+
+
+
+
+    
+-------------------------------------------------------------------------------
+-- Called to prompt operator to enter a value, numeric digits and '.' only
+-- @param prompt string displayed on bottom right LCD
+-- @param def default value
+-- @param typ type of value to enter ('integer','number','string','passcode') 
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+-- @return value and true if ok pressed at end
+function _M.edit(prompt, def, typ, units, unitsOther)
 
     local key, state
 
+    if typ == 'passcode' then
+        typ = 'integer'
+        hide = true
+    end    
+        
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
-     end     
+     end    
+    
+    local u = units or 0
+    local uo = unitsOther or 0     
     
     local editVal = def 
     local editType = typ or 'integer'
@@ -2777,7 +3095,12 @@ function _M.edit(prompt, def, typ)
     
     _M.saveBot()
     _M.writeBotRight(prompt)
-    _M.writeBotLeft(editVal)
+    if hide then
+       _M.writeBotLeft(string.rep('+',#editVal))
+    else
+       _M.writeBotLeft(editVal)
+    end   
+    _M.writeBotUnits(u, uo)
 
     local first = true
 
@@ -2787,7 +3110,7 @@ function _M.edit(prompt, def, typ)
         if state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
                 if first then 
-                    editVal = key 
+                    editVal = tostring(key) 
                 else 
                     editVal = editVal .. key 
                 end
@@ -2823,7 +3146,11 @@ function _M.edit(prompt, def, typ)
                 _M.editing = false
             end
         end 
-        _M.writeBotLeft(editVal..' ')
+        if hide then 
+           _M.writeBotLeft(string.rep('+',#editVal))
+        else
+           _M.writeBotLeft(editVal..' ')
+        end   
     end 
     _M.restoreBot()
    
@@ -2906,12 +3233,16 @@ end
 -- Prompts operator and waits for OK or CANCEL key press
 -- @param prompt string to put on bottom right LCD
 -- @param q string to put on bottom left LCD
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return either KEY_OK or KEY_CANCEL
-function _M.askOK(prompt, q)
+function _M.askOK(prompt, q, units, unitsOther)
 
     local f = _M.keyGroup.keypad.callback
     local prompt = prompt or ''
     local q = q or ''  
+    local u = units or 0
+    local uo = unitsOther or 0
   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
 
@@ -2919,6 +3250,7 @@ function _M.askOK(prompt, q)
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
     _M.writeBotUnits(0,0)
+    _M.writeBotUnits(u,uo)
  
     _M.askOKWaiting = true
     _M.askOKResult = _M.KEY_CANCEL
@@ -2939,12 +3271,16 @@ end
 -- @param options table of option strings
 -- @param def default selection string.byte
 -- @param loop If true, top option loops to the bottom option and vice versa
--- @return selected string  (default selection if KEY_CANCEL pressed)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+-- @return selected string  if OK pressed or nil if CANCEL pressed
 function _M.selectOption(prompt, options, def, loop)
     loop = loop or false
-
-    local options = options or {}
+    local options = options or {'cancel'}
+    local u = units or 0
+    local uo = unitsOther or 0
     local key = 0
+    local sel = nil
 
     local index = 1
     if def then
@@ -2957,37 +3293,36 @@ function _M.selectOption(prompt, options, def, loop)
 
     _M.editing = true
     
-    local sel = def or ''  
+
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
     _M.writeBotLeft(string.upper(options[index]))
-    _M.writeBotUnits(0,0)
+    _M.writeBotUnits(u,uo)
 
-    while _M.editing do
+    while _M.editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)  
         if key == _M.KEY_DOWN then
-            index = index - 1
-            if index == 0 then
+            index = index + 1
+            if index > #options then
               if loop then 
-                 index = #options
+                 index = 1
                else
-                  index = 1
+                  index = #options
                end
             end
         elseif key == _M.KEY_UP then
-            index = index + 1
-            if index > #options then
+            index = index - 1
+            if index <= 0 then
                if loop then 
-                   index = 1 
+                   index = #options 
                else 
-                  index = #options
+                  index = 1
                end   
             end
         elseif key == _M.KEY_OK then 
             sel = options[index]
             _M.editing = false
         elseif key == _M.KEY_CANCEL then
-             sel = def
           _M.editing = false     
       end
       _M.writeBotLeft(string.upper(options[index]))
