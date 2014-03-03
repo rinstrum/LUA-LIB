@@ -306,7 +306,7 @@ end
 function _M.getRegDP(reg)
     local data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
-       _M.dbg.printVar('getDP: '.. reg .. ' ', err, _M.dbg.ERROR)
+       _M.dbg.error('getDP: ', reg, err)
        return nil, nil
     else
       local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
@@ -352,7 +352,6 @@ function _M.readSettings()
         if _M.settings.dispmode[mode].reg ~= 0 then
             local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
             if data and not err then 
-              --  _M.dbg.info('Data: ', data)
                 data = tonumber(data, 16)
                 if data ~= nil then
                     _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
@@ -361,15 +360,16 @@ function _M.readSettings()
                     _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
                     _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
                 else
-	                _M.dbg.warn('Bad settings data: ', data)
+                    _M.dbg.warn('Bad settings data: ', data)
                 end
             else
                 _M.dbg.warn('Incorrect read: ',data,err)
             end
         end
     end
-    --_M.dbg.info('Settings = ',_M.settings)    
-end
+    _M.saveAutoTopLeft = _M.readAutoTopLeft()
+    _M.saveAutoBotLeft = _M.readAutoBotLeft()
+ end
  
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
@@ -381,7 +381,7 @@ function _M.configure(model)
         _M.serialno, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
     end
     
-     _M.dbg.printVar(_M.model,_M.serialno,_M.dbg.INFO)
+     _M.dbg.info(_M.model,_M.serialno)
      
     _M.readSettings()
     
@@ -440,7 +440,7 @@ end
 function _M.loadRIS(filename)
     local file = io.open(filename, "r")
     if not file then
-      _M.dbg.warn('RIS file not found')
+      _M.dbg.warn('RIS file not found',filename)
       return
     end  
     for line in file:lines() do
@@ -1370,8 +1370,11 @@ function _M.handleRTC(status, active)
 end
 
 function _M.handleINIT(status, active)
-    _M.readSettings()
-    _M.RTCread()
+   _M.dbg.info('INIT',string.format('%08X',status),active)
+   if active then
+       _M.readSettings()
+       _M.RTCread()
+   end    
 end
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
