@@ -3552,7 +3552,6 @@ _M.ADCHIRES_DB          = 3                       -- R420 database setting
 
 --  Calibrate
 _M.REG_CALIBWGT         = 0x0100
-
 _M.REG_CALIBZERO        = 0x0102
 _M.REG_CALIBSPAN        = 0x0103
 _M.REG_CALIBLIN         = 0x0104
@@ -3717,6 +3716,7 @@ function _M.checkPasscode(pc, code)
     local pc = pc or 'full'
     local pcode = _M.passcodes[pc].pcode
     local f = _M.removeErrHandler()
+    local pass = ''
     while true do    
        msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
@@ -3742,18 +3742,45 @@ end
 -------------------------------------------------------------------------------
 -- Command to lock instrument
 -- @param pc = 'full','safe','oper'
-function _M.lockPasscode(pcode)
+function _M.lockPasscode(pc)
     local pc = pc or 'full'
     local pcode = _M.passcodes[pc].pcode
     local pcodeData = _M.passcodes[pc].pcodeData
  
     local f = _M.removeErrHandler()
-    msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
+    local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
     if msg then
        msg = bit32.bxor(tonumber(msg,16),0xFF)  
        msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(msg,0),1.0) 
     end    
     _M.setErrHandler(f)
+end
+
+-------------------------------------------------------------------------------
+-- Command to change instrument passcode
+-- @param pc = 'full','safe','oper'
+-- @param oldCode passcode to unlock, nil to prompt user
+-- @param newCode passcode to set, nil to prompt user
+-- @return true if successful
+function _M.changePasscode(pc, oldCode, newCode)
+   local pc = pc or 'full'
+   local pcodeData = _M.passcodes[pc].pcodeData
+   if _M.checkPasscode(pc,oldCode) then
+        if not newCode then
+             local pass, ok = _M.edit('NEW','','passcode')
+             if not ok then
+                return false
+             end
+             newCode = pass
+        end             
+        local msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcodeData,_M.toPrimary(newCode,0),1.0)
+        if not msg then
+           return false
+        else
+           return true
+        end    
+    end
+    return false    
 end
 
 -------------------------------------------------------------------------------
@@ -3852,6 +3879,79 @@ function _M.calibrateSpanMVV(MVV)
 end
 
 
+_M.REG_ZEROMVV  = 0x0111
+_M.REG_SPANWGT  = 0x0112
+_M.REG_SPANMVV  = 0x0113
+_M.REG_LINWGT   = 0x0114
+_M.REG_LINPC    = 0x0115
+_M.NUM_LINPTS   = 10
+-------------------------------------------------------------------------------
+-- Command to read MVV zero calibration
+-- @return MVV signal or nil with error string if error encountered
+function _M.readZeroMVV()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_ZEROMVV)
+    if data then
+        data = _M.toFloat(data,4)
+        return data, nil
+    else
+        return data,error
+    end     
+end
+
+-------------------------------------------------------------------------------
+-- Command to read MVV span calibration
+-- @return MVV signal or nil with error string if error encountered
+function _M.readSpanMVV()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANMVV)
+    if data then
+        data = _M.toFloat(data,4)
+        return data, nil
+    else
+         return data,error
+    end   
+end
+-------------------------------------------------------------------------------
+-- Command to read span calibration weight
+-- @return span weight used on the last span calibration
+function _M.readSpanWeight()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANWGT)
+    if data then
+        data = _M.toFloat(data)
+        return data, nil
+    else
+        return data,error
+    end   
+end
+
+-------------------------------------------------------------------------------
+-- Command to read linearisation results
+-- @return linearisation results in a table of 10 lines with each line having
+-- pc (percentage of fullscale that point in applied), 
+-- correction (amount of corrected weight)
+-- if error return nil plus error string  
+function _M.readLinCal()
+    local t = {}
+    for i = 1,_M.NUM_LINPTS do
+        table.insert(t,{})
+        local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINPC,i-1,1.0)
+        if not msg then
+            return msg, err
+        else
+            t[i].pc = _M.toFloat(msg,0)      
+        end    
+        
+        msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINWGT,i-1,1.0)
+        if not msg then
+            return msg, err
+        else
+            t[i].correction = _M.toFloat(msg)      
+        end 
+    end 
+    return t, nil 
+end
+
+
+
 -------------------------------------------------------------------------------
 -- Command to calibrate linearisation point
 -- @param pt is the linearisation point 1..10 
@@ -3862,7 +3962,7 @@ function _M.calibrateLin(pt, val)
        pt = tonumber(pt)
     end   
 
-    if (pt < 1) or (pt > 10) then
+    if (pt < 1) or (pt > _M.NUM_LINPTS) then
         return nil, 'Linearisation point out of range' 
     end
     
@@ -3874,7 +3974,7 @@ function _M.calibrateLin(pt, val)
         return msg, err
     end
     
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBLIN,pt,1.0)
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBLIN,pt-1,1.0)
     if not msg then
         return msg, err
     end    
@@ -3894,6 +3994,7 @@ function _M.calibrateLin(pt, val)
 end
 
 
+
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param pt is the linearisation point 1..10 
@@ -3903,11 +4004,11 @@ function _M.clearLin(pt)
        pt = tonumber(pt)
     end   
 
-    if (pt < 1) or (pt > 10) then
+    if (pt < 1) or (pt > _M.NUM_LINPTS) then
         return nil, 'Linearisation point out of range' 
     end
     
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt,1.0)
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt-1,1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]

@@ -108,41 +108,62 @@ local function mainLoop()
    elseif mode == 'menu' then
       dwi.writeTopLeft()
       dwi.writeBotLeft('')
-      sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','EXIT'},sel,true)
+      sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
       if not sel or sel == 'EXIT' then
          mode = 'idle'
          dwi.lockPasscode('full')
-      elseif dwi.checkPasscode('full','2468') then
+      elseif sel == 'PASSCODE' then
+          local pc = dwi.selectOption('PASSCODE',{'full','safe','oper'},'full',true)
+          if pc then
+               dwi.changePasscode(pc)
+          end          
+      elseif dwi.checkPasscode('full') then
           if sel == 'ZERO' then
               ret, msg = dwi.calibrateZero()
+              if ret == 0 then
+                  rinApp.dbg.info('Zero MVV: ',dwi.readZeroMVV())
+              end    
               prompt(msg)  
+              
           elseif sel == 'SPAN' then
-              ret, msg = dwi.calibrateSpan(dwi.editReg(dwi.REG_CALIBWGT))   
+              ret, msg = dwi.calibrateSpan(dwi.editReg(dwi.REG_CALIBWGT)) 
+              if ret == 0 then
+                  rinApp.dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
+                  rinApp.dbg.info('Span MVV: ',dwi.readSpanMVV())
+              end
               prompt(msg)
+          
           elseif sel == 'MVV SPAN' then
               MVV = dwi.edit('MVV SPAN','2.0','number')
               ret, msg = dwi.calibrateSpanMVV(MVV)   
               prompt(msg)
+          
           elseif sel == 'MVV ZERO' then
               MVV = dwi.edit('MVV ZERO','0','number')
               ret, msg = dwi.calibrateZeroMVV(MVV) 
               prompt(msg)
+          
           elseif sel == 'SET LIN' then
               pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
                   ret, msg = dwi.calibrateLin(pt,dwi.editReg(dwi.REG_CALIBWGT))   
+                  if ret == 0 then  
+                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                  end
                   prompt(msg)
               end    
           elseif sel == 'CLR LIN' then
               pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
                  ret, msg = dwi.clearLin(pt)   
+                 if ret == 0 then  
+                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                 end
                  prompt(msg)
               end   
           end          
         end
     end 
-      
 end
 
 
