@@ -2015,106 +2015,6 @@ _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")                                      
 
--------------------------------------------------------------------------------
--- Show a long message on a portion of the display.  The message must be
--- correctly broken by the caller
--- @param msg An array of message fragments
--- @param delay The timing interval between each fragment displaying
--- @param rep Keep cycling the message or stop after once?
--- @param disp Display function
--- @return The timer being used for this message display
-local function writeMessageCycle(msg, delay, rep, disp)
-	local t = type(msg)
-    if t == "nil" or t == "boolean" or t == "function" then
-    	return nil
-    end
-    if t ~= "table" then
-    	msg = { msg }
-    end
-
-	local stage = 1
-	local timer
-
-    local function cycleMessage()
-    	disp(msg[stage])
-        stage = stage + 1
-        if stage > #msg then
-        	if rep then
-            	stage = 1
-            else
-            	_M.system.timers.removeTimer(timer)
-            end
-        end
-    end
-	timer = _M.system.timers.addTimer(delay, 0, cycleMessage)
-    return timer
-end
-
--------------------------------------------------------------------------------
--- Display a sequence of strings in the top left alphanumeric display.
--- The sequence will be cycled through with each fragment displayed for the
--- specified delay.  Optionally, the sequence can be repeated indefinitely.
--- The timer being used for the display of this message is returned and this
--- timer can be removed at anytime but cannot be otherwise modified.
--- No attempt is made to format the fragments to fit the display section.
---
--- @param msg An array of message fragments
--- @param delay The timing interval between each fragment displaying
--- @param rep Keep cycling the message or stop after once?
--- @return The timer being used for this message display
-function _M.cycleTopLeft(msg, delay, rep)
-	return writeMessageCycle(msg, delay, rep, _M.writeTopLeft)
-end
-
--------------------------------------------------------------------------------
--- Display a sequence of strings in the top right alphanumeric display.
--- The sequence will be cycled through with each fragment displayed for the
--- specified delay.  Optionally, the sequence can be repeated indefinitely.
--- The timer being used for the display of this message is returned and this
--- timer can be removed at anytime but cannot be otherwise modified.
--- No attempt is made to format the fragments to fit the display section.
---
--- @param msg An array of message fragments
--- @param delay The timing interval between each fragment displaying
--- @param rep Keep cycling the message or stop after once?
--- @return The timer being used for this message display
-function _M.cycleTopRight(msg, delay, rep)
-	return writeMessageCycle(msg, delay, rep, _M.writeTopRight)
-end
-
--------------------------------------------------------------------------------
--- Display a sequence of strings in the bottom left alphanumeric display.
--- The sequence will be cycled through with each fragment displayed for the
--- specified delay.  Optionally, the sequence can be repeated indefinitely.
--- The timer being used for the display of this message is returned and this
--- timer can be removed at anytime but cannot be otherwise modified.
--- No attempt is made to format the fragments to fit the display section.
---
--- @param msg An array of message fragments
--- @param delay The timing interval between each fragment displaying
--- @param rep Keep cycling the message or stop after once?
--- @return The timer being used for this message display
-function _M.cycleBotLeft(msg, delay, rep)
-	return writeMessageCycle(msg, delay, rep, _M.writeBotLeft)
-end
-
--------------------------------------------------------------------------------
--- Display a sequence of strings in the bottom right alphanumeric display.
--- The sequence will be cycled through with each fragment displayed for the
--- specified delay.  Optionally, the sequence can be repeated indefinitely.
--- The timer being used for the display of this message is returned and this
--- timer can be removed at anytime but cannot be otherwise modified.
--- No attempt is made to format the fragments to fit the display section.
---
--- @param msg An array of message fragments
--- @param delay The timing interval between each fragment displaying
--- @param rep Keep cycling the message or stop after once?
--- @return The timer being used for this message display
-function _M.cycleBotRight(msg, delay, rep)
-	return writeMessageCycle(msg, delay, rep, _M.writeBotRight)
-end
-
-
 -----------------------------------------------------------------------------
 -- link register address  with Top annunciators to update automatically 
 --@function writeAutoTopAnnun
@@ -3299,16 +3199,24 @@ function _M.editReg(reg,prompt)
    return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
 end
 
+_M.delayWaiting = false
+
+-------------------------------------------------------------------------------
+-- Private function
+function _M.delayCallback()
+    _M.delayWaiting = false
+end
+
 -------------------------------------------------------------------------------
 -- Called to delay for t sec while keeping event handlers running
 -- @param t delay time in sec 
 function _M.delay(t)
-	local delayWaiting = true
-    _M.system.timers.addTimer(0, t, function () delayWaiting = false end)
-
-    while delayWaiting do
+    local tmr = _M.system.timers.addTimer(0, t, _M.delayCallback)
+    _M.delayWaiting = true
+    while _M.delayWaiting do
         _M.system.handleEvents()
     end  
+    _M.system.timers.removeTimer(tmr)
 end
 
 _M.askOKWaiting = false
