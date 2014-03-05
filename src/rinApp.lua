@@ -74,16 +74,39 @@ function _M.setUSBRegisterCallback(f)
 end
 
 -------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever a USB device change is detected
+-- @return current callback
+function _M.getUSBRegisterCallback(f)
+   return _M.userUSBRegisterCallback
+end
+
+
+-------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
 -- @param f  Callback function takes event table as a parameter
 function _M.setUSBEventCallback(f)
    _M.userUSBEventCallback = f
 end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever a USB device event is detected
+-- @return current callback
+function _M.getUSBEventCallback()
+   return _M.userUSBEventCallback
+end
+
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB Keyboard event is processed
 -- @param f  Callback function takes key string as a parameter
 function _M.setUSBKBDCallback(f)
    _M.userUSBKBDCallback = f
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a USB Keyboard event is processed
+-- @return current callback
+function _M.getUSBKBDCallback()
+   return _M.userUSBKBDCallback
 end
 
 _M.eventDevices = {}
@@ -181,38 +204,46 @@ function _M.initUSB()
   _M.usb.checkDev()  -- call to check if any usb devices already mounted
 end
    
-_M.mainLoop = nil
+_M.userMainLoop = nil
+_M.userCleanup = nil
 
 -------------------------------------------------------------------------------
--- called to register application's main loop
+-- called to register application's main loop function
 -- @param f Mail Loop function to call 
 function _M.setMainLoop(f)
-   _M.mainLoop = f
+   _M.userMainLoop = f
+end    
+
+-------------------------------------------------------------------------------
+-- called to register application's cleanup function
+-- @param f cleanup function to call 
+function _M.setCleanup(f)
+   _M.userCleanup = f
 end    
     
 -------------------------------------------------------------------------------
 -- Initialise rinApp and all connected devices
 function _M.init()
+    if _M.initialised then
+        return
+    end    
+    _M.initUSB()
     for i,v in ipairs(_M.devices) do
         v.init() 
-    end 
+    end
+    _M.initialised = true    
 end    
-    
--------------------------------------------------------------------------------
--- Main rinApp program loop
-function _M.run()
-    while _M.running do
-        if _M.mainLoop then
-           _M.mainLoop()
-        end   
-        _M.system.handleEvents()           -- handleEvents runs the event handlers 
-    end  
-end
 
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
 -- enabled by configure() 
 function _M.cleanup()
+    if _M.cleanedUp then
+        return
+    end        
+    if _M.userCleanup then
+      _M.userCleanup()
+    end
     for k,v in pairs(_M.devices) do
         v.restoreLcd()
         v.lcdControl('default')
@@ -221,7 +252,23 @@ function _M.cleanup()
         v.delay(0.050)
      end 
     _M.dbg.info('','------   Application Finished  ------')
+    _M.cleanedUp = true
 end
+
+    
+-------------------------------------------------------------------------------
+-- Main rinApp program loop
+function _M.run()
+    _M.init()
+    while _M.running do
+        if _M.userMainLoop then
+           _M.userMainLoop()
+        end   
+        _M.system.handleEvents()           -- handleEvents runs the event handlers 
+    end
+   _M.cleanup()    
+end
+
 
 io.output():setvbuf('no')
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
--- myApp
+-- Print Copy
 -- 
--- Application template
+-- Application to print Carbon copy
 --    
 -- Copy this file to your project directory and insert the specific code of 
 -- your application
@@ -11,61 +11,51 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
+
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
-dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+dwi.loadRIS("printCopy.RIS")               -- load default instrument settings
+
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
 
-local msg = ''
+
 -------------------------------------------------------------------------------
--- Callback for local timer
-local slideStart = 0.100    -- time in seconds until timer events start triggering
-local slideRepeat = 0.400  -- time in seconds that the timer repeats
-
-local function slide()
-
-    -- Check if message is finished
-    if msg == false then 
-        return 
-    end
-
-    -- If there's nothing left to move, clear the screen
-    -- and write the msg to false so we know we're done
-    if msg == '' then
-        dwi.writeBotLeft('')
-        msg = false
-        
-    -- If there's something left to write, write a substring of 9 characters
-    -- to the device and remove a character from the message
-    else   
-        dwi.writeBotLeft(string.format('%-9s',string.upper(string.sub(msg,1,9))))
-        msg = string.sub(msg,2)
-    end
-end
-
-rinApp.system.timers.addTimer(slideRepeat,slideStart,slide)
+-- Handler for SerB messages 
 -------------------------------------------------------------------------------
 
--- Format the string for slide
-local function showMarquee (s)
-   msg = '        ' ..  s
-end
+printCopy = {}  -- table to hold print lines of text
+
+function printHandler(s)
+   dwi.dbg.print('SER3B:',s)
+   dwi.printCustomTransmit(dwi.expandCustomTransmit(s),dwi.PRINT_SER1A)
+   table.insert(printCopy,s)
+ end
+--dwi.setDelimiters('\02','\03')
+dwi.setSerBCallback(printHandler)
+
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
-local function handleKey(key, state)
-    showMarquee(string.format("%s Pressed ", key))
-    if key == dwi.KEY_PWR_CANCEL and state == 'long' then 
-        rinApp.running = false
+local function F3Pressed(key, state)
+   rinApp.dbg.info('Copy Printed')   
+   if #printCopy > 0 then
+       dwi.printCustomTransmit([[--------------------------\C1]],dwi.PRINT_SER1A)
+       for k,v in ipairs(printCopy) do
+         dwi.printCustomTransmit(dwi.expandCustomTransmit(v),dwi.PRINT_SER1A)
+       end
+       dwi.printCustomTransmit([[<<Copy>>\C1]],dwi.PRINT_SER1A)
+       printCopy = {}
     end
-    return true     -- key handled so don't send back to instrument
+   return true
 end
-dwi.setKeyGroupCallback(dwi.keyGroup.all, handleKey)
+dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
+-------------------------------------------------------------------------------
+
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -85,7 +75,8 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
 
-showMarquee("This is a very long message for a small LCD screen")
+dwi.writeBotLeft("PRINT")
+dwi.writeBotRight("COPY")
 
 --=============================================================================
 -- Main Application Loop
@@ -98,9 +89,13 @@ end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
+
 --=============================================================================
 -- Clean Up 
 --=============================================================================
 -- Put any application clean up here
 
+
 rinApp.cleanup()                   -- shutdown application resources
+
+

@@ -146,7 +146,7 @@ function _M.defaultErrHandler(addr, cmd, reg, data, s)
   if addr == nil then
     tmps = str.format("%s (broken message)", s)
   else
-    tmps = str.format("%s (%02d%02d%04d:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
+    tmps = str.format("%s (%02X%02X%04X:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
   end
    
   _M.dbg.warn('rinCMD Error: ',tmps) 
@@ -368,6 +368,10 @@ function _M.processMsg(msg, err)
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -2)
  
+    elseif str.sub(msg, -1, -1) == '\n' then
+        validDelim = "NORM"
+        newMsg = str.sub(msg, 1, -2)
+ 
     elseif str.sub(msg,-1,-1) == ';' then
         validDelim = "NORM"
         newMsg = str.sub(msg, 1, -2)
@@ -446,8 +450,8 @@ function _M.send(addr, cmd, reg, data, reply, crc)
     local reply = reply or 'reply'
     if reply == 'reply' then addr = bit32.bor(addr,_M.ADDR_REPLY) end
 
-    if cmd == _M.CMD_WRFINALHEX then
-        if type(data) == 'number' then
+    if cmd == _M.CMD_WRFINALHEX or cmd == _M.CMD_EX then
+      if type(data) == 'number' then
            data = str.format("%X",data)
         end   
      end 
@@ -559,8 +563,7 @@ function _M.setDelimiters(start, end1, end2)
 end
 
 -------------------------------------------------------------------------------
--- Set delimiters for messages received from the socket linked to SERB 
--- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
+-- Set callback function for the SerB data stream 
 -- @param f callback function that takes a message string as an argument
 function _M.setSerBCallback(f)
   _M.SerBCallback = f

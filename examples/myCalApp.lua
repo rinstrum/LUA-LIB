@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- myApp
+-- myCalApp
 -- 
 -- Application template
 --    
@@ -16,10 +16,9 @@ local rinApp = require "rinApp"     --  load in the application framework
 -- Define any Application variables you wish to use 
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
-dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+dwi.loadRIS("myCalApp.RIS")               -- load default instrument settings
 
 local mode = 'idle'
-
 
 
 
@@ -34,103 +33,14 @@ local mode = 'idle'
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
 
--------------------------------------------------------------------------------
---  Callback to capture changes to current weight
-local curWeight = 0
-local function handleNewWeight(data, err)
-   curWeight = data
-   print('Weight = ',curWeight)  
-end
-dwi.addStream(dwi.REG_GROSSNET, handleNewWeight, 'change')
--- choose a different register if you want to track other than GROSSNET weight
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- Callback to monitor motion status  
-local function handleMotion(status, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then 
-     print ('motion')
-  else 
-     print('stable')  
-   end   
-end
-dwi.setStatusCallback(dwi.STAT_MOTION, handleMotion)
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- Callback to capture changes to instrument status  
-local function handleIO1(IO, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then 
-     print ('IO 1 is on ')
-  else
-     print ('IO 1 is off ')
-  end   
-end
-dwi.setIOCallback(1, handleIO1)
--- set callback to capture changes on IO1
--------------------------------------------------------------------------------
-
-
-local function handleIO(data)
-   rinApp.dbg.info(' IO: ', string.format('%08X',data))
-end
-dwi.setAllIOCallback(handleIO)
-
--------------------------------------------------------------------------------
--- Callback to capture changes to instrument status  
-local function handleSETP1(SETP, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then 
-     print ('SETP 1 is on ')
-  else
-     print ('SETP 1 is off ')
-  end   
-end
-dwi.setSETPCallback(1, handleSETP1)
--- set callback to capture changes on IO1
--------------------------------------------------------------------------------
-
-
--------------------------------------------------------------------------------
--- Callback to capture changes to instrument status  
-local function handleSETP(data)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
-   rinApp.dbg.info('SETP: ',string.format('%04X',data))   
-end
-dwi.setAllSETPCallback(handleSETP)
--- set callback to capture changes on IO1
--------------------------------------------------------------------------------
-
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
-    if state == 'long' then
-        print('Long F1 Pressed')
-    else    
-        if mode == 'idle' then
-            mode = 'run'
-        end    
-    end
+    mode = 'menu'
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
--------------------------------------------------------------------------------
-
--------------------------------------------------------------------------------
--- Callback to handle F2 key event 
-local function F2Pressed(key, state)
-    if state == 'long' then
-        print('Long F1 Pressed')
-    else    
-        mode = 'idle'
-    end
-    return true    -- key handled here so don't send back to instrument for handling
-end
-dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
 -------------------------------------------------------------------------------
 
 
@@ -183,32 +93,77 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -- Define your application loop
 -- mainLoop() gets called by the framework after any event has been processed
 -- Main Application logic goes here
+local function prompt(msg)
+       dwi.writeBotLeft(msg)
+       dwi.delay(1.5) 
+end
+
+local sel = 'ZERO' 
 local function mainLoop()
+  
    if mode == 'idle' then
-      dwi.writeTopLeft('MY APP')
-      dwi.writeBotLeft('F1-START F2-FINISH',1.5)
+      dwi.writeTopLeft('CAL.APP')
+      dwi.writeBotLeft('F1-MENU',1.5)
       dwi.writeBotRight('')
-   elseif mode == 'run' then
+   elseif mode == 'menu' then
       dwi.writeTopLeft()
       dwi.writeBotLeft('')
-      dwi.writeBotRight('PLACE')
-      if dwi.allStatusSet(dwi.STAT_NOTZERO, dwi.STAT_NOTMOTION) then
-         dwi.writeReg(dwi.REG_USERNUM3,dwi.toPrimary(curWeight))
-         dwi.setAutoBotLeft(dwi.REG_USERNUM3)         
-         dwi.writeBotRight('CAPTURED')
-         dwi.buzz(2)
-         dwi.delay(1)
-         dwi.writeBotRight('...')
-         mode = 'wait'
-      end
-    elseif mode == 'wait' then      
-       if dwi.anyStatusSet(dwi.STAT_MOTION) then
-           dwi.writeBotRight('')
-           dwi.buzz(1)
-           dwi.delay(0.5)
-           mode = 'run'
-       end
-    end       
+      sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
+      if not sel or sel == 'EXIT' then
+         mode = 'idle'
+         dwi.lockPasscode('full')
+      elseif sel == 'PASSCODE' then
+          local pc = dwi.selectOption('PASSCODE',{'full','safe','oper'},'full',true)
+          if pc then
+               dwi.changePasscode(pc)
+          end          
+      elseif dwi.checkPasscode('full') then
+          if sel == 'ZERO' then
+              ret, msg = dwi.calibrateZero()
+              if ret == 0 then
+                  rinApp.dbg.info('Zero MVV: ',dwi.readZeroMVV())
+              end    
+              prompt(msg)  
+              
+          elseif sel == 'SPAN' then
+              ret, msg = dwi.calibrateSpan(dwi.editReg(dwi.REG_CALIBWGT)) 
+              if ret == 0 then
+                  rinApp.dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
+                  rinApp.dbg.info('Span MVV: ',dwi.readSpanMVV())
+              end
+              prompt(msg)
+          
+          elseif sel == 'MVV SPAN' then
+              MVV = dwi.edit('MVV SPAN','2.0','number')
+              ret, msg = dwi.calibrateSpanMVV(MVV)   
+              prompt(msg)
+          
+          elseif sel == 'MVV ZERO' then
+              MVV = dwi.edit('MVV ZERO','0','number')
+              ret, msg = dwi.calibrateZeroMVV(MVV) 
+              prompt(msg)
+          
+          elseif sel == 'SET LIN' then
+              pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
+              if (pt) then
+                  ret, msg = dwi.calibrateLin(pt,dwi.editReg(dwi.REG_CALIBWGT))   
+                  if ret == 0 then  
+                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                  end
+                  prompt(msg)
+              end    
+          elseif sel == 'CLR LIN' then
+              pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
+              if (pt) then
+                 ret, msg = dwi.clearLin(pt)   
+                 if ret == 0 then  
+                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                 end
+                 prompt(msg)
+              end   
+          end          
+        end
+    end 
 end
 
 

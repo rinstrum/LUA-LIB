@@ -73,6 +73,9 @@ end
 -- @return table (1d array)
  
 function _M.fromCSV(s)
+    if string.sub(s,-1,-1) == '\r' then
+       s = string.sub(s,1,-2)  -- remove \r if present
+    end   
     s = s .. ','
     local t = {}
 
