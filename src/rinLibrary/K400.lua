@@ -34,8 +34,7 @@ _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
 
 _M.REG_SAVESETTING      = 0x0010
-_M.REG_FULLPASS         = 0x0019
-_M.REG_SAFEPASS         = 0x001A
+
 
 --- System Registers.
 --@table sysRegisters
@@ -172,8 +171,9 @@ _M.REG_MANHOLD          = 0x002A
 -- @param cmd CMD_  command
 -- @param reg REG_  register 
 -- @param data to send
-function _M.sendReg(cmd, reg, data)
-  _M.send(nil, cmd, reg, data, "noReply")
+-- @param crc - 'crc' if message sent with crc, false (default) otherwise
+function _M.sendReg(cmd, reg, data, crc)
+  _M.send(nil, cmd, reg, data, "noReply",crc)
 end
 
 -------------------------------------------------------------------------------
@@ -184,7 +184,8 @@ end
 -- @param t timeout in sec
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
-function _M.sendRegWait(cmd, reg, data, t)
+-- @param crc - 'crc' if message sent with crc, false (default) otherwise
+function _M.sendRegWait(cmd, reg, data, t, crc)
     
     local t = t or 0.500
     
@@ -203,7 +204,7 @@ function _M.sendRegWait(cmd, reg, data, t)
     
     local f = _M.deviceRegisters[reg]
     _M.bindRegister(reg, waitf)  
-    _M.send(nil, cmd, reg, data, "reply")
+    _M.send(nil, cmd, reg, data, "reply", crc)
     local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
 
     while waiting do
@@ -221,6 +222,43 @@ function _M.sendRegWait(cmd, reg, data, t)
 end
 
 -------------------------------------------------------------------------------
+-- processes the return string from CMD_RDLIT command
+-- if data is a floating point number then the converted number is returned
+-- otherwise the original data string is returned
+-- @param data returned from _CMD_RDLIT 
+-- @return floating point number or data string
+function _M.literalToFloat(data)
+      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
+      if not a then
+           return data
+      else
+       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
+       return tonumber(data)    
+      end   
+end
+
+
+-------------------------------------------------------------------------------
+-- called to convert hexadecimal return string to a floating point number
+-- @param data returned from _CMD_RDFINALHEX or from stream
+-- @param dp decimal position (if nil then instrument dp used)
+-- @return floating point number
+function _M.toFloat(data, dp)
+   local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
+   
+   data = tonumber(data,16)
+   if data > 0x7FFFFFFF then
+        data = data - 0xFFFFFFFF - 1
+    end
+    
+   for i = dp,1,-1 do
+      data = data / 10
+   end
+   
+   return data
+end
+
+-------------------------------------------------------------------------------
 -- Called to read register contents
 -- @param reg REG_  register 
 -- @return data received from instrument, nil if error
@@ -230,16 +268,10 @@ function _M.readReg(reg)
     
     data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
-       _M.dbg.printVar('Read Error', err, _M.dbg.DEBUG)
+       _M.dbg.debug('Read Error', err)
        return nil, err
     else
-      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
-      if not a then
-           return data, nil
-      else
-       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
-       return tonumber(data),nil    
-      end   
+       return _M.literalToFloat(data), nil
     end
 end
 
@@ -304,7 +336,7 @@ end
 function _M.getRegDP(reg)
     local data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
-       _M.dbg.printVar('getDP: '.. reg .. ' ', err, _M.dbg.ERROR)
+       _M.dbg.error('getDP: ', reg, err)
        return nil, nil
     else
       local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
@@ -350,7 +382,6 @@ function _M.readSettings()
         if _M.settings.dispmode[mode].reg ~= 0 then
             local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
             if data and not err then 
-              --  _M.dbg.info('Data: ', data)
                 data = tonumber(data, 16)
                 if data ~= nil then
                     _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
@@ -359,15 +390,16 @@ function _M.readSettings()
                     _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
                     _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
                 else
-	                _M.dbg.warn('Bad settings data: ', data)
+                    _M.dbg.warn('Bad settings data: ', data)
                 end
             else
                 _M.dbg.warn('Incorrect read: ',data,err)
             end
         end
     end
-    --_M.dbg.info('Settings = ',_M.settings)    
-end
+    _M.saveAutoTopLeft = _M.readAutoTopLeft()
+    _M.saveAutoBotLeft = _M.readAutoBotLeft()
+ end
  
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
@@ -379,7 +411,7 @@ function _M.configure(model)
         _M.serialno, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
     end
     
-     _M.dbg.printVar(_M.model,_M.serialno,_M.dbg.INFO)
+     _M.dbg.info(_M.model,_M.serialno)
      
     _M.readSettings()
     
@@ -397,38 +429,21 @@ end
 -- Called to convert a floating point value to a decimal integer based on then
 -- primary instrument weighing settings 
 -- @param v is value to convert
+-- @param dp decimal position (if nil then instrument dp used) 
 -- @return floating point value suitable for a WRFINALDEC
-function _M.toPrimary(v)
+function _M.toPrimary(v, dp)
+ local dp = dp or _M.settings.dispmode[_M.settings.curDispMode].dp  -- use instrument dp if not specified otherwise
  
  if type(v) == 'string' then
     v = tonumber(v)
   end   
- for i = 1,_M.settings.dispmode[_M.settings.curDispMode].dp do
+ for i = 1,dp do
     v = v*10
   end
   v = math.floor(v+0.5)
   return(v)
 end
 
--------------------------------------------------------------------------------
--- called to convert hexadecimal return string to a floating point number
--- @param data returned from _CMD_RDFINALHEX or from stream
--- @param dp decimal position 
--- @return floating point number
-function _M.toFloat(data, dp)
-   local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
-   
-   data = tonumber(data,16)
-   if data > 0x7FFFFFFF then
-        data = data - 0xFFFFFFFF - 1
-    end
-    
-   for i = dp,1,-1 do
-      data = data / 10
-   end
-   
-   return data
-end
 
 -------------------------------------------------------------------------------
 -- Read a RIS file and send valid commands to the device
@@ -436,11 +451,16 @@ end
 function _M.loadRIS(filename)
     local file = io.open(filename, "r")
     if not file then
-      _M.dbg.warn('RIS file not found')
+      _M.dbg.warn('RIS file not found',filename)
       return
     end  
     for line in file:lines() do
          if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
+            local endCh = string.sub(line, -1, -1)
+            if endCh ~= '\r' and endCh ~= '\n' then
+                 line = line .. ';'
+            end     
+       
             _,cmd,reg,data,err = _M.processMsg(line)
             if err then
                _M.dbg.error('RIS error: ',err)
@@ -892,13 +912,9 @@ function _M.setStatusCallback(stat, callback)
     _M.statBinds[stat]['lastStatus'] = 0xFF
 end
 
--------------------------------------------------------------------------------
--- Called when IO status changes are streamed 
--- @param data Data on IO status streamed
--- @param err Potential error message
 
 -------------------------------------------------------------------------------
--- Called when SETP status changes are streamed 
+-- Called when IO status changes are streamed 
 -- @param data Data on SETP status streamed
 -- @param err Potential error message
 function _M.IOCallback(data, err)
@@ -944,11 +960,16 @@ end
 -- dwi.setIOCallback(1,handleIO1)
 --
 function _M.setIOCallback(IO, callback)
-    local status = bit32.lshift(0x00000001,IO-1)
-    _M.IOBinds[status] = {}
-    _M.IOBinds[status]['IO'] = IO
-    _M.IOBinds[status]['f'] = callback
-    _M.IOBinds[status]['lastStatus'] = 0xFFFFFFFF
+    
+    if callback then
+       local status = bit32.lshift(0x00000001,IO-1)
+       _M.IOBinds[status] = {}
+       _M.IOBinds[status]['IO'] = IO
+       _M.IOBinds[status]['f'] = callback
+       _M.IOBinds[status]['lastStatus'] = 0xFFFFFFFF
+    else
+       _M.dbg.warn('','setIOCallback:  nil value for callback function')
+    end       
 end
 
 
@@ -1058,7 +1079,7 @@ function _M.eStatusCallback(data, err)
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
            if v.running then
-              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X %08X',k,status))
+              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
            else
               v.running = true
               v.lastStatus = status
@@ -1360,8 +1381,11 @@ function _M.handleRTC(status, active)
 end
 
 function _M.handleINIT(status, active)
-    _M.readSettings()
-    _M.RTCread()
+   _M.dbg.info('INIT',string.format('%08X',status),active)
+   if active then
+       _M.readSettings()
+       _M.RTCread()
+   end    
 end
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
@@ -1703,8 +1727,12 @@ _M.curBotRight = ''
 _M.curTopUnits = 0
 _M.curBotUnits = 0
 _M.curBotUnitsOther = 0
+_M.curAutoTopLeft = 0
+_M.curAutoBotLeft = 0
 
 _M.saveBotLeft = ''
+_M.saveAutoTopLeft = 0
+_M.saveAutoBotLeft = 0
 _M.saveBotRight = ''
 _M.saveBotUnits = 0
 _M.saveBotUnitsOther = 0 
@@ -1722,14 +1750,155 @@ function _M.restoreBot()
   _M.writeBotUnits(_M.saveBotUnits, _M.saveBotUnitsOther)
 end
 
+
+local function strLenR400(s)
+   local len = 0
+   local dotFound = true
+   for i = 1,#s do
+     local ch = string.sub(s,i,i)
+     if not dotFound and  ch == '.' then
+         dotFound = true
+     else
+        if ch ~= '.' then
+           dotFound = false
+        end   
+        len = len + 1
+     end   
+   end    
+  return(len)
+end
+
+
+local function strSubR400(s,stPos,endPos)
+   local len = 0
+   local dotFound = true
+   local substr = ''
+   if stPos < 1 then
+       stPos = #s + stPos + 1
+   end
+   if endPos < 1 then
+       endPos = #s + endPos + 1
+   end
+   
+   for i = 1,#s do
+     local ch = string.sub(s,i,i)
+     if not dotFound and  ch == '.' then
+         dotFound = true
+     else
+        if ch ~= '.' then
+           dotFound = false
+        end   
+        len = len + 1
+     end   
+     if (len >= stPos) and (len <= endPos) then
+          substr = substr .. ch
+     end     
+   end    
+  return(substr)
+end
+
+
+-- takes a string and pads ... with . . . for R420 to handle
+local function padDots(s)
+    if #s == 0 then
+        return s
+    end         
+    local str = string.gsub(s,'%.%.','%. %.')
+    str = string.gsub(str,'%.%.','%. %.')
+    if string.sub(str,1,1) == '.' then
+        str = ' '..str
+    end    
+    return(str)    
+end
+
+
+
+-- local function to split a long string into shorter strings of multiple words
+-- that fit into length len
+local function splitWords(s,len)
+  local t = {}
+  local p = ''
+  local len = len or 8
+  
+  if strLenR400(s) <= len then
+     table.insert(t,s)
+     return t
+     end
+     
+  for w in string.gmatch(s, "%S+") do 
+    if strLenR400(p) + strLenR400(w) < len then
+       if p == '' then
+          p = w
+       else   
+          p = p .. ' '..w
+       end          
+    elseif strLenR400(p) > len then
+       table.insert(t,strSubR400(p,1,len))
+       p = strSubR400(p,len+1,-1)
+       if strLenR400(p) + strLenR400(w) < len then
+           p = p .. ' ' .. w
+       else
+          table.insert(t,p)
+          p = w
+       end           
+    else
+       if #p > 0 then
+           table.insert(t,p)
+       end    
+       p = w
+    end   
+   end
+   
+   while strLenR400(p) > len do
+      table.insert(t,strSubR400(p,1,len))
+      p = strSubR400(p,len+1,-1)
+   end
+   if #p > 0 or #t == 0 then
+     table.insert(t,p)
+   end  
+ return t
+end
+
+function _M.slideTopLeft()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+             string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
+     end
+    _M.slideTopLeftPos = _M.slideTopLeftPos + 1
+    if _M.slideTopLeftPos > #_M.slideTopLeftWords then
+       _M.slideTopLeftPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
+end
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
 -- @param s string to display
-function _M.writeTopLeft(s)
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeTopLeft(s,t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
+    end
     if s then
-        s = string.sub(s, 1, 11) -- Limit to 11 chars
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,  s)
-        _M.curTopLeft = s
+        if s ~= _M.curTopLeft then
+            _M.writeAutoTopLeft(0)
+            _M.curTopLeft = s
+            _M.slideTopLeftWords = splitWords(s,6)
+            _M.slideTopLeftPos = 1
+            if _M.slideTopLeftTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+                 string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
+            if #_M.slideTopLeftWords > 1 then
+                _M.slideTopLeftTimer = _M.system.timers.addTimer(t,t,_M.slideTopLeft)
+            end    
+        end
+    elseif _M.curAutoTopLeft == 0 then
+       _M.writeAutoTopLeft(_M.saveAutoTopLeft)
     end
 end
 
@@ -1738,31 +1907,104 @@ end
 -- @param s string to display
 function _M.writeTopRight(s)
     if s then
-        s = string.sub(s, 1, 7) -- Limit to 7 chars
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
-        _M.curTopRight = s
+        if s ~= _M.curTopRight then
+           _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
+           _M.curTopRight = s
+        end   
     end
 end
+
+
+
+
+function _M.slideBotLeft()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+             string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
+     end
+    _M.slideBotLeftPos = _M.slideBotLeftPos + 1
+    if _M.slideBotLeftPos > #_M.slideBotLeftWords then
+       _M.slideBotLeftPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
+end
+
+
+
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
 -- @param s string to display
-function _M.writeBotLeft(s)
-    if s then
-        s = string.sub(s, 1, 17) -- Limit to 17 chars
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, s)
-        _M.curBotLeft = s
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeBotLeft(s, t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
     end
+    
+    if s then
+        if s ~= _M.curBotLeft then
+            _M.writeAutoBotLeft(0)
+            _M.curBotLeft = s
+            _M.slideBotLeftWords = splitWords(s,9)
+            _M.slideBotLeftPos = 1
+            if _M.slideBotLeftTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideBotLeftTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+                 string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
+            if #_M.slideBotLeftWords > 1 then
+                _M.slideBotLeftTimer = _M.system.timers.addTimer(t,t,_M.slideBotLeft)
+            end    
+        end
+    elseif _M.curAutoBotLeft == 0 then
+       _M.writeAutoBotLeft(_M.saveAutoBotLeft)
+    end
+end
+
+
+function _M.slideBotRight()
+    local function dispWord()
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+             string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
+     end
+    _M.slideBotRightPos = _M.slideBotRightPos + 1
+    if _M.slideBotRightPos > #_M.slideBotRightWords then
+       _M.slideBotRightPos = 1
+       dispWord()       
+       return
+    end 
+    dispWord()    
 end
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Right of LCD, curBotRight is set to s
 -- @param s string to display
-function _M.writeBotRight(s)
+-- @param t delay in seconds between display of sections of a large message
+function _M.writeBotRight(s, t)
+    local t = t or 0.8
+    
+    if t < 0.2 then 
+       t = 0.2 
+    end
+
     if s then
-        s = string.sub(s, 1, 15) -- Limit to 15 chars
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_BOTTOM_RIGHT, s)
-        _M.curBotRight = s
+     if s ~= _M.curBotRight then
+            _M.curBotRight = s
+            _M.slideBotRightWords = splitWords(s,8)
+            _M.slideBotRightPos = 1
+            if _M.slideBotRightTimer then     -- remove any running display
+                _M.system.timers.removeTimer(_M.slideBotRightTimer)
+            end    
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+                 string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
+            if #_M.slideBotRightWords > 1 then
+                _M.slideBotRightTimer = _M.system.timers.addTimer(t,t,_M.slideBotRight)
+            end    
+        end
     end
 end
 
@@ -1775,28 +2017,67 @@ _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
 
 -----------------------------------------------------------------------------
 -- link register address  with Top annunciators to update automatically 
---@function setAutoTopAnnun
+--@function writeAutoTopAnnun
 --@param reg address of register to link Top Annunciator state to.
 -- Set to 0 to enable direct control of the area                                         
-_M.setAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
+_M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
+
+_M.setAutoTopAnnun = _M.writeAutoTopAnnun                                         
 -----------------------------------------------------------------------------
--- link register address with Top Left display to update automatically.
---@function setAutoTopLeft
---@param reg address of register to link Top Left display to.     
--- Set to 0 to enable direct control of the area                                    
-_M.setAutoTopLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_LEFT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
------------------------------------------------------------------------------
--- link register address with Bottom Left display to update automatically 
---@function setAutoBotLeft
+-- link register address with Top Left display to update automatically 
 --@param reg address of register to link Top Left display to.
 -- Set to 0 to enable direct control of the area                                         
-_M.setAutoBotLeft   = _M.preconfigureMsg(_M.REG_DISP_AUTO_BOTTOM_LEFT,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
+function _M.writeAutoTopLeft(reg)
+   if reg ~= _M.curAutoTopLeft then
+       if _M.slideTopLeftTimer then     -- remove any running display
+          _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+       end 
+       _M.curTopLeft = nil   
+       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
+       _M.saveAutoTopLeft = _M.curAutoTopLeft
+       _M.curAutoTopLeft = reg
+   end    
+end        
+
+_M.setAutoTopLeft = _M.writeAutoTopLeft
+
+-----------------------------------------------------------------------------
+-- reads the current Top Left auto update register 
+-- @return register that is being used for auto update, 0 if none                                         
+function _M.readAutoTopLeft()
+   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_TOP_LEFT)
+   reg = tonumber(reg)
+   _M.curAutoTopLeft = reg
+   return reg
+end        
+-----------------------------------------------------------------------------
+-- link register address with Bottom Left display to update automatically 
+--@param reg address of register to link Bottom Left display to.
+-- Set to 0 to enable direct control of the area                                         
+function _M.writeAutoBotLeft(reg)
+   if reg ~= _M.curAutoBotLeft then
+       if _M.slideBotLeftTimer then     -- remove any running display
+          _M.system.timers.removeTimer(_M.slideBotLeftTimer)
+       end 
+       _M.curBotLeft = nil   
+       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
+       _M.saveAutoBotLeft = _M.curAutoBotLeft
+       _M.curAutoBotLeft = reg
+   end    
+end                                         
+_M.setAutoBotLeft = _M.writeAutoBotLeft
+
+-----------------------------------------------------------------------------
+-- reads the current Bottom Left auto update register 
+-- @return register that is being used for auto update, 0 if none                                         
+function _M.readAutoBotLeft()
+   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOT_LEFT)
+   reg = tonumber(reg)
+   _M.curAutoBotLeft = reg
+   return reg
+end        
 
 --- Bottom LCD Annunciators
 --@table BotAnnuns
@@ -2000,9 +2281,9 @@ end
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 function _M.restoreLcd()
-   _M.setAutoTopAnnun(0)
-   _M.setAutoTopLeft(_M.REG_GROSSNET)
-   _M.setAutoBotLeft(0)
+   _M.writeAutoTopAnnun(0)
+   _M.writeAutoTopLeft(_M.REG_GROSSNET)
+   _M.writeAutoBotLeft(0)
    _M.writeTopRight('')
    _M.writeBotLeft('')
    _M.writeBotRight('')
@@ -2024,7 +2305,7 @@ _M.REG_BUZZ_NUM =  0x0328
 _M.BUZZ_SHORT = 0
 _M.BUZZ_MEDIUM = 1
 _M.BUZZ_LONG = 2
-
+_M.lastBuzzLen = nil
 -------------------------------------------------------------------------------
 -- Called to set the length of the buzzer sound
 -- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
@@ -2032,21 +2313,25 @@ function _M.setBuzzLen(len)
 
    local len = len or _M.BUZZ_SHORT
    if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
-   
-   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
+   if len ~= _M.lastBuzzLen then
+      _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
+      _M.lastBuzzLen = len
+   end  
 
 end
 
 -------------------------------------------------------------------------------
 -- Called to trigger instrument buzzer
 -- @param times  - number of times to buzz, 1..4
-function _M.buzz(times)
+-- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
+function _M.buzz(times, len)
     local times = times or 1
+    local len = len or _M.BUZZ_SHORT
     times = tonumber(times)
     if times > 4 then 
         times = 4 
     end
-
+    _M.setBuzzLen(len)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
@@ -2342,7 +2627,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), target)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
@@ -2481,21 +2766,339 @@ _M.editing = false
 function _M.isEditing()
    return _M.editing
 end
-    
+
+_M.scrUpdTm = 0.5  -- screen update frequency in mSec
+_M.blink = false   -- blink cursor for string editing
+_M.inMenu = false  -- true when a menu is active, prevents entering another menu
+
+
+-----------------------------------------------------------------------------------------------
+-- return a character for the key pressed, according to the number of times it has been pressed
+-- @param k key pressed
+-- @param p number of times key has been pressed
+-- @return letter, number or symbol character represented on the number key pad
+-----------------------------------------------------------------------------------------------
+
+_M.keyChar = function(k, p)
+
+    local n = math.fmod(p, 4)   -- fmod returns the remainder of the integer division
+
+    if k == _M.KEY_1 then
+        if n == 1 then          -- one key press
+            return "$"
+        elseif n == 2 then      -- two key presses
+            return "/"
+        elseif n == 3 then      -- three key presses
+            return "\\"
+        elseif n == 0 then      -- four key presses
+            return "1"
+        end
+    elseif k == _M.KEY_2 then
+        if n == 1 then          -- one key press
+            return "A"
+        elseif n == 2 then      -- two key presses
+            return "B"
+        elseif n == 3 then      -- three key presses
+            return "C"
+        elseif n == 0 then      -- four key presses
+            return "2"
+        end
+    elseif k == _M.KEY_3 then
+        if n == 1 then          -- one key press
+            return "D"
+        elseif n == 2 then      -- two key presses
+            return "E"
+        elseif n == 3 then      -- three key presses
+            return "F"
+        elseif n == 0 then      -- four key presses
+            return "3"
+        end
+    elseif k == _M.KEY_4 then
+        if n == 1 then          -- one key press
+            return "G"
+        elseif n == 2 then      -- two key presses
+            return "H"
+        elseif n == 3 then      -- three key presses
+            return "I"
+        elseif n == 0 then      -- four key presses
+            return "4"
+        end
+    elseif k == _M.KEY_5 then
+        if n == 1 then          -- one key press
+            return "J"
+        elseif n == 2 then      -- two key presses
+            return "K"
+        elseif n == 3 then      -- three key presses
+            return "L"
+        elseif n == 0 then      -- four key presses
+            return "5"
+        end
+    elseif k == _M.KEY_6 then
+        if n == 1 then          -- one key press
+            return "M"
+        elseif n == 2 then      -- two key presses
+            return "N"
+        elseif n == 3 then      -- three key presses
+            return "O"
+        elseif n == 0 then      -- four key presses
+            return "6"
+        end
+    elseif k == _M.KEY_7 then
+        n = math.fmod(p, 5)     -- special case with 5 options
+        if n == 1 then          -- one key press
+            return "P"
+        elseif n == 2 then      -- two key presses
+            return "Q"
+        elseif n == 3 then      -- three key presses
+            return "R"
+        elseif n == 4 then      -- four key presses
+            return "S"
+        elseif n == 0 then      -- five key presses
+            return "7"
+        end
+    elseif k == _M.KEY_8 then
+        if n == 1 then          -- one key press
+            return "T"
+        elseif n == 2 then      -- two key presses
+            return "U"
+        elseif n == 3 then      -- three key presses
+            return "V"
+        elseif n == 0 then      -- four key presses
+            return "8"
+        end
+    elseif k == _M.KEY_9 then
+        n = math.fmod(p, 5)     -- special case with 5 options
+        if n == 1 then          -- one key press
+            return "W"
+        elseif n == 2 then      -- two key presses
+            return "X"
+        elseif n == 3 then      -- three key presses
+            return "Y"
+        elseif n == 4 then      -- three key presses
+            return "Z"
+        elseif n == 0 then      -- five key presses
+            return "9"
+        end
+    elseif k == _M.KEY_0 then
+        n = math.fmod(p, 2)     -- special case with 2 options
+        if n == 1 then          -- one key press
+            return " "
+        elseif n == 0 then      -- two key presses
+            return "0"
+        end
+    end
+    return nil      -- key passed to function is not a number key
+end
+
+function sTrim(s)       -- removes whitespace from strings
+    return s:match'^%s*(.*%S)' or ''
+end
+
+_M.sEditVal = ' '       -- default edit value for sEdit()
+_M.sEditIndex = 1       -- starting index for sEdit()
+_M.sEditKeyTimer = 0    -- counts time since a key pressed for sEdit() - in _M.scrUpdTm increments
+_M.sEditKeyTimeout = 4  -- number of counts before starting a new key in sEdit()
+
+local function blinkCursor()
+--  used in sEdit() function below
+    _M.sEditKeyTimer = _M.sEditKeyTimer + 1 -- increment key press timer for sEdit()
+    local str
+    local pre
+    local suf
+    local max = #_M.sEditVal
+    _M.blink = not _M.blink
+    if _M.blink then
+        pre = string.sub(_M.sEditVal, 1, _M.sEditIndex-1)
+        if _M.sEditIndex < max then
+            suf = string.sub(_M.sEditVal, _M.sEditIndex+1, -1)
+        else
+            suf = ''
+        end
+        str = pre .. "_" .. suf
+    else
+        str = _M.sEditVal
+    end
+--  print(str)  -- debug
+    _M.writeBotLeft(str)
+end
+
 -------------------------------------------------------------------------------
--- Called to prompt operator to enter a value
+-- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','string' 
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
-function _M.edit(prompt, def, typ)
+
+_M.sEdit = function(prompt, def, maxLen, units, unitsOther)
+
+    _M.editing = true               -- is editing occurring
+    local key, state                -- instrument key values
+    local pKey = nil                -- previous key pressed
+    local presses = 0               -- number of consecutive presses of a key
+    
+    if def then                     -- if a string is supplied
+        def = sTrim(def)            -- trim any whitespace
+    end
+    
+    local default = def or ' '      -- default string to edit, if no default passed to function, default to one space
+    _M.sEditVal = tostring(default) -- edit string
+    local sLen = #_M.sEditVal       -- length of string being edited
+    _M.sEditIndex = sLen            -- index in string of character being edited
+    local ok = false                -- OK button was pressed to accept editing
+    local strTab = {}               -- temporary table holding edited string characters
+    local blink = false             -- cursor display variable
+    local u = units or 0            -- optional units defaults to none
+    local uo = unitsOther or 0      -- optional other units defaults to none
+    
+    cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    _M.saveBot()
+
+    if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
+        local i = 0
+        repeat
+            i = i + 1
+            strTab[i] = string.sub(_M.sEditVal, i, i)   -- convert the string to a table for easier character manipulation 
+        until i >= sLen or i >= maxLen                  -- check length of string against maxLen
+--      print('strTab = ' .. table.concat(strTab))  -- debug
+    end
+    
+    if def then         -- if a default string is given
+        pKey = 'def'    -- give pKey a value so we start editing from the end
+    end
+
+    _M.writeBotRight(prompt)        -- write the prompt
+    _M.writeBotLeft(_M.sEditVal)    -- write the default string to edit
+    _M.writeBotUnits(u,uo)          -- display optional units
+
+    while _M.editing do
+        key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
+        if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
+            pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
+        end
+        _M.sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
+        
+        if state == "short" then                            -- short key presses for editing
+            if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
+--              print('i:' .. _M.sEditIndex .. ' l:' .. sLen)   -- debug
+                if key == pKey then         -- if same as the previous key pressed
+                    presses = presses + 1   -- add 1 to number of presses of this key
+                else
+                    presses = 1             -- otherwise reset presses to 1
+                    if pKey and (_M.sEditIndex >= sLen) and (strTab[_M.sEditIndex] ~= " ") then     -- if not first key pressed
+                        _M.sEditIndex = _M.sEditIndex + 1       -- new key pressed, increment the character position
+                    end
+                    pKey = key              -- remember the key pressed
+                end
+--              print('i:' .. _M.sEditIndex)    -- debug
+                strTab[_M.sEditIndex] = _M.keyChar(key, presses)    -- update the string (table) with the new character
+            --
+            elseif (key == _M.KEY_DP) and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
+                if (pKey and (_M.sEditIndex >= sLen)) or (strTab[_M.sEditIndex] == " ") then    -- if not first key pressed and not space at end
+                    _M.sEditIndex = _M.sEditIndex + 1           -- new key pressed, increment the character position
+                end
+                strTab[_M.sEditIndex] = "."                 -- update the string (table) with the new character
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_UP then                    -- up key, previous character
+                _M.sEditIndex = _M.sEditIndex - 1               -- decrease index
+                if _M.sEditIndex < 1 then                       -- if at first character
+                    _M.sEditIndex = sLen                            -- go to last character
+                end
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_DOWN then          -- down key, next character
+                _M.sEditIndex = _M.sEditIndex + 1       -- increment index
+                if _M.sEditIndex > sLen then            -- if at last character
+                    if strTab[sLen] ~= " " then         -- and last character is not a space
+                        if sLen < maxLen then               -- and length of string < maximum
+                            sLen = sLen + 1                     -- increase length of string
+                            strTab[sLen] = " "                  -- and add a space to the end
+                        else                                -- string length = maximum
+                            _M.sEditIndex = 1                   -- go to the first character
+                        end
+                    else                                -- otherwise (last character is a space)
+                        if sLen > 1 then                    -- as long as the string is more than 1 character long
+                            strTab[sLen] = nil              -- delete the last character
+                            sLen = sLen - 1                 -- decrease the length of the string
+                            _M.sEditIndex = 1               -- and go to the first character
+                        end
+                    end
+                end
+                pKey = key                                  -- remember the key pressed
+            --
+            elseif key == _M.KEY_PLUSMINUS then     -- plus/minus key - insert a character
+                if sLen < maxLen then
+                    sLen = sLen + 1                     -- increase the length of the string
+                end
+                for i = sLen, _M.sEditIndex+1, -1 do
+                    strTab[i] = strTab[i-1]             -- shuffle the characters along
+                end
+                strTab[_M.sEditIndex] = " "             -- insert a space
+                pKey = key                          -- remember the key pressed
+            --
+            elseif key == _M.KEY_OK then        -- OK key
+                _M.editing = false                      -- finish editing
+                ok = true                           -- accept changes
+            --
+            elseif key == _M.KEY_CANCEL then    -- cancel key
+                if _M.sEditIndex < sLen then
+                    for i = _M.sEditIndex, sLen-1 do    -- delete current character
+                        strTab[i] = strTab[i+1]         -- shuffle characters along
+                    end
+                end
+                strTab[sLen] = nil                  -- clear last character
+                _M.sEditIndex = _M.sEditIndex - 1   -- decrease length of string
+                pKey = key                          -- remember the key pressed
+            end
+        elseif state == "long" then         -- long key press only for cancelling editing
+            if key == _M.KEY_CANCEL then    -- cancel key
+                _M.sEditVal = default               -- reinstate default string
+                _M.editing = false                  -- finish editing
+            end
+        end
+        if _M.editing or ok then                    -- if editing or OK is selected
+            _M.sEditVal = table.concat(strTab)      -- update edited string
+            sLen = #_M.sEditVal
+--          print('eVal = \'' .. _M.sEditVal .. '\'')   -- debug
+        end
+    end
+
+    _M.restoreBot() -- restore previously displayed messages
+
+    _M.system.timers.removeTimer(cursorTmr) -- remove cursor blink timer
+    return _M.sEditVal, ok                  -- return edited string and OK status
+end
+
+
+
+
+
+    
+-------------------------------------------------------------------------------
+-- Called to prompt operator to enter a value, numeric digits and '.' only
+-- @param prompt string displayed on bottom right LCD
+-- @param def default value
+-- @param typ type of value to enter ('integer','number','string','passcode') 
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+-- @return value and true if ok pressed at end
+function _M.edit(prompt, def, typ, units, unitsOther)
 
     local key, state
 
+    if typ == 'passcode' then
+        typ = 'integer'
+        hide = true
+    end    
+        
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
-     end     
+     end    
+    
+    local u = units or 0
+    local uo = unitsOther or 0     
     
     local editVal = def 
     local editType = typ or 'integer'
@@ -2503,7 +3106,12 @@ function _M.edit(prompt, def, typ)
     
     _M.saveBot()
     _M.writeBotRight(prompt)
-    _M.writeBotLeft(editVal)
+    if hide then
+       _M.writeBotLeft(string.rep('+',#editVal))
+    else
+       _M.writeBotLeft(editVal)
+    end   
+    _M.writeBotUnits(u, uo)
 
     local first = true
 
@@ -2513,7 +3121,7 @@ function _M.edit(prompt, def, typ)
         if state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
                 if first then 
-                    editVal = key 
+                    editVal = tostring(key) 
                 else 
                     editVal = editVal .. key 
                 end
@@ -2549,7 +3157,11 @@ function _M.edit(prompt, def, typ)
                 _M.editing = false
             end
         end 
-        _M.writeBotLeft(editVal..' ')
+        if hide then 
+           _M.writeBotLeft(string.rep('+',#editVal))
+        else
+           _M.writeBotLeft(editVal..' ')
+        end   
     end 
     _M.restoreBot()
    
@@ -2562,6 +3174,7 @@ _M.REG_EDIT_REG = 0x0320
 -- @param reg is the address of the register to edit
 -- @param prompt is true if name of register to be displayed during editing, 
 -- or set to a literal prompt to display
+-- @return value of reg
 function _M.editReg(reg,prompt)
    if (prompt) then
       _M.saveBot()
@@ -2583,8 +3196,7 @@ function _M.editReg(reg,prompt)
    if prompt then
       _M.restoreBot()
    end
-   return _M.sendRegWait(_M.CMD_RDLIT,reg)
-   
+   return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
 end
 
 _M.delayWaiting = false
@@ -2632,12 +3244,16 @@ end
 -- Prompts operator and waits for OK or CANCEL key press
 -- @param prompt string to put on bottom right LCD
 -- @param q string to put on bottom left LCD
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return either KEY_OK or KEY_CANCEL
-function _M.askOK(prompt, q)
+function _M.askOK(prompt, q, units, unitsOther)
 
     local f = _M.keyGroup.keypad.callback
     local prompt = prompt or ''
     local q = q or ''  
+    local u = units or 0
+    local uo = unitsOther or 0
   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
 
@@ -2645,6 +3261,7 @@ function _M.askOK(prompt, q)
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
     _M.writeBotUnits(0,0)
+    _M.writeBotUnits(u,uo)
  
     _M.askOKWaiting = true
     _M.askOKResult = _M.KEY_CANCEL
@@ -2665,12 +3282,16 @@ end
 -- @param options table of option strings
 -- @param def default selection string.byte
 -- @param loop If true, top option loops to the bottom option and vice versa
--- @return selected string  (default selection if KEY_CANCEL pressed)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+-- @return selected string  if OK pressed or nil if CANCEL pressed
 function _M.selectOption(prompt, options, def, loop)
     loop = loop or false
-
-    local options = options or {}
+    local options = options or {'cancel'}
+    local u = units or 0
+    local uo = unitsOther or 0
     local key = 0
+    local sel = nil
 
     local index = 1
     if def then
@@ -2683,37 +3304,36 @@ function _M.selectOption(prompt, options, def, loop)
 
     _M.editing = true
     
-    local sel = def or ''  
+
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
     _M.writeBotLeft(string.upper(options[index]))
-    _M.writeBotUnits(0,0)
+    _M.writeBotUnits(u,uo)
 
-    while _M.editing do
+    while _M.editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)  
         if key == _M.KEY_DOWN then
-            index = index - 1
-            if index == 0 then
+            index = index + 1
+            if index > #options then
               if loop then 
-                 index = #options
+                 index = 1
                else
-                  index = 1
+                  index = #options
                end
             end
         elseif key == _M.KEY_UP then
-            index = index + 1
-            if index > #options then
+            index = index - 1
+            if index <= 0 then
                if loop then 
-                   index = 1 
+                   index = #options 
                else 
-                  index = #options
+                  index = 1
                end   
             end
         elseif key == _M.KEY_OK then 
             sel = options[index]
             _M.editing = false
         elseif key == _M.KEY_CANCEL then
-             sel = def
           _M.editing = false     
       end
       _M.writeBotLeft(string.upper(options[index]))
@@ -2914,7 +3534,6 @@ end
 
 -------------------------------------------------------------------------------
 -- Commands
---  TODO:  Finalise these commands to return proper error messages etc
 -------------------------------------------------------------------------------
 _M.REG_ADC_ZERO         = 0x0300                  -- Execute registers
 _M.REG_ADC_TARE         = 0x0301                  
@@ -2940,6 +3559,35 @@ _M.REG_CLRLIN           = 0x0105
 _M.REG_CALIBDIRZERO     = 0x0106
 _M.REG_CALIBDIRSPAN     = 0x0107
 
+
+--- Command Return Constants and strings.
+--@table Command
+-- @field CMD_OK          'OK'     command executed successfully          
+-- @field CMD_CANCEL      'CANCEL'
+-- @field CMD_INPROG      'IN PROG'
+-- @field CMD_ERROR       'ERROR'
+-- @field CMD_OL_UL       'OL-UL'
+-- @field CMD_BUSY        'BUSY'
+-- @field CMD_MOTION      'MOTION'
+-- @field CMD_BAND        'BAND'
+-- @field CMD_RESLOW      'RES LOW'
+-- @field CMD_COMMAND     'COMMAND'
+-- @field CMD_DUPLIC      'DUPLIC'
+-- @field CMD_HIRES       'HI RES'
+
+_M.CMD_OK         = 0
+_M.CMD_CANCEL     = 1
+_M.CMD_INPROG     = 2
+_M.CMD_ERROR      = 3
+_M.CMD_OL_UL      = 4
+_M.CMD_BUSY       = 5
+_M.CMD_MOTION     = 6
+_M.CMD_BAND       = 7
+_M.CMD_RESLOW     = 8
+_M.CMD_COMMAND    = 9
+_M.CMD_DUPLIC     = 10
+_M.CMD_HIRES      = 11
+
 _M.cmdString = {}
 _M.cmdString[0] = 'OK'
 _M.cmdString[1] = 'CANCEL'
@@ -2949,25 +3597,33 @@ _M.cmdString[4] = 'OL-UL'
 _M.cmdString[5] = 'BUSY'
 _M.cmdString[6] = 'MOTION'
 _M.cmdString[7] = 'BAND'
-_M.cmdString[8] = 'RES'
+_M.cmdString[8] = 'RES LOW'
 _M.cmdString[9] = 'COMMAND'
-_M.cmdString[10] = 'DUPLIC'
+_M.cmdString[10] = 'DUPLICATE'
 _M.cmdString[11] = 'HI RES'
 
--------------------------------------------------------------------------------
--- <<COMMENT>>
-function _M.zero()
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15000)
- 
-    msg = tonumber(msg)
-    return msg, _M.cmdString[msg]
-end
+
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Called to execute a Zero command
+-- @return CMD_ constant followed by command return string
+function _M.zero()
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to execute a Tare command
+-- @return CMD_ constant followed by command return string
 function _M.tare()
- 
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15000)
+
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -2977,45 +3633,415 @@ function _M.tare()
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Called to execute a Pre-set Tare command
+-- @param pt is the preset tare value 
+-- @return CMD_ constant followed by command return string
 function _M.presetTare(pt)
     local pt = pt or 0
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to set Gross Mode
+-- @return CMD_ constant followed by command return string
 function _M.gross()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,nil,1000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_GROSS,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to set Net mode
+-- @return CMD_ constant followed by command return string
 function _M.net()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_NET,1000)
+    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_NET,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
 
 -------------------------------------------------------------------------------
--- <<COMMENT>>
+-- Command to toggle Gross Net status
+-- @return CMD_ constant followed by command return string
 function _M.grossNetToggle()
-    return _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSSNET,_M.ADCGN_TOGGLE,1000)
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_TOGGLE,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
 end
+
+_M.REG_FULLPCODEDATA     = 0x00D0
+_M.REG_SAFEPCODEDATA     = 0x00D1
+_M.REG_OPERPCODEDATA     = 0x00D2
+
+
+_M.REG_FULLPCODE         = 0x0019
+_M.REG_SAFEPCODE         = 0x001A
+_M.REG_OPERPCODE         = 0x001B
+
+_M.passcodes = {}
+_M.passcodes.full = {}
+_M.passcodes.safe = {}
+_M.passcodes.oper = {}
+_M.passcodes.full.pcode     = _M.REG_FULLPCODE
+_M.passcodes.full.pcodeData = _M.REG_FULLPCODEDATA
+_M.passcodes.safe.pcode     = _M.REG_SAFEPCODE
+_M.passcodes.safe.pcodeData = _M.REG_SAFEPCODEDATA
+_M.passcodes.oper.pcode     = _M.REG_OPERPCODE
+_M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
+
+
+-------------------------------------------------------------------------------
+-- Command to check to see if passcode entry required and prompt if so
+-- @param pc = 'full','safe','oper'
+-- @param code = passcode to unlock, nil to prompt user
+-- @return true if unlocked false otherwise
+function _M.checkPasscode(pc, code)
+    local pc = pc or 'full'
+    local pcode = _M.passcodes[pc].pcode
+    local f = _M.removeErrHandler()
+    local pass = ''
+    while true do    
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
+       if not msg then
+          if code then
+             pass = code
+             code = nil
+          else   
+             pass, ok = _M.edit('PCODE','','passcode')
+             if not ok then
+                _M.setErrHandler(f)
+                return false
+             end 
+          end              
+          msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(pass,0),1.0) 
+       else
+          break
+       end   
+    end    
+    _M.setErrHandler(f)
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Command to lock instrument
+-- @param pc = 'full','safe','oper'
+function _M.lockPasscode(pc)
+    local pc = pc or 'full'
+    local pcode = _M.passcodes[pc].pcode
+    local pcodeData = _M.passcodes[pc].pcodeData
+ 
+    local f = _M.removeErrHandler()
+    local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
+    if msg then
+       msg = bit32.bxor(tonumber(msg,16),0xFF)  
+       msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(msg,0),1.0) 
+    end    
+    _M.setErrHandler(f)
+end
+
+-------------------------------------------------------------------------------
+-- Command to change instrument passcode
+-- @param pc = 'full','safe','oper'
+-- @param oldCode passcode to unlock, nil to prompt user
+-- @param newCode passcode to set, nil to prompt user
+-- @return true if successful
+function _M.changePasscode(pc, oldCode, newCode)
+   local pc = pc or 'full'
+   local pcodeData = _M.passcodes[pc].pcodeData
+   if _M.checkPasscode(pc,oldCode) then
+        if not newCode then
+             local pass, ok = _M.edit('NEW','','passcode')
+             if not ok then
+                return false
+             end
+             newCode = pass
+        end             
+        local msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcodeData,_M.toPrimary(newCode,0),1.0)
+        if not msg then
+           return false
+        else
+           return true
+        end    
+    end
+    return false    
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Zero
+-- @return CMD_ constant followed by command return string
+function _M.calibrateZero()
+    
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBZERO,nil,1.0)
+    if not msg then
+        return msg, err
+    end    
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end   
+end
+
+
+
+
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span
+-- @param span weight value for calibration
+-- @return CMD_ constant followed by command return string
+function _M.calibrateSpan(span)
+    
+    if type(span) == 'string' then
+       span = tonumber(span)
+    end   
+    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(span),1.0)
+    if not msg then
+        return msg, err
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBSPAN,nil,1.0)
+    if not msg then
+        return msg, err
+    end    
+
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end 
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Zero using MV/V signal
+-- @param MVV signal for zero
+-- @return CMD_ constant followed by command return string
+function _M.calibrateZeroMVV(MVV)
+    if type(MVV) == 'string' then
+       MVV = tonumber(MVV)
+    end   
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRZERO,_M.toPrimary(MVV,4),1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span using MV/V signal
+-- @param MVV signal for fullscale
+-- @return CMD_ constant followed by command return string
+function _M.calibrateSpanMVV(MVV)
+    if type(MVV) == 'string' then
+       MVV = tonumber(MVV)
+    end   
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRSPAN,_M.toPrimary(MVV,4),1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
+
+_M.REG_ZEROMVV  = 0x0111
+_M.REG_SPANWGT  = 0x0112
+_M.REG_SPANMVV  = 0x0113
+_M.REG_LINWGT   = 0x0114
+_M.REG_LINPC    = 0x0115
+_M.NUM_LINPTS   = 10
+-------------------------------------------------------------------------------
+-- Command to read MVV zero calibration
+-- @return MVV signal or nil with error string if error encountered
+function _M.readZeroMVV()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_ZEROMVV)
+    if data then
+        data = _M.toFloat(data,4)
+        return data, nil
+    else
+        return data,error
+    end     
+end
+
+-------------------------------------------------------------------------------
+-- Command to read MVV span calibration
+-- @return MVV signal or nil with error string if error encountered
+function _M.readSpanMVV()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANMVV)
+    if data then
+        data = _M.toFloat(data,4)
+        return data, nil
+    else
+         return data,error
+    end   
+end
+-------------------------------------------------------------------------------
+-- Command to read span calibration weight
+-- @return span weight used on the last span calibration
+function _M.readSpanWeight()
+    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANWGT)
+    if data then
+        data = _M.toFloat(data)
+        return data, nil
+    else
+        return data,error
+    end   
+end
+
+-------------------------------------------------------------------------------
+-- Command to read linearisation results
+-- @return linearisation results in a table of 10 lines with each line having
+-- pc (percentage of fullscale that point in applied), 
+-- correction (amount of corrected weight)
+-- if error return nil plus error string  
+function _M.readLinCal()
+    local t = {}
+    for i = 1,_M.NUM_LINPTS do
+        table.insert(t,{})
+        local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINPC,i-1,1.0)
+        if not msg then
+            return msg, err
+        else
+            t[i].pc = _M.toFloat(msg,0)      
+        end    
+        
+        msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINWGT,i-1,1.0)
+        if not msg then
+            return msg, err
+        else
+            t[i].correction = _M.toFloat(msg)      
+        end 
+    end 
+    return t, nil 
+end
+
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate linearisation point
+-- @param pt is the linearisation point 1..10 
+-- @param val is the weight value for the current linearisation point
+-- @return CMD_ constant followed by command return string
+function _M.calibrateLin(pt, val)
+    if type(pt) == 'string' then
+       pt = tonumber(pt)
+    end   
+
+    if (pt < 1) or (pt > _M.NUM_LINPTS) then
+        return nil, 'Linearisation point out of range' 
+    end
+    
+    if type(val) == 'string' then
+       val = tonumber(val)
+    end   
+    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(val),1.0)
+    if not msg then
+        return msg, err
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBLIN,pt-1,1.0)
+    if not msg then
+        return msg, err
+    end    
+
+    while true do 
+       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       if msg then
+           msg = tonumber(msg,16)
+           if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
+              msg = bit32.band(msg,0x0F)
+              return msg, _M.cmdString[msg] 
+           end    
+       else 
+           return msg, err
+       end    
+    end 
+end
+
+
+
+-------------------------------------------------------------------------------
+-- Command to calibrate Span
+-- @param pt is the linearisation point 1..10 
+-- @return CMD_ constant followed by command return string
+function _M.clearLin(pt)
+    if type(pt) == 'string' then
+       pt = tonumber(pt)
+    end   
+
+    if (pt < 1) or (pt > _M.NUM_LINPTS) then
+        return nil, 'Linearisation point out of range' 
+    end
+    
+    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt-1,1.0)
+    if msg then
+        msg = tonumber(msg)
+        return msg, _M.cmdString[msg]
+    else 
+        return msg, err
+    end
+end
+
 
 -------------------------------------------------------------------------------
 -- Called to trigger initial stream reads and establish initial conditions
 function _M.init()
+   local streamUser = false
    for k,v in pairs(_M.availRegistersLib) do
             v.lastData = ''
    end
    for k,v in pairs(_M.availRegistersUser) do
+            if v.reg ~= 0 then
+                streamUser = true
+            end    
             v.lastData = ''
    end   
-     
-   _M.send(nil,_M.CMD_RDFINALHEX,
-              bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
-              '','reply')
+   
+   
+   if streamUser then
+      _M.send(nil,_M.CMD_RDFINALHEX,
+                 bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
+                 '','reply')
+    end             
    _M.send(nil,_M.CMD_RDFINALHEX,
               bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
               '', 'reply')
+   _M.sendKey(_M.KEY_CANCEL,'long')
+             
 end
 return _M
