@@ -3286,7 +3286,7 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string  if OK pressed or nil if CANCEL pressed
-function _M.selectOption(prompt, options, def, loop)
+function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     loop = loop or false
     local options = options or {'cancel'}
     local u = units or 0
