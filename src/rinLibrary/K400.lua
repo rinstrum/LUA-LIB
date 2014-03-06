@@ -468,6 +468,7 @@ function _M.loadRIS(filename)
             _M.sendRegWait(cmd,reg,data)
          end
     end
+    _M.saveSettings()
     file:close()
 end
 
