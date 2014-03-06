@@ -2926,7 +2926,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
--- @param def default value
+-- @param def default value\
+-- @param maxLen maximum number of characters to include
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
