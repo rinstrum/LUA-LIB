@@ -20,19 +20,9 @@ dwi.loadRIS("myCalApp.RIS")               -- load default instrument settings
 
 local mode = 'idle'
 
-
-
-
-
-
-
-
-
-
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
@@ -42,7 +32,6 @@ local function F1Pressed(key, state)
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -62,7 +51,6 @@ local function settingsChanged(status, active)
 end
 dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
 -------------------------------------------------------------------------------
-  
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
@@ -74,8 +62,6 @@ local function ticker()
 end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
-  
-  
 
 --=============================================================================
 -- Initialisation 
@@ -83,9 +69,7 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
 
-
 -------------------------------------------------------------------------------
-
 
 --=============================================================================
 -- Main Application Loop
@@ -165,7 +149,6 @@ local function mainLoop()
         end
     end 
 end
-
 
 --=============================================================================
 -- Clean Up 

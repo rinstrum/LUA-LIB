@@ -25,14 +25,10 @@ local SETP_UNDER = 2
 local SETP_FILL  = 3
 local SETP_PULSE = 4
 
-
 local OVER_OUTPUT = 5
 local PASS_OUTPUT     = 6
 local CHIME_OUTPUT    = 7
 local RESET_OUTPUT    = 8
-
-
-
 
 -------------------------------------------------------------------------------
 --  Callback to capture changes to current weight
@@ -60,9 +56,6 @@ dwi.setIOCallback(5, handleIO5)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
-
-
-
 -------------------------------------------------------------------------------
 -- Callback to monitor motion status  
 local function handleMotion(status, active)
@@ -84,7 +77,6 @@ local chimeCounter = 0       -- counts down the chime ticks
 
 local chimerStart  = 0.100    -- time in seconds until timer events start triggering
 local chimerRepeat = 0.100    -- time in second that the timer repeats
-
 
 local function chimer()
     if chimeCounter > 0 then
@@ -145,7 +137,6 @@ dwi.setIOCallback(1, handleIO)
 dwi.setIOCallback(2, handleIO)
 dwi.setIOCallback(CHIME_OUTPUT, handleIO)
 
-
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
@@ -153,7 +144,6 @@ dwi.setIOCallback(CHIME_OUTPUT, handleIO)
 -- Callback for local timer
 local tickerStart = 0.100    -- time in sec until timer events start triggering
 local tickerRepeat = 0.200    -- time in sec that the timer repeats
-
 
 local function ticker()
 -- insert code here that you want to run on each timer event
@@ -195,7 +185,6 @@ end
 dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
 -------------------------------------------------------------------------------
 
-
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
 local function pwrCancelPressed(key, state)
@@ -213,8 +202,6 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 --=============================================================================
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
-
-
 
 dwi.writeBotLeft('  SETP IO')
 dwi.writeBotRight(' .LUA')
@@ -251,7 +238,6 @@ local function mainLoop()
         dwi.turnOff(PASS_OUTPUT)
      end        
 
-    
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.init()

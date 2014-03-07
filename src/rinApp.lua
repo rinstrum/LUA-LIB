@@ -80,7 +80,6 @@ function _M.getUSBRegisterCallback(f)
    return _M.userUSBRegisterCallback
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
 -- @param f  Callback function takes event table as a parameter
@@ -255,7 +254,6 @@ function _M.cleanup()
     _M.cleanedUp = true
 end
 
-    
 -------------------------------------------------------------------------------
 -- Main rinApp program loop
 function _M.run()
@@ -268,7 +266,6 @@ function _M.run()
     end
    _M.cleanup()    
 end
-
 
 io.output():setvbuf('no')
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)

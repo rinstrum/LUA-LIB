@@ -28,7 +28,6 @@ end
 dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -------------------------------------------------------------------------------
 
-
 --=============================================================================
 -- Create a new socket on port 2224 that allows bidirection communications
 -- with an extenal device
