@@ -20,16 +20,6 @@ dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 
 local mode = 'idle'
 
-
-
-
-
-
-
-
-
-
-
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
@@ -72,7 +62,6 @@ dwi.setIOCallback(1, handleIO1)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
-
 local function handleIO(data)
    rinApp.dbg.info(' IO: ', string.format('%08X',data))
 end
@@ -92,7 +81,6 @@ dwi.setSETPCallback(1, handleSETP1)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
-
 -------------------------------------------------------------------------------
 -- Callback to capture changes to instrument status  
 local function handleSETP(data)
@@ -102,8 +90,6 @@ end
 dwi.setAllSETPCallback(handleSETP)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
-
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
@@ -133,7 +119,6 @@ end
 dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
 -------------------------------------------------------------------------------
 
-
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
 local function pwrCancelPressed(key, state)
@@ -152,7 +137,6 @@ local function settingsChanged(status, active)
 end
 dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
 -------------------------------------------------------------------------------
-  
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
@@ -164,8 +148,6 @@ local function ticker()
 end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
-  
-  
 
 --=============================================================================
 -- Initialisation 
@@ -173,9 +155,7 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
 
-
 -------------------------------------------------------------------------------
-
 
 --=============================================================================
 -- Main Application Loop
@@ -210,7 +190,6 @@ local function mainLoop()
        end
     end       
 end
-
 
 --=============================================================================
 -- Clean Up 

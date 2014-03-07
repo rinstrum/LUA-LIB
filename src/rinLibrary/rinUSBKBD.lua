@@ -15,7 +15,6 @@ local table = table
 local ipairs = ipairs
 local tostring = tostring
 
-
 -------------------------------------------------------------------------------
 -- Must be called to link these utilities with a particular rinApp application
 -- @param app rinApp application
@@ -28,8 +27,6 @@ function _M.link(app)
   _M.app = app
   _M.system = app.system
 end
-
-
 
 -------------------------------------------------------------------------------
 -- Called to get a key from keyboard
@@ -44,7 +41,6 @@ function _M.getKey()
     end
     _M.app.setUSBKBDCallback(kbdHandler)
 
-    
     while _M.app.running and keypressed == '' do
         _M.system.handleEvents()
     end   
@@ -59,7 +55,6 @@ _M.editing = false
 function _M.isEditing()
    return _M.editing
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a value
@@ -150,6 +145,5 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
        return tonumber(editVal), ok
     end   
 end
-
 
 return _M
