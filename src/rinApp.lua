@@ -203,7 +203,7 @@ function _M.addK400(model, ip, portA, portB)
 
 	-- Create the extra debug port
     _M.system.sockets.createServerSocket(2226, device.socketDebugAcceptCallback)
-	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n") end)
+	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n\r") end)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
