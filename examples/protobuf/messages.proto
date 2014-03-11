@@ -1,0 +1,29 @@
+package protodemo;
+
+message AddResult {
+    optional double result = 1;
+}
+
+message MulResult {
+    optional double result = 1;
+}
+
+message AddRequest {
+    optional double arg1 = 1;
+    optional double arg2 = 2;
+}
+
+message MulRequest {
+    optional double arg1 = 1;
+    optional double arg2 = 2;
+}
+
+message ToM4223 {
+    optional AddRequest     add_request = 1;
+    optional MulRequest     mul_request = 2;
+}
+
+message FromM4223 {
+    optional AddResult      add_result = 2;
+    optional MulResult      mul_result = 3;
+}

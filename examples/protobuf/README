@@ -1,0 +1,23 @@
+A simple client server application using Lua and Protobuf.
+
+Run server on the M4223 device.
+
+Run client from a terminal window after editing the M4223 IP address.
+
+The messages.proto file must be available to both the client and server.
+
+The pb.lua file and pb directory are the Lua Protobuf support files which
+will be needed for the client to run.  These are already insalled on the
+M4223.  In addition you might need to install the struct and lpeg Lua packages.
+
+The Makefile shows how to execute the protoc utility to produce C++, Java
+and Python protocol wrappers.  No example code using these wrappers is
+provided.
+
+
+The client prompts for a series of basic arithmetic operations.  You can
+specify a+b or a*b, where a and b are real numbers.  In addition you
+can specify both addition and multiplication on the same line by comma
+separating the two operations.  Spaces are also permitted.
+
+To exit, enter "quit" on a line by itself.

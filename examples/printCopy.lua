@@ -11,18 +11,15 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
-
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("printCopy.RIS")               -- load default instrument settings
 
-
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
-
 
 -------------------------------------------------------------------------------
 -- Handler for SerB messages 
@@ -37,7 +34,6 @@ function printHandler(s)
  end
 --dwi.setDelimiters('\02','\03')
 dwi.setSerBCallback(printHandler)
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
@@ -55,7 +51,6 @@ local function F3Pressed(key, state)
 end
 dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
 -------------------------------------------------------------------------------
-
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -89,13 +84,10 @@ end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
-
 --=============================================================================
 -- Clean Up 
 --=============================================================================
 -- Put any application clean up here
 
-
 rinApp.cleanup()                   -- shutdown application resources
-
 

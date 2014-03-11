@@ -35,7 +35,6 @@ _M.REG_LCD              = 0x0009
 
 _M.REG_SAVESETTING      = 0x0010
 
-
 --- System Registers.
 --@table sysRegisters
 -- @field REG_SOFTMODEL Software model eg. "K401"
@@ -156,7 +155,6 @@ _M.REG_TARE             = 0x0028
 _M.REG_PEAKHOLD         = 0x0029
 _M.REG_MANHOLD          = 0x002A
 
-
 --- Main Instrument Commands.
 --@table rinCMD
 -- @field CMD_RDLIT        Read literal data
@@ -236,7 +234,6 @@ function _M.literalToFloat(data)
        return tonumber(data)    
       end   
 end
-
 
 -------------------------------------------------------------------------------
 -- called to convert hexadecimal return string to a floating point number
@@ -443,7 +440,6 @@ function _M.toPrimary(v, dp)
   v = math.floor(v+0.5)
   return(v)
 end
-
 
 -------------------------------------------------------------------------------
 -- Read a RIS file and send valid commands to the device
@@ -880,7 +876,6 @@ _M.IOID = nil
 
 _M.SETPBinds = {}
 _M.SETPTID = nil   
-       
 
 -------------------------------------------------------------------------------
 -- Called when status changes are streamed 
@@ -912,7 +907,6 @@ function _M.setStatusCallback(stat, callback)
     _M.statBinds[stat]['f'] = callback
     _M.statBinds[stat]['lastStatus'] = 0xFF
 end
-
 
 -------------------------------------------------------------------------------
 -- Called when IO status changes are streamed 
@@ -946,8 +940,6 @@ function _M.IOCallback(data, err)
     end
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Set the callback function for a IO 
 -- @param IO 1..32
@@ -973,7 +965,6 @@ function _M.setIOCallback(IO, callback)
     end       
 end
 
-
 -------------------------------------------------------------------------------
 -- Set a callback function that is called whenever any IO status changes 
 -- @param callback Function taking current IO status as a parameter
@@ -990,7 +981,6 @@ function _M.setAllIOCallback(callback)
     _M.IOBinds[0]['f'] = callback
     _M.IOBinds[0]['lastStatus'] = 0xFFFFFF
 end
-
 
 -------------------------------------------------------------------------------
 -- Called when SETP status changes are streamed 
@@ -1060,7 +1050,6 @@ function _M.setAllSETPCallback(callback)
     _M.SETPBinds[0]['f'] = callback
     _M.SETPBinds[0]['lastStatus'] = 0xFFFFFF
 end
-
 
 -------------------------------------------------------------------------------
 -- Called when extended status changes are streamed 
@@ -1204,14 +1193,12 @@ function _M.getBitStr(data,bits)
   return(table.concat(s))
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s 
 -- @return 32 characters of IO data 
 function _M.getCurIOStr()
   return getBitStr(_M.curIO,32)
 end
-
 
 local function anyBitSet(data,...)
   local ret = false
@@ -1246,7 +1233,6 @@ local function allBitSet(data,...)
   return  ret
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to check state of current IO 
 -- @return true if any of the listed IO are active
@@ -1274,7 +1260,6 @@ end
 function _M.allIOSet(...)
    return(allBitSet(_M.curIO,...))
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 16 setpoints 
@@ -1311,8 +1296,6 @@ function _M.allIOSet(...)
   return(allBitSet(_M.curSETP,...))
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
 -- @param stat status bits to monitor
@@ -1347,7 +1330,6 @@ function _M.waitIO(IO, state)
    end 
 end
 
-
 -------------------------------------------------------------------------------
 -- Wait until SETP is in a particular state 
 -- @param SETP 1..16
@@ -1375,7 +1357,6 @@ function _M.writeRTCStatus(s)
    if s then s = 1 else s = 0 end
    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
 end
-
 
 function _M.handleRTC(status, active)
     _M.RTCtick()
@@ -1421,8 +1402,6 @@ end
 function _M.endSETPStatus()
    _M.removeStream(_M.SETPID)
 end
-
-   
 
 -------------------------------------------------------------------------------
 --- Key Handling.
@@ -1751,7 +1730,6 @@ function _M.restoreBot()
   _M.writeBotUnits(_M.saveBotUnits, _M.saveBotUnitsOther)
 end
 
-
 local function strLenR400(s)
    local len = 0
    local dotFound = true
@@ -1768,7 +1746,6 @@ local function strLenR400(s)
    end    
   return(len)
 end
-
 
 local function strSubR400(s,stPos,endPos)
    local len = 0
@@ -1798,7 +1775,6 @@ local function strSubR400(s,stPos,endPos)
   return(substr)
 end
 
-
 -- takes a string and pads ... with . . . for R420 to handle
 local function padDots(s)
     if #s == 0 then
@@ -1811,8 +1787,6 @@ local function padDots(s)
     end    
     return(str)    
 end
-
-
 
 -- local function to split a long string into shorter strings of multiple words
 -- that fit into length len
@@ -1915,9 +1889,6 @@ function _M.writeTopRight(s)
     end
 end
 
-
-
-
 function _M.slideBotLeft()
     local function dispWord()
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
@@ -1931,9 +1902,6 @@ function _M.slideBotLeft()
     end 
     dispWord()    
 end
-
-
-
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
@@ -1965,7 +1933,6 @@ function _M.writeBotLeft(s, t)
        _M.writeAutoBotLeft(_M.saveAutoBotLeft)
     end
 end
-
 
 function _M.slideBotRight()
     local function dispWord()
@@ -2460,11 +2427,8 @@ _M.REG_SETP_PULSE_NUM = 0xA412
 _M.REG_SETP_TIMING_DELAY  = 0xA40C
 _M.REG_SETP_TIMING_ON     = 0xA40D
 
-
-
 -- targets are stored in the product database rather than the setpoint one
 _M.REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
-
 
 _M.LOGIC_HIGH = 0
 _M.LOGIC_LOW = 1
@@ -2478,7 +2442,6 @@ _M.TIMING_LEVEL = 0
 _M.TIMING_EDGE  = 1
 _M.TIMING_PULSE = 2
 _M.TIMING_LATCH = 3
-
 
 _M.SOURCE_GROSS = 0
 _M.SOURCE_NET = 1
@@ -2592,7 +2555,6 @@ function _M.releaseOutput(...)
         _M.lastIOEnable = curIOEnable
     end 
 end
-
 
 --------------------------------------------------------------------------------
 -- returns actual register address for a particular setpoint parameter
@@ -2771,7 +2733,6 @@ end
 _M.scrUpdTm = 0.5  -- screen update frequency in mSec
 _M.blink = false   -- blink cursor for string editing
 _M.inMenu = false  -- true when a menu is active, prevents entering another menu
-
 
 -----------------------------------------------------------------------------------------------
 -- return a character for the key pressed, according to the number of times it has been pressed
@@ -3072,11 +3033,6 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     return _M.sEditVal, ok                  -- return edited string and OK status
 end
 
-
-
-
-
-    
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a value, numeric digits and '.' only
 -- @param prompt string displayed on bottom right LCD
@@ -3305,7 +3261,6 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     end 
 
     _M.editing = true
-    
 
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
@@ -3561,7 +3516,6 @@ _M.REG_CLRLIN           = 0x0105
 _M.REG_CALIBDIRZERO     = 0x0106
 _M.REG_CALIBDIRSPAN     = 0x0107
 
-
 --- Command Return Constants and strings.
 --@table Command
 -- @field CMD_OK          'OK'     command executed successfully          
@@ -3604,8 +3558,6 @@ _M.cmdString[9] = 'COMMAND'
 _M.cmdString[10] = 'DUPLICATE'
 _M.cmdString[11] = 'HI RES'
 
-
-
 -------------------------------------------------------------------------------
 -- Called to execute a Zero command
 -- @return CMD_ constant followed by command return string
@@ -3618,7 +3570,6 @@ function _M.zero()
         return msg, err
     end
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to execute a Tare command
@@ -3692,7 +3643,6 @@ _M.REG_FULLPCODEDATA     = 0x00D0
 _M.REG_SAFEPCODEDATA     = 0x00D1
 _M.REG_OPERPCODEDATA     = 0x00D2
 
-
 _M.REG_FULLPCODE         = 0x0019
 _M.REG_SAFEPCODE         = 0x001A
 _M.REG_OPERPCODE         = 0x001B
@@ -3707,7 +3657,6 @@ _M.passcodes.safe.pcode     = _M.REG_SAFEPCODE
 _M.passcodes.safe.pcodeData = _M.REG_SAFEPCODEDATA
 _M.passcodes.oper.pcode     = _M.REG_OPERPCODE
 _M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
-
 
 -------------------------------------------------------------------------------
 -- Command to check to see if passcode entry required and prompt if so
@@ -3808,11 +3757,6 @@ function _M.calibrateZero()
     end   
 end
 
-
-
-
-
-
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param span weight value for calibration
@@ -3879,7 +3823,6 @@ function _M.calibrateSpanMVV(MVV)
         return msg, err
     end
 end
-
 
 _M.REG_ZEROMVV  = 0x0111
 _M.REG_SPANWGT  = 0x0112
@@ -3952,8 +3895,6 @@ function _M.readLinCal()
     return t, nil 
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Command to calibrate linearisation point
 -- @param pt is the linearisation point 1..10 
@@ -3995,8 +3936,6 @@ function _M.calibrateLin(pt, val)
     end 
 end
 
-
-
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param pt is the linearisation point 1..10 
@@ -4019,7 +3958,6 @@ function _M.clearLin(pt)
     end
 end
 
-
 -------------------------------------------------------------------------------
 -- Called to trigger initial stream reads and establish initial conditions
 function _M.init()
@@ -4033,8 +3971,7 @@ function _M.init()
             end    
             v.lastData = ''
    end   
-   
-   
+
    if streamUser then
       _M.send(nil,_M.CMD_RDFINALHEX,
                  bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),

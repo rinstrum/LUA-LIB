@@ -39,7 +39,6 @@ line[3] = 5
 csv.replaceLineCSV(db.materials,row,line)
 print(csv.tostringCSV(db.materials,10))
 
-
 print('---------------------------------------------------')
 print('Logging Data to File')
 

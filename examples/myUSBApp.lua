@@ -20,17 +20,6 @@ usbKBD.link(rinApp)
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 
-
-
-
-
-
-
-
-
-
-
-
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
 --=============================================================================
@@ -162,10 +151,8 @@ local function mainLoop()
          barcode = nil
          barcodeKeys = {}
      end
-     
-     
-end
 
+end
 
 --=============================================================================
 -- Clean Up 
