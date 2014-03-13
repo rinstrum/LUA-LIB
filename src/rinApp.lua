@@ -44,10 +44,30 @@ _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config)
 
+
+_M.userTerminalCallback = nil
+
+
+-------------------------------------------------------------------------------
+-- called to register application's callback for keys pressed in the terminal.  
+-- Nothing is called unless the user hits <Enter>.  The callback function is 
+-- called with the data entered by the user.  Have the callback return true
+-- to indicate that the message has been processed, false otherwise.  
+-- @param f callback given data entered by user in the terminal screen
+function _M.setUserTerminal(f)
+   _M.userTerminalCallback = f
+end    
+
+
 -- captures input from terminal to change debug level
 local function userioCallback(sock)
     local data = sock:receive("*l")
-       
+
+    if _M.userTerminalCallback then
+        if _M.userTerminalCallback(data) then return
+        end
+    end    
+    
     if data == nil then
         sock.close()
         socks.removeSocket(sock)
@@ -182,7 +202,7 @@ function _M.addK400(model, ip, portA, portB)
 
 	-- Create the extra debug port
     _M.system.sockets.createServerSocket(2226, device.socketDebugAcceptCallback)
-	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n") end)
+	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\n\r") end)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)

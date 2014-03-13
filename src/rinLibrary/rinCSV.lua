@@ -350,7 +350,7 @@ end
 -------------------------------------------------------------------------------
 -- returns the number of rows of data in CSV table
 -- @param t CSV table
--- @returns number of rows
+-- @return number of rows
 function _M.numRowsCSV(t)
   return(#t.data)
 end
@@ -358,7 +358,7 @@ end
 -------------------------------------------------------------------------------
 -- returns the number of columns of data in CSV table
 -- @param t CSV table
--- @returns number of columns
+-- @return number of columns
 function _M.numColsCSV(t)
    return (#t.labels)
 end

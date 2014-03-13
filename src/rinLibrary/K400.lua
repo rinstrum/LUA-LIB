@@ -464,6 +464,7 @@ function _M.loadRIS(filename)
             _M.sendRegWait(cmd,reg,data)
          end
     end
+    _M.saveSettings()
     file:close()
 end
 
@@ -2886,7 +2887,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
--- @param def default value
+-- @param def default value\
+-- @param maxLen maximum number of characters to include
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
@@ -3241,7 +3243,7 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string  if OK pressed or nil if CANCEL pressed
-function _M.selectOption(prompt, options, def, loop)
+function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     loop = loop or false
     local options = options or {'cancel'}
     local u = units or 0

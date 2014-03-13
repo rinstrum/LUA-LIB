@@ -496,25 +496,34 @@ end
 _M.start = nil
 _M.end1 = '\13'
 _M.end2 = '\10'
-
+_M.serBTimeout = 0
+_M.serBTimer = nil
+_M.serBBuffer = {}
+function _M.serBProcess(err)
+    local msg = table.concat(_M.serBBuffer)
+    _M.dbg.debug(_M.socketB:getpeername(), '-->', msg, err) 
+    if _M.SerBCallback then
+        _M.SerBCallback(msg,err)
+    end
+    sockets.writeSet("uni", msg)
+    _M.serBBuffer = {}
+end
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
 function _M.socketBCallback()
 
     local char, prevchar, err
-    local buffer = {}
     local msg
 
     while true do
         prevchar = char
         char, err = _M.socketB:receive(1)
-
         if err then break end
         if char == _M.start then
-            buffer = {}
+            _M.serBBuffer = {}
         end
-        table.insert(buffer,char)
-        if #buffer > 50 then
+        table.insert(_M.serBBuffer,char)
+        if #_M.serBBuffer > 250 then
            break
         end   
         if (_M.end2) then
@@ -526,20 +535,25 @@ function _M.socketBCallback()
         end          
     end
     
-    if err == nil or (err == 'timeout' and #buffer > 0) then
-        msg = table.concat(buffer)
-        _M.dbg.debug(_M.socketB:getpeername(), '-->', msg) 
-        if _M.SerBCallback then
-            _M.SerBCallback(msg)
-        end
-        sockets.writeSet("uni", msg)
-        return nil, nil
+    if err == nil then
+        _M.serBProcess()
+         if _M.serBTimer then
+            _M.system.timers.removeTimer(_M.serBTimer)
+         end   
+         return nil, nil
+    elseif err == 'timeout' then  -- partial message received
+         if _M.serBTimer then
+            _M.system.timers.removeTimer(_M.serBTimer)
+         end
+         if _M.serBTimeout > 0 then   
+            _M.serBTimer = _M.system.timers.addTimer(0, _M.serBTimeout, _M.serBProcess,'timeout')
+         end   
+         return nil, nil    
     end
-    
     _M.dbg.error("Receive SERB failed: ", err)
-
     return nil, err
 end
+
 
 -------------------------------------------------------------------------------
 -- Set delimiters for messages received from the socket linked to SERB 
@@ -547,7 +561,9 @@ end
 -- @param start start character, nil if not used
 -- @param end1 first end character, nil if not used
 -- @param end2 second end character, nil if not used
-function _M.setDelimiters(start, end1, end2)
+-- @param t is a timeout in seconds to return any message received without 
+-- matching delimiters.  If 0 then partial messages are never returned
+function _M.setDelimiters(start, end1, end2, t)
    if type(start) == 'number' then
       start = string.char(start)
     end
@@ -560,11 +576,14 @@ function _M.setDelimiters(start, end1, end2)
    _M.start = start
    _M.end1 = end1
    _M.end2 = end2
+   _M.serBTimeout = tonumber(t) or 0
+
 end
 
 -------------------------------------------------------------------------------
 -- Set callback function for the SerB data stream 
 -- @param f callback function that takes a message string as an argument
+-- optional second argument is 'timeout' if message is partial
 function _M.setSerBCallback(f)
   _M.SerBCallback = f
 end
