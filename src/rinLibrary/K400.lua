@@ -3343,6 +3343,7 @@ function _M.printCustomTransmit(tokenStr, comPort)
         _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
         _M.sendReg(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end 
+    tokenStr = _M.expandCustomTransmit(tokenStr)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
 end
 
