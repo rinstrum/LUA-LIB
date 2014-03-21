@@ -813,7 +813,6 @@ _M.REG_LUA_ESTAT    = 0x0305
 _M.REG_LUA_STAT_RTC = 0x032A
 _M.REG_LUA_STAT_RDG = 0x032B
 _M.REG_LUA_STAT_IO  = 0x032C
-_M.REG_IOSTATUS     = 0x0051
 _M.REG_SETPSTATUS  = 0x032E 
 
 _M.lastIOStatus = 0
@@ -1375,7 +1374,7 @@ function _M.setupStatus()
     _M.curStatus = 0 
     _M.statID = _M.addStreamLib(_M.REG_LUA_STATUS, _M.statusCallback, 'change')
     _M.eStatID = _M.addStreamLib(_M.REG_LUA_ESTAT, _M.eStatusCallback, 'change')
-    _M.IOID =   _M.addStreamLib(_M.REG_IOSTATUS, _M.IOCallback, 'change')
+    _M.IOID =   _M.addStreamLib(_M.REG_IO_STATUS, _M.IOCallback, 'change')
     _M.SETPID =  _M.addStreamLib(_M.REG_SETPSTATUS, _M.SETPCallback, 'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC, _M.handleRTC)
