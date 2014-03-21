@@ -2733,6 +2733,38 @@ _M.scrUpdTm = 0.5  -- screen update frequency in mSec
 _M.blink = false   -- blink cursor for string editing
 _M.inMenu = false  -- true when a menu is active, prevents entering another menu
 
+
+-----------------------------------------------------------------------------------------------
+-- Helper function that takes a string and a position and returns the character
+-- at the specified position.  It modulo reduces its argument to the string's
+-- length.
+-- @param s String of legal characters
+-- @param p Position in string
+-- @return The relevant character
+local function keyCharSelect(s, p)
+    if s == nil then return nil end
+    local z = math.fmod(p, #s)
+    if z == 0 then z = #s end
+    return s:sub(z, z)
+end
+
+-----------------------------------------------------------------------------------------------
+-- This table defines the mapping from the numeric keys to alpha characters.
+-- The first press results in the first character, the second the second and
+-- so forth.
+local keyMapping = {
+    [_M.KEY_1] = "$/\\1",
+    [_M.KEY_2] = "ABC2",
+    [_M.KEY_3] = "DEF3",
+    [_M.KEY_4] = "GHI4",
+    [_M.KEY_5] = "JKL5",
+    [_M.KEY_6] = "MNO6",
+    [_M.KEY_7] = "PQRS7",
+    [_M.KEY_8] = "TUV8",
+    [_M.KEY_9] = "WXYZ9",
+    [_M.KEY_0] = " 0"
+}
+
 -----------------------------------------------------------------------------------------------
 -- return a character for the key pressed, according to the number of times it has been pressed
 -- @param k key pressed
@@ -2741,114 +2773,7 @@ _M.inMenu = false  -- true when a menu is active, prevents entering another menu
 -----------------------------------------------------------------------------------------------
 
 _M.keyChar = function(k, p)
-
-    local n = math.fmod(p, 4)   -- fmod returns the remainder of the integer division
-
-    if k == _M.KEY_1 then
-        if n == 1 then          -- one key press
-            return "$"
-        elseif n == 2 then      -- two key presses
-            return "/"
-        elseif n == 3 then      -- three key presses
-            return "\\"
-        elseif n == 0 then      -- four key presses
-            return "1"
-        end
-    elseif k == _M.KEY_2 then
-        if n == 1 then          -- one key press
-            return "A"
-        elseif n == 2 then      -- two key presses
-            return "B"
-        elseif n == 3 then      -- three key presses
-            return "C"
-        elseif n == 0 then      -- four key presses
-            return "2"
-        end
-    elseif k == _M.KEY_3 then
-        if n == 1 then          -- one key press
-            return "D"
-        elseif n == 2 then      -- two key presses
-            return "E"
-        elseif n == 3 then      -- three key presses
-            return "F"
-        elseif n == 0 then      -- four key presses
-            return "3"
-        end
-    elseif k == _M.KEY_4 then
-        if n == 1 then          -- one key press
-            return "G"
-        elseif n == 2 then      -- two key presses
-            return "H"
-        elseif n == 3 then      -- three key presses
-            return "I"
-        elseif n == 0 then      -- four key presses
-            return "4"
-        end
-    elseif k == _M.KEY_5 then
-        if n == 1 then          -- one key press
-            return "J"
-        elseif n == 2 then      -- two key presses
-            return "K"
-        elseif n == 3 then      -- three key presses
-            return "L"
-        elseif n == 0 then      -- four key presses
-            return "5"
-        end
-    elseif k == _M.KEY_6 then
-        if n == 1 then          -- one key press
-            return "M"
-        elseif n == 2 then      -- two key presses
-            return "N"
-        elseif n == 3 then      -- three key presses
-            return "O"
-        elseif n == 0 then      -- four key presses
-            return "6"
-        end
-    elseif k == _M.KEY_7 then
-        n = math.fmod(p, 5)     -- special case with 5 options
-        if n == 1 then          -- one key press
-            return "P"
-        elseif n == 2 then      -- two key presses
-            return "Q"
-        elseif n == 3 then      -- three key presses
-            return "R"
-        elseif n == 4 then      -- four key presses
-            return "S"
-        elseif n == 0 then      -- five key presses
-            return "7"
-        end
-    elseif k == _M.KEY_8 then
-        if n == 1 then          -- one key press
-            return "T"
-        elseif n == 2 then      -- two key presses
-            return "U"
-        elseif n == 3 then      -- three key presses
-            return "V"
-        elseif n == 0 then      -- four key presses
-            return "8"
-        end
-    elseif k == _M.KEY_9 then
-        n = math.fmod(p, 5)     -- special case with 5 options
-        if n == 1 then          -- one key press
-            return "W"
-        elseif n == 2 then      -- two key presses
-            return "X"
-        elseif n == 3 then      -- three key presses
-            return "Y"
-        elseif n == 4 then      -- three key presses
-            return "Z"
-        elseif n == 0 then      -- five key presses
-            return "9"
-        end
-    elseif k == _M.KEY_0 then
-        n = math.fmod(p, 2)     -- special case with 2 options
-        if n == 1 then          -- one key press
-            return " "
-        elseif n == 0 then      -- two key presses
-            return "0"
-        end
-    end
-    return nil      -- key passed to function is not a number key
+    return keyCharSelect(keyMapping[k], p)
 end
 
 function sTrim(s)       -- removes whitespace from strings
