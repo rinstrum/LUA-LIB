@@ -1298,15 +1298,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
--- @param stat status bits to monitor
 -- @usage
 -- dwi.waitStatus(dwi.STAT_NOTMOTION) -- wait for no motion
 -- dwi.waitStatus(dwi.STAT_COZ)  -- wait for Centre of zero
--- dwi.waitStatus(bit32.bor(dwi.STAT_ZERO,
---                          dwi.STAT_NOTMOTION)) -- wait for no motion and zero 
+-- dwi.waitStatus(dwi.STAT_ZERO,dwi.STAT_NOTMOTION) -- wait for no motion and zero 
 --
-function _M.waitStatus(stat)
-   while bit32.bor(_M.curStatus,stat) do
+function _M.waitStatus(...)
+   local stat = bit32.bor(...)
+   while bit32.band(_M.curStatus,stat) ~= stat do
      _M.system.handleEvents()
    end 
 end
