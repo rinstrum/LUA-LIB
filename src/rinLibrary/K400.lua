@@ -1386,21 +1386,21 @@ end
 -------------------------------------------------------------------------------
 -- Cancel status handling
 function _M.endStatus()
-    _M.removeStream(_M.statID)
-    _M.removeStream(_M.eStatID)
-    _M.removeStream(_M.IOID)
-    _M.removeStream(_M.SETPID)
+    _M.removeStreamLib(_M.statID)
+    _M.removeStreamLib(_M.eStatID)
+    _M.removeStreamLib(_M.IOID)
+    _M.removeStreamLib(_M.SETPID)
 end
 
 -------------------------------------------------------------------------------
 -- Cancel IO status handling
 function _M.endIOStatus()
-   _M.removeStream(_M.IOID)
+   _M.removeStreamLib(_M.IOID)
 end
 -------------------------------------------------------------------------------
 -- Cancel SETP status handling
 function _M.endSETPStatus()
-   _M.removeStream(_M.SETPID)
+   _M.removeStreamLib(_M.SETPID)
 end
 
 -------------------------------------------------------------------------------
