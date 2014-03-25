@@ -3044,6 +3044,7 @@ end
 function _M.edit(prompt, def, typ, units, unitsOther)
 
     local key, state
+    local hide = false
 
     if typ == 'passcode' then
         typ = 'integer'
