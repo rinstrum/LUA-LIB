@@ -68,6 +68,7 @@ You probably want to chown these to a system user: " >&2
 		ls -ld $large_uid_files
 		echo >&2
 	fi
+	    
 
 	if [ ! -f "$CONTROL/control" ]; then
 		echo "*** Error: Control file $pkg_dir/$CONTROL/control not found." >&2
@@ -185,6 +186,7 @@ while getopts "cg:ho:vO" opt; do
 	esac
 done
 
+
 shift $(($OPTIND - 1))
 
 # continue on to process additional arguments
@@ -237,7 +239,7 @@ rm $tmp_dir/tarX
 
 echo "2.0" > $tmp_dir/debian-binary
 
-if (( $opkext == 1)); then 
+if [ $opkext -eq 1 ]; then
 	pkg_file=$dest_dir/${pkg}_${version}_${arch}.opk
 else
 	pkg_file=$dest_dir/${pkg}_${version}_${arch}.ipk
