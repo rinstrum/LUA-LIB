@@ -44,7 +44,7 @@ local function push(event)
     timers[n] = event
     while n > 1 and timers[p].when > when do
     	timers[p], timers[n] = timers[n], timers[p]
-        n, p = p, floor(0.5 * n)
+        n, p = p, floor(0.5 * p)
     end
     return event
 end
