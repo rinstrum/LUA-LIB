@@ -185,7 +185,7 @@ end
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendRegWait(cmd, reg, data, t, crc)
     
-    local t = t or 0.500
+    local t = t or 1.0
     
     if reg == nil then
           return nil, 'Nil Register'
@@ -573,8 +573,6 @@ end
 function _M.addStream(streamReg, callback, onChange)
     local availReg = nil
     
-    _M.bindRegister(bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA), _M.streamCallback)
-    
     for k,v in pairs(_M.availRegistersUser) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
@@ -584,15 +582,14 @@ function _M.addStream(streamReg, callback, onChange)
     if availReg == nil then
         return nil, "no more registers available"
     end
-    
+
+    _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
+    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
     _M.availRegistersUser[availReg].reg = streamReg
     _M.availRegistersUser[availReg].callback = callback
     _M.availRegistersUser[availReg].onChange = onChange
     _M.availRegistersUser[availReg].lastData = ''
-    _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
-    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
     _M.availRegistersUser[availReg].typ = typ
-    
     _M.streamRegistersUser[streamReg] = availReg
 
     _M.sendReg(_M.CMD_WRFINALHEX, 
@@ -605,6 +602,7 @@ function _M.addStream(streamReg, callback, onChange)
                 bit32.bor(_M.REG_LUAUSER, _M.REG_STREAMDATA), 
                 _M.STM_START)
     
+    _M.bindRegister(bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA), _M.streamCallback)
     return streamReg
 end
 
@@ -616,7 +614,7 @@ function _M.removeStream(streamReg)
 
      if availReg == nil then return end   -- stream already removed
      
-    _M.sendReg(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUAUSER,availReg),0)
+    _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUAUSER,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUAUSER, availReg))
     
     _M.availRegistersUser[availReg].reg = 0
@@ -657,7 +655,7 @@ _M.streamRegistersLib = {}
 -- @param data Data received from register
 -- @param err Potential error message
 function _M.streamCallbackLib(data, err)
-   
+    
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then 
@@ -674,6 +672,9 @@ function _M.streamCallbackLib(data, err)
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
                      v.lastData = substr                
                      _M.system.timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                      _M.dbg.debug('Delay Until Next: ',_M.system.timers.delayUntilNext())
+                      _M.dbg.debug('Timer Queue: ',_M.system.timers.shareTimers())
+                      
                 end
             end
         end
@@ -693,8 +694,6 @@ end
 function _M.addStreamLib(streamReg, callback, onChange)
     local availReg = nil
     
-    _M.bindRegister(bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA), _M.streamCallbackLib)
-    
     for k,v in pairs(_M.availRegistersLib) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
@@ -704,12 +703,12 @@ function _M.addStreamLib(streamReg, callback, onChange)
     if availReg == nil then
         return nil, "no more registers available"
     end
-    
+
+    _,_M.availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
     _M.availRegistersLib[availReg].reg = streamReg
     _M.availRegistersLib[availReg].callback = callback
     _M.availRegistersLib[availReg].onChange = onChange
     _M.availRegistersLib[availReg].lastData = ''
-    _,_M.availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
     
     _M.streamRegistersLib[streamReg] = availReg
 
@@ -722,7 +721,8 @@ function _M.addStreamLib(streamReg, callback, onChange)
     _M.sendReg(_M.CMD_EX, 
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA), 
                 _M.STM_START)
-    
+   
+   _M.bindRegister(bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA), _M.streamCallbackLib)
     return streamReg
 end
 
@@ -734,7 +734,7 @@ function _M.removeStreamLib(streamReg)
 
      if availReg == nil then return end   -- stream already removed
      
-    _M.sendReg(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUALIB,availReg),0)
+    _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUALIB,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUALIB, availReg))
     
     _M.availRegistersLib[availReg].reg = 0
@@ -744,19 +744,19 @@ end
 -------------------------------------------------------------------------------
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
-    _M.sendReg(_M.CMD_EX,
+    _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(_M.REG_LUAUSER, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
-    _M.sendReg(_M.CMD_EX,
+    _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
 
     for k,v in pairs(_M.availRegistersUser) do
-        _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
+        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
         v.reg = 0
     end
     for k,v in pairs(_M.availRegistersLib) do
-        _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUALIB, k), 0)
+        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUALIB, k), 0)
         v.reg = 0
     end
     
@@ -1353,7 +1353,7 @@ end
 function _M.writeRTCStatus(s)
    local s = s or true
    if s then s = 1 else s = 0 end
-   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
+   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
 end
 
 function _M.handleRTC(status, active)
@@ -1362,10 +1362,10 @@ end
 
 function _M.handleINIT(status, active)
    _M.dbg.info('INIT',string.format('%08X',status),active)
-   if active then
-       _M.readSettings()
-       _M.RTCread()
-   end    
+--   if active then
+--       _M.readSettings()
+--       _M.RTCread()
+--   end    
 end
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
@@ -1531,8 +1531,8 @@ _M.keyBinds = {
 -------------------------------------------------------------------------------
 -- Setup key handling stream
 function _M.setupKeys()
-    _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+    _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
     _M.keyID = _M.addStreamLib(_M.REG_GET_KEY, _M.keyCallback, 'change')
 end
 
@@ -1552,12 +1552,11 @@ end
 _M.runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
 
 function _M.bumpIdleTimer()
-    if _M.idleTimerID then 
-        _M.system.timers.removeTimer(_M.idleTimerID)
-    end
+    _M.system.timers.removeTimer(_M.idleTimerID)
     if _M.idleCallback then
         _M.idleTimerID = _M.system.timers.addTimer(0,_M.idleTimeout,_M.idleCallback) 
-    end        
+    end      
+       
 end
 
 -- Called when keys are streamed, send the keys to each group it is bound to 
@@ -1579,6 +1578,7 @@ function _M.keyCallback(data, err)
         state = "up"
     end    
 
+    _M.dbg.debug('Key: ',data,err)
     -- Debug - throw away first 0 key garbage
     if data == 0 and _M.firstKey then
         return
@@ -1627,7 +1627,9 @@ function _M.keyCallback(data, err)
     if not handled then
         _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
-    _M.bumpIdleTimer()
+    if state ~= 'up' then  
+        _M.bumpIdleTimer()
+    end    
 end
 
 -------------------------------------------------------------------------------
@@ -1639,7 +1641,7 @@ end
 -- local function idle()
 --    dwi.abortDialog()
 -- end
--- dwi.setIdleCallback(idle,15) -- call idel if 15 seconds elapses between keys
+-- dwi.setIdleCallback(idle,15) -- call idle if 15 seconds elapses between keys
 function _M.setIdleCallback(f,t)
    _M.idleCallback = f
    local t = t or 10
@@ -1693,7 +1695,7 @@ function _M.sendKey(key,status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
+        _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
 end
 
@@ -2347,7 +2349,7 @@ _M.ANALOG_COMMS = 3
 -- @param src Source for output.  
 -- Must be set to ANALOG_COMMS to control directly
 function _M.setAnalogSource(src)
-   _M.sendReg(_M.CMD_WRFINALDEC,
+   _M.sendRegWait(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_SOURCE,
                 src)
   _M.saveSettings()                
@@ -2366,7 +2368,7 @@ function _M.setAnalogType(typ)
     end  
     
     if _M.curAnalogType ~= prev then 
-        _M.sendReg(_M.CMD_WRFINALDEC,
+        _M.sendRegWait(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_TYPE,
                 _M.curAnalogType) 
     end
@@ -2385,7 +2387,7 @@ _M.setAnalogClip = _M.preconfigureMsg(  _M.REG_ANALOGUE_CLIP,
 -- @param raw value in raw counts (0..50000)
 function _M.setAnalogRaw(raw)
    if _M.lastAnalogue ~= raw then 
-       _M.send(nil, _M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw, 'noReply')
+       _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw)
        _M.lastAnalogue = raw
    end    
 end                                         
@@ -2498,9 +2500,13 @@ _M.setp = {}
 
 _M.NUM_SETP = 16
  
-_M.setOutputs = _M.preconfigureMsg(_M.REG_IO_STATUS, _M.CMD_WRFINALDEC)
-_M.setOutputEnable = _M.preconfigureMsg(_M.REG_IO_ENABLE, _M.CMD_WRFINALDEC)
+function _M.setOutputs(outp)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
+end
 
+function _M.setOutputEnable(en)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
+end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param IO is output 1..32
@@ -2607,14 +2613,14 @@ end
 --------------------------------------------------------------------------------
 -- Private function
 function _M.setpParam(setp,reg,v)
-   _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
+   _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
 end
 
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints 
 -- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
-  _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
+  _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
 end
 
 -------------------------------------------------------------------------------
@@ -2622,7 +2628,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
@@ -2630,7 +2636,7 @@ end
 -- @param setp is setpount 1..16
 -- @param IO is output 1..32, 0 for none
 function _M.setpIO(setp, IO)
-    _M.setpParam(setp,_M.REG_SETP_OUTPUT, IO)
+    _M.setpParamWait(setp,_M.REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
@@ -3317,11 +3323,11 @@ function _M.printCustomTransmit(tokenStr, comPort)
     local comPort = comPort or _M.PRINT_SER1A
     if comPort ~= _M.curPrintPort  then
         _M.curPrintPort = comPort
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
-        _M.sendReg(_M.CMD_EX, _M.REG_SAVESETTING,0)
+        _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
+        _M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end 
     tokenStr = _M.expandCustomTransmit(tokenStr)
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
 end
 
 -------------------------------------------------------------------------------
@@ -3641,11 +3647,13 @@ _M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 -- @param pc = 'full','safe','oper'
 -- @param code = passcode to unlock, nil to prompt user
 -- @return true if unlocked false otherwise
-function _M.checkPasscode(pc, code)
+function _M.checkPasscode(pc, code, tries)
     local pc = pc or 'full'
     local pcode = _M.passcodes[pc].pcode
     local f = _M.removeErrHandler()
     local pass = ''
+    local tries = tries or 1
+    local count = 1
     while true do    
        msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
@@ -3653,8 +3661,9 @@ function _M.checkPasscode(pc, code)
              pass = code
              code = nil
           else   
-             pass, ok = _M.edit('PCODE','','passcode')
-             if not ok or not pass then
+            pass, ok = _M.edit('PCODE','','passcode')
+            count = count + 1             
+            if not ok or not pass or count > tries then
                 _M.setErrHandler(f)
                 return false
              end 
