@@ -1552,6 +1552,15 @@ end
 
 _M.runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
 
+function _M.bumpIdleTimer()
+    if _M.idleTimerID then 
+        _M.system.timers.removeTimer(_M.idleTimerID)
+    end
+    if _M.idleCallback then
+        _M.idleTimerID = _M.system.timers.addTimer(0,_M.idleTimeout,_M.idleCallback) 
+    end        
+end
+
 -- Called when keys are streamed, send the keys to each group it is bound to 
 -- in order of priority, until one of them returns true.
 -- key states are 'short','long','up'
@@ -1619,8 +1628,24 @@ function _M.keyCallback(data, err)
     if not handled then
         _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
+    _M.bumpIdleTimer()
 end
 
+-------------------------------------------------------------------------------
+-- Set a callback to run if more than t seconds of idle time is detected 
+-- between keys.  This is used to trap operator leaving without proper menu exit.
+-- @param f function to run when idle time expired
+-- @param t is timeout in seconds
+-- @usage
+-- local function idle()
+--    dwi.abortDialog()
+-- end
+-- dwi.setIdleCallback(idle,15) -- call idel if 15 seconds elapses between keys
+function _M.setIdleCallback(f,t)
+   _M.idleCallback = f
+   local t = t or 10
+   _M.idleTimeout = t
+end
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
 -- @param key to monitor (KEY_* )
@@ -2700,9 +2725,19 @@ end
 -- Functions for user interface dialogues
 -- @section dialog
 -------------------------------------------------------------------------------
-
+_M.dialogRunning = false
 _M.getKeyPressed = 0
 _M.getKeyState = ''
+
+function _M.abortDialog()
+   _M.dialogRunning = false
+end
+
+function _M.startDialog()
+    _M.dialogRunning = true
+    _M.bumpIdleTimer()   
+end
+
 
 function _M.getKeyCallback(key, state)
     _M.getKeyPressed = key
@@ -2722,7 +2757,8 @@ function _M.getKey(keyGroup)
 
     _M.getKeyState = ''
     _M.getKeyPressed = nil
-    while _M.app.running and _M.getKeyState == '' do
+    _M.startDialog()
+    while _M.dialogRunning and _M.app.running and _M.getKeyState == '' do
         _M.system.handleEvents()
     end   
     _M.setKeyGroupCallback(keyGroup, f)
@@ -2942,14 +2978,18 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     _M.writeBotLeft(_M.sEditVal)    -- write the default string to edit
     _M.writeBotUnits(u,uo)          -- display optional units
 
+    _M.startDialog()
     while _M.editing do
         key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
         if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
         _M.sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
-        
-        if state == "short" then                            -- short key presses for editing
+        if not _M.dialogRunning then    -- editing aborted so return default
+            ok = false
+           _M.editing = false
+           _M.sEditVal = default 
+        elseif state == "short" then                            -- short key presses for editing
             if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
 --              print('i:' .. _M.sEditIndex .. ' l:' .. sLen)   -- debug
                 if key == pKey then         -- if same as the previous key pressed
@@ -3083,9 +3123,14 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local first = true
 
     local ok = false  
+   _M.startDialog()
     while _M.editing do
         key, state = _M.getKey(_M.keyGroup.keypad)
-        if state == 'short' then
+        if not _M.dialogRunning then    -- editing aborted so return default
+            ok = false
+           _M.editing = false
+           _M.sEditVal = def 
+        elseif state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
                 if first then 
                     editVal = tostring(key) 
@@ -3152,6 +3197,7 @@ function _M.editReg(reg,prompt)
       end   
    end
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+  _M.startDialog()
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
      
@@ -3159,6 +3205,9 @@ function _M.editReg(reg,prompt)
        break
      end
      _M.delay(0.050)
+     if not dialogRunning then
+        _M.sendKey(_M.KEY_CANCEL,'long')
+     end
    end
    if prompt then
       _M.restoreBot()
@@ -3232,7 +3281,8 @@ function _M.askOK(prompt, q, units, unitsOther)
  
     _M.askOKWaiting = true
     _M.askOKResult = _M.KEY_CANCEL
-    while _M.askOKWaiting and _M.app.running do
+   _M.startDialog()
+    while _M.dialogRunning and _M.askOKWaiting and _M.app.running do
         _M.system.handleEvents()
     end   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
@@ -3276,9 +3326,12 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     _M.writeBotLeft(string.upper(options[index]))
     _M.writeBotUnits(u,uo)
 
+   _M.startDialog()
     while _M.editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)  
-        if key == _M.KEY_DOWN then
+        if not _M.dialogRunning then    -- editing aborted so return default
+           _M.editing = false
+        elseif key == _M.KEY_DOWN then
             index = index + 1
             if index > #options then
               if loop then 
