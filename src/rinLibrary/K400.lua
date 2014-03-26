@@ -2773,7 +2773,7 @@ function _M.isEditing()
    return _M.editing
 end
 
-_M.scrUpdTm = 0.5  -- screen update frequency in mSec
+_M.scrUpdTm = 0.5  -- screen update frequency in Sec
 _M.blink = false   -- blink cursor for string editing
 _M.inMenu = false  -- true when a menu is active, prevents entering another menu
 
