@@ -3654,7 +3654,7 @@ function _M.checkPasscode(pc, code)
              code = nil
           else   
              pass, ok = _M.edit('PCODE','','passcode')
-             if not ok or #pass == 0 then
+             if not ok or not pass then
                 _M.setErrHandler(f)
                 return false
              end 
