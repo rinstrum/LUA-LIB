@@ -433,7 +433,7 @@ function _M.toPrimary(v, dp)
  
  if type(v) == 'string' then
     v = tonumber(v)
-  end   
+  end                              -- TODO: how to handle non-numbers elegantly here?  
  for i = 1,dp do
     v = v*10
   end
@@ -3739,7 +3739,7 @@ function _M.checkPasscode(pc, code)
              code = nil
           else   
              pass, ok = _M.edit('PCODE','','passcode')
-             if not ok then
+             if not ok or #pass == 0 then
                 _M.setErrHandler(f)
                 return false
              end 
