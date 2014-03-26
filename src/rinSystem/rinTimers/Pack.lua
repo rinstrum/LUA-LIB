@@ -33,19 +33,15 @@ if pcall(function() require "posix" end) then
     end
 end
 
+
 -------------------------------------------------------------------------------
 -- Put an event into the timer table.
 -- @return The event
 local function push(event)
-	local when = event.when
-    local n = #timers + 1
-    local p = floor(0.5 * n)
-
-    timers[n] = event
-    while n > 1 and timers[p].when > when do
-    	timers[p], timers[n] = timers[n], timers[p]
-        n, p = p, floor(0.5 * n)
-    end
+	table.insert(timers, event)
+    if #timers > 1 then
+        table.sort(timers,function(e1,e2) return(e1.when < e2.when) end)
+    end    
     return event
 end
 
@@ -53,29 +49,7 @@ end
 -- Grab the next event from the timer table.
 -- @return The next event
 local function pop()
-	local s = #timers
-    if s == 0 then return nil end
-    local event = timers[1]
-
-    timers[1] = timers[s]
-    timers[s] = nil
-    s = s - 1
-	if s > 0 then
-        local when = timers[1].when
-
-	    local n, p = 1, 2
-        if s > p and timers[p].when > timers[p+1].when then
-    	    p = p + 1
-        end
-        while s >= p and timers[p].when < when do
-    	    timers[p], timers[n] = timers[n], timers[p]
-            n, p = p, 2 * p
-            if s > p and timers[p].when > timers[p+1].when then
-        	    p = p + 1
-            end
-        end
-    end
-    return event
+   return(table.remove(timers,1))	
 end
 
 -------------------------------------------------------------------------------
@@ -160,5 +134,10 @@ function _M.processTimeouts()
         end
     end
 end
+
+function _M.shareTimers()
+     return(timers)
+end
+
 
 return _M
