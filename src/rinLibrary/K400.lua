@@ -1298,8 +1298,8 @@ end
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
 -- @usage
--- dwi.waitStatus(dwi.STAT_NOTMOTION) -- wait for no motion
--- dwi.waitStatus(dwi.STAT_COZ)  -- wait for Centre of zero
+-- dwi.waitStatus(dwi.STAT_NOTMOTION)  -- wait for no motion
+-- dwi.waitStatus(dwi.STAT_COZ)        -- wait for Centre of zero
 -- dwi.waitStatus(dwi.STAT_ZERO,dwi.STAT_NOTMOTION) -- wait for no motion and zero 
 --
 function _M.waitStatus(...)
@@ -2533,8 +2533,8 @@ end
 function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(_M.timedOutputs, IOMask) == 0 then
-  _M.turnOn(IO)
-  _M.system.timers.addTimer(0, t, _M.turnOff, IO)
+      _M.turnOn(IO)
+      _M.system.timers.addTimer(0, t, _M.turnOff, IO)
       _M.timedOutputs = bit32.bor(_M.timedOutputs,IOMask)
   else
      _M.dbg.warn('IO Timer overlap: ', IO)
@@ -3045,7 +3045,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     _M.writeBotUnits(u, uo)
 
     local first = true
-
+   
     local ok = false  
    _M.startDialog()
     while _M.editing do
@@ -3937,9 +3937,9 @@ function _M.clearLin(pt)
 end
 
 -------------------------------------------------------------------------------
--- Called to trigger initial stream reads and establish initial conditions
-function _M.init()
-   local streamUser = false
+-- Called to force all stream registers to resend current state
+function _M.renewStreamData()
+  local streamUser = false
    for k,v in pairs(_M.availRegistersLib) do
             v.lastData = ''
    end
@@ -3948,17 +3948,37 @@ function _M.init()
                 streamUser = true
             end    
             v.lastData = ''
-   end   
+   end 
+   for k,v in pairs(_M.IOBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.SETPBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.statBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.eStatBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+    
 
    if streamUser then
       _M.send(nil,_M.CMD_RDFINALHEX,
                  bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
                  '','reply')
-    end             
+    end 
    _M.send(nil,_M.CMD_RDFINALHEX,
-              bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
-              '', 'reply')
-   _M.sendKey(_M.KEY_CANCEL,'long')
-             
+                 bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
+                 '','reply')
+        
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to initalise the instrument and read initial conditions
+function _M.init()
+    _M.renewStreamData()
+    _M.sendKey(_M.KEY_CANCEL,'long')
 end
 return _M
