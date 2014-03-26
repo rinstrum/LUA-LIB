@@ -2466,6 +2466,7 @@ _M.TYPE_LGC_XOR  = 11
 _M.TYPE_BUZZER   = 12
 
 _M.lastOutputs = 0
+_M.timedOutputs = 0   -- keeps track of which IO are already running off timers
 -- bits set if under LUA control, clear if under instrument control
 _M.lastIOEnable = 0    
 
@@ -2491,21 +2492,29 @@ end
 -- Turns IO Output off
 -- @param IO is output 1..32
 function _M.turnOff(IO)
+ local IOMask =  bit32.lshift(0x0001,(IO-1))
  local curOutputs = bit32.band(_M.lastOutputs,
-                               bit32.bnot(bit32.lshift(0x0001,(IO-1))))
+                               bit32.bnot(IOMask))
  if (curOutputs ~= _M.lastOutputs) then
       _M.setOutputs(curOutputs)
       _M.lastOutputs = curOutputs
+      _M.timedOutputs = bit32.band(_M.timedOutputs, bit32.bnot(IOMask)) 
       end
-      
 end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param IO is output 1..32
 -- @param t is time in seconds
+
 function _M.turnOnTimed(IO, t)
+  local IOMask =  bit32.lshift(0x0001,(IO-1))
+  if bit32.band(_M.timedOutputs, IOMask) == 0 then
   _M.turnOn(IO)
   _M.system.timers.addTimer(0, t, _M.turnOff, IO)
+      _M.timedOutputs = bit32.bor(_M.timedOutputs,IOMask)
+  else
+     _M.dbg.warn('IO Timer overlap: ', IO)
+  end  
 end
 
 -------------------------------------------------------------------------------
