@@ -173,33 +173,63 @@ function _M.removeErrHandler()
     return f
 end
 
+_M.serABuffer = {}
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
 function _M.socketACallback()
-	local msg, e = _M.recMsg(_M.socketA)
+    local char, prevchar, err
+    while true do
+        prevchar = char
+        char, err = _M.socketA:receive(1)
 
-    if e == "closed" or e == "Transport endpoint is not connected" then
+        if err then break end
+        
+        if char == '\01' then
+            _M.serABuffer = {}
+        end
+
+        table.insert(_M.serABuffer,char)
+
+        -- Check for delimiters.
+        if _M.serABuffer[1] == '\01' then
+            if char == '\04' then
+                break
+            end
+        elseif (prevchar == '\r' and char == '\n') or char == ';' then
+            break
+        end
+    end
+    
+    if err == nil then
+        local msg = table.concat(_M.serABuffer)
+        _M.serABuffer = {}
+        _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg) 
+        local addr, cmd, reg, data, e = _M.processMsg(msg, e)
+        if e then
+            if _M.errHandler then
+               _M.errHandler(addr, cmd, reg, data, e)
+            end
+            data = nil
+        end    
+        if _M.deviceRegisters[reg] then
+            _M.deviceRegisters[reg](data, e)
+        elseif _M.deviceRegisters[0] then
+            _M.deviceRegisters[0](data, e)
+        end
+        return nil,nil
+      
+    elseif err == 'timeout' then  -- partial message received
+         return nil, nil    
+    end
+    
+    _M.dbg.error("Receive failed: ", err)
+    if err == "closed" or err == "Transport endpoint is not connected" then
+    	sockets.removeSocket(_M.socketA)
         _M.dbg.fatal("Critical error. Exiting.", e)
         os.exit(1)
     end
-
-    local addr, cmd, reg, data, err = _M.processMsg(msg, e)
-    
-    if err then
-        if _M.errHandler then
-            _M.errHandler(addr, cmd, reg, data, err)
-        end
-        data = nil
-    end
-    
-    if _M.deviceRegisters[reg] then
-        _M.deviceRegisters[reg](data, err)
-    elseif _M.deviceRegisters[0] then
-        _M.deviceRegisters[0](data, err)
-    end
-    
-    return data, err
+    return nil, err
 end
 
 -------------------------------------------------------------------------------
@@ -211,54 +241,7 @@ function _M.disconnect()
     _M.socketB = nil
 end
 
--------------------------------------------------------------------------------
--- Receive a rinCMD message from a socket linked to SERA.
--- Receives one byte at a time, and ends the message based on specified 
--- delimiters
--- @param sock A readable socket that has pending data
--- @return A string bounded by delimiters (nil if error)
--- @return An error message (nil if no error)
-function _M.recMsg(sock)
-    local char, prevchar, err
-    local buffer = {}
-    local msg
 
-    while true do
-        prevchar = char
-        char, err = sock:receive(1)
-
-        if err then break end
-        
-        if char == '\01' then
-            buffer = {}
-        end
-
-        table.insert(buffer,char)
-
-        -- Check for delimiters.
-        if buffer[1] == '\01' then
-            if char == '\04' then
-                break
-            end
-        elseif (prevchar == '\r' and char == '\n') or char == ';' then
-            break
-        end
-    end
-    
-    if err == nil then
-        msg = table.concat(buffer)
-        _M.dbg.debug(sock:getpeername(), '>>>', msg) 
-        return msg, nil
-    end
-    
-    _M.dbg.error("Receive failed: ", err)
-    
-    if err == "closed" or err == "Transport endpoint is not connected" then
-    	sockets.removeSocket(sock)
-    end
-    
-    return nil, err
-end
 
 -- -- ---------------------------------------------------------------------------
 -- Initialise the CRC-CCITT lookup table for use by the subsequent function
