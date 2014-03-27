@@ -1318,7 +1318,7 @@ end
 --
 function _M.waitIO(IO, state)
    local mask = bit32.lshift(0x00000001,(IO-1))
-   while true do
+   while _M.app.running do
      local data = bit32.band(_M.curIO,mask) 
      if (state and data ~= 0) or 
         (not state and data == 0) then 
@@ -1337,7 +1337,7 @@ end
 --
 function _M.waitSETP(SETP, state)
    local mask = bit32.lshift(0x00000001,(SETP-1))
-   while true do
+   while _M.app.running do
      local data = bit32.band(_M.curSETP,mask) 
      if (state and data ~= 0) or 
         (not state and data == 0) then 
@@ -2929,7 +2929,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     _M.writeBotUnits(u,uo)          -- display optional units
 
     _M.startDialog()
-    while _M.editing do
+    while _M.editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
         if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
@@ -3074,7 +3074,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
    
     local ok = false  
    _M.startDialog()
-    while _M.editing do
+    while _M.editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)
         if not _M.dialogRunning then    -- editing aborted so return default
             ok = false
@@ -3155,7 +3155,7 @@ function _M.editReg(reg,prompt)
        break
      end
      _M.delay(0.050)
-     if not dialogRunning then
+     if not dialogRunning or not _M.app.running then
         _M.sendKey(_M.KEY_CANCEL,'long')
      end
    end
