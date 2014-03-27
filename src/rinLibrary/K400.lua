@@ -185,7 +185,7 @@ end
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendRegWait(cmd, reg, data, t, crc)
     
-    local t = t or 0.500
+    local t = t or 2.0
     
     if reg == nil then
           return nil, 'Nil Register'
@@ -433,7 +433,7 @@ function _M.toPrimary(v, dp)
  
  if type(v) == 'string' then
     v = tonumber(v)
-  end   
+  end                              -- TODO: how to handle non-numbers elegantly here?  
  for i = 1,dp do
     v = v*10
   end
@@ -457,7 +457,7 @@ function _M.loadRIS(filename)
                  line = line .. ';'
             end     
        
-            _,cmd,reg,data,err = _M.processMsg(line)
+            local _,cmd,reg,data,err = _M.processMsg(line)
             if err then
                _M.dbg.error('RIS error: ',err)
             end   
@@ -573,8 +573,6 @@ end
 function _M.addStream(streamReg, callback, onChange)
     local availReg = nil
     
-    _M.bindRegister(bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA), _M.streamCallback)
-    
     for k,v in pairs(_M.availRegistersUser) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
@@ -584,15 +582,14 @@ function _M.addStream(streamReg, callback, onChange)
     if availReg == nil then
         return nil, "no more registers available"
     end
-    
+
+    _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
+    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
     _M.availRegistersUser[availReg].reg = streamReg
     _M.availRegistersUser[availReg].callback = callback
     _M.availRegistersUser[availReg].onChange = onChange
     _M.availRegistersUser[availReg].lastData = ''
-    _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
-    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
     _M.availRegistersUser[availReg].typ = typ
-    
     _M.streamRegistersUser[streamReg] = availReg
 
     _M.sendReg(_M.CMD_WRFINALHEX, 
@@ -605,6 +602,7 @@ function _M.addStream(streamReg, callback, onChange)
                 bit32.bor(_M.REG_LUAUSER, _M.REG_STREAMDATA), 
                 _M.STM_START)
     
+    _M.bindRegister(bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA), _M.streamCallback)
     return streamReg
 end
 
@@ -616,7 +614,7 @@ function _M.removeStream(streamReg)
 
      if availReg == nil then return end   -- stream already removed
      
-    _M.sendReg(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUAUSER,availReg),0)
+    _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUAUSER,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUAUSER, availReg))
     
     _M.availRegistersUser[availReg].reg = 0
@@ -657,7 +655,7 @@ _M.streamRegistersLib = {}
 -- @param data Data received from register
 -- @param err Potential error message
 function _M.streamCallbackLib(data, err)
-   
+    
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then 
@@ -693,8 +691,6 @@ end
 function _M.addStreamLib(streamReg, callback, onChange)
     local availReg = nil
     
-    _M.bindRegister(bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA), _M.streamCallbackLib)
-    
     for k,v in pairs(_M.availRegistersLib) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
@@ -704,12 +700,12 @@ function _M.addStreamLib(streamReg, callback, onChange)
     if availReg == nil then
         return nil, "no more registers available"
     end
-    
+
+    _,_M.availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
     _M.availRegistersLib[availReg].reg = streamReg
     _M.availRegistersLib[availReg].callback = callback
     _M.availRegistersLib[availReg].onChange = onChange
     _M.availRegistersLib[availReg].lastData = ''
-    _,_M.availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
     
     _M.streamRegistersLib[streamReg] = availReg
 
@@ -722,7 +718,8 @@ function _M.addStreamLib(streamReg, callback, onChange)
     _M.sendReg(_M.CMD_EX, 
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA), 
                 _M.STM_START)
-    
+   
+   _M.bindRegister(bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA), _M.streamCallbackLib)
     return streamReg
 end
 
@@ -734,7 +731,7 @@ function _M.removeStreamLib(streamReg)
 
      if availReg == nil then return end   -- stream already removed
      
-    _M.sendReg(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUALIB,availReg),0)
+    _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUALIB,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUALIB, availReg))
     
     _M.availRegistersLib[availReg].reg = 0
@@ -744,19 +741,19 @@ end
 -------------------------------------------------------------------------------
 --  Called to cleanup any unused streaming
 function _M.streamCleanup()
-    _M.sendReg(_M.CMD_EX,
+    _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(_M.REG_LUAUSER, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
-    _M.sendReg(_M.CMD_EX,
+    _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
 
     for k,v in pairs(_M.availRegistersUser) do
-        _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
+        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
         v.reg = 0
     end
     for k,v in pairs(_M.availRegistersLib) do
-        _M.sendReg(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUALIB, k), 0)
+        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUALIB, k), 0)
         v.reg = 0
     end
     
@@ -1297,15 +1294,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true 
--- @param stat status bits to monitor
 -- @usage
--- dwi.waitStatus(dwi.STAT_NOTMOTION) -- wait for no motion
--- dwi.waitStatus(dwi.STAT_COZ)  -- wait for Centre of zero
--- dwi.waitStatus(bit32.bor(dwi.STAT_ZERO,
---                          dwi.STAT_NOTMOTION)) -- wait for no motion and zero 
+-- dwi.waitStatus(dwi.STAT_NOTMOTION)  -- wait for no motion
+-- dwi.waitStatus(dwi.STAT_COZ)        -- wait for Centre of zero
+-- dwi.waitStatus(dwi.STAT_ZERO,dwi.STAT_NOTMOTION) -- wait for no motion and zero 
 --
-function _M.waitStatus(stat)
-   while bit32.bor(_M.curStatus,stat) do
+function _M.waitStatus(...)
+   local stat = bit32.bor(...)
+   while bit32.band(_M.curStatus,stat) ~= stat do
      _M.system.handleEvents()
    end 
 end
@@ -1319,7 +1315,7 @@ end
 --
 function _M.waitIO(IO, state)
    local mask = bit32.lshift(0x00000001,(IO-1))
-   while true do
+   while _M.app.running do
      local data = bit32.band(_M.curIO,mask) 
      if (state and data ~= 0) or 
         (not state and data == 0) then 
@@ -1338,7 +1334,7 @@ end
 --
 function _M.waitSETP(SETP, state)
    local mask = bit32.lshift(0x00000001,(SETP-1))
-   while true do
+   while _M.app.running do
      local data = bit32.band(_M.curSETP,mask) 
      if (state and data ~= 0) or 
         (not state and data == 0) then 
@@ -1354,7 +1350,7 @@ end
 function _M.writeRTCStatus(s)
    local s = s or true
    if s then s = 1 else s = 0 end
-   _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
+   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s) 
 end
 
 function _M.handleRTC(status, active)
@@ -1362,11 +1358,11 @@ function _M.handleRTC(status, active)
 end
 
 function _M.handleINIT(status, active)
-   _M.dbg.info('INIT',string.format('%08X',status),active)
-   if active then
-       _M.readSettings()
-       _M.RTCread()
-   end    
+--   _M.dbg.info('INIT',string.format('%08X',status),active)
+--   if active then
+--       _M.readSettings()
+--       _M.RTCread()
+--   end    
 end
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
@@ -1385,21 +1381,21 @@ end
 -------------------------------------------------------------------------------
 -- Cancel status handling
 function _M.endStatus()
-    _M.removeStream(_M.statID)
-    _M.removeStream(_M.eStatID)
-    _M.removeStream(_M.IOID)
-    _M.removeStream(_M.SETPID)
+    _M.removeStreamLib(_M.statID)
+    _M.removeStreamLib(_M.eStatID)
+    _M.removeStreamLib(_M.IOID)
+    _M.removeStreamLib(_M.SETPID)
 end
 
 -------------------------------------------------------------------------------
 -- Cancel IO status handling
 function _M.endIOStatus()
-   _M.removeStream(_M.IOID)
+   _M.removeStreamLib(_M.IOID)
 end
 -------------------------------------------------------------------------------
 -- Cancel SETP status handling
 function _M.endSETPStatus()
-   _M.removeStream(_M.SETPID)
+   _M.removeStreamLib(_M.SETPID)
 end
 
 -------------------------------------------------------------------------------
@@ -1532,8 +1528,8 @@ _M.keyBinds = {
 -------------------------------------------------------------------------------
 -- Setup key handling stream
 function _M.setupKeys()
-    _M.sendReg(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
+    _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
     _M.keyID = _M.addStreamLib(_M.REG_GET_KEY, _M.keyCallback, 'change')
 end
 
@@ -1551,6 +1547,14 @@ function _M.endKeys(flush)
 end
 
 _M.runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
+
+function _M.bumpIdleTimer()
+    _M.system.timers.removeTimer(_M.idleTimerID)
+    if _M.idleCallback then
+        _M.idleTimerID = _M.system.timers.addTimer(0,_M.idleTimeout,_M.idleCallback) 
+    end      
+       
+end
 
 -- Called when keys are streamed, send the keys to each group it is bound to 
 -- in order of priority, until one of them returns true.
@@ -1571,6 +1575,7 @@ function _M.keyCallback(data, err)
         state = "up"
     end    
 
+--    _M.dbg.debug('Key: ',data,err)
     -- Debug - throw away first 0 key garbage
     if data == 0 and _M.firstKey then
         return
@@ -1619,8 +1624,26 @@ function _M.keyCallback(data, err)
     if not handled then
         _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
+    if state ~= 'up' then  
+        _M.bumpIdleTimer()
+    end    
 end
 
+-------------------------------------------------------------------------------
+-- Set a callback to run if more than t seconds of idle time is detected 
+-- between keys.  This is used to trap operator leaving without proper menu exit.
+-- @param f function to run when idle time expired
+-- @param t is timeout in seconds
+-- @usage
+-- local function idle()
+--    dwi.abortDialog()
+-- end
+-- dwi.setIdleCallback(idle,15) -- call idle if 15 seconds elapses between keys
+function _M.setIdleCallback(f,t)
+   _M.idleCallback = f
+   local t = t or 10
+   _M.idleTimeout = t
+end
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
 -- @param key to monitor (KEY_* )
@@ -1669,7 +1692,7 @@ function _M.sendKey(key,status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
+        _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
 end
 
@@ -2323,7 +2346,7 @@ _M.ANALOG_COMMS = 3
 -- @param src Source for output.  
 -- Must be set to ANALOG_COMMS to control directly
 function _M.setAnalogSource(src)
-   _M.sendReg(_M.CMD_WRFINALDEC,
+   _M.sendRegWait(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_SOURCE,
                 src)
   _M.saveSettings()                
@@ -2342,7 +2365,7 @@ function _M.setAnalogType(typ)
     end  
     
     if _M.curAnalogType ~= prev then 
-        _M.sendReg(_M.CMD_WRFINALDEC,
+        _M.sendRegWait(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_TYPE,
                 _M.curAnalogType) 
     end
@@ -2361,7 +2384,7 @@ _M.setAnalogClip = _M.preconfigureMsg(  _M.REG_ANALOGUE_CLIP,
 -- @param raw value in raw counts (0..50000)
 function _M.setAnalogRaw(raw)
    if _M.lastAnalogue ~= raw then 
-       _M.send(nil, _M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw, 'noReply')
+       _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_ANALOGUE_DATA, raw)
        _M.lastAnalogue = raw
    end    
 end                                         
@@ -2466,6 +2489,7 @@ _M.TYPE_LGC_XOR  = 11
 _M.TYPE_BUZZER   = 12
 
 _M.lastOutputs = 0
+_M.timedOutputs = 0   -- keeps track of which IO are already running off timers
 -- bits set if under LUA control, clear if under instrument control
 _M.lastIOEnable = 0    
 
@@ -2473,14 +2497,27 @@ _M.setp = {}
 
 _M.NUM_SETP = 16
  
-_M.setOutputs = _M.preconfigureMsg(_M.REG_IO_STATUS, _M.CMD_WRFINALDEC)
-_M.setOutputEnable = _M.preconfigureMsg(_M.REG_IO_ENABLE, _M.CMD_WRFINALDEC)
+function _M.setOutputs(outp)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
+end
 
+function _M.setOutputEnable(en)
+    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
+end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
--- @param IO is output 1..32
-function _M.turnOn(IO)
-   local curOutputs = bit32.bor(_M.lastOutputs, bit32.lshift(0x0001,(IO-1)))
+-- @param ... list of IO to turn on 1..32
+function _M.turnOn(...)
+   if arg.n == 0 then
+      return
+   end
+   local curOutputs = _M.lastOutputs
+   for i,v in ipairs(arg) do
+     if v < 32 and v > 1 then
+        curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
+     end
+   end   
+   
    if (curOutputs ~= _M.lastOutputs) then
       _M.setOutputs(curOutputs)
       _M.lastOutputs = curOutputs
@@ -2489,23 +2526,42 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output off
--- @param IO is output 1..32
-function _M.turnOff(IO)
- local curOutputs = bit32.band(_M.lastOutputs,
-                               bit32.bnot(bit32.lshift(0x0001,(IO-1))))
+-- @param ... list of IO to turn off 1..32
+function _M.turnOff(...)
+   if arg.n == 0 then
+      return
+   end
+   local curOutputs = _M.lastOutputs
+   for i,v in ipairs(arg) do
+     if v < 32 and v > 1 then
+        curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
+     end
+   end   
+
  if (curOutputs ~= _M.lastOutputs) then
       _M.setOutputs(curOutputs)
       _M.lastOutputs = curOutputs
       end
-      
 end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param IO is output 1..32
 -- @param t is time in seconds
+
 function _M.turnOnTimed(IO, t)
-  _M.turnOn(IO)
-  _M.system.timers.addTimer(0, t, _M.turnOff, IO)
+  local IOMask =  bit32.lshift(0x0001,(IO-1))
+  if bit32.band(_M.timedOutputs, IOMask) == 0 then
+      _M.turnOn(IO)
+      _M.system.timers.addTimer(0, t, 
+             function (IO,IOMask) 
+                   _M.timedOutputs = bit32.band(_M.timedOutputs, bit32.bnot(IOMask)) 
+                   _M.turnOff(IO)
+             end , 
+             IO, IOMask)
+      _M.timedOutputs = bit32.bor(_M.timedOutputs,IOMask)
+  else
+     _M.dbg.warn('IO Timer overlap: ', IO)
+  end  
 end
 
 -------------------------------------------------------------------------------
@@ -2574,14 +2630,14 @@ end
 --------------------------------------------------------------------------------
 -- Private function
 function _M.setpParam(setp,reg,v)
-   _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
+   _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
 end
 
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints 
 -- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
-  _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
+  _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
 end
 
 -------------------------------------------------------------------------------
@@ -2589,7 +2645,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
@@ -2597,7 +2653,7 @@ end
 -- @param setp is setpount 1..16
 -- @param IO is output 1..32, 0 for none
 function _M.setpIO(setp, IO)
-    _M.setpParam(setp,_M.REG_SETP_OUTPUT, IO)
+    _M.setpParamWait(setp,_M.REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
@@ -2691,15 +2747,73 @@ end
 -- Functions for user interface dialogues
 -- @section dialog
 -------------------------------------------------------------------------------
-
+_M.dialogRunning = false
 _M.getKeyPressed = 0
 _M.getKeyState = ''
+
+function _M.abortDialog()
+   _M.dialogRunning = false
+end
+
+function _M.startDialog()
+    _M.dialogRunning = true
+    _M.bumpIdleTimer()   
+end
+
 
 function _M.getKeyCallback(key, state)
     _M.getKeyPressed = key
     _M.getKeyState = state
     return true
 end 
+
+
+_M.msgDisp = false		-- message is being displayed by dispMsg function
+_M.msgTimer = nil		-- timer for user message display
+
+function _M.endDisplayMessage()
+	if _M.msgDisp then
+        _M.msgDisp = false
+	    _M.system.timers.removeTimer(_M.msgTimer)
+        _M.restoreBot()
+    end    
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to display a message to the screen for a time
+-- @param msg message displayed on bottom left LCD
+-- @param t number of seconds to display message (can be fractional; e.g. 2.125)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+function _M.displayMessage(msg, t, units, unitsOther)
+	local u = units or 0			-- optional units defaults to none
+	local uo = unitsOther or 0		-- optional other units defaults to none
+    local t = t or 0.5
+    if _M.msgDisp then
+       _M.endDisplayMessage()
+    end   
+	if msg and (t > 0) then		
+		_M.msgDisp = true
+		_M.saveBot()
+		_M.writeBotLeft(msg)			-- display message
+		_M.writeBotUnits(u,uo)			-- display optional units
+		_M.userMsgTmr = _M.system.timers.addTimer(0, t, _M.endDisplayMessage)
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Called to display a message to the screen for a time and waits for it to finish
+-- @param msg message displayed on bottom left LCD
+-- @param t number of seconds to display message (can be fractional; e.g. 2.125)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+function _M.displayMessageWait(msg, t, units, unitsOther)
+   _M.displayMessage(msg,t,units,unitsOther)
+   while _M.msgDisp do 
+       _M.system.handleEvents()
+   end    
+end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
@@ -2713,7 +2827,8 @@ function _M.getKey(keyGroup)
 
     _M.getKeyState = ''
     _M.getKeyPressed = nil
-    while _M.app.running and _M.getKeyState == '' do
+    _M.startDialog()
+    while _M.dialogRunning and _M.app.running and _M.getKeyState == '' do
         _M.system.handleEvents()
     end   
     _M.setKeyGroupCallback(keyGroup, f)
@@ -2729,7 +2844,7 @@ function _M.isEditing()
    return _M.editing
 end
 
-_M.scrUpdTm = 0.5  -- screen update frequency in mSec
+_M.scrUpdTm = 0.5  -- screen update frequency in Sec
 _M.blink = false   -- blink cursor for string editing
 _M.inMenu = false  -- true when a menu is active, prevents entering another menu
 
@@ -2838,6 +2953,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local u = units or 0            -- optional units defaults to none
     local uo = unitsOther or 0      -- optional other units defaults to none
     
+    _M.endDisplayMessage()          -- abort any existing display prompt
     cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
@@ -2858,14 +2974,18 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     _M.writeBotLeft(_M.sEditVal)    -- write the default string to edit
     _M.writeBotUnits(u,uo)          -- display optional units
 
-    while _M.editing do
+    _M.startDialog()
+    while _M.editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
         if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
         _M.sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
-        
-        if state == "short" then                            -- short key presses for editing
+        if not _M.dialogRunning then    -- editing aborted so return default
+            ok = false
+           _M.editing = false
+           _M.sEditVal = default 
+        elseif state == "short" then                            -- short key presses for editing
             if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
 --              print('i:' .. _M.sEditIndex .. ' l:' .. sLen)   -- debug
                 if key == pKey then         -- if same as the previous key pressed
@@ -2961,13 +3081,14 @@ end
 -- Called to prompt operator to enter a value, numeric digits and '.' only
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','string','passcode') 
+-- @param typ type of value to enter ('integer','number','passcode') 
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
 function _M.edit(prompt, def, typ, units, unitsOther)
 
     local key, state
+    local hide = false
 
     if typ == 'passcode' then
         typ = 'integer'
@@ -2985,7 +3106,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local editVal = def 
     local editType = typ or 'integer'
     _M.editing = true
-    
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
     if hide then
@@ -2996,11 +3117,16 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     _M.writeBotUnits(u, uo)
 
     local first = true
-
+   
     local ok = false  
-    while _M.editing do
+   _M.startDialog()
+    while _M.editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)
-        if state == 'short' then
+        if not _M.dialogRunning then    -- editing aborted so return default
+            ok = false
+           _M.editing = false
+           _M.sEditVal = def 
+        elseif state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
                 if first then 
                     editVal = tostring(key) 
@@ -3058,6 +3184,7 @@ _M.REG_EDIT_REG = 0x0320
 -- or set to a literal prompt to display
 -- @return value of reg
 function _M.editReg(reg,prompt)
+   _M.endDisplayMessage()
    if (prompt) then
       _M.saveBot()
       if type(prompt) == 'string' then
@@ -3067,6 +3194,7 @@ function _M.editReg(reg,prompt)
       end   
    end
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+  _M.startDialog()
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
      
@@ -3074,6 +3202,9 @@ function _M.editReg(reg,prompt)
        break
      end
      _M.delay(0.050)
+     if not dialogRunning or not _M.app.running then
+        _M.sendKey(_M.KEY_CANCEL,'long')
+     end
    end
    if prompt then
       _M.restoreBot()
@@ -3129,7 +3260,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     local uo = unitsOther or 0
   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
-
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
@@ -3138,7 +3269,8 @@ function _M.askOK(prompt, q, units, unitsOther)
  
     _M.askOKWaiting = true
     _M.askOKResult = _M.KEY_CANCEL
-    while _M.askOKWaiting and _M.app.running do
+   _M.startDialog()
+    while _M.dialogRunning and _M.askOKWaiting and _M.app.running do
         _M.system.handleEvents()
     end   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
@@ -3176,15 +3308,18 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     end 
 
     _M.editing = true
-
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
     _M.writeBotLeft(string.upper(options[index]))
     _M.writeBotUnits(u,uo)
 
+   _M.startDialog()
     while _M.editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)  
-        if key == _M.KEY_DOWN then
+        if not _M.dialogRunning then    -- editing aborted so return default
+           _M.editing = false
+        elseif key == _M.KEY_DOWN then
             index = index + 1
             if index > #options then
               if loop then 
@@ -3255,10 +3390,11 @@ function _M.printCustomTransmit(tokenStr, comPort)
     local comPort = comPort or _M.PRINT_SER1A
     if comPort ~= _M.curPrintPort  then
         _M.curPrintPort = comPort
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
-        _M.sendReg(_M.CMD_EX, _M.REG_SAVESETTING,0)
+        _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort, 'noReply')
+        _M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end 
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
+    tokenStr = _M.expandCustomTransmit(tokenStr)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr, 'noReply')
 end
 
 -------------------------------------------------------------------------------
@@ -3578,25 +3714,38 @@ _M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 -- @param pc = 'full','safe','oper'
 -- @param code = passcode to unlock, nil to prompt user
 -- @return true if unlocked false otherwise
-function _M.checkPasscode(pc, code)
+function _M.checkPasscode(pc, code, tries)
     local pc = pc or 'full'
     local pcode = _M.passcodes[pc].pcode
     local f = _M.removeErrHandler()
     local pass = ''
-    while true do    
+    local tries = tries or 1
+    local count = 1
+    _M.startDialog()
+    while _M.dialogRunning and _M.app.running do 
        msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
+          if  count > tries then
+                _M.setErrHandler(f)
+                return false
+          end          
+          if count > 1 and err then
+             _M.writeBotLeft(string.upper(err),1.0)
+             _M.buzz(1,_M.BUZZ_LONG)
+             _M.delay(2.0)
+          end   
           if code then
              pass = code
              code = nil
           else   
-             pass, ok = _M.edit('PCODE','','passcode')
-             if not ok then
+            pass, ok = _M.edit('ENTER PCODE','','passcode')
+            if not ok or not pass then
                 _M.setErrHandler(f)
                 return false
              end 
           end              
           msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(pass,0),1.0) 
+          count = count + 1 
        else
           break
        end   
@@ -3874,9 +4023,9 @@ function _M.clearLin(pt)
 end
 
 -------------------------------------------------------------------------------
--- Called to trigger initial stream reads and establish initial conditions
-function _M.init()
-   local streamUser = false
+-- Called to force all stream registers to resend current state
+function _M.renewStreamData()
+  local streamUser = false
    for k,v in pairs(_M.availRegistersLib) do
             v.lastData = ''
    end
@@ -3885,17 +4034,37 @@ function _M.init()
                 streamUser = true
             end    
             v.lastData = ''
-   end   
+   end 
+   for k,v in pairs(_M.IOBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.SETPBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.statBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+   for k,v in pairs(_M.eStatBinds) do
+       v.lastStatus = 0xFFFFFFFF
+   end       
+    
 
    if streamUser then
       _M.send(nil,_M.CMD_RDFINALHEX,
                  bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMDATA),
                  '','reply')
-    end             
+    end 
    _M.send(nil,_M.CMD_RDFINALHEX,
-              bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
-              '', 'reply')
-   _M.sendKey(_M.KEY_CANCEL,'long')
-             
+                 bit32.bor(_M.REG_LUALIB,_M.REG_STREAMDATA),
+                 '','reply')
+        
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to initalise the instrument and read initial conditions
+function _M.init()
+    _M.renewStreamData()
+    _M.sendKey(_M.KEY_CANCEL,'long')
 end
 return _M
