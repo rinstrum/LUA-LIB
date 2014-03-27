@@ -672,9 +672,6 @@ function _M.streamCallbackLib(data, err)
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then  
                      v.lastData = substr                
                      _M.system.timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
---                      _M.dbg.debug('Delay Until Next: ',_M.system.timers.delayUntilNext())
---                      _M.dbg.debug('Timer Queue: ',_M.system.timers.shareTimers())
-                      
                 end
             end
         end
