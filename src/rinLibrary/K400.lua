@@ -3674,16 +3674,26 @@ function _M.checkPasscode(pc, code, tries)
     local pass = ''
     local tries = tries or 1
     local count = 1
-    while true do    
+    _M.startDialog()
+    while _M.dialogRunning and _M.app.running do 
        msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
+          if  count > tries then
+                _M.setErrHandler(f)
+                return false
+          end          
+          if count > 1 and err then
+             _M.writeBotLeft(string.upper(err),1.0)
+             _M.buzz(1,_M.BUZZ_LONG)
+             _M.delay(2.0)
+          end   
           if code then
              pass = code
              code = nil
           else   
-            pass, ok = _M.edit('PCODE','','passcode')
+            pass, ok = _M.edit('ENTER PCODE','','passcode')
             count = count + 1             
-            if not ok or not pass or count > tries then
+            if not ok or not pass then
                 _M.setErrHandler(f)
                 return false
              end 
