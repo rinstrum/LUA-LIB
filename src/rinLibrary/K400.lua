@@ -2555,7 +2555,12 @@ function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(_M.timedOutputs, IOMask) == 0 then
       _M.turnOn(IO)
-      _M.system.timers.addTimer(0, t, _M.turnOff, IO)
+      _M.system.timers.addTimer(0, t, 
+             function (IO,IOMask) 
+                   _M.timedOutputs = bit32.band(_M.timedOutputs, bit32.bnot(IOMask)) 
+                   _M.turnOff(IO)
+             end , 
+             IO, IOMask)
       _M.timedOutputs = bit32.bor(_M.timedOutputs,IOMask)
   else
      _M.dbg.warn('IO Timer overlap: ', IO)
