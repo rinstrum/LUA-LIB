@@ -187,7 +187,7 @@ function _M.addK400(model, ip, portA, portB)
 
     _M.devices[#_M.devices+1] = device
   
-  	local sA = _M.system.sockets.createTCPsocket(ip, portA, 0.010)
+  	local sA = _M.system.sockets.createTCPsocket(ip, portA, 0.001)
     local sB = _M.system.sockets.createTCPsocket(ip, portB, 0.001)
     
     -- Connect to the K400, and attach system if using the system library
