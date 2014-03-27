@@ -2509,9 +2509,18 @@ function _M.setOutputEnable(en)
 end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
--- @param IO is output 1..32
-function _M.turnOn(IO)
-   local curOutputs = bit32.bor(_M.lastOutputs, bit32.lshift(0x0001,(IO-1)))
+-- @param ... list of IO to turn on 1..32
+function _M.turnOn(...)
+   if arg.n == 0 then
+      return
+   end
+   local curOutputs = _M.lastOutputs
+   for i,v in ipairs(arg) do
+     if v < 32 and v > 1 then
+        curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
+     end
+   end   
+   
    if (curOutputs ~= _M.lastOutputs) then
       _M.setOutputs(curOutputs)
       _M.lastOutputs = curOutputs
@@ -2520,15 +2529,21 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output off
--- @param IO is output 1..32
-function _M.turnOff(IO)
- local IOMask =  bit32.lshift(0x0001,(IO-1))
- local curOutputs = bit32.band(_M.lastOutputs,
-                               bit32.bnot(IOMask))
+-- @param ... list of IO to turn off 1..32
+function _M.turnOff(...)
+   if arg.n == 0 then
+      return
+   end
+   local curOutputs = _M.lastOutputs
+   for i,v in ipairs(arg) do
+     if v < 32 and v > 1 then
+        curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
+     end
+   end   
+
  if (curOutputs ~= _M.lastOutputs) then
       _M.setOutputs(curOutputs)
       _M.lastOutputs = curOutputs
-      _M.timedOutputs = bit32.band(_M.timedOutputs, bit32.bnot(IOMask)) 
       end
 end
 -------------------------------------------------------------------------------
