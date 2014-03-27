@@ -1361,7 +1361,7 @@ function _M.handleRTC(status, active)
 end
 
 function _M.handleINIT(status, active)
-   _M.dbg.info('INIT',string.format('%08X',status),active)
+--   _M.dbg.info('INIT',string.format('%08X',status),active)
 --   if active then
 --       _M.readSettings()
 --       _M.RTCread()
