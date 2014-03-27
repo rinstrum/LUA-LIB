@@ -3742,13 +3742,13 @@ function _M.checkPasscode(pc, code, tries)
              code = nil
           else   
             pass, ok = _M.edit('ENTER PCODE','','passcode')
-            count = count + 1             
             if not ok or not pass then
                 _M.setErrHandler(f)
                 return false
              end 
           end              
           msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(pass,0),1.0) 
+          count = count + 1 
        else
           break
        end   
