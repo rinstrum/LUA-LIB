@@ -185,7 +185,7 @@ end
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendRegWait(cmd, reg, data, t, crc)
     
-    local t = t or 1.0
+    local t = t or 2.0
     
     if reg == nil then
           return nil, 'Nil Register'
