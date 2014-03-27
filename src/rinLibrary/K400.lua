@@ -457,7 +457,7 @@ function _M.loadRIS(filename)
                  line = line .. ';'
             end     
        
-            _,cmd,reg,data,err = _M.processMsg(line)
+            local _,cmd,reg,data,err = _M.processMsg(line)
             if err then
                _M.dbg.error('RIS error: ',err)
             end   
