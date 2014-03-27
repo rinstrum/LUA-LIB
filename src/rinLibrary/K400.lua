@@ -2770,6 +2770,54 @@ function _M.getKeyCallback(key, state)
     return true
 end 
 
+
+_M.msgDisp = false		-- message is being displayed by dispMsg function
+_M.msgTimer = nil		-- timer for user message display
+
+function _M.endDisplayMessage()
+	if _M.msgDisp then
+        _M.msgDisp = false
+	    _M.system.timers.removeTimer(_M.msgTimer)
+        _M.restoreBot()
+    end    
+end
+
+
+-------------------------------------------------------------------------------
+-- Called to display a message to the screen for a time
+-- @param msg message displayed on bottom left LCD
+-- @param t number of seconds to display message (can be fractional; e.g. 2.125)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+function _M.displayMessage(msg, t, units, unitsOther)
+	local u = units or 0			-- optional units defaults to none
+	local uo = unitsOther or 0		-- optional other units defaults to none
+    local t = t or 0.5
+    if _M.msgDisp then
+       _M.endDisplayMessage()
+    end   
+	if msg and (t > 0) then		
+		_M.msgDisp = true
+		_M.saveBot()
+		_M.writeBotLeft(msg)			-- display message
+		_M.writeBotUnits(u,uo)			-- display optional units
+		_M.userMsgTmr = _M.system.timers.addTimer(0, t, _M.endDisplayMessage)
+	end
+end
+
+-------------------------------------------------------------------------------
+-- Called to display a message to the screen for a time and waits for it to finish
+-- @param msg message displayed on bottom left LCD
+-- @param t number of seconds to display message (can be fractional; e.g. 2.125)
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+function _M.displayMessageWait(msg, t, units, unitsOther)
+   _M.displayMessage(msg,t,units,unitsOther)
+   while _M.msgDisp do 
+       _M.system.handleEvents()
+   end    
+end
+
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
 -- @param keyGroup keyGroup.all is default group 
@@ -2908,6 +2956,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local u = units or 0            -- optional units defaults to none
     local uo = unitsOther or 0      -- optional other units defaults to none
     
+    _M.endDisplayMessage()          -- abort any existing display prompt
     cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
@@ -3035,7 +3084,7 @@ end
 -- Called to prompt operator to enter a value, numeric digits and '.' only
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','string','passcode') 
+-- @param typ type of value to enter ('integer','number','passcode') 
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
@@ -3060,7 +3109,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local editVal = def 
     local editType = typ or 'integer'
     _M.editing = true
-    
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
     if hide then
@@ -3138,6 +3187,7 @@ _M.REG_EDIT_REG = 0x0320
 -- or set to a literal prompt to display
 -- @return value of reg
 function _M.editReg(reg,prompt)
+   _M.endDisplayMessage()
    if (prompt) then
       _M.saveBot()
       if type(prompt) == 'string' then
@@ -3213,7 +3263,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     local uo = unitsOther or 0
   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
-
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
@@ -3261,7 +3311,7 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     end 
 
     _M.editing = true
-
+    _M.endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
     _M.writeBotLeft(string.upper(options[index]))
