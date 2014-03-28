@@ -32,6 +32,17 @@ local function F1Pressed(key, state)
 end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+-- Callback to handle F2 key event 
+dwi.enableOutput(3)
+local function F2Pressed(key, state)
+    dwi.turnOnTimed(3,5.0)
+    return true    -- key handled here so don't send back to instrument for handling
+end
+dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
+-------------------------------------------------------------------------------
+
+
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
@@ -63,14 +74,15 @@ end
 rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 
+
+
 --=============================================================================
 -- Initialisation 
 --=============================================================================
 --  This is a good place to put your initialisation code 
 -- (eg, setup outputs or put a message on the LCD etc)
-
 -------------------------------------------------------------------------------
-
+dwi.setIdleCallback(dwi.abortDialog,30)
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
@@ -97,11 +109,11 @@ local function mainLoop()
          mode = 'idle'
          dwi.lockPasscode('full')
       elseif sel == 'PASSCODE' then
-          local pc = dwi.selectOption('PASSCODE',{'full','safe','oper'},'full',true)
+          local pc = dwi.selectOption('ENTER PASSCODE',{'full','safe','oper'},'full',true)
           if pc then
                dwi.changePasscode(pc)
           end          
-      elseif dwi.checkPasscode('full') then
+      elseif dwi.checkPasscode('full',_,5) then
           if sel == 'ZERO' then
               ret, msg = dwi.calibrateZero()
               if ret == 0 then
