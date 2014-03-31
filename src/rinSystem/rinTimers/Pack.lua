@@ -92,8 +92,8 @@ local function internalAddTimer(time, delay, reg, callback, extraargs)
     end
     local evt = {
     	when = monotonictime() + max(0, delay),
-        regular = reg,
     	rept = time,
+        regular = reg,
         cb   = callback,
         args = extraargs
     }
@@ -147,6 +147,7 @@ function _M.removeTimer(key)
 		key.cb = nil
     	key.args = nil
     	key.rept = nil
+        key.regular = nil
     end
 end
 
