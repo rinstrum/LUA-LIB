@@ -79,6 +79,28 @@ local function pop()
 end
 
 -------------------------------------------------------------------------------
+-- Helper routine to add a timer to the list
+-- @param time Time until the timer will go off (milliseconds)
+-- @param delay Initial delay for timer
+-- @param drift Is the timer permitted to drift
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+local function internalAddTimer(time, delay, reg, callback, extraargs)
+	if callback == nil then
+    	return nil
+    end
+    local evt = {
+    	when = monotonictime() + max(0, delay),
+        regular = reg,
+    	rept = time,
+        cb   = callback,
+        args = extraargs
+    }
+    return push(evt)
+end
+
+-------------------------------------------------------------------------------
 -- Add a timer to the timer list
 -- @param time Time until the timer will go off (milliseconds)
 -- @param delay Initial delay for timer
@@ -86,16 +108,18 @@ end
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
 function _M.addTimer(time, delay, callback, ...)
-	if callback == nil then
-    	return nil
-    end
-    local evt = {
-    	when = monotonictime() + max(0, delay),
-    	rept = time,
-        cb   = callback,
-        args = {...}
-    }
-    return push(evt)
+    return internalAddTimer(time, delay, false, callback, {...})
+end
+
+-------------------------------------------------------------------------------
+-- Add a timer to the timer list
+-- @param time Time until the timer will go off (milliseconds)
+-- @param delay Initial delay for timer
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+function _M.addRegularTimer(time, delay, callback, ...)
+    return internalAddTimer(time, delay, true, callback, {...})
 end
 
 -------------------------------------------------------------------------------
@@ -154,7 +178,11 @@ function _M.processTimeouts()
         	event.cb(unpack(event.args))
             -- reschedule
             if event.rept and event.rept > 0 then
-        	    event.when = monotonictime() + event.rept
+                if event.regular then
+                    event.when = event.when + (1 + floor((now - event.when) / event.rept)) * event.rept
+                else
+        	        event.when = monotonictime() + event.rept
+                end
         	    push(event)
             end
         end

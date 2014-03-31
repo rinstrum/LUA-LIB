@@ -50,6 +50,12 @@ funcs = {
         timers.addTimer(nt, dt, function () timer("std", n) end)
     end,
 
+    -- A non-drifting timer
+    function(dt, nt, n)
+        print(string.format("% 4d  %.6f  %3s  %.6f", n, dt, "REG", nt))
+        timers.addRegularTimer(nt, dt, function () timer("reg", n) end)
+    end,
+
     -- A dying timer, just like the above but this gets put into the die list
     -- so it will stop when the kill timer runs.
     function (dt, nt, n)
@@ -62,7 +68,7 @@ funcs = {
     function (dt, nt, n)
         print(string.format("% 4d  %.6f  KILL", n, dt))
         timers.addTimer(0, dt, killTimers)
-        funcs[3] = nil
+        funcs[#funcs] = nil
     end
 }
 
