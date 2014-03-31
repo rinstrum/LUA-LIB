@@ -162,10 +162,14 @@ function _M.delayUntilNext()
 end
 
 -------------------------------------------------------------------------------
--- Get the time until the specified timer expires
+-- Get the time until the specified timer expires.
+-- A cancelled or non-existent timer will never trigger of course.
 -- @return Delay in seconds
 function _M.delayUntilTimer(event)
-	return event.when - monotonictime()
+    if event ~= nil and event.cb ~= nil then
+    	return event.when - monotonictime()
+    end
+    return math.huge
 end
 
 -------------------------------------------------------------------------------
