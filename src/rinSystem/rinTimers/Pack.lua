@@ -79,7 +79,9 @@ local function pop()
 end
 
 ------------------------------------------------------------------------------
--- 
+-- Utility routine to determine is a timer is still active
+-- @param timer The timer being investigates
+-- @return true iff the timer is still active
 local function active(timer)
     return timer ~= nil and timer.cb ~= nil
 end
