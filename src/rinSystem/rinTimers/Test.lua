@@ -63,6 +63,17 @@ funcs = {
         table.insert(deadTimerList, timers.addTimer(nt, dt, function () timer("die", n) end))
     end,
 
+    function (dt, nt, n)
+        local num = math.random(6)
+        print(string.format("% 4d  %.6f  %3s  %.6f  %d", n, dt, "EVT", nt, num))
+        timers.addTimer(nt, dt,
+                        function ()
+                            for i = 1, num do
+                                timers.addEvent(timer, "ev" .. i, n * 100 + i)
+                            end
+                        end)
+    end,
+
     -- The kill timer.  This timer kills off all the dying timers.
     -- There can be only one.
     function (dt, nt, n)

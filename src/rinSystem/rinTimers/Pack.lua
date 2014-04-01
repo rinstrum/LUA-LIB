@@ -78,6 +78,12 @@ local function pop()
     return event
 end
 
+------------------------------------------------------------------------------
+-- 
+local function active(timer)
+    return timer ~= nil and timer.cb ~= nil
+end
+
 -------------------------------------------------------------------------------
 -- Helper routine to add a timer to the list
 -- @param time Time until the timer will go off (milliseconds)
@@ -132,10 +138,10 @@ function _M.addEvent(callback, ...)
 	-- We schedule the first such event timer now and any future ones
     -- a hundred microseconds in the future to preserve order of execution.
 	local delay = 0
-	if lastEventTimer ~= nil then
+	if active(lastEventTimer) then
     	delay = max(0, _M.delayUntilTimer(lastEventTimer) + .0001)
     end
-	lastEventTimer = _M.addTimer(0, delay, callback, ...)
+	lastEventTimer = internalAddTimer(0, delay, false, callback, {...})
     return lastEventTimer
 end
 
@@ -166,7 +172,7 @@ end
 -- A cancelled or non-existent timer will never trigger of course.
 -- @return Delay in seconds
 function _M.delayUntilTimer(event)
-    if event ~= nil and event.cb ~= nil then
+    if active(event) then
     	return event.when - monotonictime()
     end
     return math.huge
@@ -179,7 +185,7 @@ function _M.processTimeouts()
     while timers[1] ~= nil and timers[1].when <= now do
     	local event = pop()
         -- callback
-        if event and event.cb then
+        if active(event) then
         	event.cb(unpack(event.args))
             -- reschedule
             if event.rept and event.rept > 0 then
