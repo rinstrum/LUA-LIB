@@ -184,7 +184,9 @@ end
 -- Attempt to run any timers that have expired.
 function _M.processTimeouts()
 	local now = monotonictime()
+
     while timers[1] ~= nil and timers[1].when <= now do
+        local delete = true
     	local event = pop()
         -- callback
         if active(event) then
@@ -197,7 +199,11 @@ function _M.processTimeouts()
         	        event.when = monotonictime() + event.rept
                 end
         	    push(event)
+                delete = false
             end
+        end
+        if delete then
+            _M.removeTimer(event)
         end
     end
 end
