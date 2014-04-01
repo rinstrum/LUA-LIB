@@ -202,6 +202,9 @@ function _M.processTimeouts()
                 delete = false
             end
         end
+        if event == lastEventTimer then
+            lastEventTimer = nil
+        end
         if delete then
             _M.removeTimer(event)
         end
