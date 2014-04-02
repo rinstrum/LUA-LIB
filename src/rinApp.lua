@@ -223,6 +223,97 @@ function _M.initUSB()
   _M.usb.checkDev()  -- call to check if any usb devices already mounted
 end
    
+
+-------------------------------------------------------------------------------
+-- We need somewhere to keep the socket descriptor so we can send messages to it
+local bidirectionalSocket = nil
+
+-- Write to the bidirectional socket
+-- @param msg The message to write
+function _M.writeBidirectional(msg)
+	if bidirectionalSocket ~= nil then
+		_M.system.sockets.writeSocket(bidirectionalSocket, msg)
+    end
+end
+
+function _M.setUserBidirectionalCallback(f)
+   _M.userBidirectionalCallback = f
+end
+-------------------------------------------------------------------------------
+-- Callback function for client connections on the bidirectional socket.
+-- @param sock Socket that has something ready to read.
+local function bidirectionalFromExternal(sock)
+	local sockets = _M.system.sockets
+	m, err = sockets.readSocket(sock)
+    if err ~= nil then
+    	sockets.removeSocket(sock)
+        bidirectionalSocket = nil
+    else
+    	if _M.userBidirectionalCallback then
+            _M.userBidirectionalCallback(m)
+        end    
+    end
+end
+
+function _M.setUserBidirectionalConnectCallback(f)
+   _M.userBidirectionalConnectCallback = f
+end
+
+
+-------------------------------------------------------------------------------
+-- Three callback functions that are called when a new socket connection is
+-- established.  These functions should add the socket to the sockets management
+-- module and set any required timouts
+local function socketBidirectionalAccept(sock, ip, port)
+	if bidirectionalSocket ~= nil then
+        _M.dbg.info('second bidirectional connection from', ip, port)
+    else
+	    bidirectionalSocket = sock
+	    local sockets = _M.system.sockets
+	    sockets.addSocket(sock, bidirectionalFromExternal)
+        sockets.setSocketTimeout(sock, 0.001)
+        _M.dbg.debug('bidirectional connection from', ip, port)
+        if _M.userBidirectionalConnectCallback then
+            _M.userBidirectionalConnectCallback(m)
+        end    
+
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Filter function on the outgoing data.
+-- @param sock The socket in question (you'll usually ignore this)
+-- @param msg The message to be filtered
+-- @return The message to be sent or nil for no message
+-- It is important to note that this function is called for things you
+-- write to the socket set as well as system messages.
+local function unidirectionFilter(sock, msg)
+    return nil
+end
+
+-------------------------------------------------------------------------------
+-- Callback when a new connection is incoming the unidirection data stream.
+-- @param sock The newly connected socket
+-- @param ip The source IP address of the socket
+-- @param port The source port of the socket
+local function socketUnidirectionalAccept(sock, ip, port)
+	local sockets = _M.system.sockets
+	-- Set up so that all incoming traffic is ignored, this stream only
+    -- does outgoings.  Failure to do this will cause a build up of incoming
+    -- data packets and blockage.
+	sockets.addSocket(sock, sockets.flushReadSocket)
+	-- Set a brief timeout to prevent things clogging up.
+    sockets.setSocketTimeout(sock, 0.001)
+	-- Add the socket to the unidirectional broadcast group.  A message
+    -- sent here is forwarded to all unidirectional sockets.
+    -- We're using an inline filter function that just allows all traffic
+    -- through, this function can return nil to prevent a message or something
+    -- else to replace a message.
+    sockets.addSocketSet("uni", sock, unidirectionFilter)
+	-- Finally, log the fact that we've got a new connection
+    rinApp.dbg.info('unidirectional connection from', ip, port)
+end
+
 _M.userMainLoop = nil
 _M.userCleanup = nil
 
@@ -287,8 +378,14 @@ function _M.run()
    _M.cleanup()    
 end
 
+
+
+-------------------------------------------------------------------------------
+-- Create the server and io sockets
 io.output():setvbuf('no')
 _M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
+_M.system.sockets.createServerSocket(2224, socketBidirectionalAccept)
+_M.system.sockets.createServerSocket(2225, socketUnidirectionalAccept)
 _M.running = true
 _M.dbg.info('','------   Application Started %LATEST% -----')
 return _M
