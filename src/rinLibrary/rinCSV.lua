@@ -12,6 +12,8 @@ local table = table
 local pairs = pairs
 local io = io
 local ipairs = ipairs
+local tostring = tostring
+local error = error
 
 local dbg = require "rinLibrary.rinDebug"
 
@@ -113,9 +115,9 @@ end
 -- @param check 1d array of labels to check
 -- @return true if labels and check are the same, false otherwise
 function _M.equalCSV(labels, check)
-   if #labels ~= #check then
-     return false
-   end
+    if #labels ~= #check then
+        return false
+    end
    
     for col,s in ipairs(labels) do
        -- remove space and convert labels to all lowercase for checking 
@@ -156,32 +158,40 @@ end
 
 -------------------------------------------------------------------------------
 -- Reads a .CSV file and returns a table with the loaded contents
--- If no CSV file found or contents different then file created with structure in t
+-- If no CSV file found or contents different then file created with structure in it.
 -- @param t is table with structure of expected CSV included
 -- @return table in same format:
 --      fname name of .csv file associated with table - used to save/restore table contents
 --      labels{}  1d array of column labels
 --      data{{}}  2d array of data 
  function _M.loadCSV(t)
+  
+     local f = io.open(t.fname,"r")
      
-     local f = io.open(t.fname,"r")   
-     if f == nil then    
-          _M.saveCSV(t)     -- no file yet so create new one   
+     if f == nil then
+          -- no file yet so create new one      
+          _M.saveCSV(t)     
      else    
-         local s = f:read("*l")   
-         if s == nil then    
+         local s = f:read("*l")
+         if s == nil then
+              -- file is empty so setup to hold t  
               f:close()   
-              _M.saveCSV(t)  -- file is empty so setup to hold t   
-         else   
-              if _M.equalCSV(t.labels, _M.fromCSV(s)) then   -- read in existing data   
+              _M.saveCSV(t)  
+         else
+              -- Check the labels are equal
+              if _M.equalCSV(t.labels, _M.fromCSV(s)) then 
+                 
+                 -- Clear the current table and read in the existing data
                  t.data = {}
-                 for s in f:lines() do   
-                     table.insert(t.data,_M.fromCSV(s))   
-                 end   
-                 f:close()   
-              else             -- different format so initialize to new table format   
-                 f:close()   
-                 _M.saveCSV(t)   
+                 for s in f:lines() do
+                     table.insert(t.data,_M.fromCSV(s))
+                 end
+                 f:close()
+                 
+              -- different format so initialize to new table format
+              else
+                 f:close()
+                 _M.saveCSV(t)
               end                       
          end     
      end
@@ -377,18 +387,21 @@ end
 -- fname name of .csv file associated with table - used to save/restore table contents
 -- labels{}  1d array of column labels
 -- data{{}}  2d array of data
- function _M.addTableDB(db,name,t)
+ function _M.addTableDB(db, name, t)
     local created = false
+    
+    -- Update existing database table with the new data.
     for k,v in pairs(db) do
         if v.fname == t.fname then
-            db[k] = t             -- update existing database table with the new data.
+            db[k] = t             
             created = true
         end   
     end 
      
+    -- Add database table to the rinCSV database
     if not created then 
         db[name] = t 
-    end    -- add database table to database
+    end
   end
 
 -------------------------------------------------------------------------------

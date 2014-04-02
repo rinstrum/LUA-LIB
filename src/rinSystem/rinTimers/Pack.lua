@@ -78,6 +78,36 @@ local function pop()
     return event
 end
 
+------------------------------------------------------------------------------
+-- Utility routine to determine is a timer is still active
+-- @param timer The timer being investigates
+-- @return true iff the timer is still active
+local function active(timer)
+    return timer ~= nil and timer.cb ~= nil
+end
+
+-------------------------------------------------------------------------------
+-- Helper routine to add a timer to the list
+-- @param time Time until the timer will go off (milliseconds)
+-- @param delay Initial delay for timer
+-- @param drift Is the timer permitted to drift
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+local function internalAddTimer(time, delay, reg, callback, extraargs)
+	if callback == nil then
+    	return nil
+    end
+    local evt = {
+    	when = monotonictime() + max(0, delay),
+    	rept = time,
+        regular = reg,
+        cb   = callback,
+        args = extraargs
+    }
+    return push(evt)
+end
+
 -------------------------------------------------------------------------------
 -- Add a timer to the timer list
 -- @param time Time until the timer will go off (milliseconds)
@@ -86,16 +116,18 @@ end
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
 function _M.addTimer(time, delay, callback, ...)
-	if callback == nil then
-    	return nil
-    end
-    local evt = {
-    	when = monotonictime() + max(0, delay),
-    	rept = time,
-        cb   = callback,
-        args = {...}
-    }
-    return push(evt)
+    return internalAddTimer(time, delay, false, callback, {...})
+end
+
+-------------------------------------------------------------------------------
+-- Add a timer to the timer list
+-- @param time Time until the timer will go off (milliseconds)
+-- @param delay Initial delay for timer
+-- @param callback Function to run when timer is complete
+-- @param ... Function variables
+-- @return Timer key which should be considered a read only object
+function _M.addRegularTimer(time, delay, callback, ...)
+    return internalAddTimer(time, delay, true, callback, {...})
 end
 
 -------------------------------------------------------------------------------
@@ -108,10 +140,10 @@ function _M.addEvent(callback, ...)
 	-- We schedule the first such event timer now and any future ones
     -- a hundred microseconds in the future to preserve order of execution.
 	local delay = 0
-	if lastEventTimer ~= nil then
+	if active(lastEventTimer) then
     	delay = max(0, _M.delayUntilTimer(lastEventTimer) + .0001)
     end
-	lastEventTimer = _M.addTimer(0, delay, callback, ...)
+	lastEventTimer = internalAddTimer(0, delay, false, callback, {...})
     return lastEventTimer
 end
 
@@ -123,6 +155,7 @@ function _M.removeTimer(key)
 		key.cb = nil
     	key.args = nil
     	key.rept = nil
+        key.regular = nil
     end
 end
 
@@ -137,26 +170,43 @@ function _M.delayUntilNext()
 end
 
 -------------------------------------------------------------------------------
--- Get the time until the specified timer expires
+-- Get the time until the specified timer expires.
+-- A cancelled or non-existent timer will never trigger of course.
 -- @return Delay in seconds
 function _M.delayUntilTimer(event)
-	return event.when - monotonictime()
+    if active(event) then
+    	return event.when - monotonictime()
+    end
+    return math.huge
 end
 
 -------------------------------------------------------------------------------
 -- Attempt to run any timers that have expired.
 function _M.processTimeouts()
 	local now = monotonictime()
+
     while timers[1] ~= nil and timers[1].when <= now do
+        local delete = true
     	local event = pop()
         -- callback
-        if event and event.cb then
+        if active(event) then
         	event.cb(unpack(event.args))
             -- reschedule
             if event.rept and event.rept > 0 then
-        	    event.when = monotonictime() + event.rept
+                if event.regular then
+                    event.when = event.when + (1 + floor((now - event.when) / event.rept)) * event.rept
+                else
+        	        event.when = monotonictime() + event.rept
+                end
         	    push(event)
+                delete = false
             end
+        end
+        if event == lastEventTimer then
+            lastEventTimer = nil
+        end
+        if delete then
+            _M.removeTimer(event)
         end
     end
 end
