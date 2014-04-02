@@ -1720,7 +1720,7 @@ _M.REG_BUZ_NUM      = 0x0328
 
 _M.botAnnunState = 0
 _M.topAnnunState = 0
-_M.waitPos = _M.WAIT
+_M.waitPos = 1
 
 _M.curTopLeft = ''
 _M.curTopRight = ''
@@ -2097,6 +2097,7 @@ _M.WAIT45    = 0x0100
 _M.WAIT90    = 0x0200
 _M.WAIT135   = 0x0080
 _M.WAITALL   = 0x03C0
+local WAIT_SEGS = { _M.WAIT, _M.WAIT45, _M.WAIT90, _M.WAIT135 }
 
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Bottom Annunciators
@@ -2118,38 +2119,14 @@ end
 -- Rotate the WAIT annunciator 
 -- @param dir  1 clockwise, -1 anticlockwise 0 no change
 function _M.rotWAIT(dir)
+    if dir ~= 0 then
+        _M.waitPos = (_M.waitPos - dir / math.abs(dir)) % #WAIT_SEGS
+        if _M.waitPos == 0 then _M.waitPos = #WAIT_SEGS end
+    end
 
-    if _M.waitPos == _M.WAIT then
-        if dir > 0 then 
-            _M.waitPos = _M.WAIT45 
-        elseif dir < 0 then 
-            _M.waitPos = _M.WAIT135 
-        end
-    elseif _M.waitPos == _M.WAIT45 then
-        if dir > 0 then 
-            _M.waitPos = _M.WAIT90 
-        elseif dir < 0 then 
-            _M.waitPos = _M.WAIT 
-        end
-    elseif _M.waitPos == _M.WAIT90 then
-        if dir > 0 then 
-            _M.waitPos = _M.WAIT135 
-        elseif dir < 0 then 
-            _M.waitPos = _M.WAIT45
-        end
-    else   -- Must be WAIT135
-        if dir > 0 then 
-            _M.waitPos = _M.WAIT 
-        elseif dir < 0 then 
-            _M.waitPos = _M.WAIT90 
-        end
-  end
- 
-  _M.botAnnunState = bit32.band(_M.botAnnunState,bit32.bnot(_M.WAITALL))
- 
-  _M.botAnnunState = bit32.bor(_M.botAnnunState,_M.waitPos)
-  _M.writeBotAnnuns(_M.botAnnunState)  
-  
+    _M.botAnnunState = bit32.band(_M.botAnnunState, bit32.bnot(_M.WAITALL))
+    _M.botAnnunState = bit32.bor(_M.botAnnunState, WAIT_SEGS[_M.waitPos])
+    _M.writeBotAnnuns(_M.botAnnunState)
 end
 
 --- Top LCD Annunciators
