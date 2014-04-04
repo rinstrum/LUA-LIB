@@ -1255,8 +1255,8 @@ function _M.getCurSETP()
 end
 
 -------------------------------------------------------------------------------
--- Called to check state of current IO 
--- @return true if any of the listed IO are active
+-- Called to check state of current SETP 
+-- @return true if any of the listed SETP are active
 -- @usage
 -- dwi.enableOutput(1) 
 -- if not dwi.anySETPSet(1,2) then
@@ -1269,7 +1269,7 @@ function _M.anySETPSet(...)
 end
 
 -------------------------------------------------------------------------------
--- Called to check state of IO 
+-- Called to check state of SETP 
 -- @return true if all of the listed IO are active
 -- @usage
 -- dwi.enableOutput(1) 
@@ -1278,7 +1278,7 @@ end
 -- else
 --     dwi.turnOff(1)
 -- end 
-function _M.allIOSet(...)
+function _M.allSETPSet(...)
   return(allBitSet(_M.curSETP,...))
 end
 
@@ -3161,7 +3161,7 @@ function _M.editReg(reg,prompt)
       end   
    end
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
-  _M.startDialog()
+   _M.startDialog()
    while true do 
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
      
@@ -3705,7 +3705,7 @@ function _M.checkPasscode(pc, code, tries)
              pass = code
              code = nil
           else   
-            pass, ok = _M.edit('ENTER PCODE','','passcode')
+            pass, ok = _M.edit('ENTER PCODE','','passcode')            
             if not ok or not pass then
                 _M.setErrHandler(f)
                 return false
