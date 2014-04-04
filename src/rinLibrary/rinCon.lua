@@ -493,6 +493,7 @@ function _M.serBProcess(err)
 end
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
+local largeSerialBMessageWarning = false  -- Have we warned about an over sized message yet?
 function _M.socketBCallback()
 
     local char, prevchar, err
@@ -507,6 +508,10 @@ function _M.socketBCallback()
         end
         table.insert(_M.serBBuffer,char)
         if #_M.serBBuffer > 250 then
+           if not largeSerialBMessageWarning then
+              _M.dbg.warn("Receive SERB:", "Large message -- incorrect message delimiters?")
+              largeSerialBMessageWarning = true
+           end
            break
         end   
         if (_M.end2) then
