@@ -145,16 +145,6 @@ _M.REG_SELECT_PRODUCT_NAME      = 0xB010
 _M.REG_SELECT_PRODUCT_DELETE    = 0xB011
 _M.REG_SELECT_PRODUCT_RENAME    = 0xB012
 
-_M.REG_SYSERR           = 0x0022
-_M.REG_ABSMVV           = 0x0023
-
-_M.REG_GROSSNET         = 0x0025
-_M.REG_GROSS            = 0x0026
-_M.REG_NET              = 0x0027
-_M.REG_TARE             = 0x0028
-_M.REG_PEAKHOLD         = 0x0029
-_M.REG_MANHOLD          = 0x002A
-
 --- Main Instrument Commands.
 --@table rinCMD
 -- @field CMD_RDLIT        Read literal data
