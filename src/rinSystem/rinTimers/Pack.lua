@@ -90,9 +90,9 @@ end
 -- Helper routine to add a timer to the list
 -- @param time Time until the timer will go off (milliseconds)
 -- @param delay Initial delay for timer
--- @param drift Is the timer permitted to drift
+-- @param reg Is the timer permitted to drift
 -- @param callback Function to run when timer is complete
--- @param ... Function variables
+-- @param extraargs Function variables
 -- @return Timer key which should be considered a read only object
 local function internalAddTimer(time, delay, reg, callback, extraargs)
 	if callback == nil then

@@ -141,7 +141,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Read a readable socket
--- @param socks A readable socket
+-- @param sock A readable socket
 function _M.processReadSocket(sock)
 	local callback = sockets[sock]
     if callback then
@@ -154,7 +154,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Suppress debug messages to a socket
--- @param socks A socket
+-- @param sock A socket
 local function suppressSocketDebug(sock)
     local queue = writers[sock]
     if queue ~= nil then
@@ -164,7 +164,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Write a writable socket
--- @param socks A writable socket
+-- @param sock A writable socket
 function _M.processWriteSocket(sock)
     local queue = writers[sock]
     if queue ~= nil then
@@ -223,14 +223,14 @@ end
 -- @param name The name of the socket set
 -- @param sock The socket to add
 -- @param callback The filter callback.  Pass nil for complete filtering.
+-- @param silent If true, surpresses debug output for message on this socket
 --
 -- The callback function looks like:
 -- function callback(sock, msg, ...)
--- @param sock The socket to be written to
--- @param msg The message to be written
--- @param ... variable numbers of extra arguments depending on source
--- @param silent If true, surpresses debug output for message on this socket
--- @return msg The message that will actually be sent or nil for no message
+-- param sock The socket to be written to
+-- param msg The message to be written
+-- param ... variable numbers of extra arguments depending on source
+-- return msg The message that will actually be sent or nil for no message
 function _M.addSocketSet(name, sock, callback, silent)
 	if name == nil or sock == nil then return end
 	if sockSet[name] == nil then
