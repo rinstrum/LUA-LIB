@@ -659,7 +659,7 @@ function _M.streamCallbackLib(data, err)
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then 
-          _M.dbg.error('Corrupt Stream Data: ',data)
+          _M.dbg.error('Corrupt Lib Stream Data: ',data)
           return
     end      
     
