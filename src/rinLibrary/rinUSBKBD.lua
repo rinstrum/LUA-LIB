@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------------
--- Services for saving and restoring settings in a table to .INI config file
--- @module rinLibrary.rinINI
+-- Functions to setu and use a USB keyboard
+-- @module rinLibrary.rinUSBKBD
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
