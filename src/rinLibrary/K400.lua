@@ -7,7 +7,7 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
--- submodules are merged in as follows:
+-- submodules are merged in as follows (and in this order):
 local modules = {
     "K400Reg",
     "K400Util",
@@ -20,11 +20,12 @@ local modules = {
     "K400Analog",
     "K400Setpoint",
     "K400Print",
-    "K400Command",
+    "K400Command"
 }
 
 -- Start the entire process by loading rinCon directly.
 local _M = require "rinLibrary.rinCon"
+package.loaded["rinLibrary.rinCon"] = nil
 
 for i = 1, #modules do
     local name = "rinLibrary." .. modules[i]
