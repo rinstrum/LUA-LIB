@@ -8,23 +8,29 @@
 -------------------------------------------------------------------------------
 
 -- submodules are merged in as follows:
--- rinCon
--- K400Reg
--- K400Util
--- K400Stream
--- K400Status
--- K400Keys
--- K400LCD
--- K400Dialog
--- K400RTC
--- K400Analog
--- K400Setpoint
--- K400Print
--- K400Command
+local modules = {
+    "K400Reg",
+    "K400Util",
+    "K400Stream",
+    "K400Status",
+    "K400Keys",
+    "K400LCD",
+    "K400Dialog",
+    "K400RTC",
+    "K400Analog",
+    "K400Setpoint",
+    "K400Print",
+    "K400Command",
+}
 
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Command"
-local _M = tmp  
-package.loaded["rinLibrary.K400Command"] = nil
+-- Start the entire process by loading rinCon directly.
+local _M = require "rinLibrary.rinCon"
+
+for i = 1, #modules do
+    local name = "rinLibrary." .. modules[i]
+    local tmp = require(name)
+    tmp(_M)
+    package.loaded[name] = nil
+end
 
 return _M

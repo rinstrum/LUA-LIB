@@ -7,20 +7,13 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local string = string
 local tonumber = tonumber
 local pairs = pairs
 local bit32 = require "bit"
 
 
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Util"
-local _M = tmp  
-package.loaded["rinLibrary.K400Util"] = nil
-
-
-
-  
 --  Stream Register Definitions
 _M.REG_STREAMDATA       = 0x0040
 _M.REG_STREAMMODE       = 0x0041
@@ -374,4 +367,4 @@ function _M.init()
 end
 
 
-return _M
+end

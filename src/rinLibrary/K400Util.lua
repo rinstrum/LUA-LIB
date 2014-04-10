@@ -7,17 +7,12 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local string = string
 local tonumber = tonumber
 local type = type
 local math = math
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Reg"
-local _M = tmp  
-package.loaded["rinLibrary.K400Reg"] = nil
-
 
 
 _M.REG_LCDMODE          = 0x000D
@@ -195,7 +190,5 @@ function _M.loadRIS(filename)
     file:close()
 end
 
+end
 
-
-
-return _M

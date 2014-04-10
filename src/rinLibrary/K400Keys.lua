@@ -7,15 +7,10 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Status"
-local _M = tmp  
-package.loaded["rinLibrary.K400Status"] = nil
-
 
 -------------------------------------------------------------------------------
 --- Keypad Control.
@@ -362,5 +357,5 @@ function _M.buzz(times, len)
 end
 
 
+end
 
-return _M

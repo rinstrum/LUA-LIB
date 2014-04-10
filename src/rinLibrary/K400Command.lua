@@ -6,16 +6,11 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local string = string
 local tonumber = tonumber
 local tostring = tostring
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Print"
-local _M = tmp  
-package.loaded["rinLibrary.K400Print"] = nil
-
 
 -------------------------------------------------------------------------------
 -- Commands
@@ -501,4 +496,5 @@ function _M.clearLin(pt)
 end
 
 
-return _M
+end
+

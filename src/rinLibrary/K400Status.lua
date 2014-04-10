@@ -7,16 +7,11 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-
+return function (_M)
 local string = string
 local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Stream"
-local _M = tmp  
-package.loaded["rinLibrary.K400Stream"] = nil
 
 --- Status Bits for REG_SYSSTATUS.
 --@table sysstatus
@@ -634,4 +629,4 @@ function _M.endSETPStatus()
 end
 
 
-return _M
+end

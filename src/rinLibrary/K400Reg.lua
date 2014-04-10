@@ -7,15 +7,10 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local string = string
 local tonumber = tonumber
 
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.rinCon"
-local _M = tmp  
-package.loaded["rinLibrary.rinCon"] = nil
-
- 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
 _M.REG_SAVESETTING      = 0x0010
@@ -263,5 +258,4 @@ function _M.exReg(reg, data)
   _M.sendRegWait(_M.CMD_EX, reg, data)
 end
 
-
-return _M
+end

@@ -7,13 +7,9 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local math = math
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400RTC"
-local _M = tmp  
-package.loaded["rinLibrary.K400RTC"] = nil
 
 -------------------------------------------------------------------------------
 --- Analogue Output Control.
@@ -111,4 +107,4 @@ function _M.setAnalogCur(val)
  _M.setAnalogVal(val)
 end
 
-return _M
+end

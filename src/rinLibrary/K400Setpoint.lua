@@ -7,16 +7,9 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local math = math
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Analog"
-local _M = tmp  
-package.loaded["rinLibrary.K400Analog"] = nil
-
-
-
 
 _M.REG_IO_STATUS    = 0x0051
 _M.REG_IO_ENABLE    = 0x0054
@@ -334,7 +327,5 @@ function _M.setpHys(setp, v)
 end
 
 
+end
 
-
-
-return _M

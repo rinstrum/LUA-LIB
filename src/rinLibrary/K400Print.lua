@@ -7,13 +7,9 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local string = string
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Setpoint"
-local _M = tmp  
-package.loaded["rinLibrary.K400Setpoint"] = nil
 
 -- Custom Print Strings
 
@@ -65,5 +61,5 @@ function _M.reqCustomTransmit(tokenStr)
     return s
 end
 
-return _M
+end
 

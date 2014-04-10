@@ -6,6 +6,7 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+return function (_M)
 local string = string
 local tonumber = tonumber
 local type = type
@@ -14,11 +15,6 @@ local pairs = pairs
 local ipairs = ipairs
 local tostring = tostring
 local bit32 = require "bit"
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400LCD"
-local _M = tmp  
-package.loaded["rinLibrary.K400LCD"] = nil
 
 _M.dialogRunning = false
 _M.getKeyPressed = 0
@@ -625,5 +621,5 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     return sel
 end
 
-return _M
+end
 

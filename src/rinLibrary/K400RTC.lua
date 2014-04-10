@@ -6,16 +6,11 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+return function (_M)
 local string = string
 local tonumber = tonumber
 local type = type
 local tostring = tostring
-
--- build rest of K400 on top of rinCon
-local tmp = require "rinLibrary.K400Dialog"
-local _M = tmp  
-package.loaded["rinLibrary.K400Dialog"] = nil
-
 
 -------------------------------------------------------------------------------
 
@@ -150,4 +145,4 @@ function _M.RTCdateFormat(first,second,third)
 end  
 
 
-return _M
+end
