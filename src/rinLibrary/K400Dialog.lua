@@ -41,13 +41,14 @@ function _M.getKeyCallback(key, state)
 end 
 
 
-_M.msgDisp = false		-- message is being displayed by dispMsg function
-_M.msgTimer = nil		-- timer for user message display
+local msgDisp = false		-- message is being displayed by dispMsg function
+local msgTimer = nil		-- timer for user message display
 
 function _M.endDisplayMessage()
-	if _M.msgDisp then
-        _M.msgDisp = false
-	    _M.system.timers.removeTimer(_M.msgTimer)
+	if msgDisp then
+        msgDisp = false
+	    _M.system.timers.removeTimer(msgTimer)
+        msgTimer = nil
         _M.restoreBot()
     end    
 end
@@ -63,15 +64,14 @@ function _M.displayMessage(msg, t, units, unitsOther)
 	local u = units or 0			-- optional units defaults to none
 	local uo = unitsOther or 0		-- optional other units defaults to none
     local t = t or 0.5
-    if _M.msgDisp then
-       _M.endDisplayMessage()
-    end   
+
+    _M.endDisplayMessage()
 	if msg and (t > 0) then		
-		_M.msgDisp = true
+		msgDisp = true
 		_M.saveBot()
 		_M.writeBotLeft(msg)			-- display message
 		_M.writeBotUnits(u,uo)			-- display optional units
-		_M.userMsgTmr = _M.system.timers.addTimer(0, t, _M.endDisplayMessage)
+		msgTimer = _M.system.timers.addTimer(0, t, _M.endDisplayMessage)
 	end
 end
 
@@ -83,7 +83,7 @@ end
 -- @param unitsOther optional other units to display
 function _M.displayMessageWait(msg, t, units, unitsOther)
    _M.displayMessage(msg,t,units,unitsOther)
-   while _M.msgDisp do 
+   while msgDisp do 
        _M.system.handleEvents()
    end    
 end
