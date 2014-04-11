@@ -28,9 +28,7 @@ local _M = require "rinLibrary.rinCon"
 package.loaded["rinLibrary.rinCon"] = nil
 
 for i = 1, #modules do
-    local name = "rinLibrary." .. modules[i]
-    local tmp = require(name)
-    tmp(_M)
+    require("rinLibrary." .. modules[i])(_M)
 end
 
 return _M
