@@ -9,9 +9,7 @@ local _M = {}
 
 local str = string
 local tonum = tonumber
-
-local con = require "rinLibrary.rinCon"
-package.loaded["rinLibrary.rinCon"] = nil
+local ccitt = require "rinLibrary.rinCCITT"
 
 local socket = require "socket"
 
@@ -29,7 +27,7 @@ function _M.load(filename, ip, port)
 	
 	for line in file:lines() do
 		 if (str.find(line, ':') and tonum(str.sub(line, 1, 8), 16)) then
-		 	s:send('\01' .. line .. str.format("%04X", con.CCITT(line)) .. '\04')
+		 	s:send('\01' .. line .. str.format("%04X", ccitt(line)) .. '\04')
 		 	socket.sleep(0.05)
 		 end
 	end
