@@ -195,7 +195,7 @@ function _M.checkPasscode(pc, code, tries)
     local tries = tries or 1
     local count = 1
     _M.startDialog()
-    while _M.dialogRunning and _M.app.running do 
+    while _M.dialogRunning() and _M.app.running do 
        msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
           if  count > tries then
