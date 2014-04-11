@@ -11,6 +11,8 @@ local str = string
 local tonum = tonumber
 
 local con = require "rinLibrary.rinCon"
+package.loaded["rinLibrary.rinCon"] = nil
+
 local socket = require "socket"
 
 -------------------------------------------------------------------------------
