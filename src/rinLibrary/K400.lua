@@ -31,7 +31,6 @@ for i = 1, #modules do
     local name = "rinLibrary." .. modules[i]
     local tmp = require(name)
     tmp(_M)
-    package.loaded[name] = nil
 end
 
 return _M
