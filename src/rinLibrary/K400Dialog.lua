@@ -14,6 +14,7 @@ local math = math
 local pairs = pairs
 local ipairs = ipairs
 local tostring = tostring
+local table = table
 local bit32 = require "bit"
 
 local dialogRunning = false
@@ -164,7 +165,7 @@ _M.keyChar = function(k, p)
     return keyCharSelect(keyMapping[k], p)
 end
 
-function sTrim(s)       -- removes whitespace from strings
+local function sTrim(s)       -- removes whitespace from strings
     return s:match'^%s*(.*%S)' or ''
 end
 
@@ -227,17 +228,16 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local uo = unitsOther or 0      -- optional other units defaults to none
     
     endDisplayMessage()             -- abort any existing display prompt
-    cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    local cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
-        local i = 0
-        repeat
-            i = i + 1
+        for i=0,math.min(sLen, maxLen),1 do
             strTab[i] = string.sub(_M.sEditVal, i, i)   -- convert the string to a table for easier character manipulation 
-        until i >= sLen or i >= maxLen                  -- check length of string against maxLen
---      print('strTab = ' .. table.concat(strTab))  -- debug
+        end
+        --print('strTab = ' .. table.concat(strTab))  -- debug
     end
+    _M.sEditVal = table.concat(strTab);
     
     if def then         -- if a default string is given
         pKey = 'def'    -- give pKey a value so we start editing from the end
