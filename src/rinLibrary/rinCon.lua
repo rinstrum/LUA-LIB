@@ -5,6 +5,7 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+return function (_M)
 local sockets = require "rinSystem.rinSockets.Pack"
 local bit32 = require "bit"
 local ccitt = require "rinLibrary.rinCCITT"
@@ -16,7 +17,6 @@ local tonum = tonumber
 local pairs = pairs
 local type = type
 
-local _M = {}
 _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
 
@@ -515,4 +515,5 @@ function _M.socketDebugAcceptCallback(sock, ip, port)
     _M.dbg.info('debug connection from', ip, port)
 end
 
-return _M
+end
+
