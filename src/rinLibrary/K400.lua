@@ -37,9 +37,9 @@ local mt = {
                      end
                  end
 }
+setmetatable(_M, mt)
 
 -- Load all the modules in order.
-setmetatable(_M, mt)
 for i = 1, #modules do
     require("rinLibrary." .. modules[i])(_M)
 end
@@ -49,8 +49,8 @@ end
 -- We can't simply return kv instead of _M for obvious reasons.
 
 -- The first is to block modification of the metatable and leave things as
--- they are:
---setmetatable(_M, { __index = kt, __metatable = {} })
+-- they are (the newindex bit is likely optional):
+--setmetatable(_M, { __index = kt, __newindex = kt, __metatable = {} })
 
 -- The second is to totally remove the metatable and to copy the stored values
 -- back to the main table.  This way has no risk of breaking existing code that
