@@ -34,10 +34,10 @@ _M.STM_FREQ_AUTO3       = 3
 _M.STM_FREQ_AUTO1       = 4
 _M.STM_FREQ_ONCHANGE    = 5
 
-_M.freqLib = _M.STM_FREQ_ONCHANGE
-_M.freqUser = _M.STM_FREQ_ONCHANGE
+local freqLib = _M.STM_FREQ_ONCHANGE
+local freqUser = _M.STM_FREQ_ONCHANGE
 
-_M.availRegistersUser = {
+local availRegistersUser = {
                         [_M.REG_STREAMREG1]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
@@ -69,7 +69,7 @@ _M.availRegistersUser = {
                                               ['dp'] = 0,
                                               ['typ'] = _M.TYP_LONG}
                     }
-_M.streamRegisters = {}
+local streamRegistersUser = {}
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
@@ -84,7 +84,7 @@ function _M.streamCallback(data, err)
           return
     end      
     
-    for k,v in pairs(_M.availRegistersUser) do
+    for k,v in pairs(availRegistersUser) do
         if v.reg ~= 0 then
             local ind = (k - _M.REG_STREAMREG1) * 8
             local substr = string.sub(data,ind+1,ind+8)
@@ -114,7 +114,7 @@ end
 function _M.addStream(streamReg, callback, onChange)
     local availReg = nil
     
-    for k,v in pairs(_M.availRegistersUser) do
+    for k,v in pairs(availRegistersUser) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
         end
@@ -124,18 +124,18 @@ function _M.addStream(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _,_M.availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
+    _, availRegistersUser[availReg].dp = _M.getRegDP(streamReg)
     local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,streamReg),16)
-    _M.availRegistersUser[availReg].reg = streamReg
-    _M.availRegistersUser[availReg].callback = callback
-    _M.availRegistersUser[availReg].onChange = onChange
-    _M.availRegistersUser[availReg].lastData = ''
-    _M.availRegistersUser[availReg].typ = typ
-    _M.streamRegistersUser[streamReg] = availReg
+    availRegistersUser[availReg].reg = streamReg
+    availRegistersUser[availReg].callback = callback
+    availRegistersUser[availReg].onChange = onChange
+    availRegistersUser[availReg].lastData = ''
+    availRegistersUser[availReg].typ = typ
+    streamRegistersUser[streamReg] = availReg
 
     _M.sendReg(_M.CMD_WRFINALHEX, 
                 bit32.bor(_M.REG_LUAUSER,_M.REG_STREAMMODE), 
-                _M.freqUser)
+                freqUser)
     _M.sendReg(_M.CMD_WRFINALDEC, 
                 bit32.bor(_M.REG_LUAUSER, availReg), 
                 streamReg)
@@ -151,18 +151,18 @@ end
 -- Remove a stream from the device 
 -- @param streamReg Register to be removed(_M.REG_*)
 function _M.removeStream(streamReg)
-    local availReg = _M.streamRegistersUser[streamReg]
+    local availReg = streamRegistersUser[streamReg]
 
      if availReg == nil then return end   -- stream already removed
      
     _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUAUSER,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUAUSER, availReg))
     
-    _M.availRegistersUser[availReg].reg = 0
-    _M.streamRegistersUser[streamReg] = nil
+    availRegistersUser[availReg].reg = 0
+    streamRegistersUser[streamReg] = nil
 end
 
-_M.availRegistersLib = {
+local availRegistersLib = {
                         [_M.REG_STREAMREG1]= {['reg'] = 0, 
                                               ['callback'] = nil, 
                                               ['onChange'] = 'change', 
@@ -189,7 +189,7 @@ _M.availRegistersLib = {
                                               ['lastData'] = '',
                                               ['dp'] = 0}
                     }
-_M.streamRegistersLib = {}
+local streamRegistersLib = {}
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the callbacks for Library streams
@@ -204,7 +204,7 @@ function _M.streamCallbackLib(data, err)
           return
     end      
     
-    for k,v in pairs(_M.availRegistersLib) do
+    for k,v in pairs(availRegistersLib) do
         if v.reg ~= 0 then
             local ind = (k - _M.REG_STREAMREG1) * 8
             local substr = string.sub(data,ind+1,ind+8)
@@ -232,7 +232,7 @@ end
 function _M.addStreamLib(streamReg, callback, onChange)
     local availReg = nil
     
-    for k,v in pairs(_M.availRegistersLib) do
+    for k,v in pairs(availRegistersLib) do
         if v.reg == 0 and (availReg == nil or k < availReg) then
             availReg = k
         end
@@ -242,17 +242,17 @@ function _M.addStreamLib(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _,_M.availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
-    _M.availRegistersLib[availReg].reg = streamReg
-    _M.availRegistersLib[availReg].callback = callback
-    _M.availRegistersLib[availReg].onChange = onChange
-    _M.availRegistersLib[availReg].lastData = ''
+    _, availRegistersLib[availReg].dp = _M.getRegDP(streamReg)
+    availRegistersLib[availReg].reg = streamReg
+    availRegistersLib[availReg].callback = callback
+    availRegistersLib[availReg].onChange = onChange
+    availRegistersLib[availReg].lastData = ''
     
-    _M.streamRegistersLib[streamReg] = availReg
+    streamRegistersLib[streamReg] = availReg
 
     _M.sendReg(_M.CMD_WRFINALHEX, 
                 bit32.bor(_M.REG_LUALIB,_M.REG_STREAMMODE), 
-                _M.freqLib)
+                freqLib)
     _M.sendReg(_M.CMD_WRFINALDEC, 
                 bit32.bor(_M.REG_LUALIB, availReg), 
                 streamReg)
@@ -268,15 +268,15 @@ end
 -- Remove a stream from the library set of streams 
 -- @param streamReg Register to be removed(_M.REG_*)
 function _M.removeStreamLib(streamReg)
-    local availReg = _M.streamRegistersLib[streamReg]
+    local availReg = streamRegistersLib[streamReg]
 
      if availReg == nil then return end   -- stream already removed
      
     _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(_M.REG_LUALIB,availReg),0)
     _M.unbindRegister(bit32.bor(_M.REG_LUALIB, availReg))
     
-    _M.availRegistersLib[availReg].reg = 0
-    _M.streamRegistersLib[streamReg] = nil
+    availRegistersLib[availReg].reg = 0
+    streamRegistersLib[streamReg] = nil
 end
 
 -------------------------------------------------------------------------------
@@ -289,34 +289,38 @@ function _M.streamCleanup()
                 bit32.bor(_M.REG_LUALIB, _M.REG_STREAMDATA),
                 _M.STM_STOP)  -- stop streaming first
 
-    for k,v in pairs(_M.availRegistersUser) do
+    for k,v in pairs(availRegistersUser) do
         _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUAUSER, k), 0)
         v.reg = 0
     end
-    for k,v in pairs(_M.availRegistersLib) do
+    for k,v in pairs(availRegistersLib) do
         _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(_M.REG_LUALIB, k), 0)
         v.reg = 0
     end
     
-    _M.streamRegistersUser = {}
-    _M.streamRegistersLib = {}
+    streamRegistersUser = {}
+    streamRegistersLib = {}
 
 end
 
 -------------------------------------------------------------------------------
 --  Set the frequency used for streaming
 -- @param freq Frequency of streaming (_M.STM_FREQ_*)
+-- @return The previous frequency
 function _M.setStreamFreq(freq)
-    local freq = freq or _M.freqUser
-    _M.freqUser = freq
+    local f = freqUser
+    freqUser = freq or freqUser
+    return f
 end
 
 -------------------------------------------------------------------------------
 --  Set the frequency used for library streaming
 -- @param freq Frequency of streaming (_M.STM_FREQ_*)
+-- @return The previous frequency
 function _M.setStreamFreqLib(freq)
-    local freq = freq or _M.freqLib
-    _M.freqLib = freq
+    local f = freqLib
+    freqLib = freq or freqLib
+    return f
 end
 
 
@@ -324,10 +328,10 @@ end
 -- Called to force all stream registers to resend current state
 function _M.renewStreamData()
   local streamUser = false
-   for k,v in pairs(_M.availRegistersLib) do
+   for k,v in pairs(availRegistersLib) do
             v.lastData = ''
    end
-   for k,v in pairs(_M.availRegistersUser) do
+   for k,v in pairs(availRegistersUser) do
             if v.reg ~= 0 then
                 streamUser = true
             end    
