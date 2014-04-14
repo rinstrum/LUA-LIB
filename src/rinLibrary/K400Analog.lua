@@ -24,7 +24,7 @@ _M.REG_ANALOGUE_SOURCE = 0xA805  -- must be set to option 3 "COMMS" if we are to
 _M.CUR = 0
 _M.VOLT = 1
 
-_M.curAnalogType = -1 
+local curAnalogType = -1 
 
 _M.ANALOG_COMMS = 3
 -------------------------------------------------------------------------------
@@ -41,20 +41,22 @@ end
 -------------------------------------------------------------------------------
 -- Set the analog output type
 -- @param typ Type for output (.CUR or .VOLT)
+-- @return The previous analog output type
 function _M.setAnalogType(typ)
-    local prev = _M.curAnalogType
+    local prev = curAnalogType
     
     if typ == _M.CUR then
-        _M.curAnalogType = _M.CUR
+        curAnalogType = _M.CUR
     else
-        _M.curAnalogType = _M.VOLT
+        curAnalogType = _M.VOLT
     end  
     
-    if _M.curAnalogType ~= prev then 
+    if curAnalogType ~= prev then 
         _M.sendRegWait(_M.CMD_WRFINALDEC,
                 _M.REG_ANALOGUE_TYPE,
-                _M.curAnalogType) 
+                curAnalogType) 
     end
+    return prev
 end   
 
 -------------------------------------------------------------------------------
