@@ -10,7 +10,7 @@
 local string = string
 local tonumber = tonumber
 local type = type
-local math = math
+local floor = math.floor
 local bit32 = require "bit"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -181,7 +181,7 @@ function _M.toPrimary(v, dp)
     if type(v) == 'string' then
         v = tonumber(v)
     end                              -- TODO: how to handle non-numbers elegantly here?  
-    return math.floor(0.5 + v * powersOfTen[dp])
+    return floor(0.5 + v * powersOfTen[dp])
 end
 
 -------------------------------------------------------------------------------
