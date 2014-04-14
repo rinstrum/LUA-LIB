@@ -170,16 +170,16 @@ _M.REG_FULLPCODE         = 0x0019
 _M.REG_SAFEPCODE         = 0x001A
 _M.REG_OPERPCODE         = 0x001B
 
-_M.passcodes = {}
-_M.passcodes.full = {}
-_M.passcodes.safe = {}
-_M.passcodes.oper = {}
-_M.passcodes.full.pcode     = _M.REG_FULLPCODE
-_M.passcodes.full.pcodeData = _M.REG_FULLPCODEDATA
-_M.passcodes.safe.pcode     = _M.REG_SAFEPCODE
-_M.passcodes.safe.pcodeData = _M.REG_SAFEPCODEDATA
-_M.passcodes.oper.pcode     = _M.REG_OPERPCODE
-_M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
+local passcodes = {}
+passcodes.full = {}
+passcodes.safe = {}
+passcodes.oper = {}
+passcodes.full.pcode     = _M.REG_FULLPCODE
+passcodes.full.pcodeData = _M.REG_FULLPCODEDATA
+passcodes.safe.pcode     = _M.REG_SAFEPCODE
+passcodes.safe.pcodeData = _M.REG_SAFEPCODEDATA
+passcodes.oper.pcode     = _M.REG_OPERPCODE
+passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 
 -------------------------------------------------------------------------------
 -- Command to check to see if passcode entry required and prompt if so
@@ -189,7 +189,7 @@ _M.passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 -- @return true if unlocked false otherwise
 function _M.checkPasscode(pc, code, tries)
     local pc = pc or 'full'
-    local pcode = _M.passcodes[pc].pcode
+    local pcode = passcodes[pc].pcode
     local f = _M.removeErrHandler()
     local pass = ''
     local tries = tries or 1
@@ -232,8 +232,8 @@ end
 -- @param pc = 'full','safe','oper'
 function _M.lockPasscode(pc)
     local pc = pc or 'full'
-    local pcode = _M.passcodes[pc].pcode
-    local pcodeData = _M.passcodes[pc].pcodeData
+    local pcode = passcodes[pc].pcode
+    local pcodeData = passcodes[pc].pcodeData
  
     local f = _M.removeErrHandler()
     local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
@@ -252,7 +252,7 @@ end
 -- @return true if successful
 function _M.changePasscode(pc, oldCode, newCode)
    local pc = pc or 'full'
-   local pcodeData = _M.passcodes[pc].pcodeData
+   local pcodeData = passcodes[pc].pcodeData
    if _M.checkPasscode(pc,oldCode) then
         if not newCode then
              local pass, ok = _M.edit('NEW','','passcode')
