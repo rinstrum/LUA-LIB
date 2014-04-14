@@ -16,6 +16,11 @@ local bit32 = require "bit"
 
 
 _M.REG_LCDMODE          = 0x000D
+
+local powersOfTen = { 10, 1e2, 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e9, 1e10, [0] = 1 }
+local instrumentModel = ''
+local instrumentSerialNumber = nil
+
 -------------------------------------------------------------------------------
 -- Called to setup LCD control
 -- @param mode  is 'lua' to control display from script or 'default' 
@@ -24,9 +29,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
     
     if mode == 'lua' then
-     _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,2)
+        _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,2)
     else
-     _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,1)
+        _M.sendRegWait(_M.CMD_EX,_M.REG_LCDMODE,1)
     end
 end 
 
@@ -35,9 +40,8 @@ end
 -- @param model Software model expected for the instrument (eg "K401")
 -- @param sockA, sockB TCP sockets to connect  SERA and SERB ports
 -- @param app application framework
-_M.model = ''
 function _M.connect(model,sockA, sockB, app)
-    _M.model = model
+    instrumentModel = model
     _M.socketA = sockA
     _M.socketB = sockB
     _M.app = app
@@ -126,18 +130,18 @@ function _M.readSettings()
 function _M.configure(model)
     local s, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SOFTMODEL)
     if not err then 
-        _M.model = s
-        _M.serialno, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
+        instrumentModel = s
+        instrumentSerialNumber, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
     end
     
-     _M.dbg.info(_M.model,_M.serialno)
+     _M.dbg.info(instrumentModel, instrumentSerialNumber)
      
     _M.readSettings()
     
     if err then 
-      _M.model = ''
+      instrumentModel = ''
       return err
-    elseif model ~= _M.model then
+    elseif model ~= instrumentModel then
       return "Wrong Software Model"
     else  
       return nil    
@@ -151,16 +155,12 @@ end
 -- @param dp decimal position (if nil then instrument dp used) 
 -- @return floating point value suitable for a WRFINALDEC
 function _M.toPrimary(v, dp)
- local dp = dp or _M.settings.dispmode[_M.settings.curDispMode].dp  -- use instrument dp if not specified otherwise
- 
- if type(v) == 'string' then
-    v = tonumber(v)
-  end                              -- TODO: how to handle non-numbers elegantly here?  
- for i = 1,dp do
-    v = v*10
-  end
-  v = math.floor(v+0.5)
-  return(v)
+    local dp = dp or _M.settings.dispmode[_M.settings.curDispMode].dp  -- use instrument dp if not specified otherwise
+
+    if type(v) == 'string' then
+        v = tonumber(v)
+    end                              -- TODO: how to handle non-numbers elegantly here?  
+    return math.floor(0.5 + v * powersOfTen[dp])
 end
 
 -------------------------------------------------------------------------------
