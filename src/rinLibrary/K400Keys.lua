@@ -18,7 +18,7 @@ local bit32 = require "bit"
 -- @section Keypad
 
   
-_M.firstKey = true    -- flag to catch any garbage
+local firstKey = true    -- flag to catch any garbage
 
 --- Keys.
 --@table keys
@@ -93,7 +93,7 @@ _M.REG_FLUSH_KEYS       = 0x0322
 _M.REG_APP_DO_KEYS      = 0x0324
 _M.REG_APP_KEY_HANDLER  = 0x0325  
 
-_M.keyID = nil
+local keyID = nil
 
 _M.keyGroup = {}
 
@@ -106,7 +106,7 @@ _M.keyGroup.numpad      = {callback = nil}
 _M.keyGroup.cursor      = {callback = nil}
 _M.keyGroup.extended    = {callback = nil}
 
-_M.keyBinds = {
+local keyBinds = {
     [_M.KEY_0]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
     [_M.KEY_1]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
     [_M.KEY_2]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
@@ -140,12 +140,15 @@ _M.keyBinds = {
     [_M.KEY_PWR_CANCEL ]   = {_M.keyGroup.extended, _M.keyGroup.all}
 }
 
+local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
+local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
+
 -------------------------------------------------------------------------------
 -- Setup key handling stream
 function _M.setupKeys()
     _M.sendRegWait(_M.CMD_EX, _M.REG_FLUSH_KEYS, 0)
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 1)
-    _M.keyID = _M.addStreamLib(_M.REG_GET_KEY, _M.keyCallback, 'change')
+    keyID = _M.addStreamLib(_M.REG_GET_KEY, _M.keyCallback, 'change')
 end
 
 -------------------------------------------------------------------------------
@@ -158,15 +161,15 @@ function _M.endKeys(flush)
 
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
     
-    _M.removeStream(_M.keyID)
+    _M.removeStream(keyID)
 end
 
-_M.runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
-
 function _M.bumpIdleTimer()
-    _M.system.timers.removeTimer(_M.idleTimerID)
-    if _M.idleCallback then
-        _M.idleTimerID = _M.system.timers.addTimer(0,_M.idleTimeout,_M.idleCallback) 
+    _M.system.timers.removeTimer(idleTimerID)
+    if idleCallback then
+        idleTimerID = _M.system.timers.addTimer(0,idleTimeout,idleCallback)
+    else
+        idleTimerID = nil
     end      
        
 end
@@ -192,10 +195,10 @@ function _M.keyCallback(data, err)
 
 --    _M.dbg.debug('Key: ',data,err)
     -- Debug - throw away first 0 key garbage
-    if data == 0 and _M.firstKey then
+    if data == 0 and firstKey then
         return
     end
-    _M.firstKey = false
+    firstKey = false
     
     -- Debug  - throw away up and idle events
     if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
@@ -203,36 +206,36 @@ function _M.keyCallback(data, err)
     end
 
     local handled = false
-    local groups = _M.keyBinds[key]
+    local groups = keyBinds[key]
     if groups ~= nil then
        
        if groups.directCallback then 
-            if _M.runningKeyCallback == groups.directCallback then
+            if runningKeyCallback == groups.directCallback then
                _M.dbg.warn('Attempt to call Key Event Handler recursively : ', key) 
                return
             end    
-            _M.runningKeyCallback = groups.directCallback
+            runningKeyCallback = groups.directCallback
             if groups.directCallback(key, state) == true then
                 handled = true
             end    
-            _M.runningKeyCallback = nil
+            runningKeyCallback = nil
        end
               
       if not handled then      
           for i=1,#groups do
             if groups[i].callback then
-                if _M.runningKeyCallback == groups[i].callback then
+                if runningKeyCallback == groups[i].callback then
                     _M.dbg.warn('Attempt to call Key Group Event Handler recursively : ', key) 
                     return
                 end    
-                _M.runningKeyCallback = groups[i].callback
+                runningKeyCallback = groups[i].callback
                 if groups[i].callback(key, state) == true then
                     handled = true
                     break
                 end     
             end
           end 
-          _M.runningKeyCallback = nil           
+          runningKeyCallback = nil           
        end
      end  
     
@@ -255,9 +258,8 @@ end
 -- end
 -- dwi.setIdleCallback(idle,15) -- call idle if 15 seconds elapses between keys
 function _M.setIdleCallback(f,t)
-   _M.idleCallback = f
-   local t = t or 10
-   _M.idleTimeout = t
+   idleCallback = f
+   idleTimeout = t or 10
 end
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
@@ -274,7 +276,7 @@ end
 --  dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 --
 function _M.setKeyCallback(key, callback)
-    _M.keyBinds[key].directCallback = callback
+    keyBinds[key].directCallback = callback
 end
 
 --- Key Groups.
@@ -326,7 +328,7 @@ _M.REG_BUZZ_NUM =  0x0328
 _M.BUZZ_SHORT = 0
 _M.BUZZ_MEDIUM = 1
 _M.BUZZ_LONG = 2
-_M.lastBuzzLen = nil
+local lastBuzzLen = nil
 -------------------------------------------------------------------------------
 -- Called to set the length of the buzzer sound
 -- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
@@ -334,9 +336,9 @@ function _M.setBuzzLen(len)
 
    local len = len or _M.BUZZ_SHORT
    if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
-   if len ~= _M.lastBuzzLen then
+   if len ~= lastBuzzLen then
       _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
-      _M.lastBuzzLen = len
+      lastBuzzLen = len
    end  
 
 end
