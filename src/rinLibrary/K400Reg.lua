@@ -170,7 +170,7 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
           waiting = false
     end  
     
-    local f = _M.deviceRegisters[reg]
+    local f = _M.getDeviceRegister(reg)
     _M.bindRegister(reg, waitf)  
     _M.send(nil, cmd, reg, data, "reply", crc)
     local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
@@ -179,11 +179,7 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
         _M.system.handleEvents()
     end
     
-    if f then
-        _M.bindRegister(reg, f)  
-    else 
-        _M.unbindRegister(reg)
-    end
+    _M.bindRegister(reg, f)  
     
     _M.system.timers.removeTimer(tmr)   
     return regData, regErr    

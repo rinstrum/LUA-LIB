@@ -80,26 +80,27 @@ _M.TYP_BLOB             = 0x0A
 _M.TYP_EXECUTE          = 0x0B
 _M.TYP_BITFIELD         = 0x0C
 
-_M.typStrings = 
-{
-  [0x00] = "char",
-  [0x01] = "unsigned char",
-  [0x02] = "short",
-  [0x03] = "unsigned short",
-  [0x04] = "long",
-  [0x05] = "unsigned long",
-  [0x06] = "string",
-  [0x07] = "option",
-  [0x08] = "menu",
-  [0x09] = "weight",
-  [0x0A] = "blob",
-  [0x0B] = "execute",
-  [0x0C] = "unknown",
-  [0x0D] = "unknown",
-  [0x0E] = "unknown",
-  [0x0F] = "unknown",
-  [0x10] = "unknown" ,
-}
+-- Unused currently
+-- _M.typStrings = 
+-- {
+--   [0x00] = "char",
+--   [0x01] = "unsigned char",
+--   [0x02] = "short",
+--   [0x03] = "unsigned short",
+--   [0x04] = "long",
+--   [0x05] = "unsigned long",
+--   [0x06] = "string",
+--   [0x07] = "option",
+--   [0x08] = "menu",
+--   [0x09] = "weight",
+--   [0x0A] = "blob",
+--   [0x0B] = "execute",
+--   [0x0C] = "unknown",
+--   [0x0D] = "unknown",
+--   [0x0E] = "unknown",
+--   [0x0F] = "unknown",
+--   [0x10] = "unknown" ,
+-- }
 
 --  Errors
 _M.ERR_UNKNOWN          = 0xC000
@@ -114,7 +115,7 @@ _M.ERR_MENUINUSE        = 0x8020
 _M.ERR_VIEWMODEREQ      = 0x8010
 _M.ERR_CHECKSUMREQ      = 0x8008
 
-_M.errStrings = 
+local errStrings = 
 {
   [0xC000] = "Unknown error",
   [0xA000] = "Feature not implemented",
@@ -129,48 +130,45 @@ _M.errStrings =
   [0x8008] = "Checksum required"
 }
 
-_M.deviceRegisters = {}
+local deviceRegisters = {}
 
 -------------------------------------------------------------------------------
 -- Default Error Handler, logs error to debug at WARN level with error string 
 -- and received command  
 -- takes arguments: Address, Command, Register, Data, Err String
 -- from message processing 
-function _M.defaultErrHandler(addr, cmd, reg, data, s)
-  
-  local tmps
-  
-  if addr == nil then
-    tmps = str.format("%s (broken message)", s)
-  else
-    tmps = str.format("%s (%02X%02X%04X:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
-  end
-   
-  _M.dbg.warn('rinCMD Error: ',tmps) 
+local errHandler = function (addr, cmd, reg, data, s)
+    local tmps
 
+    if addr == nil then
+        tmps = str.format("%s (broken message)", s)
+    else
+        tmps = str.format("%s (%02X%02X%04X:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data) 
+    end
+
+    _M.dbg.warn('rinCMD Error: ', tmps)
 end
 
-_M.errHandler = _M.defaultErrHandler
 
 -------------------------------------------------------------------------------
 -- Set your own routine to handle errors reported from the instrument
 -- @param errHandler Function for handling errors, 
 -- should take arguments: Address, Command, Register, Data, Err String.
-function _M.setErrHandler(errHandler)
+function _M.setErrHandler(eh)
 
-    _M.errHandler = errHandler
+    errHandler = eh
 end
 
 -------------------------------------------------------------------------------
 -- Removes the error handler
 -- @return original registered handler
 function _M.removeErrHandler()
-    local f = _M.errHandler
-    _M.errHandler = nil
+    local f = errHandler
+    errHandler = nil
     return f
 end
 
-_M.serABuffer = {}
+local serABuffer = {}
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
@@ -183,13 +181,13 @@ function _M.socketACallback()
         if err then break end
         
         if char == '\01' then
-            _M.serABuffer = {}
+            serABuffer = {}
         end
 
-        table.insert(_M.serABuffer,char)
+        table.insert(serABuffer,char)
 
         -- Check for delimiters.
-        if _M.serABuffer[1] == '\01' then
+        if serABuffer[1] == '\01' then
             if char == '\04' then
                 break
             end
@@ -199,20 +197,20 @@ function _M.socketACallback()
     end
     
     if err == nil then
-        local msg = table.concat(_M.serABuffer)
-        _M.serABuffer = {}
+        local msg = table.concat(serABuffer)
+        serABuffer = {}
         _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg) 
         local addr, cmd, reg, data, e = _M.processMsg(msg, e)
         if e then
-            if _M.errHandler then
-               _M.errHandler(addr, cmd, reg, data, e)
+            if errHandler then
+               errHandler(addr, cmd, reg, data, e)
             end
             data = nil
         end    
-        if _M.deviceRegisters[reg] then
-            _M.deviceRegisters[reg](data, e)
-        elseif _M.deviceRegisters[0] then
-            _M.deviceRegisters[0](data, e)
+        if deviceRegisters[reg] then
+            deviceRegisters[reg](data, e)
+        elseif deviceRegisters[0] then
+            deviceRegisters[0](data, e)
         end
         return nil,nil
       
@@ -312,7 +310,7 @@ function _M.processMsg(msg, err)
             
     if bit32.band(addr, _M.ADDR_ERR) == _M.ADDR_ERR then
         addr = bit32.band(addr, 0x1F)
-        return addr, cmd, reg, data, _M.errStrings[tonum(data,16)] 
+        return addr, cmd, reg, data, errStrings[tonum(data,16)] 
     end
     
     addr = bit32.band(addr, 0x1F)
@@ -389,34 +387,43 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
 -------------------------------------------------------------------------------
+-- Get the binding for a specified device register
+-- @return Device register binding
+function _M.getDeviceRegister(r)
+    return deviceRegisters[r]
+end
+
+-------------------------------------------------------------------------------
 -- Set up a callback for when data on a specific register is received
 -- @param reg Register to give callback, (REG_*), 0 is used to match anything received that has no other binding
 -- @param callback Function to be run when data is received
 function _M.bindRegister(reg, callback)
-    _M.deviceRegisters[reg] = callback
+    deviceRegisters[reg] = callback
 end
 
 -------------------------------------------------------------------------------
 -- Unbind a register
 -- @param reg Register to remove callback, (REG_*)
 function _M.unbindRegister(reg)
-    _M.deviceRegisters[reg] = nil
+    deviceRegisters[reg] = nil
 end
 
-_M.start = nil
-_M.end1 = '\13'
-_M.end2 = '\10'
-_M.serBTimeout = 0
-_M.serBTimer = nil
-_M.serBBuffer = {}
-function _M.serBProcess(err)
-    local msg = table.concat(_M.serBBuffer)
+local startChar = nil
+local end1Char = '\13'
+local end2Char = '\10'
+local serBTimeout = 0
+local serBTimer = nil
+local serBBuffer = {}
+local SerBCallback = nil
+
+local function serBProcess(err)
+    local msg = table.concat(serBBuffer)
     _M.dbg.debug(_M.socketB:getpeername(), '-->', msg, err) 
-    if _M.SerBCallback then
-        _M.SerBCallback(msg,err)
+    if SerBCallback then
+        SerBCallback(msg,err)
     end
     sockets.writeSet("uni", msg)
-    _M.serBBuffer = {}
+    serBBuffer = {}
 end
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
@@ -430,40 +437,40 @@ function _M.socketBCallback()
         prevchar = char
         char, err = _M.socketB:receive(1)
         if err then break end
-        if char == _M.start then
-            _M.serBBuffer = {}
+        if char == startChar then
+            serBBuffer = {}
         end
-        table.insert(_M.serBBuffer,char)
-        if #_M.serBBuffer > 250 then
+        table.insert(serBBuffer,char)
+        if #serBBuffer > 250 then
            if not largeSerialBMessageWarning then
               _M.dbg.warn("Receive SERB:", "Large message -- incorrect message delimiters?")
               largeSerialBMessageWarning = true
            end
            break
         end   
-        if (_M.end2) then
-           if (prevchar == _M.end1 and char == _M.end2) then
+        if (end2Char) then
+           if (prevchar == end1Char and char == end2Char) then
             break
            end
-         elseif (char == _M.end1) then
+         elseif (char == end1Char) then
             break       
         end          
     end
     
     if err == nil then
-        _M.serBProcess()
-         if _M.serBTimer then
-            _M.system.timers.removeTimer(_M.serBTimer)
-         end   
-         return nil, nil
+        serBProcess()
+        if serBTimer then
+           _M.system.timers.removeTimer(serBTimer)
+        end   
+        return nil, nil
     elseif err == 'timeout' then  -- partial message received
-         if _M.serBTimer then
-            _M.system.timers.removeTimer(_M.serBTimer)
-         end
-         if _M.serBTimeout > 0 then   
-            _M.serBTimer = _M.system.timers.addTimer(0, _M.serBTimeout, _M.serBProcess,'timeout')
-         end   
-         return nil, nil    
+        _M.system.timers.removeTimer(serBTimer)
+        if serBTimeout > 0 then   
+           serBTimer = _M.system.timers.addTimer(0, serBTimeout, serBProcess,'timeout')
+        else
+            serBTimer = nil
+        end   
+        return nil, nil    
     end
     _M.dbg.error("Receive SERB failed: ", err)
     return nil, err
@@ -488,10 +495,10 @@ function _M.setDelimiters(start, end1, end2, t)
    if type(end2) == 'number' then
       end2 = str.char(end2)
     end
-   _M.start = start
-   _M.end1 = end1
-   _M.end2 = end2
-   _M.serBTimeout = tonumber(t) or 0
+   startChar = start
+   end1Char = end1
+   end2Char = end2
+   serBTimeout = tonumber(t) or 0
 
 end
 
@@ -500,7 +507,7 @@ end
 -- @param f callback function that takes a message string as an argument
 -- optional second argument is 'timeout' if message is partial
 function _M.setSerBCallback(f)
-  _M.SerBCallback = f
+  SerBCallback = f
 end
 
 -------------------------------------------------------------------------------
