@@ -1,3 +1,9 @@
+-------------------------------------------------------------------------------
+-- Powers of Ten unit test.
+-- @module rinLibrary.tests.powersOfTenTest
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
 local p10 = require "rinLibrary.powersOfTen"
 local n, f = 0, 0
 
