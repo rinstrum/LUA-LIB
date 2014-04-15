@@ -7,12 +7,14 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-return function (_M)
 local string = string
 local tonumber = tonumber
 local pairs = pairs
 local bit32 = require "bit"
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 --  Stream Register Definitions
 _M.REG_STREAMDATA       = 0x0040
@@ -337,18 +339,7 @@ function _M.renewStreamData()
             end
             v.lastData = ''
    end
-   for k,v in pairs(_M.IOBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(_M.SETPBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(_M.statBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(_M.eStatBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
+   _M.renewStatusBinds()
 
 
    if streamUser then
