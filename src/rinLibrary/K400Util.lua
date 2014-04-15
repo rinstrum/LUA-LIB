@@ -12,6 +12,7 @@ local tonumber = tonumber
 local type = type
 local floor = math.floor
 local bit32 = require "bit"
+local powersOfTen = require "rinLibrary.powersOfTen"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
