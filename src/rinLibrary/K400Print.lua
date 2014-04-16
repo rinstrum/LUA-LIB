@@ -27,14 +27,14 @@ _M.PRINT_SER2B          = 3
 local curPrintPort      = 0xFF
 
 -------------------------------------------------------------------------------
--- Takes a string s and returns a formatted CustomTransmit string with all 
+-- Takes a string s and returns a formatted CustomTransmit string with all
 -- non-printable characters escaped in \xx format
 -- @param s  string to convert
 -- @return string with all non-printable characters escaped in \xx format
 function _M.expandCustomTransmit(s)
 
-  return string.format('%s',string.gsub(s,"[^\32-\126]",      
-                        function(x) 
+  return string.format('%s',string.gsub(s,"[^\32-\126]",
+                        function(x)
                             return string.format("\\%02X",string.byte(x))
                         end))
 end
@@ -49,7 +49,7 @@ function _M.printCustomTransmit(tokenStr, comPort)
         curPrintPort = comPort
         _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort)
         _M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
-    end 
+    end
     tokenStr = _M.expandCustomTransmit(tokenStr)
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr)
 end
