@@ -6,10 +6,12 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local math = math
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 -------------------------------------------------------------------------------
 --- Analogue Output Control.

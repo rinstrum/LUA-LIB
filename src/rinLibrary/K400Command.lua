@@ -5,12 +5,14 @@
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local string = string
 local tonumber = tonumber
 local tostring = tostring
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 -------------------------------------------------------------------------------
 -- Commands
