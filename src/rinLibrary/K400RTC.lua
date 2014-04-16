@@ -6,11 +6,14 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-return function (_M)
 local string = string
 local tonumber = tonumber
 local type = type
 local tostring = tostring
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 -------------------------------------------------------------------------------
 
