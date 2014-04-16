@@ -23,6 +23,7 @@ return function (_M)
 local dialogRunning = false
 local getKeyPressed = 0
 local getKeyState = ''
+local editing = false
 
 function _M.dialogRunning()
     return dialogRunning
@@ -113,12 +114,12 @@ function _M.getKey(keyGroup)
     return getKeyPressed, getKeyState
 
  end
-_M.editing = false
+ 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
 function _M.isEditing()
-   return _M.editing
+   return editing
 end
 
 _M.scrUpdTm = 0.5  -- screen update frequency in Sec
@@ -211,7 +212,7 @@ end
 
 _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
 
-    _M.editing = true               -- is editing occurring
+    editing = true                  -- is editing occurring
     local key, state                -- instrument key values
     local pKey = nil                -- previous key pressed
     local presses = 0               -- number of consecutive presses of a key
@@ -251,7 +252,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     _M.writeBotUnits(u,uo)          -- display optional units
 
     _M.startDialog()
-    while _M.editing and _M.app.running do
+    while editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
         if _M.sEditKeyTimer > _M.sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
@@ -259,7 +260,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
         _M.sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
         if not dialogRunning then    -- editing aborted so return default
             ok = false
-           _M.editing = false
+           editing = false
            _M.sEditVal = default
         elseif state == "short" then                            -- short key presses for editing
             if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
@@ -321,7 +322,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
                 pKey = key                          -- remember the key pressed
             --
             elseif key == _M.KEY_OK then        -- OK key
-                _M.editing = false                      -- finish editing
+                editing = false                      -- finish editing
                 ok = true                           -- accept changes
             --
             elseif key == _M.KEY_CANCEL then    -- cancel key
@@ -337,10 +338,10 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
         elseif state == "long" then         -- long key press only for cancelling editing
             if key == _M.KEY_CANCEL then    -- cancel key
                 _M.sEditVal = default               -- reinstate default string
-                _M.editing = false                  -- finish editing
+                editing = false                     -- finish editing
             end
         end
-        if _M.editing or ok then                    -- if editing or OK is selected
+        if editing or ok then                       -- if editing or OK is selected
             _M.sEditVal = table.concat(strTab)      -- update edited string
             sLen = #_M.sEditVal
 --          print('eVal = \'' .. _M.sEditVal .. '\'')   -- debug
@@ -381,7 +382,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
 
     local editVal = def
     local editType = typ or 'integer'
-    _M.editing = true
+    editing = true
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
@@ -396,11 +397,11 @@ function _M.edit(prompt, def, typ, units, unitsOther)
 
     local ok = false
    _M.startDialog()
-    while _M.editing and _M.app.running do
+    while editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)
         if not dialogRunning then    -- editing aborted so return default
             ok = false
-           _M.editing = false
+           editing = false
            _M.sEditVal = def
         elseif state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
@@ -422,7 +423,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
                    editVal = editVal .. '.'
                 end
             elseif key == _M.KEY_OK then
-                _M.editing = false
+                editing = false
                  if string.len(editVal) == 0 then
                     editVal = def
                  end
@@ -430,7 +431,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
             elseif key == _M.KEY_CANCEL then
                 if string.len(editVal) == 0 then
                     editVal = def
-                    _M.editing = false
+                    editing = false
                 else
                     editVal = string.sub(editVal,1,-2)
                 end
@@ -438,7 +439,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
         elseif state == 'long' then
             if key == _M.KEY_CANCEL then
                 editVal = def
-                _M.editing = false
+                editing = false
             end
         end
         if hide then
@@ -583,7 +584,7 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
         end
     end
 
-    _M.editing = true
+    editing = true
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
@@ -591,10 +592,10 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
     _M.writeBotUnits(u,uo)
 
    _M.startDialog()
-    while _M.editing and _M.app.running do
+    while editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)
         if not dialogRunning then    -- editing aborted so return default
-           _M.editing = false
+           editing = false
         elseif key == _M.KEY_DOWN then
             index = index + 1
             if index > #options then
@@ -615,9 +616,9 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
             end
         elseif key == _M.KEY_OK then
             sel = options[index]
-            _M.editing = false
+            editing = false
         elseif key == _M.KEY_CANCEL then
-          _M.editing = false
+          editing = false
       end
       _M.writeBotLeft(string.upper(options[index]))
 

@@ -15,6 +15,8 @@ local table = table
 local ipairs = ipairs
 local tostring = tostring
 
+local editing = false
+
 -------------------------------------------------------------------------------
 -- Must be called to link these utilities with a particular rinApp application
 -- @param app rinApp application
@@ -48,12 +50,12 @@ function _M.getKey()
 
     return keypressed  
 end
-_M.editing = false
+
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
 function _M.isEditing()
-   return _M.editing
+   return editing
 end
 
 -------------------------------------------------------------------------------
@@ -77,7 +79,7 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     
     local editVal = def 
     local editType = typ or 'integer'
-    _M.editing = true
+    editing = true
     
     dwi.saveBot()
     dwi.writeBotRight(prompt)
@@ -86,10 +88,10 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     local first = true
 
     local ok = false  
-    while _M.editing do
+    while editing do
         key = _M.getKey()
         if key == '\n' then         
-                _M.editing = false
+                editing = false
                  if string.len(editVal) == 0 then
                     editVal = def
                  end    
@@ -97,13 +99,13 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
         elseif key == '\08 \08' then    
             if string.len(editVal) == 0 then
                 editVal = def
-                _M.editing = false
+                editing = false
             else
                 editVal = string.sub(editVal,1,-2)
             end 
          --   elseif key == _M.KEY_CANCEL then
          --       editVal = def
-         --     _M.editing = false
+         --     editing = false
 
         elseif editType == 'string' then
             if first then 
