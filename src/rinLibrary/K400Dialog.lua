@@ -503,7 +503,7 @@ local askOKWaiting = false
 local askOKResult = 0
 -------------------------------------------------------------------------------
 -- Private function
-local askOKCallback(key, state)
+local function askOKCallback(key, state)
 
     if state ~= 'short' then
         return false
