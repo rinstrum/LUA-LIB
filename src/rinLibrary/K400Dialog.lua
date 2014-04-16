@@ -25,10 +25,16 @@ local getKeyPressed = 0
 local getKeyState = ''
 local editing = false
 
-local sEditVal = ' '       -- default edit value for sEdit()
-local sEditIndex = 1       -- starting index for sEdit()
-local sEditKeyTimer = 0    -- counts time since a key pressed for sEdit() - in _M.scrUpdTm increments
-local sEditKeyTimeout = 4  -- number of counts before starting a new key in sEdit()
+local sEditVal = ' '        -- default edit value for sEdit()
+local sEditIndex = 1        -- starting index for sEdit()
+local sEditKeyTimer = 0     -- counts time since a key pressed for sEdit() - in scrUpdTm increments
+local sEditKeyTimeout = 4   -- number of counts before starting a new key in sEdit()
+
+local scrUpdTm = 0.5        -- screen update frequency in Sec
+local blinkOff = false      -- blink cursor for string editing
+
+local msgDisp = false	    -- message is being displayed by dispMsg function
+local msgTimer = nil		-- timer for user message display
 
 function _M.dialogRunning()
     return dialogRunning
@@ -43,16 +49,11 @@ function _M.startDialog()
     _M.bumpIdleTimer()
 end
 
-
 local function getKeyCallback(key, state)
     getKeyPressed = key
     getKeyState = state
     return true
 end
-
-
-local msgDisp = false		-- message is being displayed by dispMsg function
-local msgTimer = nil		-- timer for user message display
 
 local function endDisplayMessage()
 	if msgDisp then
@@ -62,7 +63,6 @@ local function endDisplayMessage()
         _M.restoreBot()
     end
 end
-
 
 -------------------------------------------------------------------------------
 -- Called to display a message to the screen for a time
@@ -127,9 +127,18 @@ function _M.isEditing()
    return editing
 end
 
-_M.scrUpdTm = 0.5  -- screen update frequency in Sec
-_M.blink = false   -- blink cursor for string editing
-_M.inMenu = false  -- true when a menu is active, prevents entering another menu
+-------------------------------------------------------------------------------
+-- Change the screen update frequency for the next dialog presented.
+-- @param s The update frequency in seconds to set for next time
+-- @return The previous update frequency
+function _M.setScreenUpdateFrequency(s)
+    local old = scrUpdTm
+    scrUpdTm = s or 0.5
+    if scrUpdTm < .1 then
+        scrUpdTm = .5
+    end
+    return old
+end
 
 
 -----------------------------------------------------------------------------------------------
@@ -183,7 +192,10 @@ end
 -- @param n The timeout
 -- @return The previous timeout
 function _M.setEditKeyTimout(n)
+    local old = sEditKeyTimeout
     sEditKeyTimeout = n or 4
+    if n < 2 then n = 4 end
+    return old
 end
 
 local function blinkCursor()
@@ -193,8 +205,8 @@ local function blinkCursor()
     local pre
     local suf
     local max = #sEditVal
-    _M.blink = not _M.blink
-    if _M.blink then
+    blinkOff = not blinkOff
+    if blinkOff then
         pre = string.sub(sEditVal, 1, sEditIndex-1)
         if sEditIndex < max then
             suf = string.sub(sEditVal, sEditIndex+1, -1)
@@ -218,7 +230,7 @@ end
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
 
-_M.sEdit = function(prompt, def, maxLen, units, unitsOther)
+function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     editing = true                  -- is editing occurring
     local key, state                -- instrument key values
@@ -240,7 +252,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local uo = unitsOther or 0      -- optional other units defaults to none
 
     endDisplayMessage()             -- abort any existing display prompt
-    local cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    local cursorTmr = _M.system.timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
