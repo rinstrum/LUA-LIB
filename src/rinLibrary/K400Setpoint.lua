@@ -6,10 +6,12 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local math = math
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 _M.REG_IO_STATUS    = 0x0051
 _M.REG_IO_ENABLE    = 0x0054
@@ -72,22 +74,21 @@ _M.TYPE_LGC_OR   = 10
 _M.TYPE_LGC_XOR  = 11
 _M.TYPE_BUZZER   = 12
 
-_M.lastOutputs = 0
-_M.timedOutputs = 0   -- keeps track of which IO are already running off timers
+local lastOutputs = 0
+local timedOutputs = 0   -- keeps track of which IO are already running off timers
 -- bits set if under LUA control, clear if under instrument control
-_M.lastIOEnable = 0    
-
-_M.setp = {}
+local lastIOEnable = 0    
 
 _M.NUM_SETP = 16
  
-function _M.setOutputs(outp)
+local function setOutputs(outp)
     _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
 end
 
-function _M.setOutputEnable(en)
+local function setOutputEnable(en)
     _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
 end
+
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param ... list of IO to turn on 1..32
@@ -95,16 +96,16 @@ function _M.turnOn(...)
    if arg.n == 0 then
       return
    end
-   local curOutputs = _M.lastOutputs
+   local curOutputs = lastOutputs
    for i,v in ipairs(arg) do
      if v < 32 and v > 1 then
         curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
      end
    end   
    
-   if (curOutputs ~= _M.lastOutputs) then
-      _M.setOutputs(curOutputs)
-      _M.lastOutputs = curOutputs
+   if (curOutputs ~= lastOutputs) then
+      setOutputs(curOutputs)
+      lastOutputs = curOutputs
       end
 end
 
@@ -115,16 +116,16 @@ function _M.turnOff(...)
    if arg.n == 0 then
       return
    end
-   local curOutputs = _M.lastOutputs
+   local curOutputs = lastOutputs
    for i,v in ipairs(arg) do
      if v < 32 and v > 1 then
         curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
      end
    end   
 
- if (curOutputs ~= _M.lastOutputs) then
-      _M.setOutputs(curOutputs)
-      _M.lastOutputs = curOutputs
+ if (curOutputs ~= lastOutputs) then
+      setOutputs(curOutputs)
+      lastOutputs = curOutputs
       end
 end
 -------------------------------------------------------------------------------
@@ -134,15 +135,15 @@ end
 
 function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
-  if bit32.band(_M.timedOutputs, IOMask) == 0 then
+  if bit32.band(timedOutputs, IOMask) == 0 then
       _M.turnOn(IO)
       _M.system.timers.addTimer(0, t, 
              function (IO,IOMask) 
-                   _M.timedOutputs = bit32.band(_M.timedOutputs, bit32.bnot(IOMask)) 
+                   timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask)) 
                    _M.turnOff(IO)
              end , 
              IO, IOMask)
-      _M.timedOutputs = bit32.bor(_M.timedOutputs,IOMask)
+      timedOutputs = bit32.bor(timedOutputs, IOMask)
   else
      _M.dbg.warn('IO Timer overlap: ', IO)
   end  
@@ -159,15 +160,15 @@ end
 -- dwi.releaseOutput(1,2,3,4)
 
 function _M.enableOutput(...)
-    local curIOEnable =  _M.lastIOEnable
+    local curIOEnable =  lastIOEnable
     
     for i,v in ipairs(arg) do
         v = tonumber(v)
         curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
        end  
-   if (curIOEnable ~= _M.lastIOEnable) then
-      _M.setOutputEnable(curIOEnable)
-      _M.lastIOEnable = curIOEnable
+   if (curIOEnable ~= lastIOEnable) then
+      setOutputEnable(curIOEnable)
+      lastIOEnable = curIOEnable
     end  
 end
 
@@ -181,7 +182,7 @@ end
 -- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
 -- dwi.releaseOutput(1,2,3,4)
 function _M.releaseOutput(...)
-    local curIOEnable =  _M.lastIOEnable
+    local curIOEnable =  lastIOEnable
     
     for i,v in ipairs(arg) do
         v = tonumber(v)
@@ -189,9 +190,9 @@ function _M.releaseOutput(...)
                                    bit32.bnot(bit32.lshift(0x0001,(v-1))))
        end  
 
-    if (curIOEnable ~= _M.lastIOEnable) then
-        _M.setOutputEnable(curIOEnable)
-        _M.lastIOEnable = curIOEnable
+    if (curIOEnable ~= lastIOEnable) then
+        setOutputEnable(curIOEnable)
+        lastIOEnable = curIOEnable
     end 
 end
 
@@ -213,7 +214,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Private function
-function _M.setpParam(setp,reg,v)
+local function setpParam(setp,reg,v)
    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
 end
 
@@ -237,7 +238,7 @@ end
 -- @param setp is setpount 1..16
 -- @param IO is output 1..32, 0 for none
 function _M.setpIO(setp, IO)
-    _M.setpParamWait(setp,_M.REG_SETP_OUTPUT, IO)
+    setpParam(setp,_M.REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
@@ -260,8 +261,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint type
 function _M.setpType(setp, v)
-  _M.setpParam(setp,_M.REG_SETP_TYPE, v)
-  
+  setpParam(setp,_M.REG_SETP_TYPE, v)
 end
 
 -------------------------------------------------------------------------------
@@ -269,9 +269,9 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint logic type (.LOGIC_HIGH, .LOGIC_LOW)
 function _M.setpLogic(setp, v)
-  _M.setpParam(setp,_M.REG_SETP_LOGIC, v)
- 
+  setpParam(setp,_M.REG_SETP_LOGIC, v)
 end
+
 --- Setpoint Alarms Types.
 --@table Alarms
 -- @field ALARM_NONE      
@@ -284,7 +284,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is alarm type
 function _M.setpAlarm(setp, v)
- _M.setpParam(setp,_M.REG_SETP_ALARM, v)
+ setpParam(setp,_M.REG_SETP_ALARM, v)
 end
 
 -------------------------------------------------------------------------------
@@ -292,7 +292,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint name (8 character string)
 function _M.setpName(setp, v)
-  _M.setpParam(setp,_M.REG_SETP_NAME, v)
+  setpParam(setp,_M.REG_SETP_NAME, v)
 end
 
 --- Setpoint Source Types.
@@ -312,9 +312,9 @@ end
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.  
 -- For other setpoint source types parameter reg is not required.
 function _M.setpSource(setp, v, reg)
-  _M.setpParam(setp,_M.REG_SETP_SOURCE, v)
+  setpParam(setp,_M.REG_SETP_SOURCE, v)
   if (v == _M.SOURCE_REG) and reg then
-     _M.setpParam(setp,_M.REG_SETP_SOURCE_REG, reg)
+     setpParam(setp,_M.REG_SETP_SOURCE_REG, reg)
   end   
 end
 
@@ -323,7 +323,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint hysteresis
 function _M.setpHys(setp, v)
-  _M.setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
+  setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
 end
 
 
