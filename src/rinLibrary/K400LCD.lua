@@ -50,7 +50,7 @@ local saveAutoTopLeft = 0
 local saveAutoBotLeft = 0
 local saveBotRight = ''
 local saveBotUnits = 0
-local saveBotUnitsOther = 0 
+local saveBotUnitsOther = 0
 
 function _M.saveBot()
    saveBotLeft = curBotLeft
@@ -80,10 +80,10 @@ local function strLenR400(s)
      else
         if ch ~= '.' then
            dotFound = false
-        end   
+        end
         len = len + 1
-     end   
-   end    
+     end
+   end
   return(len)
 end
 
@@ -97,7 +97,7 @@ local function strSubR400(s,stPos,endPos)
    if endPos < 1 then
        endPos = #s + endPos + 1
    end
-   
+
    for i = 1,#s do
      local ch = string.sub(s,i,i)
      if not dotFound and  ch == '.' then
@@ -105,13 +105,13 @@ local function strSubR400(s,stPos,endPos)
      else
         if ch ~= '.' then
            dotFound = false
-        end   
+        end
         len = len + 1
-     end   
+     end
      if (len >= stPos) and (len <= endPos) then
           substr = substr .. ch
-     end     
-   end    
+     end
+   end
   return(substr)
 end
 
@@ -119,13 +119,13 @@ end
 local function padDots(s)
     if #s == 0 then
         return s
-    end         
+    end
     local str = string.gsub(s,'%.%.','%. %.')
     str = string.gsub(str,'%.%.','%. %.')
     if string.sub(str,1,1) == '.' then
         str = ' '..str
-    end    
-    return(str)    
+    end
+    return(str)
 end
 
 -- local function to split a long string into shorter strings of multiple words
@@ -134,19 +134,19 @@ local function splitWords(s,len)
   local t = {}
   local p = ''
   local len = len or 8
-  
+
   if strLenR400(s) <= len then
      table.insert(t,s)
      return t
      end
-     
-  for w in string.gmatch(s, "%S+") do 
+
+  for w in string.gmatch(s, "%S+") do
     if strLenR400(p) + strLenR400(w) < len then
        if p == '' then
           p = w
-       else   
+       else
           p = p .. ' '..w
-       end          
+       end
     elseif strLenR400(p) > len then
        table.insert(t,strSubR400(p,1,len))
        p = strSubR400(p,len+1,-1)
@@ -155,37 +155,37 @@ local function splitWords(s,len)
        else
           table.insert(t,p)
           p = w
-       end           
+       end
     else
        if #p > 0 then
            table.insert(t,p)
-       end    
+       end
        p = w
-    end   
+    end
    end
-   
+
    while strLenR400(p) > len do
       table.insert(t,strSubR400(p,1,len))
       p = strSubR400(p,len+1,-1)
    end
    if #p > 0 or #t == 0 then
      table.insert(t,p)
-   end  
+   end
  return t
 end
 
 function _M.slideTopLeft()
     local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
              string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
      end
     _M.slideTopLeftPos = _M.slideTopLeftPos + 1
     if _M.slideTopLeftPos > #_M.slideTopLeftWords then
        _M.slideTopLeftPos = 1
-       dispWord()       
+       dispWord()
        return
-    end 
-    dispWord()    
+    end
+    dispWord()
 end
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
@@ -193,9 +193,9 @@ end
 -- @param t delay in seconds between display of sections of a large message
 function _M.writeTopLeft(s,t)
     local t = t or 0.8
-    
-    if t < 0.2 then 
-       t = 0.2 
+
+    if t < 0.2 then
+       t = 0.2
     end
     if s then
         if s ~= curTopLeft then
@@ -205,12 +205,12 @@ function _M.writeTopLeft(s,t)
             _M.slideTopLeftPos = 1
             if _M.slideTopLeftTimer then     -- remove any running display
                 _M.system.timers.removeTimer(_M.slideTopLeftTimer)
-            end    
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT, 
+            end
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
             if #_M.slideTopLeftWords > 1 then
                 _M.slideTopLeftTimer = _M.system.timers.addTimer(t,t,_M.slideTopLeft)
-            end    
+            end
         end
     elseif curAutoTopLeft == 0 then
        _M.writeAutoTopLeft(saveAutoTopLeft)
@@ -225,22 +225,22 @@ function _M.writeTopRight(s)
         if s ~= curTopRight then
            _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
            curTopRight = s
-        end   
+        end
     end
 end
 
 function _M.slideBotLeft()
     local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
              string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
      end
     _M.slideBotLeftPos = _M.slideBotLeftPos + 1
     if _M.slideBotLeftPos > #_M.slideBotLeftWords then
        _M.slideBotLeftPos = 1
-       dispWord()       
+       dispWord()
        return
-    end 
-    dispWord()    
+    end
+    dispWord()
 end
 
 -------------------------------------------------------------------------------
@@ -249,11 +249,11 @@ end
 -- @param t delay in seconds between display of sections of a large message
 function _M.writeBotLeft(s, t)
     local t = t or 0.8
-    
-    if t < 0.2 then 
-       t = 0.2 
+
+    if t < 0.2 then
+       t = 0.2
     end
-    
+
     if s then
         if s ~= curBotLeft then
             _M.writeAutoBotLeft(0)
@@ -262,12 +262,12 @@ function _M.writeBotLeft(s, t)
             _M.slideBotLeftPos = 1
             if _M.slideBotLeftTimer then     -- remove any running display
                 _M.system.timers.removeTimer(_M.slideBotLeftTimer)
-            end    
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT, 
+            end
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
                  string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
             if #_M.slideBotLeftWords > 1 then
                 _M.slideBotLeftTimer = _M.system.timers.addTimer(t,t,_M.slideBotLeft)
-            end    
+            end
         end
     elseif curAutoBotLeft == 0 then
        _M.writeAutoBotLeft(saveAutoBotLeft)
@@ -276,16 +276,16 @@ end
 
 function _M.slideBotRight()
     local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
              string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
      end
     _M.slideBotRightPos = _M.slideBotRightPos + 1
     if _M.slideBotRightPos > #_M.slideBotRightWords then
        _M.slideBotRightPos = 1
-       dispWord()       
+       dispWord()
        return
-    end 
-    dispWord()    
+    end
+    dispWord()
 end
 
 -------------------------------------------------------------------------------
@@ -294,9 +294,9 @@ end
 -- @param t delay in seconds between display of sections of a large message
 function _M.writeBotRight(s, t)
     local t = t or 0.8
-    
-    if t < 0.2 then 
-       t = 0.2 
+
+    if t < 0.2 then
+       t = 0.2
     end
 
     if s then
@@ -306,28 +306,28 @@ function _M.writeBotRight(s, t)
             _M.slideBotRightPos = 1
             if _M.slideBotRightTimer then     -- remove any running display
                 _M.system.timers.removeTimer(_M.slideBotRightTimer)
-            end    
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT, 
+            end
+            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
                  string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
             if #_M.slideBotRightWords > 1 then
                 _M.slideBotRightTimer = _M.system.timers.addTimer(t,t,_M.slideBotRight)
-            end    
+            end
         end
     end
 end
 
 _M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
                                          _M.CMD_WRFINALHEX,
-                                         "noReply")                                      
+                                         "noReply")
 _M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
-                                         "noReply")                                      
+                                         "noReply")
 
 -----------------------------------------------------------------------------
--- link register address  with Top annunciators to update automatically 
+-- link register address  with Top annunciators to update automatically
 --@function writeAutoTopAnnun
 --@param reg address of register to link Top Annunciator state to.
--- Set to 0 to enable direct control of the area                                         
+-- Set to 0 to enable direct control of the area
 _M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
@@ -335,73 +335,73 @@ _M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
 _M.setAutoTopAnnun = _M.writeAutoTopAnnun
 
 -----------------------------------------------------------------------------
--- link register address with Top Left display to update automatically 
+-- link register address with Top Left display to update automatically
 --@param reg address of register to link Top Left display to.
--- Set to 0 to enable direct control of the area                                         
+-- Set to 0 to enable direct control of the area
 function _M.writeAutoTopLeft(reg)
    if reg ~= curAutoTopLeft then
        if _M.slideTopLeftTimer then     -- remove any running display
           _M.system.timers.removeTimer(_M.slideTopLeftTimer)
-       end 
-       curTopLeft = nil   
+       end
+       curTopLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
        saveAutoTopLeft = curAutoTopLeft
        curAutoTopLeft = reg
-   end    
-end        
+   end
+end
 
 _M.setAutoTopLeft = _M.writeAutoTopLeft
 
 -----------------------------------------------------------------------------
--- reads the current Top Left auto update register 
--- @return register that is being used for auto update, 0 if none                                         
+-- reads the current Top Left auto update register
+-- @return register that is being used for auto update, 0 if none
 function _M.readAutoTopLeft()
    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_TOP_LEFT)
    reg = tonumber(reg)
    curAutoTopLeft = reg
    return reg
-end        
+end
 -----------------------------------------------------------------------------
--- link register address with Bottom Left display to update automatically 
+-- link register address with Bottom Left display to update automatically
 --@param reg address of register to link Bottom Left display to.
--- Set to 0 to enable direct control of the area                                         
+-- Set to 0 to enable direct control of the area
 function _M.writeAutoBotLeft(reg)
    if reg ~= curAutoBotLeft then
        if _M.slideBotLeftTimer then     -- remove any running display
           _M.system.timers.removeTimer(_M.slideBotLeftTimer)
-       end 
-       curBotLeft = nil   
+       end
+       curBotLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
        saveAutoBotLeft = curAutoBotLeft
        curAutoBotLeft = reg
-   end    
-end                                         
+   end
+end
 _M.setAutoBotLeft = _M.writeAutoBotLeft
 
 -----------------------------------------------------------------------------
--- reads the current Bottom Left auto update register 
--- @return register that is being used for auto update, 0 if none                                         
+-- reads the current Bottom Left auto update register
+-- @return register that is being used for auto update, 0 if none
 function _M.readAutoBotLeft()
    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOT_LEFT)
    reg = tonumber(reg)
    curAutoBotLeft = reg
    return reg
-end        
+end
 
 --- Bottom LCD Annunciators
 --@table BotAnnuns
--- @field BATTERY   
--- @field CLOCK            
--- @field BAT_LO           
--- @field BAT_MIDL         
--- @field BAT_MIDH         
--- @field BAT_HI           
--- @field BAT_FULL         
--- @field WAIT             
--- @field WAIT45           
--- @field WAIT90           
--- @field WAIT135          
--- @field WAITALL          
+-- @field BATTERY
+-- @field CLOCK
+-- @field BAT_LO
+-- @field BAT_MIDL
+-- @field BAT_MIDH
+-- @field BAT_HI
+-- @field BAT_FULL
+-- @field WAIT
+-- @field WAIT45
+-- @field WAIT90
+-- @field WAIT135
+-- @field WAITALL
 
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 _M.BATTERY   = 0x0001
@@ -435,7 +435,7 @@ function _M.clrBitsBotAnnuns(d)
 end
 
 -------------------------------------------------------------------------------
--- Rotate the WAIT annunciator 
+-- Rotate the WAIT annunciator
 -- @param dir  1 clockwise, -1 anticlockwise 0 no change
 function _M.rotWAIT(dir)
     if dir ~= 0 then
@@ -450,25 +450,25 @@ end
 
 --- Top LCD Annunciators
 --@table TopAnnuns
--- @field SIGMA       
--- @field BALANCE         
--- @field COZ             
--- @field HOLD            
--- @field MOTION          
--- @field NET             
--- @field RANGE           
--- @field ZERO            
--- @field BAL_SEGA        
--- @field BAL_SEGB        
--- @field BAL_SEGC        
--- @field BAL_SEGD      
--- @field BAL_SEGE        
--- @field BAL_SEGF        
--- @field BAL_SEGG        
--- @field RANGE_SEGADG    
--- @field RANGE_SEGC      
--- @field RANGE_SEGE      
-   
+-- @field SIGMA
+-- @field BALANCE
+-- @field COZ
+-- @field HOLD
+-- @field MOTION
+-- @field NET
+-- @field RANGE
+-- @field ZERO
+-- @field BAL_SEGA
+-- @field BAL_SEGB
+-- @field BAL_SEGC
+-- @field BAL_SEGD
+-- @field BAL_SEGE
+-- @field BAL_SEGF
+-- @field BAL_SEGG
+-- @field RANGE_SEGADG
+-- @field RANGE_SEGC
+-- @field RANGE_SEGE
+
 -- REG_DISP_TOP_ANNUN BIT SETTINGS
 _M.SIGMA        = 0x00001
 _M.BALANCE      = 0x00002
@@ -505,19 +505,19 @@ function _M.clrBitsTopAnnuns(d)
   _M.writeTopAnnuns(topAnnunState)
 end
 
---- Main Units 
+--- Main Units
 --@table Units
--- @field UNITS_NONE     
--- @field UNITS_KG           
--- @field UNITS_LB           
--- @field UNITS_T            
--- @field UNITS_G            
--- @field UNITS_OZ           
--- @field UNITS_N            
--- @field UNITS_ARROW_L      
--- @field UNITS_P            
--- @field UNITS_L            
--- @field UNITS_ARROW_H      
+-- @field UNITS_NONE
+-- @field UNITS_KG
+-- @field UNITS_LB
+-- @field UNITS_T
+-- @field UNITS_G
+-- @field UNITS_OZ
+-- @field UNITS_N
+-- @field UNITS_ARROW_L
+-- @field UNITS_P
+-- @field UNITS_L
+-- @field UNITS_ARROW_H
 -- REG_DISP UNITS BIT SETTINGS
 _M.UNITS_NONE    = 0x00
 _M.UNITS_KG      = 0x01
@@ -531,13 +531,13 @@ _M.UNITS_P       = 0x08
 _M.UNITS_L       = 0x09
 _M.UNITS_ARROW_H = 0x0A
 
---- Additional modifiers on bottom display 
+--- Additional modifiers on bottom display
 --@table Other
--- @field UNITS_OTHER_PER_H   
--- @field UNITS_OTHER_PER_M       
--- @field UNITS_OTHER_PER_S       
--- @field UNITS_OTHER_PC          
--- @field UNITS_OTHER_TOT         
+-- @field UNITS_OTHER_PER_H
+-- @field UNITS_OTHER_PER_M
+-- @field UNITS_OTHER_PER_S
+-- @field UNITS_OTHER_PC
+-- @field UNITS_OTHER_TOT
 _M.UNITS_OTHER_PER_H   = 0x14
 _M.UNITS_OTHER_PER_M   = 0x11
 _M.UNITS_OTHER_PER_S   = 0x12
@@ -545,7 +545,7 @@ _M.UNITS_OTHER_PC      = 0x30
 _M.UNITS_OTHER_TOT     = 0x08
 
 -------------------------------------------------------------------------------
--- Set top units 
+-- Set top units
 -- @param units (.UNITS_NONE etc)
 function _M.writeTopUnits (units)
    local units = units or _M.UNITS_NONE
@@ -553,7 +553,7 @@ function _M.writeTopUnits (units)
    curTopUnits = units
 end
 -------------------------------------------------------------------------------
--- Set bottom units 
+-- Set bottom units
 -- @param units (.UNITS_NONE etc)
 -- @param other (.UNITS_OTHER_PER_H etc)
 function _M.writeBotUnits (units, other)

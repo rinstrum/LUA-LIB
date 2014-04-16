@@ -41,7 +41,7 @@ _M.REG_SERIALNO         = 0x0005
 -- @field REG_PEAKHOLD    Peak Hold Weight
 -- @field REG_MANHOLD     Manually Held weight
 -- @field REG_GRANDTOTAL  Accumulated total
--- @field REG_ALTGROSS    Gross weight in secondary units 
+-- @field REG_ALTGROSS    Gross weight in secondary units
 -- @field REG_RAWADC      Raw ADC reading (2,560,000 = 1.0 mV/V)
 -- @field REG_ALTNET      Net weight in secondary units
 -- @field REG_FULLSCALE   Fullscale weight
@@ -66,25 +66,25 @@ _M.REG_FULLSCALE        = 0x002F
 --- Instrument User Variables.
 --@table usrRegisters
 -- @field REG_USERID_NAME1    Names of 5 User ID strings
--- @field REG_USERID_NAME2    
--- @field REG_USERID_NAME3    
--- @field REG_USERID_NAME4    
--- @field REG_USERID_NAME5    
+-- @field REG_USERID_NAME2
+-- @field REG_USERID_NAME3
+-- @field REG_USERID_NAME4
+-- @field REG_USERID_NAME5
 -- @field REG_USERNUM_NAME1   Names of 5 User ID numbers
--- @field REG_USERNUM_NAME2   
--- @field REG_USERNUM_NAME3   
--- @field REG_USERNUM_NAME4   
--- @field REG_USERNUM_NAME5   
+-- @field REG_USERNUM_NAME2
+-- @field REG_USERNUM_NAME3
+-- @field REG_USERNUM_NAME4
+-- @field REG_USERNUM_NAME5
 -- @field REG_USERID1         Data for 5 User ID strings
 -- @field REG_USERID2         the first 2 are integers
 -- @field REG_USERID3         the last 3 are weight values
--- @field REG_USERID4         
--- @field REG_USERID5       
+-- @field REG_USERID4
+-- @field REG_USERID5
 -- @field REG_USERNUM1        Data for 5 User ID numbers
--- @field REG_USERNUM2      
--- @field REG_USERNUM3      
--- @field REG_USERNUM4      
--- @field REG_USERNUM5      
+-- @field REG_USERNUM2
+-- @field REG_USERNUM3
+-- @field REG_USERNUM4
+-- @field REG_USERNUM5
 
 -- USER VARIABLES
 _M.REG_USERID_NAME1     = 0x0080
@@ -113,7 +113,7 @@ _M.REG_USERNUM5         = 0x0314
 --@table productRegisters
 -- @field REG_ACTIVE_PRODUCT_NO    Read the Active Product Number, Write to set the active product by number
 -- @field REG_ACTIVE_PRODUCT_NAME  Read the Active Product Name, Write to set Active Product by name
--- @field REG_CLR_ALL_TOTALS       Clears all product totals (EXECUTE) 
+-- @field REG_CLR_ALL_TOTALS       Clears all product totals (EXECUTE)
 -- @field REG_CLR_DOCKET_TOTALS    Clears all docket sub-totals (EXECUTE)
 -- @field REG_SELECT_PRODUCT_NO    Read the Selected Product Number, Write to set the Selected product by number
 -- @field REG_SELECT_PRODUCT_NAME  Read the Selected Product Name, Write to set the Selected product by Name
@@ -141,7 +141,7 @@ _M.REG_SELECT_PRODUCT_RENAME    = 0xB012
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
 -- @param cmd CMD_  command
--- @param reg REG_  register 
+-- @param reg REG_  register
 -- @param data to send
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendReg(cmd, reg, data, crc)
@@ -151,20 +151,20 @@ end
 -------------------------------------------------------------------------------
 -- Called to send command and wait for response
 -- @param cmd CMD_  command
--- @param reg REG_  register 
+-- @param reg REG_  register
 -- @param data to send
 -- @param t timeout in sec
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendRegWait(cmd, reg, data, t, crc)
-    
+
     local t = t or 2.0
-    
+
     if reg == nil then
           return nil, 'Nil Register'
-    end 
-    
+    end
+
     local waiting = true
     local regData = ''
     local regError = ''
@@ -172,28 +172,28 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
           regData = data
           regErr = err
           waiting = false
-    end  
-    
+    end
+
     local f = _M.getDeviceRegister(reg)
-    _M.bindRegister(reg, waitf)  
+    _M.bindRegister(reg, waitf)
     _M.send(nil, cmd, reg, data, "reply", crc)
     local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
 
     while waiting do
         _M.system.handleEvents()
     end
-    
-    _M.bindRegister(reg, f)  
-    
-    _M.system.timers.removeTimer(tmr)   
-    return regData, regErr    
+
+    _M.bindRegister(reg, f)
+
+    _M.system.timers.removeTimer(tmr)
+    return regData, regErr
 end
 
 -------------------------------------------------------------------------------
 -- processes the return string from CMD_RDLIT command
 -- if data is a floating point number then the converted number is returned
 -- otherwise the original data string is returned
--- @param data returned from _CMD_RDLIT 
+-- @param data returned from _CMD_RDLIT
 -- @return floating point number or data string
 function _M.literalToFloat(data)
       local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
@@ -201,8 +201,8 @@ function _M.literalToFloat(data)
            return data
       else
        data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
-       return tonumber(data)    
-      end   
+       return tonumber(data)
+      end
 end
 
 -------------------------------------------------------------------------------
@@ -222,12 +222,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to read register contents
--- @param reg REG_  register 
+-- @param reg REG_  register
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 function _M.readReg(reg)
     local data, err
-    
+
     data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
        _M.dbg.debug('Read Error', err)
@@ -238,16 +238,16 @@ function _M.readReg(reg)
 end
 
 -------------------------------------------------------------------------------
--- Called to write data to an instrument register 
--- @param reg REG_  register 
+-- Called to write data to an instrument register
+-- @param reg REG_  register
 -- @param data to send
 function _M.writeReg(reg, data)
   _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
 end
 
 -------------------------------------------------------------------------------
--- Called to run a register execute command with data as the execute parameter 
--- @param reg REG_  register 
+-- Called to run a register execute command with data as the execute parameter
+-- @param reg REG_  register
 -- @param data to send
 function _M.exReg(reg, data)
   _M.sendRegWait(_M.CMD_EX, reg, data)
