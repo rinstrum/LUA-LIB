@@ -114,7 +114,7 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
                  editVal = editVal .. key 
             end
             first = false
-        elseif key >= '0' and '9' then
+        elseif key >= '0' and key <= '9' then
             if first then 
                  editVal = key 
             else 
