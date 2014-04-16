@@ -5,8 +5,6 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-local _M = {}
-
 local io = io
 local type = type
 local pairs = pairs
@@ -15,7 +13,10 @@ local table = table
 local ipairs = ipairs
 local tostring = tostring
 
+local _M = {}
+
 local editing = false
+local rinApp
 
 -------------------------------------------------------------------------------
 -- Must be called to link these utilities with a particular rinApp application
@@ -26,8 +27,7 @@ local editing = false
 -- usbKBD.link(rinApp)
 
 function _M.link(app)
-  _M.app = app
-  _M.system = app.system
+  rinApp = app
 end
 
 -------------------------------------------------------------------------------
@@ -37,16 +37,16 @@ function _M.getKey()
     
     local keypressed = ''
     
-    local f = _M.app.getUSBKBDCallback()
+    local f = rinApp.getUSBKBDCallback()
     local function kbdHandler(key)
         keypressed = key
     end
-    _M.app.setUSBKBDCallback(kbdHandler)
+    rinApp.setUSBKBDCallback(kbdHandler)
 
-    while _M.app.running and keypressed == '' do
-        _M.system.handleEvents()
+    while rinApp.running and keypressed == '' do
+        rinApp.system.handleEvents()
     end   
-    _M.app.setUSBKBDCallback(f)
+    rinApp.setUSBKBDCallback(f)
 
     return keypressed  
 end
