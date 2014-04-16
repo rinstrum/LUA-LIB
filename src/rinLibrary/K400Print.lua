@@ -6,10 +6,12 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local string = string
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 -- Custom Print Strings
 
@@ -21,7 +23,8 @@ _M.PRINT_SER1A          = 0
 _M.PRINT_SER1B          = 1
 _M.PRINT_SER2A          = 2
 _M.PRINT_SER2B          = 3
-_M.curPrintPort         = 0xFF
+
+local curPrintPort      = 0xFF
 
 -------------------------------------------------------------------------------
 -- Takes a string s and returns a formatted CustomTransmit string with all 
@@ -42,8 +45,8 @@ end
 -- @param comPort - port to use PRINT_SER1A (default) .. PRINT_SER2B
 function _M.printCustomTransmit(tokenStr, comPort)
     local comPort = comPort or _M.PRINT_SER1A
-    if comPort ~= _M.curPrintPort  then
-        _M.curPrintPort = comPort
+    if comPort ~= curPrintPort  then
+        curPrintPort = comPort
         _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort)
         _M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end 
