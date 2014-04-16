@@ -6,18 +6,19 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 -------------------------------------------------------------------------------
 --- Keypad Control.
 -- Functions to control instrument keypad
 -- @section Keypad
 
-  
 local firstKey = true    -- flag to catch any garbage
 
 --- Keys.
@@ -358,6 +359,4 @@ function _M.buzz(times, len)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
-
 end
-
