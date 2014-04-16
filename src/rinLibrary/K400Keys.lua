@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 --- Key Handling.
--- Functions associated with the handing key presses 
+-- Functions associated with the handing key presses
 -- @module rinLibrary.K400Keys
 -- @author Darren Pearson
 -- @author Merrick Heley
@@ -24,36 +24,36 @@ local firstKey = true    -- flag to catch any garbage
 --- Keys.
 --@table keys
 -- @field KEY_0
--- @field KEY_1               
--- @field KEY_2               
--- @field KEY_3               
--- @field KEY_4               
--- @field KEY_5               
--- @field KEY_6               
--- @field KEY_7               
--- @field KEY_8               
--- @field KEY_9               
--- @field KEY_POWER           
--- @field KEY_ZERO            
--- @field KEY_TARE            
--- @field KEY_SEL             
--- @field KEY_F1              
--- @field KEY_F2              
--- @field KEY_F3              
--- @field KEY_PLUSMINUS       
--- @field KEY_DP              
--- @field KEY_CANCEL          
--- @field KEY_UP              
--- @field KEY_DOWN            
--- @field KEY_OK              
+-- @field KEY_1
+-- @field KEY_2
+-- @field KEY_3
+-- @field KEY_4
+-- @field KEY_5
+-- @field KEY_6
+-- @field KEY_7
+-- @field KEY_8
+-- @field KEY_9
+-- @field KEY_POWER
+-- @field KEY_ZERO
+-- @field KEY_TARE
+-- @field KEY_SEL
+-- @field KEY_F1
+-- @field KEY_F2
+-- @field KEY_F3
+-- @field KEY_PLUSMINUS
+-- @field KEY_DP
+-- @field KEY_CANCEL
+-- @field KEY_UP
+-- @field KEY_DOWN
+-- @field KEY_OK
 -- @field KEY_SETUP
--- @field KEY_PWR_ZERO   
--- @field KEY_PWR_TARE              
--- @field KEY_PWR_SEL     
--- @field KEY_PWR_F1     
--- @field KEY_PWR_F2     
--- @field KEY_PWR_F3     
--- @field KEY_PWR_CANCEL 
+-- @field KEY_PWR_ZERO
+-- @field KEY_PWR_TARE
+-- @field KEY_PWR_SEL
+-- @field KEY_PWR_F1
+-- @field KEY_PWR_F2
+-- @field KEY_PWR_F3
+-- @field KEY_PWR_CANCEL
 
 _M.KEY_0                = 0x0000
 _M.KEY_1                = 0x0001
@@ -92,7 +92,7 @@ _M.KEY_IDLE             = 0x001F
 _M.REG_GET_KEY          = 0x0321
 _M.REG_FLUSH_KEYS       = 0x0322
 _M.REG_APP_DO_KEYS      = 0x0324
-_M.REG_APP_KEY_HANDLER  = 0x0325  
+_M.REG_APP_KEY_HANDLER  = 0x0325
 
 local keyID = nil
 
@@ -142,7 +142,7 @@ local keyBinds = {
 }
 
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
-local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls 
+local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls
 
 -------------------------------------------------------------------------------
 -- Setup key handling stream
@@ -161,7 +161,7 @@ function _M.endKeys(flush)
     end
 
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_APP_KEY_HANDLER, 0)
-    
+
     _M.removeStream(keyID)
 end
 
@@ -171,28 +171,28 @@ function _M.bumpIdleTimer()
         idleTimerID = _M.system.timers.addTimer(0,idleTimeout,idleCallback)
     else
         idleTimerID = nil
-    end      
-       
+    end
+
 end
 
--- Called when keys are streamed, send the keys to each group it is bound to 
+-- Called when keys are streamed, send the keys to each group it is bound to
 -- in order of priority, until one of them returns true.
 -- key states are 'short','long','up'
 -- Note: keybind tables should be sorted by priority
 -- @param data Data on key streamed
 -- @param err Potential error message
 function _M.keyCallback(data, err)
-    
+
     local state = "short"
     local key = bit32.band(data, 0x3F)
-    
+
     if bit32.band(data, 0x80) > 0 then
         state = "long"
     end
-    
+
     if bit32.band(data, 0x40) > 0 then
         state = "up"
-    end    
+    end
 
 --    _M.dbg.debug('Key: ',data,err)
     -- Debug - throw away first 0 key garbage
@@ -200,7 +200,7 @@ function _M.keyCallback(data, err)
         return
     end
     firstKey = false
-    
+
     -- Debug  - throw away up and idle events
     if (state == "up" and key ~= _M.KEY_POWER) or data == _M.KEY_IDLE then
        return
@@ -209,47 +209,47 @@ function _M.keyCallback(data, err)
     local handled = false
     local groups = keyBinds[key]
     if groups ~= nil then
-       
-       if groups.directCallback then 
+
+       if groups.directCallback then
             if runningKeyCallback == groups.directCallback then
-               _M.dbg.warn('Attempt to call Key Event Handler recursively : ', key) 
+               _M.dbg.warn('Attempt to call Key Event Handler recursively : ', key)
                return
-            end    
+            end
             runningKeyCallback = groups.directCallback
             if groups.directCallback(key, state) == true then
                 handled = true
-            end    
+            end
             runningKeyCallback = nil
        end
-              
-      if not handled then      
+
+      if not handled then
           for i=1,#groups do
             if groups[i].callback then
                 if runningKeyCallback == groups[i].callback then
-                    _M.dbg.warn('Attempt to call Key Group Event Handler recursively : ', key) 
+                    _M.dbg.warn('Attempt to call Key Group Event Handler recursively : ', key)
                     return
-                end    
+                end
                 runningKeyCallback = groups[i].callback
                 if groups[i].callback(key, state) == true then
                     handled = true
                     break
-                end     
+                end
             end
-          end 
-          runningKeyCallback = nil           
+          end
+          runningKeyCallback = nil
        end
-     end  
-    
+     end
+
     if not handled then
         _M.sendReg(_M.CMD_WRFINALDEC,_M.REG_APP_DO_KEYS, data)
     end
-    if state ~= 'up' then  
+    if state ~= 'up' then
         _M.bumpIdleTimer()
-    end    
+    end
 end
 
 -------------------------------------------------------------------------------
--- Set a callback to run if more than t seconds of idle time is detected 
+-- Set a callback to run if more than t seconds of idle time is detected
 -- between keys.  This is used to trap operator leaving without proper menu exit.
 -- @param f function to run when idle time expired
 -- @param t is timeout in seconds
@@ -282,13 +282,13 @@ end
 
 --- Key Groups.
 --@table keygroups
--- @field keyGroup.all      
--- @field keyGroup.primary  
+-- @field keyGroup.all
+-- @field keyGroup.primary
 -- @field keyGroup.functions
--- @field keyGroup.keypad   
--- @field keyGroup.numpad   
--- @field keyGroup.cursor   
--- @field keyGroup.extended   
+-- @field keyGroup.keypad
+-- @field keyGroup.numpad
+-- @field keyGroup.cursor
+-- @field keyGroup.extended
 
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key group
@@ -301,7 +301,7 @@ function _M.setKeyGroupCallback(keyGroup, callback)
 end
 
 -------------------------------------------------------------------------------
--- Send an artificial  key press to the instrument 
+-- Send an artificial  key press to the instrument
 -- @param key (.KEY_*)
 -- @param status 'long' or 'short'
 function _M.sendKey(key,status)
@@ -320,11 +320,11 @@ end
 -- @section buzzer
 
 
--- The lengths of beeps, takes 0 (short), 1(med) or 2(long). 
+-- The lengths of beeps, takes 0 (short), 1(med) or 2(long).
 -- There are no gaps between long beeps
 _M.REG_BUZZ_LEN =  0x0327
 -- takes 1 – 4, will clear to 0 once beeps have been executed
-_M.REG_BUZZ_NUM =  0x0328        
+_M.REG_BUZZ_NUM =  0x0328
 
 _M.BUZZ_SHORT = 0
 _M.BUZZ_MEDIUM = 1
@@ -340,7 +340,7 @@ function _M.setBuzzLen(len)
    if len ~= lastBuzzLen then
       _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
       lastBuzzLen = len
-   end  
+   end
 
 end
 
@@ -352,8 +352,8 @@ function _M.buzz(times, len)
     local times = times or 1
     local len = len or _M.BUZZ_SHORT
     times = tonumber(times)
-    if times > 4 then 
-        times = 4 
+    if times > 4 then
+        times = 4
     end
     _M.setBuzzLen(len)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
