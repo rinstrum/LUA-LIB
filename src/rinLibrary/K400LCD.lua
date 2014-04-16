@@ -10,66 +10,6 @@ local tonumber = tonumber
 local math = math
 local bit32 = require "bit"
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Submodule function begins here
-return function (_M)
-
---LCD display registers
-_M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
-_M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-_M.REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
-_M.REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
-_M.REG_DISP_TOP_ANNUN       = 0x00B2
-_M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
-_M.REG_DISP_BOTTOM_ANNUN    = 0x00B4
-_M.REG_DISP_BOTTOM_UNITS    = 0x00B5
-
-_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
-_M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
-_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
-
-_M.REG_BUZ_LEN      = 0x0327
-_M.REG_BUZ_NUM      = 0x0328
-
-local botAnnunState = 0
-local topAnnunState = 0
-local waitPos = 1
-
-local curTopLeft = ''
-local curTopRight = ''
-local curBotLeft = ''
-local curBotRight = ''
-local curTopUnits = 0
-local curBotUnits = 0
-local curBotUnitsOther = 0
-local curAutoTopLeft = 0
-local curAutoBotLeft = 0
-
-local saveBotLeft = ''
-local saveAutoTopLeft = 0
-local saveAutoBotLeft = 0
-local saveBotRight = ''
-local saveBotUnits = 0
-local saveBotUnitsOther = 0
-
-function _M.saveBot()
-   saveBotLeft = curBotLeft
-   saveBotRight = curBotRight
-   saveBotUnits = curBotUnits
-   saveBotUnitsOther = curBotUnitsOther
-end
-
-function _M.restoreBot()
-  _M.writeBotLeft(saveBotLeft)
-  _M.writeBotRight(saveBotRight)
-  _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
-end
-
-function _M.saveAutoLeft()
-    saveAutoTopLeft = _M.readAutoTopLeft()
-    saveAutoBotLeft = _M.readAutoBotLeft()
-end
-
 local function strLenR400(s)
    local len = 0
    local dotFound = true
@@ -172,6 +112,66 @@ local function splitWords(s,len)
      table.insert(t,p)
    end
  return t
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
+
+--LCD display registers
+_M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
+_M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
+_M.REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
+_M.REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
+_M.REG_DISP_TOP_ANNUN       = 0x00B2
+_M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
+_M.REG_DISP_BOTTOM_ANNUN    = 0x00B4
+_M.REG_DISP_BOTTOM_UNITS    = 0x00B5
+
+_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
+_M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
+_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
+
+_M.REG_BUZ_LEN      = 0x0327
+_M.REG_BUZ_NUM      = 0x0328
+
+local botAnnunState = 0
+local topAnnunState = 0
+local waitPos = 1
+
+local curTopLeft = ''
+local curTopRight = ''
+local curBotLeft = ''
+local curBotRight = ''
+local curTopUnits = 0
+local curBotUnits = 0
+local curBotUnitsOther = 0
+local curAutoTopLeft = 0
+local curAutoBotLeft = 0
+
+local saveBotLeft = ''
+local saveAutoTopLeft = 0
+local saveAutoBotLeft = 0
+local saveBotRight = ''
+local saveBotUnits = 0
+local saveBotUnitsOther = 0
+
+function _M.saveBot()
+   saveBotLeft = curBotLeft
+   saveBotRight = curBotRight
+   saveBotUnits = curBotUnits
+   saveBotUnitsOther = curBotUnitsOther
+end
+
+function _M.restoreBot()
+  _M.writeBotLeft(saveBotLeft)
+  _M.writeBotRight(saveBotRight)
+  _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
+end
+
+function _M.saveAutoLeft()
+    saveAutoTopLeft = _M.readAutoTopLeft()
+    saveAutoBotLeft = _M.readAutoBotLeft()
 end
 
 function _M.slideTopLeft()
