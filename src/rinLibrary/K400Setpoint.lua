@@ -77,10 +77,10 @@ _M.TYPE_BUZZER   = 12
 local lastOutputs = 0
 local timedOutputs = 0   -- keeps track of which IO are already running off timers
 -- bits set if under LUA control, clear if under instrument control
-local lastIOEnable = 0    
+local lastIOEnable = 0
 
 _M.NUM_SETP = 16
- 
+
 local function setOutputs(outp)
     _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
 end
@@ -101,8 +101,8 @@ function _M.turnOn(...)
      if v < 32 and v > 1 then
         curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
      end
-   end   
-   
+   end
+
    if (curOutputs ~= lastOutputs) then
       setOutputs(curOutputs)
       lastOutputs = curOutputs
@@ -121,7 +121,7 @@ function _M.turnOff(...)
      if v < 32 and v > 1 then
         curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
      end
-   end   
+   end
 
  if (curOutputs ~= lastOutputs) then
       setOutputs(curOutputs)
@@ -137,16 +137,16 @@ function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(timedOutputs, IOMask) == 0 then
       _M.turnOn(IO)
-      _M.system.timers.addTimer(0, t, 
-             function (IO,IOMask) 
-                   timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask)) 
+      _M.system.timers.addTimer(0, t,
+             function (IO,IOMask)
+                   timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask))
                    _M.turnOff(IO)
-             end , 
+             end ,
              IO, IOMask)
       timedOutputs = bit32.bor(timedOutputs, IOMask)
   else
      _M.dbg.warn('IO Timer overlap: ', IO)
-  end  
+  end
 end
 
 -------------------------------------------------------------------------------
@@ -161,15 +161,15 @@ end
 
 function _M.enableOutput(...)
     local curIOEnable =  lastIOEnable
-    
+
     for i,v in ipairs(arg) do
         v = tonumber(v)
         curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
-       end  
+       end
    if (curIOEnable ~= lastIOEnable) then
       setOutputEnable(curIOEnable)
       lastIOEnable = curIOEnable
-    end  
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -183,17 +183,17 @@ end
 -- dwi.releaseOutput(1,2,3,4)
 function _M.releaseOutput(...)
     local curIOEnable =  lastIOEnable
-    
+
     for i,v in ipairs(arg) do
         v = tonumber(v)
-        curIOEnable = bit32.band(curIOEnable, 
+        curIOEnable = bit32.band(curIOEnable,
                                    bit32.bnot(bit32.lshift(0x0001,(v-1))))
-       end  
+       end
 
     if (curIOEnable ~= lastIOEnable) then
         setOutputEnable(curIOEnable)
         lastIOEnable = curIOEnable
-    end 
+    end
 end
 
 --------------------------------------------------------------------------------
@@ -209,17 +209,17 @@ function _M.setpRegAddress(setp,reg)
      return (reg+setp-1)
   else
      return (reg+((setp-1)*_M.REG_SETP_REPEAT))
-  end     
+  end
 end
 
 --------------------------------------------------------------------------------
 -- Private function
 local function setpParam(setp,reg,v)
-   _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)       
+   _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)
 end
 
 -------------------------------------------------------------------------------
--- Set the number of Setpoints 
+-- Set the number of Setpoints
 -- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
@@ -243,19 +243,19 @@ end
 
 --- Setpoint Types.
 --@table Types
--- @field TYPE_OFF     
--- @field TYPE_ON      
--- @field TYPE_OVER    
--- @field TYPE_UNDER   
--- @field TYPE_COZ     
--- @field TYPE_ZERO    
--- @field TYPE_NET     
--- @field TYPE_MOTION  
--- @field TYPE_ERROR   
--- @field TYPE_LGC_AND 
--- @field TYPE_LGC_OR  
--- @field TYPE_LGC_XOR 
--- @field TYPE_BUZZER  
+-- @field TYPE_OFF
+-- @field TYPE_ON
+-- @field TYPE_OVER
+-- @field TYPE_UNDER
+-- @field TYPE_COZ
+-- @field TYPE_ZERO
+-- @field TYPE_NET
+-- @field TYPE_MOTION
+-- @field TYPE_ERROR
+-- @field TYPE_LGC_AND
+-- @field TYPE_LGC_OR
+-- @field TYPE_LGC_XOR
+-- @field TYPE_BUZZER
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
 -- @param setp is setpount 1..16
@@ -274,10 +274,10 @@ end
 
 --- Setpoint Alarms Types.
 --@table Alarms
--- @field ALARM_NONE      
--- @field ALARM_SINGLE      
--- @field ALARM_DOUBLE    
--- @field ALARM_FLASH    
+-- @field ALARM_NONE
+-- @field ALARM_SINGLE
+-- @field ALARM_DOUBLE
+-- @field ALARM_FLASH
 
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint
@@ -297,25 +297,25 @@ end
 
 --- Setpoint Source Types.
 --@table Source
--- @field SOURCE_GROSS 
--- @field SOURCE_NET 
--- @field SOURCE_DISP 
--- @field SOURCE_ALT_GROSS 
--- @field SOURCE_ALT_NET 
--- @field SOURCE_ALT_DISP 
--- @field SOURCE_PIECE 
--- @field SOURCE_REG 
+-- @field SOURCE_GROSS
+-- @field SOURCE_NET
+-- @field SOURCE_DISP
+-- @field SOURCE_ALT_GROSS
+-- @field SOURCE_ALT_NET
+-- @field SOURCE_ALT_DISP
+-- @field SOURCE_PIECE
+-- @field SOURCE_REG
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls
 -- @param setp is setpount 1..16
 -- @param v is setpoint source type
--- @param reg is register address for setpoints using .SOURCE_REG type source data.  
+-- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
 function _M.setpSource(setp, v, reg)
   setpParam(setp,_M.REG_SETP_SOURCE, v)
   if (v == _M.SOURCE_REG) and reg then
      setpParam(setp,_M.REG_SETP_SOURCE_REG, reg)
-  end   
+  end
 end
 
 -------------------------------------------------------------------------------
