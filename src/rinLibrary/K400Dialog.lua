@@ -119,7 +119,7 @@ function _M.getKey(keyGroup)
     return getKeyPressed, getKeyState
 
  end
- 
+
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
@@ -224,7 +224,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
--- @param def default value\
+-- @param def default value
 -- @param maxLen maximum number of characters to include
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
