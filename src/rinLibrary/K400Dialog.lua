@@ -6,7 +6,6 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-return function (_M)
 local string = string
 local tonumber = tonumber
 local type = type
@@ -16,6 +15,10 @@ local ipairs = ipairs
 local tostring = tostring
 local table = table
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 local dialogRunning = false
 local getKeyPressed = 0
@@ -496,22 +499,22 @@ function _M.delay(t)
     end  
 end
 
-_M.askOKWaiting = false
-_M.askOKResult = 0
+local askOKWaiting = false
+local askOKResult = 0
 -------------------------------------------------------------------------------
 -- Private function
-function _M.askOKCallback(key, state)
+local askOKCallback(key, state)
     
     if state ~= 'short' then 
         return false 
     end
     
     if key == _M.KEY_OK then
-        _M.askOKWaiting = false
-        _M.askOKResult = _M.KEY_OK
+        askOKWaiting = false
+        askOKResult = _M.KEY_OK
     elseif key == _M.KEY_CANCEL then
-        _M.askOKWaiting = false
-        _M.askOKResult = _M.KEY_CANCEL
+        askOKWaiting = false
+        askOKResult = _M.KEY_CANCEL
     end
 
     return true 
@@ -532,7 +535,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     local u = units or 0
     local uo = unitsOther or 0
   
-    _M.setKeyGroupCallback(_M.keyGroup.keypad, _M.askOKCallback)  
+    _M.setKeyGroupCallback(_M.keyGroup.keypad, askOKCallback)  
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
@@ -540,16 +543,16 @@ function _M.askOK(prompt, q, units, unitsOther)
     _M.writeBotUnits(0,0)
     _M.writeBotUnits(u,uo)
  
-    _M.askOKWaiting = true
-    _M.askOKResult = _M.KEY_CANCEL
+    askOKWaiting = true
+    askOKResult = _M.KEY_CANCEL
    _M.startDialog()
-    while dialogRunning and _M.askOKWaiting and _M.app.running do
+    while dialogRunning and askOKWaiting and _M.app.running do
         _M.system.handleEvents()
     end   
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
 
     _M.restoreBot() 
-    return _M.askOKResult  
+    return askOKResult  
   
 end  
 
