@@ -4,8 +4,6 @@
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local sockets = require "rinSystem.rinSockets.Pack"
 local bit32 = require "bit"
 local ccitt = require "rinLibrary.rinCCITT"
@@ -16,6 +14,10 @@ local assert = assert
 local tonum = tonumber
 local pairs = pairs
 local type = type
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
