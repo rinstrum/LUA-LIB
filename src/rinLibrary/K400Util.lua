@@ -121,8 +121,7 @@ function _M.readSettings()
             end
         end
     end
-    _M.saveAutoTopLeft = _M.readAutoTopLeft()
-    _M.saveAutoBotLeft = _M.readAutoBotLeft()
+    _M.saveAutoLeft()
  end
  
 -------------------------------------------------------------------------------

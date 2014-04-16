@@ -6,11 +6,13 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-
-return function (_M)
 local tonumber = tonumber
 local math = math
 local bit32 = require "bit"
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M)
 
 --LCD display registers
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
@@ -29,38 +31,43 @@ _M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
 _M.REG_BUZ_LEN      = 0x0327
 _M.REG_BUZ_NUM      = 0x0328
 
-_M.botAnnunState = 0
-_M.topAnnunState = 0
-_M.waitPos = 1
+local botAnnunState = 0
+local topAnnunState = 0
+local waitPos = 1
 
-_M.curTopLeft = ''
-_M.curTopRight = ''
-_M.curBotLeft = ''
-_M.curBotRight = ''
-_M.curTopUnits = 0
-_M.curBotUnits = 0
-_M.curBotUnitsOther = 0
-_M.curAutoTopLeft = 0
-_M.curAutoBotLeft = 0
+local curTopLeft = ''
+local curTopRight = ''
+local curBotLeft = ''
+local curBotRight = ''
+local curTopUnits = 0
+local curBotUnits = 0
+local curBotUnitsOther = 0
+local curAutoTopLeft = 0
+local curAutoBotLeft = 0
 
-_M.saveBotLeft = ''
-_M.saveAutoTopLeft = 0
-_M.saveAutoBotLeft = 0
-_M.saveBotRight = ''
-_M.saveBotUnits = 0
-_M.saveBotUnitsOther = 0 
+local saveBotLeft = ''
+local saveAutoTopLeft = 0
+local saveAutoBotLeft = 0
+local saveBotRight = ''
+local saveBotUnits = 0
+local saveBotUnitsOther = 0 
 
 function _M.saveBot()
-   _M.saveBotLeft = _M.curBotLeft
-   _M.saveBotRight = _M.curBotRight
-   _M.saveBotUnits = _M.curBotUnits
-   _M.saveBotUnitsOther = _M.curBotUnitsOther
+   saveBotLeft = curBotLeft
+   saveBotRight = curBotRight
+   saveBotUnits = curBotUnits
+   saveBotUnitsOther = curBotUnitsOther
 end
 
 function _M.restoreBot()
-  _M.writeBotLeft(_M.saveBotLeft)
-  _M.writeBotRight(_M.saveBotRight)
-  _M.writeBotUnits(_M.saveBotUnits, _M.saveBotUnitsOther)
+  _M.writeBotLeft(saveBotLeft)
+  _M.writeBotRight(saveBotRight)
+  _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
+end
+
+function _M.saveAutoLeft()
+    saveAutoTopLeft = _M.readAutoTopLeft()
+    saveAutoBotLeft = _M.readAutoBotLeft()
 end
 
 local function strLenR400(s)
@@ -191,9 +198,9 @@ function _M.writeTopLeft(s,t)
        t = 0.2 
     end
     if s then
-        if s ~= _M.curTopLeft then
+        if s ~= curTopLeft then
             _M.writeAutoTopLeft(0)
-            _M.curTopLeft = s
+            curTopLeft = s
             _M.slideTopLeftWords = splitWords(s,6)
             _M.slideTopLeftPos = 1
             if _M.slideTopLeftTimer then     -- remove any running display
@@ -205,8 +212,8 @@ function _M.writeTopLeft(s,t)
                 _M.slideTopLeftTimer = _M.system.timers.addTimer(t,t,_M.slideTopLeft)
             end    
         end
-    elseif _M.curAutoTopLeft == 0 then
-       _M.writeAutoTopLeft(_M.saveAutoTopLeft)
+    elseif curAutoTopLeft == 0 then
+       _M.writeAutoTopLeft(saveAutoTopLeft)
     end
 end
 
@@ -215,9 +222,9 @@ end
 -- @param s string to display
 function _M.writeTopRight(s)
     if s then
-        if s ~= _M.curTopRight then
+        if s ~= curTopRight then
            _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
-           _M.curTopRight = s
+           curTopRight = s
         end   
     end
 end
@@ -248,9 +255,9 @@ function _M.writeBotLeft(s, t)
     end
     
     if s then
-        if s ~= _M.curBotLeft then
+        if s ~= curBotLeft then
             _M.writeAutoBotLeft(0)
-            _M.curBotLeft = s
+            curBotLeft = s
             _M.slideBotLeftWords = splitWords(s,9)
             _M.slideBotLeftPos = 1
             if _M.slideBotLeftTimer then     -- remove any running display
@@ -262,8 +269,8 @@ function _M.writeBotLeft(s, t)
                 _M.slideBotLeftTimer = _M.system.timers.addTimer(t,t,_M.slideBotLeft)
             end    
         end
-    elseif _M.curAutoBotLeft == 0 then
-       _M.writeAutoBotLeft(_M.saveAutoBotLeft)
+    elseif curAutoBotLeft == 0 then
+       _M.writeAutoBotLeft(saveAutoBotLeft)
     end
 end
 
@@ -293,8 +300,8 @@ function _M.writeBotRight(s, t)
     end
 
     if s then
-     if s ~= _M.curBotRight then
-            _M.curBotRight = s
+     if s ~= curBotRight then
+            curBotRight = s
             _M.slideBotRightWords = splitWords(s,8)
             _M.slideBotRightPos = 1
             if _M.slideBotRightTimer then     -- remove any running display
@@ -325,20 +332,21 @@ _M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
 
-_M.setAutoTopAnnun = _M.writeAutoTopAnnun                                         
+_M.setAutoTopAnnun = _M.writeAutoTopAnnun
+
 -----------------------------------------------------------------------------
 -- link register address with Top Left display to update automatically 
 --@param reg address of register to link Top Left display to.
 -- Set to 0 to enable direct control of the area                                         
 function _M.writeAutoTopLeft(reg)
-   if reg ~= _M.curAutoTopLeft then
+   if reg ~= curAutoTopLeft then
        if _M.slideTopLeftTimer then     -- remove any running display
           _M.system.timers.removeTimer(_M.slideTopLeftTimer)
        end 
-       _M.curTopLeft = nil   
+       curTopLeft = nil   
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
-       _M.saveAutoTopLeft = _M.curAutoTopLeft
-       _M.curAutoTopLeft = reg
+       saveAutoTopLeft = curAutoTopLeft
+       curAutoTopLeft = reg
    end    
 end        
 
@@ -350,7 +358,7 @@ _M.setAutoTopLeft = _M.writeAutoTopLeft
 function _M.readAutoTopLeft()
    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_TOP_LEFT)
    reg = tonumber(reg)
-   _M.curAutoTopLeft = reg
+   curAutoTopLeft = reg
    return reg
 end        
 -----------------------------------------------------------------------------
@@ -358,14 +366,14 @@ end
 --@param reg address of register to link Bottom Left display to.
 -- Set to 0 to enable direct control of the area                                         
 function _M.writeAutoBotLeft(reg)
-   if reg ~= _M.curAutoBotLeft then
+   if reg ~= curAutoBotLeft then
        if _M.slideBotLeftTimer then     -- remove any running display
           _M.system.timers.removeTimer(_M.slideBotLeftTimer)
        end 
-       _M.curBotLeft = nil   
+       curBotLeft = nil   
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
-       _M.saveAutoBotLeft = _M.curAutoBotLeft
-       _M.curAutoBotLeft = reg
+       saveAutoBotLeft = curAutoBotLeft
+       curAutoBotLeft = reg
    end    
 end                                         
 _M.setAutoBotLeft = _M.writeAutoBotLeft
@@ -376,7 +384,7 @@ _M.setAutoBotLeft = _M.writeAutoBotLeft
 function _M.readAutoBotLeft()
    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOT_LEFT)
    reg = tonumber(reg)
-   _M.curAutoBotLeft = reg
+   curAutoBotLeft = reg
    return reg
 end        
 
@@ -414,16 +422,16 @@ local WAIT_SEGS = { _M.WAIT, _M.WAIT45, _M.WAIT90, _M.WAIT135 }
 -- Sets the annunciator bits for Bottom Annunciators
 -- @param d holds bit locations
 function _M.setBitsBotAnnuns(d)
-  _M.botAnnunState = bit32.bor(_M.botAnnunState,d)
-  _M.writeBotAnnuns(_M.botAnnunState)
+  botAnnunState = bit32.bor(botAnnunState, d)
+  _M.writeBotAnnuns(botAnnunState)
 end
 
 -------------------------------------------------------------------------------
 -- Clears the annunciator bits for Bottom Annunciators
 -- @param d holds bit locations
 function _M.clrBitsBotAnnuns(d)
-  _M.botAnnunState = bit32.band(_M.botAnnunState,bit32.bnot(d))
-  _M.writeBotAnnuns(_M.botAnnunState)
+  botAnnunState = bit32.band(botAnnunState, bit32.bnot(d))
+  _M.writeBotAnnuns(botAnnunState)
 end
 
 -------------------------------------------------------------------------------
@@ -431,13 +439,13 @@ end
 -- @param dir  1 clockwise, -1 anticlockwise 0 no change
 function _M.rotWAIT(dir)
     if dir ~= 0 then
-        _M.waitPos = (_M.waitPos - dir / math.abs(dir)) % #WAIT_SEGS
-        if _M.waitPos == 0 then _M.waitPos = #WAIT_SEGS end
+        waitPos = (waitPos - dir / math.abs(dir)) % #WAIT_SEGS
+        if waitPos == 0 then waitPos = #WAIT_SEGS end
     end
 
-    _M.botAnnunState = bit32.band(_M.botAnnunState, bit32.bnot(_M.WAITALL))
-    _M.botAnnunState = bit32.bor(_M.botAnnunState, WAIT_SEGS[_M.waitPos])
-    _M.writeBotAnnuns(_M.botAnnunState)
+    botAnnunState = bit32.band(botAnnunState, bit32.bnot(_M.WAITALL))
+    botAnnunState = bit32.bor(botAnnunState, WAIT_SEGS[waitPos])
+    _M.writeBotAnnuns(botAnnunState)
 end
 
 --- Top LCD Annunciators
@@ -485,16 +493,16 @@ _M.RANGE_SEGE   = 0x20000
 -- Sets the annunciator bits for Top Annunciators
 -- @param d holds bit locations
 function _M.setBitsTopAnnuns(d)
-  _M.topAnnunState = bit32.bor(_M.topAnnunState,d)
-  _M.writeTopAnnuns(_M.topAnnunState)
+  topAnnunState = bit32.bor(topAnnunState, d)
+  _M.writeTopAnnuns(topAnnunState)
 end
 
 -------------------------------------------------------------------------------
 -- Clears the annunciator bits for Top Annunciators
 -- @param d holds bit locations
 function _M.clrBitsTopAnnuns(d)
-  _M.topAnnunState = bit32.band(_M.topAnnunState,bit32.bnot(d))
-  _M.writeTopAnnuns(_M.topAnnunState)
+  topAnnunState = bit32.band(topAnnunState, bit32.bnot(d))
+  _M.writeTopAnnuns(topAnnunState)
 end
 
 --- Main Units 
@@ -542,7 +550,7 @@ _M.UNITS_OTHER_TOT     = 0x08
 function _M.writeTopUnits (units)
    local units = units or _M.UNITS_NONE
    _M.writeReg(_M.REG_DISP_TOP_UNITS,units)
-   _M.curTopUnits = units
+   curTopUnits = units
 end
 -------------------------------------------------------------------------------
 -- Set bottom units 
@@ -552,8 +560,8 @@ function _M.writeBotUnits (units, other)
    local units = units or _M.UNITS_NONE
    local other = other or _M.UNITS_NONE
    _M.writeReg(_M.REG_DISP_BOTTOM_UNITS,bit32.bor(bit32.lshift(other,8),units))
-   _M.curBotUnits = units
-   _M.curBotUnitsOther = other
+   curBotUnits = units
+   curBotUnitsOther = other
 end
 
 -------------------------------------------------------------------------------
