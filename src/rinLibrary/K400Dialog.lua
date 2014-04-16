@@ -34,7 +34,7 @@ end
 
 function _M.startDialog()
     dialogRunning = true
-    _M.bumpIdleTimer()   
+    _M.bumpIdleTimer()
 end
 
 
@@ -42,7 +42,7 @@ local function getKeyCallback(key, state)
     getKeyPressed = key
     getKeyState = state
     return true
-end 
+end
 
 
 local msgDisp = false		-- message is being displayed by dispMsg function
@@ -54,7 +54,7 @@ local function endDisplayMessage()
 	    _M.system.timers.removeTimer(msgTimer)
         msgTimer = nil
         _M.restoreBot()
-    end    
+    end
 end
 
 
@@ -87,31 +87,31 @@ end
 -- @param unitsOther optional other units to display
 function _M.displayMessageWait(msg, t, units, unitsOther)
    _M.displayMessage(msg,t,units,unitsOther)
-   while msgDisp do 
+   while msgDisp do
        _M.system.handleEvents()
-   end    
+   end
 end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup keyGroup.all is default group 
+-- @param keyGroup keyGroup.all is default group
 -- @return key (KEY_), state ('short','long','up')
 function _M.getKey(keyGroup)
     local keyGroup = keyGroup or _M.keyGroup.all
     local f = keyGroup.callback
-    
-    _M.setKeyGroupCallback(keyGroup, getKeyCallback)  
+
+    _M.setKeyGroupCallback(keyGroup, getKeyCallback)
 
     getKeyState = ''
     getKeyPressed = nil
     _M.startDialog()
     while dialogRunning and _M.app.running and getKeyState == '' do
         _M.system.handleEvents()
-    end   
+    end
     _M.setKeyGroupCallback(keyGroup, f)
-  
-    return getKeyPressed, getKeyState  
- 
+
+    return getKeyPressed, getKeyState
+
  end
 _M.editing = false
 -------------------------------------------------------------------------------
@@ -215,11 +215,11 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local key, state                -- instrument key values
     local pKey = nil                -- previous key pressed
     local presses = 0               -- number of consecutive presses of a key
-    
+
     if def then                     -- if a string is supplied
         def = sTrim(def)            -- trim any whitespace
     end
-    
+
     local default = def or ' '      -- default string to edit, if no default passed to function, default to one space
     _M.sEditVal = tostring(default) -- edit string
     local sLen = #_M.sEditVal       -- length of string being edited
@@ -229,19 +229,19 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
     local blink = false             -- cursor display variable
     local u = units or 0            -- optional units defaults to none
     local uo = unitsOther or 0      -- optional other units defaults to none
-    
+
     endDisplayMessage()             -- abort any existing display prompt
     local cursorTmr = _M.system.timers.addTimer(_M.scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
         for i=0,math.min(sLen, maxLen),1 do
-            strTab[i] = string.sub(_M.sEditVal, i, i)   -- convert the string to a table for easier character manipulation 
+            strTab[i] = string.sub(_M.sEditVal, i, i)   -- convert the string to a table for easier character manipulation
         end
         --print('strTab = ' .. table.concat(strTab))  -- debug
     end
     _M.sEditVal = table.concat(strTab);
-    
+
     if def then         -- if a default string is given
         pKey = 'def'    -- give pKey a value so we start editing from the end
     end
@@ -260,7 +260,7 @@ _M.sEdit = function(prompt, def, maxLen, units, unitsOther)
         if not dialogRunning then    -- editing aborted so return default
             ok = false
            _M.editing = false
-           _M.sEditVal = default 
+           _M.sEditVal = default
         elseif state == "short" then                            -- short key presses for editing
             if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
 --              print('i:' .. _M.sEditIndex .. ' l:' .. sLen)   -- debug
@@ -357,7 +357,7 @@ end
 -- Called to prompt operator to enter a value, numeric digits and '.' only
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','passcode') 
+-- @param typ type of value to enter ('integer','number','passcode')
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
@@ -369,17 +369,17 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     if typ == 'passcode' then
         typ = 'integer'
         hide = true
-    end    
-        
+    end
+
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
-     end    
-    
+     end
+
     local u = units or 0
-    local uo = unitsOther or 0     
-    
-    local editVal = def 
+    local uo = unitsOther or 0
+
+    local editVal = def
     local editType = typ or 'integer'
     _M.editing = true
     endDisplayMessage()
@@ -389,66 +389,66 @@ function _M.edit(prompt, def, typ, units, unitsOther)
        _M.writeBotLeft(string.rep('+',#editVal))
     else
        _M.writeBotLeft(editVal)
-    end   
+    end
     _M.writeBotUnits(u, uo)
 
     local first = true
-   
-    local ok = false  
+
+    local ok = false
    _M.startDialog()
     while _M.editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)
         if not dialogRunning then    -- editing aborted so return default
             ok = false
            _M.editing = false
-           _M.sEditVal = def 
+           _M.sEditVal = def
         elseif state == 'short' then
             if key >= _M.KEY_0 and key <= _M.KEY_9 then
-                if first then 
-                    editVal = tostring(key) 
-                else 
-                    editVal = editVal .. key 
+                if first then
+                    editVal = tostring(key)
+                else
+                    editVal = editVal .. key
                 end
                 first = false
             elseif key == _M.KEY_DP and editType ~= 'integer' then
-                if editType == 'number' then 
+                if editType == 'number' then
                     if first or string.len(editVal) == 0 then
                        editVal = '0.'
                        first = false
                     elseif not string.find(editVal,'%.')  then
                        editVal = editVal .. '.'
                     end
-                else 
-                   editVal = editVal .. '.'             
+                else
+                   editVal = editVal .. '.'
                 end
-            elseif key == _M.KEY_OK then         
+            elseif key == _M.KEY_OK then
                 _M.editing = false
                  if string.len(editVal) == 0 then
                     editVal = def
-                 end    
+                 end
                 ok = true
-            elseif key == _M.KEY_CANCEL then    
+            elseif key == _M.KEY_CANCEL then
                 if string.len(editVal) == 0 then
                     editVal = def
                     _M.editing = false
                 else
                     editVal = string.sub(editVal,1,-2)
-                end 
-            end      
+                end
+            end
         elseif state == 'long' then
             if key == _M.KEY_CANCEL then
                 editVal = def
                 _M.editing = false
             end
-        end 
-        if hide then 
+        end
+        if hide then
            _M.writeBotLeft(string.rep('+',#editVal))
         else
            _M.writeBotLeft(editVal..' ')
-        end   
-    end 
+        end
+    end
     _M.restoreBot()
-   
+
     return tonumber(editVal), ok
 end
 
@@ -456,7 +456,7 @@ _M.REG_EDIT_REG = 0x0320
 -------------------------------------------------------------------------------
 --  Called to edit value of specified register
 -- @param reg is the address of the register to edit
--- @param prompt is true if name of register to be displayed during editing, 
+-- @param prompt is true if name of register to be displayed during editing,
 -- or set to a literal prompt to display
 -- @return value of reg
 function _M.editReg(reg,prompt)
@@ -467,14 +467,14 @@ function _M.editReg(reg,prompt)
          _M.writeBotRight(prompt)
       else
          _M.writeBotRight(_M.sendRegWait(_M.CMD_RDNAME,reg))
-      end   
+      end
    end
    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
    _M.startDialog()
-   while true do 
+   while true do
      local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
-     
-     if err or (data and tonumber(data,16) ~= reg) then 
+
+     if err or (data and tonumber(data,16) ~= reg) then
        break
      end
      _M.delay(0.050)
@@ -490,13 +490,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to delay for t sec while keeping event handlers running
--- @param t delay time in sec 
+-- @param t delay time in sec
 function _M.delay(t)
     local delayWaiting = true
     local tmr = _M.system.timers.addTimer(0, t, function () delayWaiting = false end)
     while delayWaiting do
         _M.system.handleEvents()
-    end  
+    end
 end
 
 local askOKWaiting = false
@@ -504,11 +504,11 @@ local askOKResult = 0
 -------------------------------------------------------------------------------
 -- Private function
 local askOKCallback(key, state)
-    
-    if state ~= 'short' then 
-        return false 
+
+    if state ~= 'short' then
+        return false
     end
-    
+
     if key == _M.KEY_OK then
         askOKWaiting = false
         askOKResult = _M.KEY_OK
@@ -517,7 +517,7 @@ local askOKCallback(key, state)
         askOKResult = _M.KEY_CANCEL
     end
 
-    return true 
+    return true
 end
 
 -------------------------------------------------------------------------------
@@ -531,33 +531,33 @@ function _M.askOK(prompt, q, units, unitsOther)
 
     local f = _M.keyGroup.keypad.callback
     local prompt = prompt or ''
-    local q = q or ''  
+    local q = q or ''
     local u = units or 0
     local uo = unitsOther or 0
-  
-    _M.setKeyGroupCallback(_M.keyGroup.keypad, askOKCallback)  
+
+    _M.setKeyGroupCallback(_M.keyGroup.keypad, askOKCallback)
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
     _M.writeBotLeft(q)
     _M.writeBotUnits(0,0)
     _M.writeBotUnits(u,uo)
- 
+
     askOKWaiting = true
     askOKResult = _M.KEY_CANCEL
    _M.startDialog()
     while dialogRunning and askOKWaiting and _M.app.running do
         _M.system.handleEvents()
-    end   
+    end
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
 
-    _M.restoreBot() 
-    return askOKResult  
-  
-end  
+    _M.restoreBot()
+    return askOKResult
+
+end
 
 -------------------------------------------------------------------------------
--- Prompts operator to select from a list of options using 
+-- Prompts operator to select from a list of options using
 -- arrow keys and KEY_OK
 -- @param prompt string to put on bottom right LCD
 -- @param options table of option strings
@@ -581,7 +581,7 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
                 index = k
             end
         end
-    end 
+    end
 
     _M.editing = true
     endDisplayMessage()
@@ -592,13 +592,13 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
 
    _M.startDialog()
     while _M.editing and _M.app.running do
-        key = _M.getKey(_M.keyGroup.keypad)  
+        key = _M.getKey(_M.keyGroup.keypad)
         if not dialogRunning then    -- editing aborted so return default
            _M.editing = false
         elseif key == _M.KEY_DOWN then
             index = index + 1
             if index > #options then
-              if loop then 
+              if loop then
                  index = 1
                else
                   index = #options
@@ -607,24 +607,24 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
         elseif key == _M.KEY_UP then
             index = index - 1
             if index <= 0 then
-               if loop then 
-                   index = #options 
-               else 
+               if loop then
+                   index = #options
+               else
                   index = 1
-               end   
+               end
             end
-        elseif key == _M.KEY_OK then 
+        elseif key == _M.KEY_OK then
             sel = options[index]
             _M.editing = false
         elseif key == _M.KEY_CANCEL then
-          _M.editing = false     
+          _M.editing = false
       end
       _M.writeBotLeft(string.upper(options[index]))
-      
-    end  
-      
-    _M.restoreBot()  
-   
+
+    end
+
+    _M.restoreBot()
+
     return sel
 end
 
