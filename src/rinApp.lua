@@ -181,9 +181,7 @@ function _M.addK400(model, ip, portA, portB)
     
     local model = model or ""
     
-    local device = require "rinLibrary.K400"
-    
-    package.loaded["rinLibrary.K400"] = nil
+    local device = require("rinLibrary.K400")()
 
     _M.devices[#_M.devices+1] = device
   
