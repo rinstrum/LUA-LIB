@@ -45,7 +45,7 @@ _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config)
 
 
-_M.userTerminalCallback = nil
+local userTerminalCallback = nil
 
 
 -------------------------------------------------------------------------------
@@ -55,7 +55,7 @@ _M.userTerminalCallback = nil
 -- to indicate that the message has been processed, false otherwise.  
 -- @param f callback given data entered by user in the terminal screen
 function _M.setUserTerminal(f)
-   _M.userTerminalCallback = f
+   userTerminalCallback = f
 end    
 
 
@@ -63,8 +63,9 @@ end
 local function userioCallback(sock)
     local data = sock:receive("*l")
 
-    if _M.userTerminalCallback then
-        if _M.userTerminalCallback(data) then return
+    if userTerminalCallback then
+        if userTerminalCallback(data) then
+            return
         end
     end    
     
@@ -82,62 +83,62 @@ local function userioCallback(sock)
     end  
 end
 
-_M.userUSBRegisterCallback = nil
-_M.userUSBEventCallback = nil
-_M.userUSBKBDCallback = nil
+local userUSBRegisterCallback = nil
+local userUSBEventCallback = nil
+local userUSBKBDCallback = nil
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
 -- @param f  Callback function takes event table as a parameter
 function _M.setUSBRegisterCallback(f)
-   _M.userUSBRegisterCallback = f
+   userUSBRegisterCallback = f
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device change is detected
 -- @return current callback
 function _M.getUSBRegisterCallback(f)
-   return _M.userUSBRegisterCallback
+   return userUSBRegisterCallback
 end
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
 -- @param f  Callback function takes event table as a parameter
 function _M.setUSBEventCallback(f)
-   _M.userUSBEventCallback = f
+   userUSBEventCallback = f
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device event is detected
 -- @return current callback
 function _M.getUSBEventCallback()
-   return _M.userUSBEventCallback
+   return userUSBEventCallback
 end
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB Keyboard event is processed
 -- @param f  Callback function takes key string as a parameter
 function _M.setUSBKBDCallback(f)
-   _M.userUSBKBDCallback = f
+   userUSBKBDCallback = f
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a USB Keyboard event is processed
 -- @return current callback
 function _M.getUSBKBDCallback()
-   return _M.userUSBKBDCallback
+   return userUSBKBDCallback
 end
 
-_M.eventDevices = {}
+local eventDevices = {}
 function _M.eventCallback(sock)
    local ev = _M.ev_lib.getEvent(sock)
    if ev then
-      if _M.userUSBEventCallback then
-          _M.userUSBEventCallback(ev)
+      if userUSBEventCallback then
+          userUSBEventCallback(ev)
       end    
       local key = _M.kb_lib.getR400Keys(ev)
-      if key and _M.userUSBKBDCallback then
-            _M.userUSBKBDCallback(key)
+      if key and userUSBKBDCallback then
+            userUSBKBDCallback(key)
       end   
     end      
 end
@@ -147,16 +148,16 @@ function _M.usbCallback(t)
    for k,v in pairs(t) do
       if v[1] == 'event' then
          if v[2] == 'added' then
-            _M.eventDevices[k] = _M.ev_lib.openEvent(k)
-            _M.system.sockets.addSocket(_M.eventDevices[k],_M.eventCallback) 
-         elseif v[2] == 'removed' and _M.eventDevices[k] ~= nil then
-            _M.system.sockets.removeSocket(_M.eventDevices[k])
-            _M.eventDevices[k] = nil
+            eventDevices[k] = _M.ev_lib.openEvent(k)
+            _M.system.sockets.addSocket(eventDevices[k],_M.eventCallback) 
+         elseif v[2] == 'removed' and eventDevices[k] ~= nil then
+            _M.system.sockets.removeSocket(eventDevices[k])
+            eventDevices[k] = nil
          end   
       end    
     end  
-   if _M.userUSBRegisterCallback then
-      _M.userUSBRegisterCallback(t)
+   if userUSBRegisterCallback then
+      userUSBRegisterCallback(t)
    end   
 end
 
@@ -312,21 +313,22 @@ local function socketUnidirectionalAccept(sock, ip, port)
     rinApp.dbg.info('unidirectional connection from', ip, port)
 end
 
-_M.userMainLoop = nil
-_M.userCleanup = nil
+local userMainLoop = nil
+local userCleanup = nil
+local cleanedUp = false
 
 -------------------------------------------------------------------------------
 -- called to register application's main loop function
 -- @param f Mail Loop function to call 
 function _M.setMainLoop(f)
-   _M.userMainLoop = f
+   userMainLoop = f
 end    
 
 -------------------------------------------------------------------------------
 -- called to register application's cleanup function
 -- @param f cleanup function to call 
 function _M.setCleanup(f)
-   _M.userCleanup = f
+   userCleanup = f
 end    
     
 -------------------------------------------------------------------------------
@@ -346,11 +348,11 @@ end
 -- Called to restore the system to initial state by shutting down services
 -- enabled by configure() 
 function _M.cleanup()
-    if _M.cleanedUp then
+    if cleanedUp then
         return
     end        
-    if _M.userCleanup then
-      _M.userCleanup()
+    if userCleanup then
+      userCleanup()
     end
     for k,v in pairs(_M.devices) do
         v.restoreLcd()
@@ -360,7 +362,7 @@ function _M.cleanup()
         v.delay(0.050)
      end 
     _M.dbg.info('','------   Application Finished  ------')
-    _M.cleanedUp = true
+    cleanedUp = true
 end
 
 -------------------------------------------------------------------------------
@@ -368,8 +370,8 @@ end
 function _M.run()
     _M.init()
     while _M.running do
-        if _M.userMainLoop then
-           _M.userMainLoop()
+        if userMainLoop then
+           userMainLoop()
         end   
         _M.system.handleEvents()           -- handleEvents runs the event handlers 
     end
