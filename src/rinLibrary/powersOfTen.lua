@@ -4,8 +4,7 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
--------------------------------------------------------------------------------
--- @table powersOfTen
+
 -- A table containing integral powers of ten then their reciprocals.
 --
 -- This is implemented as a memo function so as to avoid an expensive

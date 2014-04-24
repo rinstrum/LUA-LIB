@@ -1,3 +1,11 @@
+-------------------------------------------------------------------------------
+---  Checksum routine.
+-- Function for generating checksums of string data for communication to display
+-- @module rinLibrary.rinCCITT
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+
 local bit32 = require "bit"
 local bxor = bit32.bxor
 local floor = math.floor

@@ -39,9 +39,10 @@ end
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
 -- @param model Software model expected for the instrument (eg "K401")
--- @param sockA, sockB TCP sockets to connect  SERA and SERB ports
+-- @param sockA TCP sockets to connect SERA port
+-- @param sockB TCP sockets to connect SERB port
 -- @param app application framework
-function _M.connect(model,sockA, sockB, app)
+function _M.connect(model, sockA, sockB, app)
     instrumentModel = model
     _M.socketA = sockA
     _M.socketB = sockB
