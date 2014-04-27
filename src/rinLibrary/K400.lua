@@ -35,7 +35,7 @@ return function ()
                          if kt[k] == nil then
                              kt[k] = v
                          else
-                             t.dbg.fatal("K400: ignore redefinition of ".. k .. " as", v)
+                             t.dbg.fatal("K400: redefinition of ".. k .. " as", v)
                              os.exit(1)
                          end
                      end
