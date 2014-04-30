@@ -156,6 +156,37 @@ function _M.saveCSV(t)
 	  return (t)
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Naively determine if two tables have any common fields and if so return a
+-- cross mapping.  The algorithm used here is O(n . m) when n and m are the number
+-- of columns in the respective CSV tables.  It is possible to implement this in
+-- O(n log m) time and this should be done if CSV files with large numbers of columns
+-- are expected.
+local function checkCommonFields(a, b)
+    local map = {}
+    local n = 0
+    local bname = {}
+
+    -- Cache the converted field names for the second table to speed things a little
+    for j = 1, #b do
+        table.insert(bname, string.lower(string.gsub(b[j],'%s','')))
+    end
+
+    for i = 1, #a do
+        map[i] = ''
+        local fname = string.lower(string.gsub(a[i],'%s',''))
+        for j = 1, #b do
+            if fname == bname[j] then
+                bname[j] = nil
+                map[i] = j
+                n = n + 1
+                break
+            end
+        end
+    end
+    return n, map
+end
+
 -------------------------------------------------------------------------------
 -- Reads a .CSV file and returns a table with the loaded contents
 -- If no CSV file found or contents different then file created with structure in it.
@@ -163,23 +194,35 @@ end
 -- @return table in same format:
 --      fname name of .csv file associated with table - used to save/restore table contents
 --      labels{}  1d array of column labels
---      data{{}}  2d array of data 
+--      data{{}}  2d array of data
+-- @return A result code describing what was done:
+--      create      File didn't exist, returned an empty CSV table
+--      empty       File was empty, returned an empty CSV table
+--      load        File loaded fine
+--      full        File had all fields but some extra fields too
+--      reordered   File had all fields but in a different order
+--      partial     File had some common fields, returned a populated CSV table
+--      immiscable  File had no common fields, returned an empty CSV table
  function _M.loadCSV(t)
   
      local f = io.open(t.fname,"r")
+     local res = nil
      
      if f == nil then
           -- no file yet so create new one      
           _M.saveCSV(t)     
+          res = "create"
      else    
          local s = f:read("*l")
          if s == nil then
               -- file is empty so setup to hold t  
               f:close()   
               _M.saveCSV(t)  
+              res = "empty"
          else
               -- Check the labels are equal
-              if _M.equalCSV(t.labels, _M.fromCSV(s)) then 
+              local fieldnames = _M.fromCSV(s)
+              if _M.equalCSV(t.labels, fieldnames) then 
                  
                  -- Clear the current table and read in the existing data
                  t.data = {}
@@ -187,15 +230,47 @@ end
                      table.insert(t.data,_M.fromCSV(s))
                  end
                  f:close()
+                 res = "load"
                  
               -- different format so initialize to new table format
               else
-                 f:close()
-                 _M.saveCSV(t)
+                 -- Check if there are any common fields or not
+                 local n, fieldmap = checkCommonFields(t.labels, fieldnames)
+                 if n ~= 0 then
+                    t.data = {}
+                    for s in f:lines() do
+                        local fields = _M.fromCSV(s)
+                        local row = {}
+                        for i = 1, #fieldmap do
+                            if fieldmap[i] == '' then
+                                table.insert(row, '')
+                            else
+                                table.insert(row, fields[fieldmap[i]])
+                            end
+                        end
+                        table.insert(t.data, row)
+                    end
+                    f:close()
+                    _M.saveCSV(t)
+                    -- Figure out the possible return codes based on the field counts
+                    if n == #t.labels then
+                        if n == #fieldnames then
+                            res = "reordered"
+                        else
+                            res = "full"
+                        end
+                    else
+                        res = "partial"
+                    end
+                 else
+                    f:close()
+                    _M.saveCSV(t)
+                    res = "immiscable"
+                 end
               end                       
          end     
      end
-    return t     
+    return t, res
   end        
 
 -------------------------------------------------------------------------------
