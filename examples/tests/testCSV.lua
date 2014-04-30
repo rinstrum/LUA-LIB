@@ -56,9 +56,10 @@ print(csv.tostringCSV(db.materials,10))
 print('---------------------------------------------------')
 print('Logging Data to File')
 
-local log = csv.loadCSV({['fname'] = 'test1.csv',
-                   ['labels'] = {'Target','Actual','Fill Time'},
-                   ['data'] = {}})
+local log, kind = csv.loadCSV({ ['fname'] = 'test1.csv',
+                                ['labels'] = {'Target','Actual','Fill Time'},
+                                ['data'] = {}})
+
 -- addLineCSV addsline ot the ram copy but does not save to disk
 csv.addLineCSV(log,{1000,990,24.5})
 csv.addLineCSV(log,{1200,1250,26.5})
