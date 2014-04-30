@@ -58,12 +58,12 @@ end
  function _M.padCSV(t,w)
  
     local s = '';
-    local f = '%%s'
+    local f = '%s'
     if w then
         f = string.format("%%%ds",w)
     end    
     for _,p in pairs(t) do
-       s = s .. ',' ..  string.format(f,_M.escapeCSV(p))
+       s = s .. ',' ..  _M.escapeCSV(string.format(f, p))
     end
     
     return string.sub(s,2)
