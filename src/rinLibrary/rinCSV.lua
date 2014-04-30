@@ -38,6 +38,7 @@ local dbg = require "rinLibrary.rinDebug"
  
 -------------------------------------------------------------------------------
 -- Converts a table (1d array) to a CSV string with fields escaped if required
+-- The order of the CSV string returned isn't guaranteed.
 -- @param t table to convert 
 -- @return escaped CSV string
  function _M.toCSV(t)
