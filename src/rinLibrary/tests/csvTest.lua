@@ -12,6 +12,7 @@ local tests, fails = 0, 0
 local path = "rinLibrary/tests/"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test escapeCSV
 local escapeTests = {
     { val = 'abc',      res = 'abc' },
     { val = 'abc,def',  res = '"abc,def"' },
@@ -31,6 +32,7 @@ for i = 1, #escapeTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test toCSV
 local toCsvTests = {
     { val = { "a", "b", "c" },          res = "a,b,c" },
     { val = { "a ", " b", " c " },      res = "a , b, c " },
@@ -49,6 +51,7 @@ for i = 1, #toCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test padCSV
 local padCsvTests = {
     { val = { "a", "b", "c" },          res = " a, b, c", w=2 },
     { val = { "a", "b", "c" },          res = "a,b,c", w = nil },
@@ -67,6 +70,7 @@ for i = 1, #padCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test fromCSV
 local fromCsvTests = {
     { val = "a,b,c",                    res = { "a", "b", "c" } },
     { val = "a , b, c ",                res = { "a ", " b", " c " } },
@@ -93,6 +97,7 @@ for i = 1, #fromCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test equalCSV
 local equalCsvTests = {
     { r=true,   a={ "a", "b", "c" },    b={ 'a', 'b', 'c' } },
     { r=false,  a={ "a", "b", "c" },    b={ 'd', 'e', 'f' } },
@@ -112,6 +117,7 @@ for i = 1, #equalCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test loadCSV
 local loadCsvTests = {
     { res = "create",       t={ fname = "nonexist",            labels = {} } },
     { res = "load",         t={ fname = path .. "csvData.csv", labels = { "a", "b" } },       v = {{'1', '2'}, {'3', '4'}} },
@@ -176,6 +182,128 @@ end
 csv.saveCSV = saveSaveCSV
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test numRowsCSV & numColsCSV
+local numCsvTests = {
+    { rows = 0, cols = 0, t = {} },
+    { rows = 0, cols = 0 },
+    { rows = 1, cols = 2, t = { labels = { "a", "b" }, data = { {1, 2} } } },
+    { rows = 3, cols = 1, t = { labels = { "a" }, data = { {1}, {3}, {5} } } },
+    { rows = 0, cols = 5, t = { labels = { "a", "b", "c", "d", "e" } } },
+    { rows = 0, cols = 0, t = { data = { {1, 2}, {4, 3}, {5, 6} } } },
+}
+
+for i = 1, #numCsvTests do
+    local r = numCsvTests[i]
+    local rows = csv.numRowsCSV(r.t)
+    local cols = csv.numColsCSV(r.t)
+    local failed = false
+
+    if r.rows ~= rows then
+        print("numRowsCSV fail for line "..i.." got "..rows.." instead of "..r.rows)
+        failed = true
+    end
+    if r.cols ~= cols then
+        print("numColsCSV fail for line "..i.." got "..cols.." instead of "..r.cols)
+        failed = true
+    end
+    tests = tests + 1
+    if failed then
+        fails = fails + 1
+    end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test labelColCSV
+local labelColTests = {
+    { c = "a",  r = 1,      t = { labels = { "a", "b" } } },
+    { c = "b",  r = 2,      t = { labels = { "a", "b" } } },
+    { c = "c",  r = nil,    t = { labels = { "a", "b" } } },
+    { c = "a",  r = nil,    t = { } },
+    { c = "a",  r = nil,    t = nil }
+}
+
+for i = 1, #labelColTests do
+    local r = labelColTests[i]
+    local col = csv.labelCol(r.t, r.c)
+    local failed = false
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test getColCSV
+local getColCsvTests = {
+    { c = 1,    r = { 1, 4, 5 },    t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { c = "a",  r = { 1, 5 },       t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6} } } },
+    { c = 2,    r = { 2 },          t = { labels = { "a", "b" }, data = { {1, 2} } } },
+    { c = "b",  r = { 2, 3, 6 },    t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { c = 3,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+    { c = 0,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+    { c = 0,    r = nil,            t = { labels = { "a", "b" } } },
+    { c = 0,    r = nil,            t = { data = { {1, 2} } } },
+    { c = 0,    r = nil },
+}
+
+for i = 1, #getColCsvTests do
+    local r = getColCsvTests[i]
+    local col = csv.getColCSV(r.t, r.c)
+    local failed = false
+
+    if r.r == nil then
+        if col ~= nil then
+            print("getColCSV fail for line "..i.." result not nil")
+            failed = true
+        end
+    else
+        if #r.r ~= #col then
+            print("getColCSV fail for line "..i.." wrong number of rows")
+            failed = true
+        else
+            for j = 1, #col do
+                if r.r[j] ~= col[j] then
+                    print("getColCSV fail for line "..i.." bad value row "..j)
+                    failed = true
+                    break
+                end
+            end
+        end
+    end
+    tests = tests + 1
+    if failed then
+        fails = fails + 1
+    end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test logLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test addLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test dupLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test remLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test getLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test replaceLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test tostringCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test tostringCol
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test tostringLine
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test addTableDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test loadDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test addLineDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test remLineDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test saveDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test tostringDB
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
 if fails == 0 then
     print("pass: "..tests.." tests")
 else

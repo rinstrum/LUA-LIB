@@ -345,21 +345,35 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns a column of data in a 1-D table
--- @param t is table holding CSV data
--- @param col is the column of data to match (default is col 1)
+-- @param csvtbl is table holding CSV data
+-- @param col is the column of data to match (default is col 1), column names are allowed
 -- @return a column of data
 -- @usage
 -- names = csv.getColCSV(db.material,2)           -- gather all material names
 -- sel = dwi.selectOption('SELECT',names,names[1],true)    -- chose a material
 --   
-function _M.getColCSV(t,col)
-   local column = {}
-   local col = col or 1
- 
-   for k,v in ipairs(t.data) do
-      table.insert(column,v[col])
-   end
-   return column
+function _M.getColCSV(csvtbl, col)
+    local column = {}
+    local t, c = csvtbl, col
+
+    if t == nil or t.labels == nil or t.data == nil then
+        return nil
+    end
+
+    if c == nil then
+        c = 1
+    elseif type(c) == "string" then
+        c = _M.labelCol(t, c)
+        if c == nil then return nil end
+    end
+    if c > _M.numColsCSV(t) or c < 1 then
+        return nil
+    end
+
+    for k,v in ipairs(t.data) do
+        table.insert(column, v[c])
+    end
+    return column
 end
 
 -------------------------------------------------------------------------------
@@ -380,7 +394,9 @@ end
 -- @return column number of the label or nil if not found	
 function _M.labelCol(t,label)
   
-  if label == nil then return nil end
+  if label == nil or t == nil or t.labels == nil then
+    return nil
+  end
   label = tostring(label)
   label = string.lower(label)
 
@@ -441,7 +457,10 @@ end
 -- @param t CSV table
 -- @return number of rows
 function _M.numRowsCSV(t)
-  return(#t.data)
+    if t == nil or t.data == nil or t.labels == nil then
+        return 0
+    end
+    return #t.data
 end
 
 -------------------------------------------------------------------------------
@@ -449,7 +468,10 @@ end
 -- @param t CSV table
 -- @return number of columns
 function _M.numColsCSV(t)
-   return (#t.labels)
+    if t == nil or t.labels == nil then
+        return 0
+    end
+    return #t.labels
 end
 
 -------------------------------------------------------------------------------
