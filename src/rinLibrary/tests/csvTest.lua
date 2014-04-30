@@ -69,7 +69,8 @@ end
 local fromCsvTests = {
     { val = "a,b,c",                    res = { "a", "b", "c" } },
     { val = "a , b, c ",                res = { "a ", " b", " c " } },
-    { val = '"  ""","  ,","  """, xy',  res = { '  "', '  ,', '  "', " xy" } }
+    { val = '"  ""","  ,","  """, xy',  res = { '  "', '  ,', '  "', " xy" } },
+    { val = '""""""""""',               res = { '""""' } }
 }
 
 local function compareCsv(a, b)
