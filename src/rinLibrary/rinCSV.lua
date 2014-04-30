@@ -223,6 +223,9 @@ end
          else
               -- Check the labels are equal
               local fieldnames = _M.fromCSV(s)
+              if t.labels == nil then
+                 t.labels = fieldnames
+              end
               if _M.equalCSV(t.labels, fieldnames) then 
                  
                  -- Clear the current table and read in the existing data

@@ -120,6 +120,7 @@ local loadCsvTests = {
     { res = "partial",      t={ fname = path .. "csvData.csv", labels = { "a", "c" } },       v = {{'1', ''}, {'3', ''}} },
     { res = "full",         t={ fname = path .. "csvData.csv", labels = { "a" } },            v = {{'1'}, {'3'}} },
     { res = "immiscable",   t={ fname = path .. "csvData.csv", labels = { "x" } } },
+    { res = "load",         t={ fname = path .. "csvData.csv" },                              v = {{'1', '2'}, {'3', '4'}} },
 }
 
 local saveSaveCSV = csv.saveCSV
