@@ -61,6 +61,9 @@ end
 -------------------------------------------------------------------------------
 -- Get a message from the connection
 -- @return message
+--
+-- This routine should be a lot smarter about the reading.  One character at
+-- a time is grossly inefficient.
 function _M.getMsg()
 	local msg
 	local buf = {}

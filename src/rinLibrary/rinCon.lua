@@ -174,6 +174,10 @@ local serABuffer = {}
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
+--
+-- This routine should be a lot smarter about the reading.  One character at
+-- a time is grossly inefficient.  Read a buffer full, split the packets and
+-- decode each.
 function _M.socketACallback()
     local char, prevchar, err
     while true do
@@ -429,6 +433,9 @@ local function serBProcess(err)
 end
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. 
+--
+-- This routine should be a lot smarter about the reading.  One character at
+-- a time is grossly inefficient.
 local largeSerialBMessageWarning = false  -- Have we warned about an over sized message yet?
 function _M.socketBCallback()
 
