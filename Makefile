@@ -30,6 +30,10 @@ clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
 	rm -rf $(M01_DIR)
 
+test:
+	cd src && rinLibrary/tests/csvTest.lua
+	cd src && lua rinLibrary/tests/powersOfTenTest.lua
+
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
