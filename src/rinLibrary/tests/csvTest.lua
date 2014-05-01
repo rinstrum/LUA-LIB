@@ -8,8 +8,30 @@
 
 local csv = require "rinLibrary.rinCSV"
 
-local tests, fails = 0, 0
 local path = "rinLibrary/tests/"
+
+-- Utility functions to update the number of tests and fails and to get these values
+-- We actually hide the variables inside some closures to ensure that none
+-- of the tests directly attempt to alter them.  Can't see how to inline this
+-- without the temporary function.
+function testresultfunctions()
+    local tests, fails = 0, 0
+
+    local function t(failed)
+        if failed then
+            fails = fails + 1
+        end
+        tests = tests + 1
+    end
+
+    local function r()
+        return tests, fails
+    end
+
+    return t, r
+end
+
+local test, results = testresultfunctions()
 
 -- Utility function to compare two vectors for inequality
 local function compareVectors(expected, result, i, test)
@@ -78,11 +100,13 @@ local escapeTests = {
 for i = 1, #escapeTests do
     local r = escapeTests[i]
     local x = csv.escapeCSV(r.val)
+    local failed = false
+
     if x ~= r.res then
         print("escapeCSV fail for @" .. r.val .. "@ giving @"..x.."@ instead of @"..r.res.."@")
-        fails = fails + 1
+        failed = true
     end
-    tests = tests + 1
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -92,16 +116,20 @@ local toCsvTests = {
     { val = { "a ", " b", " c " },      res = "a , b, c " },
     { val = { '"', ',', '"', "xy" },    res = '"""",",","""",xy' },
     { val = { '""""' },                 res = '""""""""""' },
+    { val = { },                        res = '' },
+    { val = nil,                        res = '' }
 }
 
 for i = 1, #toCsvTests do
     local r = toCsvTests[i]
     local x = csv.toCSV(r.val, r.w)
+    local failed = false
+
     if x ~= r.res then
         print("toCSV fail for line "..i.." giving @"..x.."@ instead of @"..r.res.."@")
-        fails = fails + 1
+        failed = true
     end
-    tests = tests + 1
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -110,17 +138,21 @@ local padCsvTests = {
     { val = { "a", "b", "c" },          res = " a, b, c", w=2 },
     { val = { "a", "b", "c" },          res = "a,b,c", w = nil },
     { val = { "a ", " b", " c " },      res = "  a ,   b,  c ", w=4 },
-    { val = { '"', ',', '"', "xy" },    res = '"  ""","  ,","  """, xy', w=3 }
+    { val = { '"', ',', '"', "xy" },    res = '"  ""","  ,","  """, xy', w=3 },
+    { val = { },                        res = '' },
+    { val = nil,                        res = '' }
 }
 
 for i = 1, #padCsvTests do
     local r = padCsvTests[i]
     local x = csv.padCSV(r.val, r.w)
+    local failed = false
+
     if x ~= r.res then
         print("padCSV fail for line "..i.." giving @"..x.."@ instead of @"..r.res.."@")
-        fails = fails + 1
+        failed = true
     end
-    tests = tests + 1
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -129,25 +161,27 @@ local fromCsvTests = {
     { val = "a,b,c",                    res = { "a", "b", "c" } },
     { val = "a , b, c ",                res = { "a ", " b", " c " } },
     { val = '"  ""","  ,","  """, xy',  res = { '  "', '  ,', '  "', " xy" } },
-    { val = '""""""""""',               res = { '""""' } }
+    { val = '""""""""""',               res = { '""""' } },
+    { val = "a,b,c\r",                  res = { "a", "b", "c" } },
+    { val = '',                         res = nil },
+    { val = '\r',                       res = nil },
+    { val = nil,                        res = nil }
 }
 
-local function compareCsv(a, b)
-    if #a ~= #b then return false end
-    for i = 1, #a do
-        if a[i] ~= b[i] then return false end
+    local function compareCsv(a, b)
+        if a == nil then return a == b end
+        if #a ~= #b then return false end
+        for i = 1, #a do
+            if a[i] ~= b[i] then return false end
+        end
+        return true
     end
-    return true
-end
 
 for i = 1, #fromCsvTests do
     local r = fromCsvTests[i]
     local x = csv.fromCSV(r.val)
-    if not compareCsv(r.res, x) then
-        print("fromCSV fail for line "..i)
-        fails = fails + 1
-    end
-    tests = tests + 1
+
+    test(compareVectors(r.res, x, i, "fromCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -163,11 +197,13 @@ local equalCsvTests = {
 
 for i = 1, #equalCsvTests do
     local r = equalCsvTests[i]
+    local failed = false
+
     if r.r ~= csv.equalCSV(r.a, r.b) then
         print("equalCSV fail for line "..i)
-        fails = fails + 1
+        failed = true
     end
-    tests = tests + 1
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -212,10 +248,7 @@ for i = 1, #loadCsvTests do
         print("loadCSV fail for line "..i.." save function anomoly")
         failed = true
     end
-    tests = tests + 1
-    if failed then
-        fails = fails + 1
-    end
+    test(failed)
 end
 csv.saveCSV = saveSaveCSV
 
@@ -244,10 +277,7 @@ for i = 1, #numCsvTests do
         print("numColsCSV fail for line "..i.." got "..cols.." instead of "..r.cols)
         failed = true
     end
-    tests = tests + 1
-    if failed then
-        fails = fails + 1
-    end
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -267,9 +297,9 @@ for i = 1, #labelColTests do
 
     if col ~= r.r then
         print("labelCol fail for line "..i.." got "..col.." instead of "..r.r)
-        fails = fails + 1
+        failed = true
     end
-    tests = tests + 1
+    test(failed)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -289,12 +319,8 @@ local getColCsvTests = {
 for i = 1, #getColCsvTests do
     local r = getColCsvTests[i]
     local col = csv.getColCSV(r.t, r.c)
-    local failed = false
 
-    tests = tests + 1
-    if compareVectors(r.r, col, i, "getColCSV") then
-        fails = fails + 1
-    end
+    test(compareVectors(r.r, col, i, "getColCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -309,14 +335,10 @@ local addLineCsvTests = {
 }
 
 for i = 1, #addLineCsvTests do
-    local failed = false
     local r = addLineCsvTests[i]
     csv.addLineCSV(r.t, r.l)
 
-    tests = tests + 1
-    if compareResult(r.r, r.t, i, "addLineCSV") then
-        fails = fails + 1
-    end
+    test(compareResult(r.r, r.t, i, "addLineCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -332,14 +354,10 @@ local remLineCsvTests = {
 }
 
 for i = 1, #remLineCsvTests do
-    local failed = false
     local r = remLineCsvTests[i]
     csv.remLineCSV(r.t, r.l)
 
-    tests = tests + 1
-    if compareResult(r.r, r.t, i, "remLineCSV") then
-        fails = fails + 1
-    end
+    test(compareResult(r.r, r.t, i, "remLineCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -361,14 +379,10 @@ local replaceLineCsvTests = {
 }
 
 for i = 1, #replaceLineCsvTests do
-    local failed = false
     local r = replaceLineCsvTests[i]
     csv.replaceLineCSV(r.t, r.l, r.d)
 
-    tests = tests + 1
-    if compareResult(r.r, r.t, i, "replaceLineCSV") then
-        fails = fails + 1
-    end
+    test(compareResult(r.r, r.t, i, "replaceLineCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -380,14 +394,10 @@ local dupLineCsvTests = {
 }
 
 for i = 1, #dupLineCsvTests do
-    local failed = false
     local r = dupLineCsvTests[i]
     local res = csv.dupLineCSV(r.l)
 
-    tests = tests + 1
-    if compareVectors(r.r, res, i, "dupLineCSV") then
-        fails = fails + 1
-    end
+    test(compareVectors(r.r, res, i, "dupLineCSV"))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -416,6 +426,7 @@ end
 -- test tostringDB
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
+local tests, fails = results()
 if fails == 0 then
     print("pass: csvTest "..tests.." tests")
 else

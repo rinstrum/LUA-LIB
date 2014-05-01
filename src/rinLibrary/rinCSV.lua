@@ -36,29 +36,32 @@ end
 -- Adds '"' around s if it contains ',' or '"' and replaces '"' with '""'
 -- @param s string to escape
 -- @return escaped string
- function _M.escapeCSV(s)
-  s = tostring(s)  -- string find & gsub requires a string so make sure we have one
-  -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""'
+function _M.escapeCSV(s)
+    s = tostring(s)  -- string find & gsub requires a string so make sure we have one
+    -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""'
     if string.find(s, '[,"]') then
         s = '"' .. string.gsub(s,'"','""') .. '"'
     end
 
     return s
- end
+end
 
 -------------------------------------------------------------------------------
 -- Converts a table (1d array) to a CSV string with fields escaped if required
 -- The order of the CSV string returned isn't guaranteed.
 -- @param t table to convert
 -- @return escaped CSV string
- function _M.toCSV(t)
-
-    local s = '';
-    for _,p in pairs(t) do
-       s = s .. ',' ..  _M.escapeCSV(p)
+function _M.toCSV(t)
+    local s = { }
+    if t ~= nil then
+        for _,p in pairs(t) do
+            table.insert(s, ",")
+            table.insert(s, _M.escapeCSV(p))
+        end
     end
+    s[1] = ""
 
-    return string.sub(s,2)
+    return table.concat(s)
 end
 
 -------------------------------------------------------------------------------
@@ -66,18 +69,20 @@ end
 -- @param t table to convert
 -- @param w is width of each cell
 -- @return escaped CSV string padded to w characters in each cell
- function _M.padCSV(t,w)
+function _M.padCSV(t, w)
+    local s = { }
 
-    local s = '';
-    local f = '%s'
-    if w then
-        f = string.format("%%%ds",w)
-    end
-    for _,p in pairs(t) do
-       s = s .. ',' ..  _M.escapeCSV(string.format(f, p))
-    end
+    if t ~= nil then
+        local f = w ~= nil and string.format("%%%ds", w) or '%s'
 
-    return string.sub(s,2)
+        for _, p in pairs(t) do
+            table.insert(s, ",")
+            table.insert(s, _M.escapeCSV(string.format(f, p)))
+        end
+    end
+    s[1] = ''
+
+    return table.concat(s)
 end
 
 -------------------------------------------------------------------------------
@@ -86,9 +91,13 @@ end
 -- @return table (1d array)
 
 function _M.fromCSV(s)
-    if string.sub(s,-1,-1) == '\r' then
+    if s == nil then return nil end
+
+    if #s > 0 and string.sub(s,-1,-1) == '\r' then
        s = string.sub(s,1,-2)  -- remove \r if present
     end
+    if s == '' then return nil end
+
     s = s .. ','
     local t = {}
 
@@ -105,13 +114,13 @@ function _M.fromCSV(s)
                 error ('Unmatched quote')
             end
 
-            local f = string.sub(s,fieldstart+1,i-1)
+            local f = string.sub(s,fieldstart+1, i-1)
             table.insert(t, (string.gsub(f,'""','"')))
             fieldstart = string.find(s,',',i)+1
         else
             local nexti = string.find(s, ',', fieldstart)
             table.insert(t, string.sub(s,fieldstart, nexti-1))
-            fieldstart = nexti +1
+            fieldstart = nexti + 1
         end
     until fieldstart > string.len(s)
 
