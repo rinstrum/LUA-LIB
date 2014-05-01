@@ -27,4 +27,9 @@ for k,v in pairs(p10) do
     n = n + 1
 end
 
-print("Failed " .. f .. " tests out of " .. n)
+
+if f == 0 then
+    print("pass: powersOfTenTest "..n.." tests")
+else
+    print(string.format("fail: powersOfTenTest %d tests failed of %d total", f, n))
+end

@@ -407,7 +407,7 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
 if fails == 0 then
-    print("pass: "..tests.." tests")
+    print("pass: csvTest "..tests.." tests")
 else
-    print(string.format("fail: %d tests failed of %d total", fails, tests))
+    print(string.format("fail: csvTest %d tests failed of %d total", fails, tests))
 end
