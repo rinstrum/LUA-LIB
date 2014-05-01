@@ -257,7 +257,7 @@ end
                     f:close()
                     _M.saveCSV(t)
                     -- Figure out the possible return codes based on the field counts
-                    if n == #t.labels then
+                    if n == _M.numColsCSV(t) then
                         if n == #fieldnames then
                             res = "reordered"
                         else
@@ -293,9 +293,14 @@ end
 -- @param line of data (1d array) to add to the table
 -- @return row location of line new line in table
   
-function _M.addLineCSV(t,line)
-      table.insert(t.data,line)
-	  return(table.maxn(t.data))
+function _M.addLineCSV(t, line)
+    if t ~= nil and t.labels ~= nil and t.data ~= nil and line ~= nil then
+        if #line == _M.numColsCSV(t) then
+            table.insert(t.data,line)
+	        return _M.numRowsCSV(t)
+        end
+    end
+    return nil
 end 
 
 -------------------------------------------------------------------------------
@@ -315,8 +320,12 @@ end
 -- @param t is table holding CSV data
 -- @param row is row number of table data 1..n to remove.
 -- removes last line of data if row is nil
-function _M.remLineCSV(t,row)
-      table.remove(t.data,row)  -- remove last line from the table
+function _M.remLineCSV(t, row)
+    if t ~= nil and t.labels ~= nil and t.data ~= nil and row ~= nil then
+        if row > 0 and row <= _M.numRowsCSV(t) then
+            table.remove(t.data, row)  -- remove line from the table
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -381,10 +390,17 @@ end
 -- @param t is table holding CSV data
 -- @param row is the row number of the line of data
 -- @param line is the line of data
-function _M.replaceLineCSV(t,row,line)
-    if row == nil then return end
-	if (row < 1) or (row > table.maxn(t.data)) then return end
-    t.data[row] = line
+function _M.replaceLineCSV(t, row, line)
+    if row == nil or t == nil or t.data == nil or t.labels == nil then
+        return
+    end
+	if row < 1 or row > _M.numRowsCSV(t) then return end
+
+    if line == nil then
+        _M.remLineCSV(t, row)
+    elseif #line == _M.numColsCSV(t) then
+        t.data[row] = line
+    end
 end
 
 -------------------------------------------------------------------------------

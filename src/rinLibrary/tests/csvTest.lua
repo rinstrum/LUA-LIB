@@ -11,6 +11,36 @@ local csv = require "rinLibrary.rinCSV"
 local tests, fails = 0, 0
 local path = "rinLibrary/tests/"
 
+local function compareResult(expected, t, i, test)
+    if expected == nil then
+        if t.data ~= nil then
+            print(test.." fail for line "..i.." result not nil")
+            return true
+        end
+    elseif t.data ~= nil then
+        if #expected ~= #t.data then
+            print(test.." fail for line "..i.." wrong number of rows")
+            return true
+        elseif t.labels ~= nil then
+            for j = 1, #expected do
+                for k = 1, #t.labels do
+                    if t.data[j] == nil then
+                        print(test.." fail for line "..i.." no data row "..j)
+                        return true
+                    elseif #expected[j] ~= #t.data[j] then
+                        print(test.." fail for line "..i.." uneven data row "..j)
+                        return true
+                    elseif expected[j][k] ~= t.data[j][k] then
+                        print(test.." fail for line "..i.." bad element ("..j..", "..k..")".." got "..t.data[j][k].." expected "..expected[j][k])
+                        return true
+                    end
+                end
+            end
+        end
+    end
+    return false
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test escapeCSV
 local escapeTests = {
@@ -146,30 +176,7 @@ for i = 1, #loadCsvTests do
         print("loadCSV fail for line "..i.." result is "..res.." expected "..r.res)
         failed = true
     elseif r.v ~= nil then
-        if t.data == nil then
-            print("loadCSV fail for line "..i.." table doesn't have data and should")
-            failed = true
-        elseif #r.v ~= #t.data then
-            print("loadCSV fail for line "..i.." mismatch in data rows")
-            failed = true
-        else
-            for j = 1, #t.data do
-                if #t.data[j] ~= #r.v[j] then
-                    print("loadCSV fail for line "..i.." mismatch in data row length for row "..j)
-                    failed = true
-                    break
-                else
-                    for k = 1, #t.data[j] do
-                        if t.data[j][k] ~= r.v[j][k] then
-                            print("loadCSV fail for line "..i.." in data for ("..j..", "..k.."): "
-                                        .. t.data[j][k] .. " expected " .. r.v[j][k])
-                            failed = true
-                            break
-                        end
-                    end
-                end
-            end
-        end
+        failed = compareResult(r.v, r.t, i, "loadCSV")
     elseif t.data ~= nil then
         print("loadCSV fail for line "..i.." table has data when it shouldn't")
         failed = true
@@ -226,6 +233,12 @@ for i = 1, #labelColTests do
     local r = labelColTests[i]
     local col = csv.labelCol(r.t, r.c)
     local failed = false
+
+    if col ~= r.r then
+        print("labelCol fail for line "..i.." got "..col.." instead of "..r.r)
+        fails = fails + 1
+    end
+    tests = tests + 1
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -273,18 +286,87 @@ for i = 1, #getColCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- test logLineCSV
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test addLineCSV
+local addLineCsvTests = {
+    { l = {8, 9},   n = 4,   r = { {1, 2}, {4, 3}, {5, 6}, {8, 9} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = nil,      n = nil, r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = {1},      n = nil, r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = {1,2,3},  n = nil, r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = {8, 9},   n = nil, r = { {1, 2}, {4, 3}, {5, 6} },         t = {                        data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = {8, 9},   n = nil, r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, } },
+}
+
+for i = 1, #addLineCsvTests do
+    local failed = false
+    local r = addLineCsvTests[i]
+    csv.addLineCSV(r.t, r.l)
+
+    tests = tests + 1
+    if compareResult(r.r, r.t, i, "addLineCSV") then
+        fails = fails + 1
+    end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test remLineCSV
+local remLineCsvTests = {
+    { l = 2, r = { {1, 2}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 1, r = { {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 3, r = { {1, 2}, {4, 3} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 4, r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 0, r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 2, r = { {1, 2}, {4, 3}, {5, 6} }, t = {                        data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 2, r = nil,                        t = { labels = { "a", "b" }, } },
+}
+
+for i = 1, #remLineCsvTests do
+    local failed = false
+    local r = remLineCsvTests[i]
+    csv.remLineCSV(r.t, r.l)
+
+    tests = tests + 1
+    if compareResult(r.r, r.t, i, "remLineCSV") then
+        fails = fails + 1
+    end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test replaceLineCSV
+local replaceLineCsvTests = {
+    { l = 2, d = {9, 8},    r = { {1, 2}, {9, 8}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 1, d = {9, 8},    r = { {9, 8}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 6, d = {9, 8},    r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 0, d = {9, 8},    r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 1, d = {9, 8, 3}, r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 2, d = {9 },      r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 2, d = {9 },      r = { {1, 2}, {4, 3}, {5, 6} }, t = {                        data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 2, d = {9 },      r = nil,                        t = { labels = { "a", "b" }, } },
+    { l = 2, d = nil,       r = { {1, 2}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 1, d = nil,       r = { {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 3, d = nil,       r = { {1, 2}, {4, 3} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 4, d = nil,       r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+    { l = 0, d = nil,       r = { {1, 2}, {4, 3}, {5, 6} }, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+}
+
+for i = 1, #replaceLineCsvTests do
+    local failed = false
+    local r = replaceLineCsvTests[i]
+    csv.replaceLineCSV(r.t, r.l, r.d)
+
+    tests = tests + 1
+    if compareResult(r.r, r.t, i, "replaceLineCSV") then
+        fails = fails + 1
+    end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test logLineCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test dupLineCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- test remLineCSV
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test getLineCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- test replaceLineCSV
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+
 -- test tostringCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test tostringCol
