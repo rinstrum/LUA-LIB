@@ -20,7 +20,7 @@ local dbg = require "rinLibrary.rinDebug"
 -------------------------------------------------------------------------------
 --- CSV Utilities.
 -- Functions to convert data to and from .CSV format
--- @section Utilities 
+-- @section Utilities
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Function to check if a table is a CSV table and if it has any data
@@ -38,57 +38,57 @@ end
 -- @return escaped string
  function _M.escapeCSV(s)
   s = tostring(s)  -- string find & gsub requires a string so make sure we have one
-  -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""' 
+  -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""'
     if string.find(s, '[,"]') then
         s = '"' .. string.gsub(s,'"','""') .. '"'
     end
-    
-    return s    
+
+    return s
  end
- 
+
 -------------------------------------------------------------------------------
 -- Converts a table (1d array) to a CSV string with fields escaped if required
 -- The order of the CSV string returned isn't guaranteed.
--- @param t table to convert 
+-- @param t table to convert
 -- @return escaped CSV string
  function _M.toCSV(t)
- 
+
     local s = '';
     for _,p in pairs(t) do
        s = s .. ',' ..  _M.escapeCSV(p)
     end
-    
+
     return string.sub(s,2)
-end      
+end
 
 -------------------------------------------------------------------------------
 -- Converts a table (1d array) to a CSV string with fields escaped if required
--- @param t table to convert 
+-- @param t table to convert
 -- @param w is width of each cell
 -- @return escaped CSV string padded to w characters in each cell
  function _M.padCSV(t,w)
- 
+
     local s = '';
     local f = '%s'
     if w then
         f = string.format("%%%ds",w)
-    end    
+    end
     for _,p in pairs(t) do
        s = s .. ',' ..  _M.escapeCSV(string.format(f, p))
     end
-    
+
     return string.sub(s,2)
-end      
+end
 
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
 -- @param s CSV string
 -- @return table (1d array)
- 
+
 function _M.fromCSV(s)
     if string.sub(s,-1,-1) == '\r' then
        s = string.sub(s,1,-2)  -- remove \r if present
-    end   
+    end
     s = s .. ','
     local t = {}
 
@@ -100,11 +100,11 @@ function _M.fromCSV(s)
             repeat
                 a,i,c = string.find(s, '"("?)', i+1)
             until c ~= '"'
-            
-            if not i then 
+
+            if not i then
                 error ('Unmatched quote')
-            end  
-       
+            end
+
             local f = string.sub(s,fieldstart+1,i-1)
             table.insert(t, (string.gsub(f,'""','"')))
             fieldstart = string.find(s,',',i)+1
@@ -114,13 +114,13 @@ function _M.fromCSV(s)
             fieldstart = nexti +1
         end
     until fieldstart > string.len(s)
-  
-    return (t)          
-  
-end  
+
+    return (t)
+
+end
 
 -------------------------------------------------------------------------------
--- Checks labels to ensure database table is the same structure  
+-- Checks labels to ensure database table is the same structure
 -- Tolerant of additional whitespace in labels and ignores case
 -- @param labels 1d array of labels from a database table
 -- @param check 1d array of labels to check
@@ -129,24 +129,24 @@ function _M.equalCSV(labels, check)
     if #labels ~= #check then
         return false
     end
-   
+
     for col,s in ipairs(labels) do
-       -- remove space and convert labels to all lowercase for checking 
-       s = string.lower(string.gsub(s,'%s',''))  
+       -- remove space and convert labels to all lowercase for checking
+       s = string.lower(string.gsub(s,'%s',''))
        local chk = string.lower(string.gsub(check[col],'%s',''))
        if s ~= chk then
            return false
-       end     
+       end
     end
-    
+
     return true
-        
-end 
+
+end
 
 -------------------------------------------------------------------------------
 --- CSV Functions.
 -- Functions to manage CSV files directly
--- @section CSV 
+-- @section CSV
 
 -------------------------------------------------------------------------------
 -- Save table t to a .CSV file
@@ -215,20 +215,20 @@ end
 --      partial     File had some common fields, returned a populated CSV table
 --      immiscable  File had no common fields, returned an empty CSV table
  function _M.loadCSV(t)
-  
+
      local f = io.open(t.fname,"r")
      local res = nil
-     
+
      if f == nil then
-          -- no file yet so create new one      
-          _M.saveCSV(t)     
+          -- no file yet so create new one
+          _M.saveCSV(t)
           res = "create"
-     else    
+     else
          local s = f:read("*l")
          if s == nil then
-              -- file is empty so setup to hold t  
-              f:close()   
-              _M.saveCSV(t)  
+              -- file is empty so setup to hold t
+              f:close()
+              _M.saveCSV(t)
               res = "empty"
          else
               -- Check the labels are equal
@@ -236,8 +236,8 @@ end
               if t.labels == nil then
                  t.labels = fieldnames
               end
-              if _M.equalCSV(t.labels, fieldnames) then 
-                 
+              if _M.equalCSV(t.labels, fieldnames) then
+
                  -- Clear the current table and read in the existing data
                  t.data = {}
                  for s in f:lines() do
@@ -245,7 +245,7 @@ end
                  end
                  f:close()
                  res = "load"
-                 
+
               -- different format so initialize to new table format
               else
                  -- Check if there are any common fields or not
@@ -281,11 +281,11 @@ end
                     _M.saveCSV(t)
                     res = "immiscable"
                  end
-              end                       
-         end     
+              end
+         end
      end
     return t, res
-  end        
+  end
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a CSV file but does not update local data in table
@@ -302,14 +302,14 @@ end
 -- @param t is table holding CSV data
 -- @param line of data (1d array) to add to the table
 -- @return row location of line new line in table
-  
+
 function _M.addLineCSV(t, line)
     if hasData(t) and line ~= nil and #line == _M.numColsCSV(t) then
         table.insert(t.data, line)
 	    return _M.numRowsCSV(t)
     end
     return nil
-end 
+end
 
 -------------------------------------------------------------------------------
 -- Makes a duplicate copy of a line of data
@@ -354,11 +354,11 @@ function _M.getLineCSV(t,val,col)
 		row = k
 	  end	
    end
-   if row == 0 then 
+   if row == 0 then
       return nil, line
    else
       return row, line
-   end	  
+   end	
 end
 
 -------------------------------------------------------------------------------
@@ -369,7 +369,7 @@ end
 -- @usage
 -- names = csv.getColCSV(db.material,2)           -- gather all material names
 -- sel = dwi.selectOption('SELECT',names,names[1],true)    -- chose a material
---   
+--
 function _M.getColCSV(csvtbl, col)
     local column = {}
     local t, c = csvtbl, col
@@ -437,14 +437,14 @@ function _M.tostringCSV(t,w)
     local csvtab = {}
     local w = w or 10
 	
-    table.insert(csvtab, 'File: '.. t.fname..'\r\n') 
+    table.insert(csvtab, 'File: '.. t.fname..'\r\n')
     table.insert(csvtab, _M.padCSV(t.labels,w))
     table.insert(csvtab, '\r\n')
     for _,row in ipairs(t.data) do
          table.insert(csvtab, _M.padCSV(row,w))
          table.insert(csvtab, '\r\n')
-     end   
- 
+     end
+
     return table.concat(csvtab)
 end
 
@@ -458,7 +458,7 @@ function _M.tostringCol(c)
        table.insert(t,v)
        table.insert(t,'\r\n')
    end
-   return table.concat(t)   
+   return table.concat(t)
 end
 
 -------------------------------------------------------------------------------
@@ -496,56 +496,56 @@ end
 -------------------------------------------------------------------------------
 --- Database Utilities.
 -- Functions to manage multiple tables in a database
--- @section Database 
-         
+-- @section Database
+
  -----------------------------------------------------------------------------------
 -- Adds a database table to the database, updates contents with t if already present
 -- @param db is the database table to populate
 -- @param name is the name of table
 -- @param t is the csv table to add
--- database table is in the format 
+-- database table is in the format
 -- fname name of .csv file associated with table - used to save/restore table contents
 -- labels{}  1d array of column labels
 -- data{{}}  2d array of data
  function _M.addTableDB(db, name, t)
     local created = false
-    
+
     -- Update existing database table with the new data.
     for k,v in pairs(db) do
         if v.fname == t.fname then
-            db[k] = t             
+            db[k] = t
             created = true
-        end   
-    end 
-     
+        end
+    end
+
     -- Add database table to the rinCSV database
-    if not created then 
-        db[name] = t 
+    if not created then
+        db[name] = t
     end
   end
 
 -------------------------------------------------------------------------------
 -- Restores database contents from CSV files
 -- Only loads in database tables already registered with database
--- @param db database table to populate 
+-- @param db database table to populate
  function _M.loadDB(db)
     for k,t in pairs(db) do
-       _M.loadCSV(t)    
-    end 
+       _M.loadCSV(t)
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a table in the database
 -- @param db database table
 -- @param name name of table in database to use
--- @param l line (1d array) of data to save  
+-- @param l line (1d array) of data to save
 function _M.addLineDB(db,name,l)
       table.insert(db[name].data,l)
       local f = io.open(db[name].fname,"a+")
       f:write(_M.toCSV(l) .. '\n')
       f:close()
-end 
-    
+end
+
 -------------------------------------------------------------------------------
 -- Removes last line of data in a database table
 -- @param db database table
@@ -563,7 +563,7 @@ end
 function _M.saveDB(db)
 
   for _,t in pairs(db) do
-     _M.saveCSV(t) 
+     _M.saveCSV(t)
      end
 end
 
@@ -576,15 +576,15 @@ function _M.tostringDB(db,w)
     local w = w or 10
 	
     for k,t in pairs(db) do
-        table.insert(csvtab, k..':\r\n') 
-        table.insert(csvtab, 'File: '.. t.fname..'\r\n') 
+        table.insert(csvtab, k..':\r\n')
+        table.insert(csvtab, 'File: '.. t.fname..'\r\n')
         table.insert(csvtab, _M.padCSV(t.labels,w))
         table.insert(csvtab, '\r\n')
         for _,row in ipairs(t.data) do
             table.insert(csvtab, _M.padCSV(row,w))
             table.insert(csvtab, '\r\n')
-        end   
-      end 
+        end
+      end
     return table.concat(csvtab)
 end
 
