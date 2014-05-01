@@ -23,7 +23,7 @@ local dbg = require "rinLibrary.rinDebug"
 -- @section Utilities
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Function to check if a table is a CSV table and if it has any data
+-- Functions to check if a table is a CSV table and if it has any data
 local function isCSV(t)
     return t ~= nil and t.labels ~= nil
 end
