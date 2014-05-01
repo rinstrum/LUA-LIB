@@ -304,11 +304,9 @@ end
 -- @return row location of line new line in table
   
 function _M.addLineCSV(t, line)
-    if hasData(t) and line ~= nil then
-        if #line == _M.numColsCSV(t) then
-            table.insert(t.data, line)
-	        return _M.numRowsCSV(t)
-        end
+    if hasData(t) and line ~= nil and #line == _M.numColsCSV(t) then
+        table.insert(t.data, line)
+	    return _M.numRowsCSV(t)
     end
     return nil
 end 
@@ -334,10 +332,8 @@ end
 -- @param row is row number of table data 1..n to remove.
 -- removes last line of data if row is nil
 function _M.remLineCSV(t, row)
-    if hasData(t) and row ~= nil then
-        if row > 0 and row <= _M.numRowsCSV(t) then
-            table.remove(t.data, row)  -- remove line from the table
-        end
+    if hasData(t) and row ~= nil and row > 0 and row <= _M.numRowsCSV(t) then
+        table.remove(t.data, row)  -- remove line from the table
     end
 end
 
@@ -404,15 +400,12 @@ end
 -- @param row is the row number of the line of data
 -- @param line is the line of data
 function _M.replaceLineCSV(t, row, line)
-    if row == nil or not hasData(t) then
-        return
-    end
-	if row < 1 or row > _M.numRowsCSV(t) then return end
-
-    if line == nil then
-        _M.remLineCSV(t, row)
-    elseif #line == _M.numColsCSV(t) then
-        t.data[row] = line
+    if row ~= nil and hasData(t) and row > 0 and row <= _M.numRowsCSV(t) then
+        if line == nil then
+            _M.remLineCSV(t, row)
+        elseif #line == _M.numColsCSV(t) then
+            t.data[row] = line
+        end
     end
 end
 
@@ -422,20 +415,17 @@ end
 -- @param label is name of column to find (not case sensitive)
 -- @return column number of the label or nil if not found	
 function _M.labelCol(t,label)
-  
-  if label == nil or not isCSV(t) then
-    return nil
-  end
-  label = tostring(label)
-  label = string.lower(label)
+    if label ~= nil and isCSV(t) then
+        local label = string.lower(tostring(label))
 
-  for k,v in pairs(t.labels) do
-     if string.lower(v) == label then
-	    return k
-	 end 	
-  end
-  
-  return nil
+        for k,v in pairs(t.labels) do
+            if string.lower(v) == label then
+                return k
+            end 	
+        end
+    end
+
+    return nil
 end	
 	
 -------------------------------------------------------------------------------
