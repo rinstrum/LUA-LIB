@@ -11,6 +11,7 @@ local csv = require "rinLibrary.rinCSV"
 local tests, fails = 0, 0
 local path = "rinLibrary/tests/"
 
+-- Utility function to compare two vectors for inequality
 local function compareVectors(expected, result, i, test)
     if expected == nil then
         if result ~= nil then
@@ -33,6 +34,7 @@ local function compareVectors(expected, result, i, test)
     return false
 end
 
+-- Utility function to compare a data table against a CSV table for inequality
 local function compareResult(expected, t, i, test)
     if expected == nil then
         if t.data ~= nil then
@@ -171,29 +173,32 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test loadCSV
 local loadCsvTests = {
-    { res = "create",       t={ fname = "nonexist",            labels = {} } },
-    { res = "load",         t={ fname = path .. "csvData.csv", labels = { "a", "b" } },       v = {{'1', '2'}, {'3', '4'}} },
-    { res = "reordered",    t={ fname = path .. "csvData.csv", labels = { "b", "a" } },       v = {{'2', '1'}, {'4', '3'}} },
-    { res = "partial",      t={ fname = path .. "csvData.csv", labels = { "a", "b", "c" } },  v = {{'1', '2', ''}, {'3', '4', ''}} },
-    { res = "partial",      t={ fname = path .. "csvData.csv", labels = { "a", "c" } },       v = {{'1', ''}, {'3', ''}} },
-    { res = "full",         t={ fname = path .. "csvData.csv", labels = { "a" } },            v = {{'1'}, {'3'}} },
-    { res = "immiscable",   t={ fname = path .. "csvData.csv", labels = { "x" } } },
-    { res = "load",         t={ fname = path .. "csvData.csv" },                              v = {{'1', '2'}, {'3', '4'}} },
+    { res = "create",       s=true,  t={ fname = "nonexist",            labels = {} } },
+    { res = "load",         s=false, t={ fname = path .. "csvData.csv", labels = { "a", "b" } },       v = {{'1', '2'}, {'3', '4'}} },
+    { res = "reordered",    s=true,  t={ fname = path .. "csvData.csv", labels = { "b", "a" } },       v = {{'2', '1'}, {'4', '3'}} },
+    { res = "partial",      s=true,  t={ fname = path .. "csvData.csv", labels = { "a", "b", "c" } },  v = {{'1', '2', ''}, {'3', '4', ''}} },
+    { res = "partial",      s=true,  t={ fname = path .. "csvData.csv", labels = { "a", "c" } },       v = {{'1', ''}, {'3', ''}} },
+    { res = "full",         s=true,  t={ fname = path .. "csvData.csv", labels = { "a" } },            v = {{'1'}, {'3'}} },
+    { res = "immiscable",   s=true,  t={ fname = path .. "csvData.csv", labels = { "x" } } },
+    { res = "load",         s=false, t={ fname = path .. "csvData.csv" },                              v = {{'1', '2'}, {'3', '4'}} },
 }
 
 local saveSaveCSV = csv.saveCSV
 for i = 1, #loadCsvTests do
     local r = loadCsvTests[i]
     local failed = false
+    local saveCalled = false
 
     csv.saveCSV = function (t)
                       if t.fname ~= r.t.fname then
-                         print("fail: saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
+                         print("loadCSV fail for line "..i.." saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
                          failed = true
                       end
+                      saveCalled = true
                   end
 
     local t, res = csv.loadCSV(r.t)
+
     if r.res ~= res then
         print("loadCSV fail for line "..i.." result is "..res.." expected "..r.res)
         failed = true
@@ -201,6 +206,10 @@ for i = 1, #loadCsvTests do
         failed = compareResult(r.v, r.t, i, "loadCSV")
     elseif t.data ~= nil then
         print("loadCSV fail for line "..i.." table has data when it shouldn't")
+        failed = true
+    end
+    if not failed and saveCalled ~= r.s then
+        print("loadCSV fail for line "..i.." save function anomoly")
         failed = true
     end
     tests = tests + 1
@@ -386,7 +395,6 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test logLineCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
-
 -- test tostringCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test tostringCol
