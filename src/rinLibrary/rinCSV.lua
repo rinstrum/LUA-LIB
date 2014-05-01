@@ -476,10 +476,7 @@ end
 -- @param t CSV table
 -- @return number of rows
 function _M.numRowsCSV(t)
-    if hasData(t) then
-        return #t.data
-    end
-    return 0
+    return hasData(t) and #t.data or 0
 end
 
 -------------------------------------------------------------------------------
@@ -487,10 +484,7 @@ end
 -- @param t CSV table
 -- @return number of columns
 function _M.numColsCSV(t)
-    if isCSV(t) then
-        return #t.labels
-    end
-    return 0
+    return isCSV(t) and #t.labels or 0
 end
 
 -------------------------------------------------------------------------------
