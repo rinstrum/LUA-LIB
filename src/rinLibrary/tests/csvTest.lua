@@ -11,6 +11,28 @@ local csv = require "rinLibrary.rinCSV"
 local tests, fails = 0, 0
 local path = "rinLibrary/tests/"
 
+local function compareVectors(expected, result, i, test)
+    if expected == nil then
+        if result ~= nil then
+            print(test.." fail for line "..i.." result not nil")
+            return true
+        end
+    else
+        if #expected ~= #result then
+            print(test.." fail for line "..i.." wrong number of rows")
+            return true
+        else
+            for j = 1, #result do
+                if expected[j] ~= result[j] then
+                    print(test.." fail for line "..i.." bad value row "..j)
+                    return true
+                end
+            end
+        end
+    end
+    return false
+end
+
 local function compareResult(expected, t, i, test)
     if expected == nil then
         if t.data ~= nil then
@@ -260,27 +282,8 @@ for i = 1, #getColCsvTests do
     local col = csv.getColCSV(r.t, r.c)
     local failed = false
 
-    if r.r == nil then
-        if col ~= nil then
-            print("getColCSV fail for line "..i.." result not nil")
-            failed = true
-        end
-    else
-        if #r.r ~= #col then
-            print("getColCSV fail for line "..i.." wrong number of rows")
-            failed = true
-        else
-            for j = 1, #col do
-                if r.r[j] ~= col[j] then
-                    print("getColCSV fail for line "..i.." bad value row "..j)
-                    failed = true
-                    break
-                end
-            end
-        end
-    end
     tests = tests + 1
-    if failed then
+    if compareVectors(r.r, col, i, "getColCSV") then
         fails = fails + 1
     end
 end
@@ -360,11 +363,28 @@ for i = 1, #replaceLineCsvTests do
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- test logLineCSV
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test dupLineCSV
+local dupLineCsvTests = {
+    { r = nil, l = nil },
+    { r = {},  l = {} },
+    { r = { 1, 2, 3}, l = { 1, 2, 3} }
+}
+
+for i = 1, #dupLineCsvTests do
+    local failed = false
+    local r = dupLineCsvTests[i]
+    local res = csv.dupLineCSV(r.l)
+
+    tests = tests + 1
+    if compareVectors(r.r, res, i, "dupLineCSV") then
+        fails = fails + 1
+    end
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test getLineCSV
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- test logLineCSV
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 
 -- test tostringCSV

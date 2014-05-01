@@ -308,11 +308,14 @@ end
 -- @param line is the line of data (1-d array)
 -- @return duplicate copy of line
 function _M.dupLineCSV(line)
-  local t = {}
-  for k,v in pairs(line) do
-     t[k] = v
-	end
-  return t
+    if line ~= nil then
+        local t = {}
+            for k,v in pairs(line) do
+                t[k] = v
+            end
+        return t
+    end
+    return nil
 end
 
 -------------------------------------------------------------------------------
