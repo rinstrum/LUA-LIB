@@ -21,7 +21,17 @@ local dbg = require "rinLibrary.rinDebug"
 --- CSV Utilities.
 -- Functions to convert data to and from .CSV format
 -- @section Utilities 
- 
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Function to check if a table is a CSV table and if it has any data
+local function isCSV(t)
+    return t ~= nil and t.labels ~= nil
+end
+
+local function hasData(t)
+    return isCSV(t) and t.data ~= nil
+end
+
 -------------------------------------------------------------------------------
 -- Adds '"' around s if it contains ',' or '"' and replaces '"' with '""'
 -- @param s string to escape
@@ -294,9 +304,9 @@ end
 -- @return row location of line new line in table
   
 function _M.addLineCSV(t, line)
-    if t ~= nil and t.labels ~= nil and t.data ~= nil and line ~= nil then
+    if hasData(t) and line ~= nil then
         if #line == _M.numColsCSV(t) then
-            table.insert(t.data,line)
+            table.insert(t.data, line)
 	        return _M.numRowsCSV(t)
         end
     end
@@ -324,7 +334,7 @@ end
 -- @param row is row number of table data 1..n to remove.
 -- removes last line of data if row is nil
 function _M.remLineCSV(t, row)
-    if t ~= nil and t.labels ~= nil and t.data ~= nil and row ~= nil then
+    if hasData(t) and row ~= nil then
         if row > 0 and row <= _M.numRowsCSV(t) then
             table.remove(t.data, row)  -- remove line from the table
         end
@@ -368,7 +378,7 @@ function _M.getColCSV(csvtbl, col)
     local column = {}
     local t, c = csvtbl, col
 
-    if t == nil or t.labels == nil or t.data == nil then
+    if not hasData(t) then
         return nil
     end
 
@@ -394,7 +404,7 @@ end
 -- @param row is the row number of the line of data
 -- @param line is the line of data
 function _M.replaceLineCSV(t, row, line)
-    if row == nil or t == nil or t.data == nil or t.labels == nil then
+    if row == nil or not hasData(t) then
         return
     end
 	if row < 1 or row > _M.numRowsCSV(t) then return end
@@ -413,7 +423,7 @@ end
 -- @return column number of the label or nil if not found	
 function _M.labelCol(t,label)
   
-  if label == nil or t == nil or t.labels == nil then
+  if label == nil or not isCSV(t) then
     return nil
   end
   label = tostring(label)
@@ -476,10 +486,10 @@ end
 -- @param t CSV table
 -- @return number of rows
 function _M.numRowsCSV(t)
-    if t == nil or t.data == nil or t.labels == nil then
-        return 0
+    if hasData(t) then
+        return #t.data
     end
-    return #t.data
+    return 0
 end
 
 -------------------------------------------------------------------------------
@@ -487,10 +497,10 @@ end
 -- @param t CSV table
 -- @return number of columns
 function _M.numColsCSV(t)
-    if t == nil or t.labels == nil then
-        return 0
+    if isCSV(t) then
+        return #t.labels
     end
-    return #t.labels
+    return 0
 end
 
 -------------------------------------------------------------------------------
