@@ -17,11 +17,9 @@ local path = "rinLibrary/tests/"
 function testresultfunctions()
     local tests, fails = 0, 0
 
-    local function t(failed, msg)
+    local function t(failed, name, line, msg)
         if failed then
-            if msg ~= nil then
-                print(msg)
-            end
+            print(name .. " fail for line " .. line .. " " .. msg)
             fails = fails + 1
         end
         tests = tests + 1
@@ -40,13 +38,13 @@ local test, results = testresultfunctions()
 -- Utility function to compare two vectors for inequality
 local function compareVectors(expected, result, i, name)
     if expected == nil then
-        return test(result ~= nil, name.." fail for line "..i.." result not nil")
+        return test(result ~= nil, name, i, "result not nil")
     else
-        if test(#expected ~= #result, name.." fail for line "..i.." wrong number of rows") then
+        if test(#expected ~= #result, name, i, "wrong number of rows") then
             return true
         end
         for j = 1, #result do
-            if test(expected[j] ~= result[j], name.." fail for line "..i.." bad value row "..j) then
+            if test(expected[j] ~= result[j], name, i, "bad value row "..j) then
                 return true
             end
         end
@@ -57,19 +55,19 @@ end
 -- Utility function to compare a data table against a CSV table for inequality
 local function compareResult(expected, t, i, name)
     if expected == nil then
-        return test(t.data ~= nil, name.." fail for line "..i.." result not nil")
+        return test(t.data ~= nil, name, i, "result not nil")
     end
     if t.data ~= nil then
-        if test(#expected ~= #t.data, name.." fail for line "..i.." wrong number of rows") then
+        if test(#expected ~= #t.data, name, i, "wrong number of rows") then
             return true
         elseif t.labels ~= nil then
             for j = 1, #expected do
+                if      test(t.data[j] == nil, name, i, "no data row "..j) or
+                        test(#expected[j] ~= #t.data[j], name, i, "uneven data row "..j) then
+                    return true
+                end
                 for k = 1, #t.labels do
-                    if test(t.data[j] == nil, name.." fail for line "..i.." no data row "..j) then
-                        return true
-                    elseif test(#expected[j] ~= #t.data[j], name.." fail for line "..i.." uneven data row "..j) then
-                        return true
-                    elseif test(expected[j][k] ~= t.data[j][k], name.." fail for line "..i.." bad element ("..j..", "..k..")".." got "..t.data[j][k].." expected "..expected[j][k]) then
+                    if test(expected[j][k] ~= t.data[j][k], name, i, "bad element ("..j..", "..k..")".." got "..t.data[j][k].." expected "..expected[j][k]) then
                         return true
                     end
                 end
@@ -94,7 +92,7 @@ for i = 1, #escapeTests do
     local r = escapeTests[i]
     local x = csv.escapeCSV(r.val)
 
-    test(x ~= r.res, "escapeCSV fail for " .. tostring(r.val) .. " giving "..tostring(x).." instead of "..tostring(r.res))
+    test(x ~= r.res, "escapeCSV", i, "giving "..tostring(x).." instead of "..tostring(r.res))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -112,7 +110,7 @@ for i = 1, #toCsvTests do
     local r = toCsvTests[i]
     local x = csv.toCSV(r.val, r.w)
 
-    test(x ~= r.res, "toCSV fail for line "..i.." giving @"..x.."@ instead of @"..r.res.."@")
+    test(x ~= r.res, "toCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -130,7 +128,7 @@ for i = 1, #padCsvTests do
     local r = padCsvTests[i]
     local x = csv.padCSV(r.val, r.w)
 
-    test(x ~= r.res, "padCSV fail for line "..i.." giving @"..x.."@ instead of @"..r.res.."@")
+    test(x ~= r.res, "padCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -167,7 +165,7 @@ local equalCsvTests = {
 for i = 1, #equalCsvTests do
     local r = equalCsvTests[i]
 
-    test(r.r ~= csv.equalCSV(r.a, r.b), "equalCSV fail for line "..i)
+    test(r.r ~= csv.equalCSV(r.a, r.b), "equalCSV", i, "")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -199,12 +197,12 @@ for i = 1, #loadCsvTests do
 
     local t, res = csv.loadCSV(r.t)
 
-    test(saveCalled ~= r.s, "loadCSV fail for line "..i.." save function anomoly")
-    if not test(r.res ~= res, "loadCSV fail for line "..i.." result is "..res.." expected "..r.res) then
+    test(saveCalled ~= r.s, "loadCSV", i, "save function anomoly")
+    if not test(r.res ~= res, "loadCSV", i, "result is "..res.." expected "..r.res) then
         if r.v ~= nil then
             compareResult(r.v, r.t, i, "loadCSV")
         else
-            test(t.data ~= nil, "loadCSV fail for line "..i.." table has data when it shouldn't")
+            test(t.data ~= nil, "loadCSV", i, " table has data when it shouldn't")
         end
     end
 end
@@ -226,8 +224,8 @@ for i = 1, #numCsvTests do
     local rows = csv.numRowsCSV(r.t)
     local cols = csv.numColsCSV(r.t)
 
-    if not test(r.rows ~= rows, "numRowsCSV fail for line "..i.." got "..rows.." instead of "..r.rows) then
-        test(r.cols ~= cols, "numColsCSV fail for line "..i.." got "..cols.." instead of "..r.cols)
+    if not test(r.rows ~= rows, "numRowsCSV", i, "got "..rows.." instead of "..r.rows) then
+        test(r.cols ~= cols, "numColsCSV", i, "got "..cols.." instead of "..r.cols)
     end
 end
 
@@ -245,7 +243,7 @@ for i = 1, #labelColTests do
     local r = labelColTests[i]
     local col = csv.labelCol(r.t, r.c)
 
-    test(col ~= r.r, "labelCol fail for line "..i.." got "..tostring(col).." instead of "..tostring(r.r))
+    test(col ~= r.r, "labelCol", i, "got "..tostring(col).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -350,34 +348,34 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test tostringCol
 local tostringColTests = {
-    { r = nil, c = nil },
-    { r = "",  c = {} },
-    { r = "1\r\n2\r\n3\r\n", c = { 1, 2, 3} },
-    { r = "1\r\n", c = { 1 } }
+    { r = nil,                  c = nil         },
+    { r = "",                   c = {}          },
+    { r = "1\r\n2\r\n3\r\n",    c = { 1, 2, 3}  },
+    { r = "1\r\n",              c = { 1 }       }
 }
 
 for i = 1, #tostringColTests do
     local r = tostringColTests[i]
     local res = csv.tostringCol(r.c)
 
-    test(r.r ~= res, "tostringCol fail line "..i.." giving "..tostring(res).." instead of "..tostring(r.r))
+    test(r.r ~= res, "tostringCol", i, "giving "..tostring(res).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- test tostringLine
 local tostringLineTests = {
-    { r = nil,                                  c = nil },
-    { r = "",                                   c = {} },
-    { r = "         1,         2,         3",   c = { 1, 2, 3} },
-    { r = "         1",                         c = { 1 } },
-    { r = "  1,  3",                            c = { 1, 3 },       w = 3 },
+    { r = nil,                                  c = nil                     },
+    { r = "",                                   c = {}                      },
+    { r = "         1,         2,         3",   c = { 1, 2, 3}              },
+    { r = "         1",                         c = { 1 }                   },
+    { r = "  1,  3",                            c = { 1, 3 },       w = 3   },
 }
 
 for i = 1, #tostringLineTests do
     local r = tostringLineTests[i]
     local res = csv.tostringLine(r.c, r.w)
 
-    test(r.r ~= res, "tostringLine fail line "..i.." giving "..tostring(res).." instead of "..tostring(r.r))
+    test(r.r ~= res, "tostringLine", i, "giving "..tostring(res).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
