@@ -12,20 +12,20 @@ local path = "rinLibrary/tests/"
 
 -- Utility functions to update the number of tests and fails and to get these values
 -- We actually hide the variables inside some closures to ensure that none
--- of the tests directly attempt to alter them.
+-- of the tests directly attempt to alter them.  Return true if the test passes.
 local test, results = (
     function ()
         local tests, fails = 0, 0
         local prevName, prevLine, prevFail = nil, nil, false
 
-        local function t(failed, name, line, msg)
+        local function t(passed, name, line, msg)
             if name ~= prevName or line ~= prevLine then
                 prevFail = false
                 prevName, prevLine = name, line
                 tests = tests + 1
             end
 
-            if failed then
+            if not passed then
                 local t = { name }
                 if line ~= nil then
                     table.insert(t, " fail for line ")
@@ -38,9 +38,10 @@ local test, results = (
                 print(table.concat(t))
                 if not prevFail then
                     fails = fails + 1
+                    prevFail = true
                 end
             end
-            return failed
+            return passed
         end
 
         local function r()
@@ -56,43 +57,43 @@ local test, results = (
 -- Utility function to compare two vectors for inequality
 local function compareVectors(expected, result, i, name)
     if expected == nil then
-        return test(result ~= nil, name, i, "result not nil")
+        return test(result == nil, name, i, "result not nil")
     else
-        if test(#expected ~= #result, name, i, "wrong number of rows") then
-            return true
+        if test(#expected == #result, name, i, "wrong number of rows") then
+            return false
         end
         for j = 1, #result do
-            if test(expected[j] ~= result[j], name, i, "bad value row "..j) then
-                return true
+            if test(expected[j] == result[j], name, i, "bad value row "..j) then
+                return false
             end
         end
     end
-    return false
+    return true
 end
 
 -- Utility function to compare a data table against a CSV table for inequality
 local function compareResult(expected, t, i, name)
     if expected == nil then
-        return test(t.data ~= nil, name, i, "result not nil")
+        return test(t.data == nil, name, i, "result not nil")
     end
     if t.data ~= nil then
-        if test(#expected ~= #t.data, name, i, "wrong number of rows") then
-            return true
+        if test(#expected == #t.data, name, i, "wrong number of rows") then
+            return false
         elseif t.labels ~= nil then
             for j = 1, #expected do
-                if      test(t.data[j] == nil, name, i, "no data row "..j) or
-                        test(#expected[j] ~= #t.data[j], name, i, "uneven data row "..j) then
-                    return true
+                if      test(t.data[j] ~= nil, name, i, "no data row "..j) or
+                        test(#expected[j] == #t.data[j], name, i, "uneven data row "..j) then
+                    return false
                 end
                 for k = 1, #t.labels do
-                    if test(expected[j][k] ~= t.data[j][k], name, i, "bad element ("..j..", "..k..")".." got "..t.data[j][k].." expected "..expected[j][k]) then
-                        return true
+                    if test(expected[j][k] == t.data[j][k], name, i, "bad element ("..j..", "..k..")".." got "..t.data[j][k].." expected "..expected[j][k]) then
+                        return false
                     end
                 end
             end
         end
     end
-    return false
+    return true
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -110,7 +111,7 @@ for i = 1, #escapeTests do
     local r = escapeTests[i]
     local x = csv.escapeCSV(r.val)
 
-    test(x ~= r.res, "escapeCSV", i, "giving "..tostring(x).." instead of "..tostring(r.res))
+    test(x == r.res, "escapeCSV", i, "giving "..tostring(x).." instead of "..tostring(r.res))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -128,7 +129,7 @@ for i = 1, #toCsvTests do
     local r = toCsvTests[i]
     local x = csv.toCSV(r.val, r.w)
 
-    test(x ~= r.res, "toCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
+    test(x == r.res, "toCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -146,7 +147,7 @@ for i = 1, #padCsvTests do
     local r = padCsvTests[i]
     local x = csv.padCSV(r.val, r.w)
 
-    test(x ~= r.res, "padCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
+    test(x == r.res, "padCSV", i, "giving @"..x.."@ instead of @"..r.res.."@")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -183,7 +184,7 @@ local equalCsvTests = {
 for i = 1, #equalCsvTests do
     local r = equalCsvTests[i]
 
-    test(r.r ~= csv.equalCSV(r.a, r.b), "equalCSV", i, "")
+    test(r.r == csv.equalCSV(r.a, r.b), "equalCSV", i, "")
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -206,18 +207,18 @@ for i = 1, #loadCsvTests do
     local saveCalled = false
 
     csv.saveCSV = function (t)
-                      test(t.fname ~= r.t.fname, "loadCSV", i, "saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
+                      test(t.fname == r.t.fname, "loadCSV", i, "saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
                       saveCalled = true
                   end
 
     local t, res = csv.loadCSV(r.t)
 
-    test(saveCalled ~= r.s, "loadCSV", i, "save function anomoly")
-    if not test(r.res ~= res, "loadCSV", i, "result is "..res.." expected "..r.res) then
+    test(saveCalled == r.s, "loadCSV", i, "save function anomoly")
+    if test(r.res == res, "loadCSV", i, "result is "..res.." expected "..r.res) then
         if r.v ~= nil then
             compareResult(r.v, r.t, i, "loadCSV")
         else
-            test(t.data ~= nil, "loadCSV", i, " table has data when it shouldn't")
+            test(t.data == nil, "loadCSV", i, " table has data when it shouldn't")
         end
     end
 end
@@ -239,8 +240,8 @@ for i = 1, #numCsvTests do
     local rows = csv.numRowsCSV(r.t)
     local cols = csv.numColsCSV(r.t)
 
-    if not test(r.rows ~= rows, "numRowsCSV", i, "got "..rows.." instead of "..r.rows) then
-        test(r.cols ~= cols, "numColsCSV", i, "got "..cols.." instead of "..r.cols)
+    if  test(r.rows == rows, "numRowsCSV", i, "got "..rows.." instead of "..r.rows) then
+        test(r.cols == cols, "numColsCSV", i, "got "..cols.." instead of "..r.cols)
     end
 end
 
@@ -258,7 +259,7 @@ for i = 1, #labelColTests do
     local r = labelColTests[i]
     local col = csv.labelCol(r.t, r.c)
 
-    test(col ~= r.r, "labelCol", i, "got "..tostring(col).." instead of "..tostring(r.r))
+    test(col == r.r, "labelCol", i, "got "..tostring(col).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -373,7 +374,7 @@ for i = 1, #tostringColTests do
     local r = tostringColTests[i]
     local res = csv.tostringCol(r.c)
 
-    test(r.r ~= res, "tostringCol", i, "giving "..tostring(res).." instead of "..tostring(r.r))
+    test(r.r == res, "tostringCol", i, "giving "..tostring(res).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -390,7 +391,7 @@ for i = 1, #tostringLineTests do
     local r = tostringLineTests[i]
     local res = csv.tostringLine(r.c, r.w)
 
-    test(r.r ~= res, "tostringLine", i, "giving "..tostring(res).." instead of "..tostring(r.r))
+    test(r.r == res, "tostringLine", i, "giving "..tostring(res).." instead of "..tostring(r.r))
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
