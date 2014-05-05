@@ -12,45 +12,46 @@ local path = "rinLibrary/tests/"
 
 -- Utility functions to update the number of tests and fails and to get these values
 -- We actually hide the variables inside some closures to ensure that none
--- of the tests directly attempt to alter them.  Can't see how to inline this
--- without the temporary function.
-function testresultfunctions()
-    local tests, fails = 0, 0
-    local prevName, prevLine, prevFail = nil, nil, false
+-- of the tests directly attempt to alter them.
+local test, results = (
+    function ()
+        local tests, fails = 0, 0
+        local prevName, prevLine, prevFail = nil, nil, false
 
-    local function t(failed, name, line, msg)
-        if name ~= prevName or line ~= prevLine then
-            prevFail = false
-            prevName, prevLine = name, line
-            tests = tests + 1
+        local function t(failed, name, line, msg)
+            if name ~= prevName or line ~= prevLine then
+                prevFail = false
+                prevName, prevLine = name, line
+                tests = tests + 1
+            end
+
+            if failed then
+                local t = { name }
+                if line ~= nil then
+                    table.insert(t, " fail for line ")
+                    table.insert(t, line)
+                end
+                if msg ~= nil then
+                    table.insert(t, " ")
+                    table.insert(t, msg)
+                end
+                print(table.concat(t))
+                if not prevFail then
+                    fails = fails + 1
+                end
+            end
+            return failed
         end
 
-        if failed then
-            local t = { name }
-            if line ~= nil then
-                table.insert(t, " fail for line ")
-                table.insert(t, line)
-            end
-            if msg ~= nil then
-                table.insert(t, " ")
-                table.insert(t, msg)
-            end
-            print(table.concat(t))
-            if not prevFail then
-                fails = fails + 1
-            end
+        local function r()
+            return tests, fails
         end
-        return failed
+
+        return t, r
     end
+) ()
 
-    local function r()
-        return tests, fails
-    end
-
-    return t, r
-end
-
-local test, results = testresultfunctions()
+--local test, results = testresultfunctions()
 
 -- Utility function to compare two vectors for inequality
 local function compareVectors(expected, result, i, name)
