@@ -205,10 +205,7 @@ for i = 1, #loadCsvTests do
     local saveCalled = false
 
     csv.saveCSV = function (t)
-                      if t.fname ~= r.t.fname then
-                         print("loadCSV fail for line "..i.." saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
-                         failed = true
-                      end
+                      test(t.fname ~= r.t.fname, "loadCSV", i, "saveCSV bad file name "..t.fname.." (expected "..r.t.fname..")")
                       saveCalled = true
                   end
 
