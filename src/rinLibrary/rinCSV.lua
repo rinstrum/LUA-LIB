@@ -175,7 +175,7 @@ function _M.saveCSV(t)
          f:write(_M.toCSV(row) .. '\n')
       end
       f:close()
-	  return (t)
+      return (t)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -317,7 +317,7 @@ end
 function _M.addLineCSV(t, line)
     if hasData(t) and line ~= nil and #line == _M.numColsCSV(t) then
         table.insert(t.data, line)
-	    return _M.numRowsCSV(t)
+        return _M.numRowsCSV(t)
     end
     return nil
 end
@@ -361,15 +361,15 @@ function _M.getLineCSV(t,val,col)
    local row = 0
    for k,v in ipairs(t.data) do
      if string.lower(tostring(v[col])) == string.lower(tostring(val)) then
-	    line = v
-		row = k
-	  end	
+        line = v
+        row = k
+     end
    end
    if row == 0 then
       return nil, line
    else
       return row, line
-   end	
+   end
 end
 
 -------------------------------------------------------------------------------
@@ -424,7 +424,7 @@ end
 -- Returns the column number of a particular label
 -- @param t is table holding CSV data
 -- @param label is name of column to find (not case sensitive)
--- @return column number of the label or nil if not found	
+-- @return column number of the label or nil if not found
 function _M.labelCol(t,label)
     if label ~= nil and isCSV(t) then
         local label = string.lower(tostring(label))
@@ -432,13 +432,13 @@ function _M.labelCol(t,label)
         for k,v in pairs(t.labels) do
             if string.lower(v) == label then
                 return k
-            end 	
+            end
         end
     end
 
     return nil
-end	
-	
+end
+
 -------------------------------------------------------------------------------
 -- Converts contents of the CSV table into a print friendly string
 -- @param t table to convert
@@ -447,7 +447,7 @@ end
 function _M.tostringCSV(t,w)
     local csvtab = {}
     local w = w or 10
-	
+
     table.insert(csvtab, 'File: '.. t.fname..'\r\n')
     table.insert(csvtab, _M.padCSV(t.labels,w))
     table.insert(csvtab, '\r\n')
@@ -585,7 +585,7 @@ end
 function _M.tostringDB(db,w)
     local csvtab = {}
     local w = w or 10
-	
+
     for k,t in pairs(db) do
         table.insert(csvtab, k..':\r\n')
         table.insert(csvtab, 'File: '.. t.fname..'\r\n')
