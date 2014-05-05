@@ -37,10 +37,12 @@ end
 -- @param s string to escape
 -- @return escaped string
 function _M.escapeCSV(s)
-    s = tostring(s)  -- string find & gsub requires a string so make sure we have one
-    -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""'
-    if string.find(s, '[,"]') then
-        s = '"' .. string.gsub(s,'"','""') .. '"'
+    if s ~= nil then
+        s = tostring(s)  -- string find & gsub requires a string so make sure we have one
+        -- if s has any commas or '"' in it put "   " around string and replace any '"' with '""'
+        if string.find(s, '[,"]') then
+            s = '"' .. string.gsub(s,'"','""') .. '"'
+        end
     end
 
     return s
@@ -462,12 +464,16 @@ end
 -- @param c column of data convert
 -- @return string
 function _M.tostringCol(c)
-   local t = {}
-   for _,v in ipairs(c) do
-       table.insert(t,v)
-       table.insert(t,'\r\n')
-   end
-   return table.concat(t)
+    if c == nil then
+        return nil
+    end
+
+    local t = {}
+    for _,v in ipairs(c) do
+        table.insert(t,v)
+        table.insert(t,'\r\n')
+    end
+    return table.concat(t)
 end
 
 -------------------------------------------------------------------------------
@@ -476,8 +482,10 @@ end
 -- @param w width to pad each cell to
 -- @return string
 function _M.tostringLine(line,w)
-   local w = w or 10
-   return(_M.padCSV(line,w))
+    if line == nil then
+        return nil
+    end
+    return _M.padCSV(line, w or 10)
 end
 
 -------------------------------------------------------------------------------
