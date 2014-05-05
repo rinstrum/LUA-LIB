@@ -16,13 +16,30 @@ local path = "rinLibrary/tests/"
 -- without the temporary function.
 function testresultfunctions()
     local tests, fails = 0, 0
+    local prevName, prevLine, prevFail = nil, nil, false
 
     local function t(failed, name, line, msg)
-        if failed then
-            print(name .. " fail for line " .. line .. " " .. msg)
-            fails = fails + 1
+        if name ~= prevName or line ~= prevLine then
+            prevFail = false
+            prevName, prevLine = name, line
+            tests = tests + 1
         end
-        tests = tests + 1
+
+        if failed then
+            local t = { name }
+            if line ~= nil then
+                table.insert(t, " fail for line ")
+                table.insert(t, line)
+            end
+            if msg ~= nil then
+                table.insert(t, " ")
+                table.insert(t, msg)
+            end
+            print(table.concat(t))
+            if not prevFail then
+                fails = fails + 1
+            end
+        end
         return failed
     end
 
