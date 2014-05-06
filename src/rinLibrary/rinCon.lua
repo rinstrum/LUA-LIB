@@ -155,10 +155,12 @@ end
 -------------------------------------------------------------------------------
 -- Set your own routine to handle errors reported from the instrument
 -- @param errHandler Function for handling errors, 
+-- @return previously registered handler
 -- should take arguments: Address, Command, Register, Data, Err String.
 function _M.setErrHandler(eh)
-
+    local f = errHandler
     errHandler = eh
+    return f
 end
 
 -------------------------------------------------------------------------------
