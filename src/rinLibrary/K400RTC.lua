@@ -61,7 +61,7 @@ _M.RTC['third'] = 'year'
 function _M.RTCread(d)
   local d = d or 'all'
 
-  local fmt , err = _M.sendRegWait(_M.RDFINALDEC,_M.REG_TIMEFORMAT)
+  local fmt , err = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_TIMEFORMAT)
   
   if err then
     fmt = 0
