@@ -156,6 +156,10 @@ local saveBotRight = ''
 local saveBotUnits = 0
 local saveBotUnitsOther = 0
 
+local slideBotLeftPos, slideBotLeftWords, slideBotLeftTimer
+local slideBotRightPos, slideBotRightWords, slideBotRightTimer
+local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
+
 function _M.saveBot()
    saveBotLeft = curBotLeft
    saveBotRight = curBotRight
@@ -174,19 +178,20 @@ function _M.saveAutoLeft()
     saveAutoBotLeft = _M.readAutoBotLeft()
 end
 
-function _M.slideTopLeft()
+local function slideTopLeft()
     local function dispWord()
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
-             string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
+             string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
      end
-    _M.slideTopLeftPos = _M.slideTopLeftPos + 1
-    if _M.slideTopLeftPos > #_M.slideTopLeftWords then
-       _M.slideTopLeftPos = 1
+    slideTopLeftPos = slideTopLeftPos + 1
+    if slideTopLeftPos > #slideTopLeftWords then
+       slideTopLeftPos = 1
        dispWord()
        return
     end
     dispWord()
 end
+
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
 -- @param s string to display
@@ -201,15 +206,15 @@ function _M.writeTopLeft(s,t)
         if s ~= curTopLeft then
             _M.writeAutoTopLeft(0)
             curTopLeft = s
-            _M.slideTopLeftWords = splitWords(s,6)
-            _M.slideTopLeftPos = 1
-            if _M.slideTopLeftTimer then     -- remove any running display
-                _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+            slideTopLeftWords = splitWords(s,6)
+            slideTopLeftPos = 1
+            if slideTopLeftTimer then     -- remove any running display
+                _M.system.timers.removeTimer(slideTopLeftTimer)
             end
             _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
-                 string.format('%-6s',padDots(_M.slideTopLeftWords[_M.slideTopLeftPos])))
-            if #_M.slideTopLeftWords > 1 then
-                _M.slideTopLeftTimer = _M.system.timers.addTimer(t,t,_M.slideTopLeft)
+                 string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
+            if #slideTopLeftWords > 1 then
+                slideTopLeftTimer = _M.system.timers.addTimer(t,t,slideTopLeft)
             end
         end
     elseif curAutoTopLeft == 0 then
@@ -229,14 +234,14 @@ function _M.writeTopRight(s)
     end
 end
 
-function _M.slideBotLeft()
+local function slideBotLeft()
     local function dispWord()
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
-             string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
+             string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
      end
-    _M.slideBotLeftPos = _M.slideBotLeftPos + 1
-    if _M.slideBotLeftPos > #_M.slideBotLeftWords then
-       _M.slideBotLeftPos = 1
+    slideBotLeftPos = slideBotLeftPos + 1
+    if slideBotLeftPos > #slideBotLeftWords then
+       slideBotLeftPos = 1
        dispWord()
        return
     end
@@ -258,15 +263,13 @@ function _M.writeBotLeft(s, t)
         if s ~= curBotLeft then
             _M.writeAutoBotLeft(0)
             curBotLeft = s
-            _M.slideBotLeftWords = splitWords(s,9)
-            _M.slideBotLeftPos = 1
-            if _M.slideBotLeftTimer then     -- remove any running display
-                _M.system.timers.removeTimer(_M.slideBotLeftTimer)
-            end
+            slideBotLeftWords = splitWords(s,9)
+            slideBotLeftPos = 1
+            _M.system.timers.removeTimer(slideBotLeftTimer)
             _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
-                 string.format('%-9s',padDots(_M.slideBotLeftWords[_M.slideBotLeftPos])))
-            if #_M.slideBotLeftWords > 1 then
-                _M.slideBotLeftTimer = _M.system.timers.addTimer(t,t,_M.slideBotLeft)
+                 string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
+            if #slideBotLeftWords > 1 then
+                slideBotLeftTimer = _M.system.timers.addTimer(t,t,slideBotLeft)
             end
         end
     elseif curAutoBotLeft == 0 then
@@ -274,14 +277,14 @@ function _M.writeBotLeft(s, t)
     end
 end
 
-function _M.slideBotRight()
+local function slideBotRight()
     local function dispWord()
         _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
-             string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
+             string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
      end
-    _M.slideBotRightPos = _M.slideBotRightPos + 1
-    if _M.slideBotRightPos > #_M.slideBotRightWords then
-       _M.slideBotRightPos = 1
+    slideBotRightPos = slideBotRightPos + 1
+    if slideBotRightPos > #slideBotRightWords then
+       slideBotRightPos = 1
        dispWord()
        return
     end
@@ -302,15 +305,13 @@ function _M.writeBotRight(s, t)
     if s then
      if s ~= curBotRight then
             curBotRight = s
-            _M.slideBotRightWords = splitWords(s,8)
-            _M.slideBotRightPos = 1
-            if _M.slideBotRightTimer then     -- remove any running display
-                _M.system.timers.removeTimer(_M.slideBotRightTimer)
-            end
+            slideBotRightWords = splitWords(s,8)
+            slideBotRightPos = 1
+            _M.system.timers.removeTimer(slideBotRightTimer)
             _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
-                 string.format('%-8s',padDots(_M.slideBotRightWords[_M.slideBotRightPos])))
-            if #_M.slideBotRightWords > 1 then
-                _M.slideBotRightTimer = _M.system.timers.addTimer(t,t,_M.slideBotRight)
+                 string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
+            if #slideBotRightWords > 1 then
+                slideBotRightTimer = _M.system.timers.addTimer(t,t,slideBotRight)
             end
         end
     end
@@ -340,8 +341,8 @@ _M.setAutoTopAnnun = _M.writeAutoTopAnnun
 -- Set to 0 to enable direct control of the area
 function _M.writeAutoTopLeft(reg)
    if reg ~= curAutoTopLeft then
-       if _M.slideTopLeftTimer then     -- remove any running display
-          _M.system.timers.removeTimer(_M.slideTopLeftTimer)
+       if slideTopLeftTimer then     -- remove any running display
+          _M.system.timers.removeTimer(slideTopLeftTimer)
        end
        curTopLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
@@ -367,9 +368,7 @@ end
 -- Set to 0 to enable direct control of the area
 function _M.writeAutoBotLeft(reg)
    if reg ~= curAutoBotLeft then
-       if _M.slideBotLeftTimer then     -- remove any running display
-          _M.system.timers.removeTimer(_M.slideBotLeftTimer)
-       end
+      _M.system.timers.removeTimer(slideBotLeftTimer)
        curBotLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
        saveAutoBotLeft = curAutoBotLeft
@@ -382,7 +381,7 @@ _M.setAutoBotLeft = _M.writeAutoBotLeft
 -- reads the current Bottom Left auto update register
 -- @return register that is being used for auto update, 0 if none
 function _M.readAutoBotLeft()
-   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOT_LEFT)
+   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOTTOM_LEFT)
    reg = tonumber(reg)
    curAutoBotLeft = reg
    return reg
