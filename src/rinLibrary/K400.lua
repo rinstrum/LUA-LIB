@@ -47,18 +47,14 @@ return function ()
         require("rinLibrary." .. modules[i])(_M)
     end
 
-    -- There are two options for removal of the double assignment check.  Both
-    -- remove the newindex function so that things can be added to the table.
-    -- We can't simply return kv instead of _M for obvious reasons.
+    -- Provide a warning if an attempt is made to access an undefined field
+    local function warnOnUndefined(t, k)
+        _M.dbg.warn("K400: ", "attempt to access undefined field: " .. tostring(k))
+        return nil
+    end
+    setmetatable(_M, { __index = warnOnUndefined })
 
-    -- The first is to block modification of the metatable and leave things as
-    -- they are (the newindex bit is likely optional):
-    --setmetatable(_M, { __index = kt, __newindex = kt, __metatable = {} })
-
-    -- The second is to totally remove the metatable and to copy the stored values
-    -- back to the main table.  This way has no risk of breaking existing code that
-    -- does silly things e.g. iterating over pairs(_M)
-    setmetatable(_M, {})
+    -- Copy the stored values back to the main table.
     for k, v in pairs(kt) do
         _M[k] = v
     end
