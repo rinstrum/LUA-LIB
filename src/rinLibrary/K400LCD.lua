@@ -208,9 +208,7 @@ function _M.writeTopLeft(s,t)
             curTopLeft = s
             slideTopLeftWords = splitWords(s,6)
             slideTopLeftPos = 1
-            if slideTopLeftTimer then     -- remove any running display
-                _M.system.timers.removeTimer(slideTopLeftTimer)
-            end
+            _M.system.timers.removeTimer(slideTopLeftTimer)
             _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
@@ -341,9 +339,7 @@ _M.setAutoTopAnnun = _M.writeAutoTopAnnun
 -- Set to 0 to enable direct control of the area
 function _M.writeAutoTopLeft(reg)
    if reg ~= curAutoTopLeft then
-       if slideTopLeftTimer then     -- remove any running display
-          _M.system.timers.removeTimer(slideTopLeftTimer)
-       end
+       _M.system.timers.removeTimer(slideTopLeftTimer)
        curTopLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
        saveAutoTopLeft = curAutoTopLeft
@@ -368,7 +364,7 @@ end
 -- Set to 0 to enable direct control of the area
 function _M.writeAutoBotLeft(reg)
    if reg ~= curAutoBotLeft then
-      _M.system.timers.removeTimer(slideBotLeftTimer)
+       _M.system.timers.removeTimer(slideBotLeftTimer)
        curBotLeft = nil
        _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
        saveAutoBotLeft = curAutoBotLeft
