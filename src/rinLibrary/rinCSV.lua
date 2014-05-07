@@ -159,6 +159,11 @@ end
 -- Functions to manage CSV files directly
 -- @section CSV
 
+local function writerow(f, s)
+    f:write(_M.toCSV(s))
+    f:write('\n')
+end
+
 -------------------------------------------------------------------------------
 -- Save table t to a .CSV file
 -- @param t database table to save.
@@ -169,13 +174,24 @@ end
 -- @return table in same format:
 
 function _M.saveCSV(t)
-      local f = io.open(t.fname,"w+")
-      f:write(_M.toCSV(t.labels) .. '\n')
-      for _,row in ipairs(t.data) do
-         f:write(_M.toCSV(row) .. '\n')
-      end
-      f:close()
-      return (t)
+    if t.differentOnFileSystem then
+        dbg.warn("saveCSV: ", string.format("file format is different, overwriting %s", t.fname))
+    end
+
+    local f = io.open(t.fname, "w+")
+    if f == nil then
+        dbg.error("saveCSV: ", string.format("unable to write %s", t.fname))
+    else
+        writerow(f, t.labels)
+        for _, row in ipairs(t.data) do
+            writerow(f, row)
+        end
+        f:close()
+
+        t.differentOnFileSystem = nil
+    end
+
+    return t
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -230,6 +246,8 @@ end
      local f = io.open(t.fname,"r")
      local res = nil
 
+     t.differentOnFileSystem = nil
+
      if f == nil then
           -- no file yet so create new one
           _M.saveCSV(t)
@@ -276,7 +294,9 @@ end
                         table.insert(t.data, row)
                     end
                     f:close()
-                    _M.saveCSV(t)
+
+                    t.differentOnFileSystem = true
+
                     -- Figure out the possible return codes based on the field counts
                     if n == _M.numColsCSV(t) then
                         if n == #fieldnames then
@@ -289,7 +309,7 @@ end
                     end
                  else
                     f:close()
-                    _M.saveCSV(t)
+                    t.differentOnFileSystem = true
                     res = "immiscable"
                  end
               end
@@ -302,10 +322,16 @@ end
 -- Adds line of data to a CSV file but does not update local data in table
 -- @param t is table describing CSV data
 -- @param line is a row of data (1d array) to save
-function _M.logLineCSV(t,line)
-      local f = io.open(t.fname,"a+")
-      f:write(_M.toCSV(line) .. '\n')
-      f:close()
+function _M.logLineCSV(t, line)
+    if t ~= nil and line ~= nil then
+        if t.differentOnFileSystem then
+            dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
+        else
+            local f = io.open(t.fname, "a+")
+            writerow(f, line)
+            f:close()
+        end
+    end
 end
 
 -------------------------------------------------------------------------------

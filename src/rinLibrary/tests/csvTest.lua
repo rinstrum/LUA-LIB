@@ -192,11 +192,11 @@ end
 local loadCsvTests = {
     { res = "create",       s=true,  t={ fname = "nonexist",            labels = {} } },
     { res = "load",         s=false, t={ fname = path .. "csvData.csv", labels = { "a", "b" } },       v = {{'1', '2'}, {'3', '4'}} },
-    { res = "reordered",    s=true,  t={ fname = path .. "csvData.csv", labels = { "b", "a" } },       v = {{'2', '1'}, {'4', '3'}} },
-    { res = "partial",      s=true,  t={ fname = path .. "csvData.csv", labels = { "a", "b", "c" } },  v = {{'1', '2', ''}, {'3', '4', ''}} },
-    { res = "partial",      s=true,  t={ fname = path .. "csvData.csv", labels = { "a", "c" } },       v = {{'1', ''}, {'3', ''}} },
-    { res = "full",         s=true,  t={ fname = path .. "csvData.csv", labels = { "a" } },            v = {{'1'}, {'3'}} },
-    { res = "immiscable",   s=true,  t={ fname = path .. "csvData.csv", labels = { "x" } } },
+    { res = "reordered",    s=false, t={ fname = path .. "csvData.csv", labels = { "b", "a" } },       v = {{'2', '1'}, {'4', '3'}} },
+    { res = "partial",      s=false, t={ fname = path .. "csvData.csv", labels = { "a", "b", "c" } },  v = {{'1', '2', ''}, {'3', '4', ''}} },
+    { res = "partial",      s=false, t={ fname = path .. "csvData.csv", labels = { "a", "c" } },       v = {{'1', ''}, {'3', ''}} },
+    { res = "full",         s=false, t={ fname = path .. "csvData.csv", labels = { "a" } },            v = {{'1'}, {'3'}} },
+    { res = "immiscable",   s=false, t={ fname = path .. "csvData.csv", labels = { "x" } } },
     { res = "load",         s=false, t={ fname = path .. "csvData.csv" },                              v = {{'1', '2'}, {'3', '4'}} },
 }
 
