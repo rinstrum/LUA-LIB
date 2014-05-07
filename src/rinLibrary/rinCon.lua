@@ -132,7 +132,7 @@ end
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.send(addr, cmd, reg, data, reply, crc)
-    _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply))
+    _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
 
 -------------------------------------------------------------------------------
