@@ -6,7 +6,6 @@
 -------------------------------------------------------------------------------
 local sockets = require "rinSystem.rinSockets.Pack"
 local bit32 = require "bit"
-local ccitt = require "rinLibrary.rinCCITT"
 local rinMsg = require "rinLibrary.rinMessage"
 
 local str = string
@@ -74,10 +73,15 @@ function _M.socketACallback()
         local msg = table.concat(serABuffer)
         serABuffer = {}
         _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg)
-        local addr, cmd, reg, data, e = rinMsg.processMsg(msg, nil)
+        local addr, cmd, reg, data, e, excess = rinMsg.processMsg(msg, nil)
         if e then
             rinMsg.handleError(addr, cmd, reg, data, e)
             data = nil
+        end
+        if excess ~= nil and excess ~= '' then
+            -- since we're reading character at a time and cheching delimiters,
+            -- this should never happen but let's be a bit paranoid just in case.
+            _M.dbg.warn("excess data after message", excess)
         end
         if deviceRegisters[reg] then
             deviceRegisters[reg](data, e)
