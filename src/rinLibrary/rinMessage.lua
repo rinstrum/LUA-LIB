@@ -133,7 +133,7 @@ local function datacrc(s)
     data = string.sub(s, 1, -5)
 end
 
-local msgpat = {
+local msgpat = P({
               (V"crc" + V"rns" + 1) * (P(1)^0   / function(s) excess = s end),
     crc     = P"\1" * (V"msgcrc" / function(s) delim="CRC"; tocrc = string.sub(s, 1, -5) end) * P"\4",
     msgcrc  = V"header" * ((P(1)-P"\4")^4       / datacrc),
@@ -144,7 +144,7 @@ local msgpat = {
     cmd     = V"hd2"                            / function(s) cmd  = tonum(s, 16) end,
     reg     = V"hd4"                            / function(s) reg  = tonum(s, 16) end,
     hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
-}
+})
 
 -------------------------------------------------------------------------------
 -- Processes the message and feeds back the individual parts
@@ -161,7 +161,7 @@ function rinMsg.processMsg(msg, err)
         return nil, nil, nil, nil, err, nil
     elseif msg == nil then
         return nil, nil, nil, nil, "msg was nil", nil
-    elseif not lpeg.match(msgpat, msg) then
+    elseif not msgpat:match(msg) then
         return nil, nil, nil, nil, "bad message", excess
     elseif delim == "CRC" and ccitt(tocrc) ~= crc then
         return nil, nil, nil, nil, "bad crc", excess
