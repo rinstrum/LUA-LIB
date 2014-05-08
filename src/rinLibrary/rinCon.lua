@@ -77,8 +77,7 @@ function _M.socketACallback()
         if e then
             rinMsg.handleError(addr, cmd, reg, data, e)
             data = nil
-        end
-        if excess ~= nil and excess ~= '' then
+        elseif excess ~= nil and excess ~= '' then
             -- since we're reading character at a time and cheching delimiters,
             -- this should never happen but let's be a bit paranoid just in case.
             _M.dbg.warn("excess data after message", excess)
