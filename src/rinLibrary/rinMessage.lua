@@ -168,11 +168,9 @@ function rinMsg.processMsg(msg, err)
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
     elseif bit32.band(addr, rinMsg.ADDR_ERR) == rinMsg.ADDR_ERR then
-        addr = addr % 32
-        return addr, cmd, reg, data, errStrings[tonum(data, 16)]
+        return addr % 32, cmd, reg, data, errStrings[tonum(data, 16)]
     end
-    addr = addr % 32
-    return addr, cmd, reg, data, nil, excess
+    return addr % 32, cmd, reg, data, nil, excess
 end
 
 -------------------------------------------------------------------------------
