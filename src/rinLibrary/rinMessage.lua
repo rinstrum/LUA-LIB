@@ -12,6 +12,7 @@ local dbg    = require "rinLibrary.rinDebug"
 local str    = string
 local table  = table
 local tonum  = tonumber
+local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 
 local rinMsg = {}
 
@@ -123,6 +124,28 @@ local errStrings =
     [0x8008] = "Checksum required"
 }
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Build a grammer to parse and decode the messages.
+local delim, addr, cmd, reg, data, crc, excess, tocrc
+
+local function datacrc(s)
+    crc = tonum(string.sub(s, -4), 16)
+    data = string.sub(s, 1, -5)
+end
+
+local msgpat = {
+              (V"crc" + V"rns" + 1) * (P(1)^0   / function(s) excess = s end),
+    crc     = P"\1" * (V"msgcrc" / function(s) delim="CRC"; tocrc = string.sub(s, 1, -5) end) * P"\4",
+    msgcrc  = V"header" * ((P(1)-P"\4")^4       / datacrc),
+    rns     = V"msgrns" * (P"\r\n" + S"\r\n;")  / function(s) delim = "NORM"      end,
+    msgrns  = V"header" * ((P(1)-S"\r\n;")^0    / function(s) data = s            end),
+    header  = V"addr" * V"cmd" * V"reg" * V"hd"^0 * P':',
+    addr    = V"hd2"                            / function(s) addr = tonum(s, 16) end,
+    cmd     = V"hd2"                            / function(s) cmd  = tonum(s, 16) end,
+    reg     = V"hd4"                            / function(s) reg  = tonum(s, 16) end,
+    hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
+}
+
 -------------------------------------------------------------------------------
 -- Processes the message and feeds back the individual parts
 -- @param msg Message to be processed
@@ -130,79 +153,26 @@ local errStrings =
 -- @return address (0x00 to 0x1F)
 -- @return command  (CMD_*)
 -- @return register (REG_*)
--- @return data
--- @return error
+-- @return data (string)
+-- @return error (nil if not error, string otherwise)
+-- @return excess (string containing left over residue characters)
 function rinMsg.processMsg(msg, err)
-    local validDelim = nil
-    local newMsg
-    local addr, cmd, reg, data
-
     if msg == nil and (err == "closed" or "Transport endpoint is not connected") then
-        return nil, nil, nil, nil, err
-    end
-
-    if msg == nil then
-        return nil, nil, nil, nil, "msg was nil"
-    end
-
-    -- This decoding really ought to be more resistent to merged and
-    -- malformed messages.  Perhaps a small lpeg grammar would help.
-    -- A further step would be to decode the message contents as part of the
-    -- pattern match using captures.
-    if str.sub(msg, 1, 1) == '\01' then
-        if str.sub(msg, -1, -1) == '\04' then
-            validDelim = "CRC"
-            newMsg = str.sub(msg, 2, -6)
-        end
-
-    elseif str.sub(msg, -2, -1) == '\r\n' then
-        validDelim = "NORM"
-        newMsg = str.sub(msg, 1, -3)
-
-    elseif str.sub(msg, -1, -1) == '\r' then
-        validDelim = "NORM"
-        newMsg = str.sub(msg, 1, -2)
-
-    elseif str.sub(msg, -1, -1) == '\n' then
-        validDelim = "NORM"
-        newMsg = str.sub(msg, 1, -2)
-
-    elseif str.sub(msg, -1, -1) == ';' then
-        validDelim = "NORM"
-        newMsg = str.sub(msg, 1, -2)
-    end
-
-    if validDelim == nil then
-        return nil, nil, nil, nil, "bad delimiters"
-
-    elseif validDelim == "CRC"
-            and str.sub(msg, -5, -2) == ccitt(newMsg) then
-        return nil, nil, nil, nil, "bad crc"
-    end
-
-    local semiPos = str.find(msg, ':')
-
-    if semiPos == nil then
-        return nil, nil, nil, nil, "no separator found"
-    end
-
-    addr = tonum(str.sub(newMsg, 1, 2), 16)
-    cmd  = tonum(str.sub(newMsg, 3, 4), 16)
-    reg  = tonum(str.sub(newMsg, 5, 8), 16)
-    data = str.sub(newMsg, semiPos+1, -1)
-
-    if not (addr and cmd and reg and data) then
-        return nil, nil, nil, nil, "non-hex msg"
-    end
-
-    if bit32.band(addr, rinMsg.ADDR_ERR) == rinMsg.ADDR_ERR then
+        return nil, nil, nil, nil, err, nil
+    elseif msg == nil then
+        return nil, nil, nil, nil, "msg was nil", nil
+    elseif not lpeg.match(msgpat, msg) then
+        return nil, nil, nil, nil, "bad message", excess
+    elseif delim == "CRC" and ccitt(tocrc) ~= crc then
+        return nil, nil, nil, nil, "bad crc", excess
+    elseif not (addr and cmd and reg and data) then
+        return nil, nil, nil, nil, "non-hex message", excess
+    elseif bit32.band(addr, rinMsg.ADDR_ERR) == rinMsg.ADDR_ERR then
         addr = addr % 32
         return addr, cmd, reg, data, errStrings[tonum(data, 16)]
     end
-
     addr = addr % 32
-
-    return addr, cmd, reg, data, nil
+    return addr, cmd, reg, data, nil, excess
 end
 
 -------------------------------------------------------------------------------
@@ -302,7 +272,6 @@ function rinMsg.copyRelocatedFields(t)
     -- No precompilation of the pattern here, this function is only called
     -- at startup.  It is also usually called but once and at most only a small
     -- number of times.
-    local P, R = lpeg.P, lpeg.R
     local pvar = (P"ADDR" + P"CMD" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1
     local pfnc = (P"set" + P"remove") * P"ErrHandler"
     local pat  = (pvar + pfnc) * -1
