@@ -179,15 +179,12 @@ function _M.saveAutoLeft()
 end
 
 local function slideTopLeft()
-    local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
-             string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
-     end
     slideTopLeftPos = slideTopLeftPos + 1
     if slideTopLeftPos > #slideTopLeftWords then
        slideTopLeftPos = 1
     end
-    dispWord()
+    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
+         string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
 end
 
 -------------------------------------------------------------------------------
@@ -222,24 +219,19 @@ end
 -- Write string to Top Right of LCD, curTopRight is set to s
 -- @param s string to display
 function _M.writeTopRight(s)
-    if s then
-        if s ~= curTopRight then
-           _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
-           curTopRight = s
-        end
+    if s and s ~= curTopRight then
+        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
+        curTopRight = s
     end
 end
 
 local function slideBotLeft()
-    local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
-             string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
-     end
     slideBotLeftPos = slideBotLeftPos + 1
     if slideBotLeftPos > #slideBotLeftWords then
        slideBotLeftPos = 1
     end
-    dispWord()
+    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
+         string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
 end
 
 -------------------------------------------------------------------------------
@@ -272,15 +264,12 @@ function _M.writeBotLeft(s, t)
 end
 
 local function slideBotRight()
-    local function dispWord()
-        _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
-             string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
-     end
     slideBotRightPos = slideBotRightPos + 1
     if slideBotRightPos > #slideBotRightWords then
        slideBotRightPos = 1
     end
-    dispWord()
+    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
+         string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
 end
 
 -------------------------------------------------------------------------------
@@ -295,7 +284,7 @@ function _M.writeBotRight(s, t)
     end
 
     if s then
-     if s ~= curBotRight then
+        if s ~= curBotRight then
             curBotRight = s
             slideBotRightWords = splitWords(s,8)
             slideBotRightPos = 1
