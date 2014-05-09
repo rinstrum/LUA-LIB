@@ -186,8 +186,6 @@ local function slideTopLeft()
     slideTopLeftPos = slideTopLeftPos + 1
     if slideTopLeftPos > #slideTopLeftWords then
        slideTopLeftPos = 1
-       dispWord()
-       return
     end
     dispWord()
 end
@@ -240,8 +238,6 @@ local function slideBotLeft()
     slideBotLeftPos = slideBotLeftPos + 1
     if slideBotLeftPos > #slideBotLeftWords then
        slideBotLeftPos = 1
-       dispWord()
-       return
     end
     dispWord()
 end
@@ -283,8 +279,6 @@ local function slideBotRight()
     slideBotRightPos = slideBotRightPos + 1
     if slideBotRightPos > #slideBotRightWords then
        slideBotRightPos = 1
-       dispWord()
-       return
     end
     dispWord()
 end
