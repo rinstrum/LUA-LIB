@@ -227,7 +227,7 @@ function _M.socketBCallback()
     elseif err == 'timeout' then  -- partial message received
         _M.system.timers.removeTimer(serBTimer)
         if serBTimeout > 0 then
-           serBTimer = _M.system.timers.addTimer(0, serBTimeout, serBProcess,'timeout')
+            serBTimer = _M.system.timers.addTimer(0, serBTimeout, serBProcess,'timeout')
         else
             serBTimer = nil
         end
