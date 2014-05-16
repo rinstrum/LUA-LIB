@@ -29,7 +29,7 @@ local serABuffer = {}
 local startChar     = nil
 local end1Char      = '\13'
 local end2Char      = '\10'
-local serBTimeout   = 0
+local serBTimeout   = nil
 local serBTimer     = nil
 local serBBuffer    = {}
 local SerBCallback  = nil
@@ -225,9 +225,11 @@ function _M.socketBCallback()
         end
         return nil, nil
     elseif err == 'timeout' then  -- partial message received
+        local timeout = serBTimeout or .1
+
         _M.system.timers.removeTimer(serBTimer)
-        if serBTimeout > 0 then
-            serBTimer = _M.system.timers.addTimer(0, serBTimeout, serBProcess,'timeout')
+        if timeout > 0 then
+            serBTimer = _M.system.timers.addTimer(0, timeout, serBProcess, 'timeout')
         else
             serBTimer = nil
         end
@@ -259,7 +261,7 @@ function _M.setDelimiters(start, end1, end2, t)
    startChar = start
    end1Char = end1
    end2Char = end2
-   serBTimeout = tonumber(t) or 0
+   serBTimeout = tonumber(t)
 
 end
 
