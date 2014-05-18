@@ -40,6 +40,22 @@ _M.TM_MMDDYYYY          = 3
 _M.TM_YYMMDD            = 4
 _M.TM_YYYYMMDD          = 5
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Return the length of a month in a given year
+-- @param y Year
+-- @param m Month
+-- @return The number of days in the month
+local function monthLength(y, m)
+    if m ~= 2 then
+        return ({ 31, nil, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })[m]
+    end
+
+    if y%4 == 0 and (y%100 ~= 0 or y%400 == 0) then
+        return 29
+    end
+    return 28
+end
+
 -------------------------------------------------------------------------------
 -- sets the instrument date format
 -- @param fmt TM_MMDDYYYY or TM_DDMMYYYY
@@ -99,6 +115,56 @@ function _M.RTCread(d)
   if err then
     _M.RTC.sec = 0
   end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Write a single RTC register and update the local copy
+-- @param r Register to update
+-- @param f Value to update it with
+-- @param n Name of the field
+-- @param l Lowest legal value
+-- @param u Highest leval value
+local function writeRTC(r, f, n, l, u)
+    local x = tonumber(f)
+    if x ~= nil and x >= l and x <= u then
+        _M.writeReg(r, x)
+        _M.RTC[n] = x
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Write Real Time Clock date to instrument
+-- @param year The year to write or nil to leave unchanged
+-- @param month The month to write or nil to leave unchanged
+-- @param day The day to write or nil to leave unchanged
+function _M.RTCwriteDate(year, month, day)
+    writeRTC(_M.REG_TIMEYEAR,  year,       "year",  2014,   2100)
+    writeRTC(_M.REG_TIMEMON,   month,      "month", 1,      12)
+    writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(year, month))
+end
+
+-------------------------------------------------------------------------------
+-- Write Real Time Clock time to instrument
+-- @param hour The hour to write or nil to leave unchanged
+-- @param minute The minute to write or nil to leave unchanged
+-- @param second The second to write or nil to leave unchanged
+function _M.RTCwriteTime(hour, minute, second)
+    writeRTC(_M.REG_TIMESEC,   second,     "sec",   0,      59)
+    writeRTC(_M.REG_TIMEMIN,   minute,     "min",   0,      59)
+    writeRTC(_M.REG_TIMEHOUR,  hour,       "hour",  0,      23)
+end
+
+-------------------------------------------------------------------------------
+-- Write Real Time Clock date and time to instrument
+-- @param year The year to write or nil to leave unchanged
+-- @param month The month to write or nil to leave unchanged
+-- @param day The day to write or nil to leave unchanged
+-- @param hour The hour to write or nil to leave unchanged
+-- @param minute The minute to write or nil to leave unchanged
+-- @param second The second to write or nil to leave unchanged
+function _M.RTCwrite(year, month, day, hour, minute, second)
+    _M.RTCwriteTime(hour, minute, second)
+    _M.RTCwriteDate(year, month, day)
 end
 
 -------------------------------------------------------------------------------
