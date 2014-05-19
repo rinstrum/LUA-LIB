@@ -138,9 +138,9 @@ end
 -- @param month The month to write or nil to leave unchanged
 -- @param day The day to write or nil to leave unchanged
 function _M.RTCwriteDate(year, month, day)
-    writeRTC(_M.REG_TIMEYEAR,  year,       "year",  2014,   2100)
+    writeRTC(_M.REG_TIMEYEAR,  year,       "year",  2010,   2100)
     writeRTC(_M.REG_TIMEMON,   month,      "month", 1,      12)
-    writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(year, month))
+    writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(_M.RTC.year, _M.RTC.month))
 end
 
 -------------------------------------------------------------------------------
