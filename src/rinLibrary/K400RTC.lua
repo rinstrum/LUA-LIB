@@ -8,8 +8,6 @@
 -------------------------------------------------------------------------------
 local string = string
 local tonumber = tonumber
-local type = type
-local tostring = tostring
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Return the length of a month in a given year
