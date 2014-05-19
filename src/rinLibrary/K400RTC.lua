@@ -12,6 +12,22 @@ local type = type
 local tostring = tostring
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Return the length of a month in a given year
+-- @param y Year
+-- @param m Month
+-- @return The number of days in the month
+local function monthLength(y, m)
+    if m ~= 2 then
+        return ({ 31, nil, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })[m]
+    end
+
+    if y%4 == 0 and (y%100 ~= 0 or y%400 == 0) then
+        return 29
+    end
+    return 28
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M)
 
@@ -39,22 +55,6 @@ _M.TM_MMDDYY            = 2
 _M.TM_MMDDYYYY          = 3
 _M.TM_YYMMDD            = 4
 _M.TM_YYYYMMDD          = 5
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Return the length of a month in a given year
--- @param y Year
--- @param m Month
--- @return The number of days in the month
-local function monthLength(y, m)
-    if m ~= 2 then
-        return ({ 31, nil, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })[m]
-    end
-
-    if y%4 == 0 and (y%100 ~= 0 or y%400 == 0) then
-        return 29
-    end
-    return 28
-end
 
 -------------------------------------------------------------------------------
 -- sets the instrument date format
@@ -212,6 +212,5 @@ function _M.RTCdateFormat(first,second,third)
     _M.RTC.second = second
     _M.RTC.third = third
 end  
-
 
 end
