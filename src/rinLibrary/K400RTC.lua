@@ -54,14 +54,38 @@ _M.TM_MMDDYYYY          = 3
 _M.TM_YYMMDD            = 4
 _M.TM_YYYYMMDD          = 5
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Decode the numeric format field and set the appropriate ordering
+-- @param fmt Date format enumerated type value
+local function setDateFormat(fmt)
+    if fmt == _M.TM_DDMMYYYY or fmt == _M.TM_DDMMYY then
+        _M.RTCdateFormat('day', 'month', 'year')
+    elseif fmt == _M.TM_MMDDYYYY or fmt == _M.TM_MMDDYY then
+        _M.RTCdateFormat('month', 'day', 'year')
+    else
+        _M.RTCdateFormat('year', 'month', 'day')
+    end
+end
+
+-------------------------------------------------------------------------------
+-- reads the instrument date format
+-- @return Date format code
+function _M.readDateFormat()
+    local fmt, err = _M.sendRegWait(_M.CMD_RDFINALDEC, _M.REG_TIMEFORMAT)
+    local r = err and _M.TM_DDMMYY or tonumber(fmt)
+    setDateFormat(r)
+    return r
+end
+
 -------------------------------------------------------------------------------
 -- sets the instrument date format
 -- @param fmt TM_MMDDYYYY or TM_DDMMYYYY
 function _M.sendDateFormat(fmt)
-     if fmt < _M.TM_DDMMYY or fmt > _M.TM_YYYYMMDD then
+    if fmt < _M.TM_DDMMYY or fmt > _M.TM_YYYYMMDD then
         fmt = _M.TM_DDMMYYYY
-     end
-  _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_TIMEFORMAT,fmt)
+    end
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.REG_TIMEFORMAT, fmt)
+    setDateFormat(fmt)
 end
 
 _M.RTC = {hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 2010}
@@ -75,22 +99,8 @@ _M.RTC['third'] = 'year'
 function _M.RTCread(d)
   local d = d or 'all'
 
-  local fmt , err = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_TIMEFORMAT)
-  
-  if err then
-    fmt = 0
-  else
-    fmt = tonumber(fmt)
-  end
-  
-  if fmt == _M.TM_DDMMYYYY or fmt == _M.TM_DDMMYY then
-     _M.RTCdateFormat('day','month','year')
-  elseif fmt == _M.TM_MMDDYYYY or fmt == _M.TM_MMDDYY then
-     _M.RTCdateFormat('month','day','year')
-  else
-     _M.RTCdateFormat('year','month','day')
-  end
-    
+  _M.readDateFormat()
+
   local timestr, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_TIMECUR)
   
   if err then
