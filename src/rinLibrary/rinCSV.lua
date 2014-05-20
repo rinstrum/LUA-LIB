@@ -341,7 +341,11 @@ end
 -- @return row location of line new line in table
 
 function _M.addLineCSV(t, line)
-    if hasData(t) and line ~= nil and #line == _M.numColsCSV(t) then
+    if hasData(t) and line ~= nil then
+        if #line ~= _M.numColsCSV(t) then
+            dbg.warn("addLineCSV: ", "incorrect number of columns.  Expected " .. _M.numColsCSV(t) .. " have " .. #line)
+            return nil
+        end
         table.insert(t.data, line)
         return _M.numRowsCSV(t)
     end
