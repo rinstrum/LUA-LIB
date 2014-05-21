@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 local tonumber = tonumber
 local math = math
+local string = string
 local bit32 = require "bit"
 
 local function strLenR400(s)
@@ -159,6 +160,19 @@ local saveBotUnitsOther = 0
 local slideBotLeftPos, slideBotLeftWords, slideBotLeftTimer
 local slideBotRightPos, slideBotRightWords, slideBotRightTimer
 local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
+
+-------------------------------------------------------------------------------
+-- Right justify a string in a given field
+-- @param s string to justify
+-- @param w width to justify to
+-- @return justified string
+function _M.rightJustify(s, w)
+    local l = strLenR400(s)
+    if l >= w then
+        return s
+    end
+    return string.rep(" ", w-l) .. s
+end
 
 function _M.saveBot()
    saveBotLeft = curBotLeft
