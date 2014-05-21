@@ -20,7 +20,7 @@ local bit32 = require "bit"
 -- Submodule function begins here
 return function (_M)
 
-local dialogRunning = false
+local dialogRunning = 0
 local getKeyPressed = 0
 local getKeyState = ''
 local editing = false
@@ -36,16 +36,29 @@ local blinkOff = false      -- blink cursor for string editing
 local msgDisp = false	    -- message is being displayed by dispMsg function
 local msgTimer = nil		-- timer for user message display
 
+-------------------------------------------------------------------------------
+-- Is a message currently being displayed?
+-- @return true iff a message is displayed
+function _M.messageDisplayed()
+    return msgDisp
+end
+
+-------------------------------------------------------------------------------
+-- Is a dialog currently being displayed?
+-- @return true iff a dialog is displayed
 function _M.dialogRunning()
-    return dialogRunning
+    return dialogRunning ~= 0
 end
 
 function _M.abortDialog()
-   dialogRunning = false
+    dialogRunning = dialogRunning - 1
+    if dialogRunning < 0 then
+        dialogRunning = 0
+    end
 end
 
 function _M.startDialog()
-    dialogRunning = true
+    dialogRunning = dialogRunning + 1
     _M.bumpIdleTimer()
 end
 
@@ -111,9 +124,10 @@ function _M.getKey(keyGroup)
     getKeyState = ''
     getKeyPressed = nil
     _M.startDialog()
-    while dialogRunning and _M.app.running and getKeyState == '' do
+    while _M.dialogRunning() and _M.app.running and getKeyState == '' do
         _M.system.handleEvents()
     end
+    _M.abortDialog()
     _M.setKeyGroupCallback(keyGroup, f)
 
     return getKeyPressed, getKeyState
@@ -278,7 +292,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
         sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
-        if not dialogRunning then    -- editing aborted so return default
+        if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
            editing = false
            sEditVal = default
@@ -367,6 +381,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 --          print('eVal = \'' .. sEditVal .. '\'')   -- debug
         end
     end
+    _M.abortDialog()
 
     _M.restoreBot() -- restore previously displayed messages
 
@@ -416,10 +431,10 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local first = true
 
     local ok = false
-   _M.startDialog()
+    _M.startDialog()
     while editing and _M.app.running do
         key, state = _M.getKey(_M.keyGroup.keypad)
-        if not dialogRunning then    -- editing aborted so return default
+        if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
            editing = false
            sEditVal = def
@@ -468,6 +483,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
            _M.writeBotLeft(editVal..' ')
         end
     end
+    _M.abortDialog()
     _M.restoreBot()
 
     return tonumber(editVal), ok
@@ -499,10 +515,11 @@ function _M.editReg(reg,prompt)
        break
      end
      _M.delay(0.050)
-     if not dialogRunning or not _M.app.running then
+     if not _M.dialogRunning() or not _M.app.running then
         _M.sendKey(_M.KEY_CANCEL,'long')
      end
    end
+   _M.abortDialog()
    if prompt then
       _M.restoreBot()
    end
@@ -567,9 +584,10 @@ function _M.askOK(prompt, q, units, unitsOther)
     askOKWaiting = true
     askOKResult = _M.KEY_CANCEL
    _M.startDialog()
-    while dialogRunning and askOKWaiting and _M.app.running do
+    while _M.dialogRunning() and askOKWaiting and _M.app.running do
         _M.system.handleEvents()
     end
+    _M.abortDialog()
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
 
     _M.restoreBot()
@@ -614,7 +632,7 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
    _M.startDialog()
     while editing and _M.app.running do
         key = _M.getKey(_M.keyGroup.keypad)
-        if not dialogRunning then    -- editing aborted so return default
+        if not _M.dialogRunning() then    -- editing aborted so return default
            editing = false
         elseif key == _M.KEY_DOWN then
             index = index + 1
@@ -643,6 +661,7 @@ function _M.selectOption(prompt, options, def, loop,units,unitsOther)
       _M.writeBotLeft(string.upper(options[index]))
 
     end
+    _M.abortDialog()
 
     _M.restoreBot()
 
