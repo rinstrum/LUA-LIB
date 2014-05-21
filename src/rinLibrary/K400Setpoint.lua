@@ -105,7 +105,7 @@ function _M.turnOn(...)
    end
    local curOutputs = lastOutputs or 0
    for i,v in ipairs(arg) do
-     if v < 32 and v > 1 then
+     if v < 32 and v > 0 then
         curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
      end
    end
@@ -122,7 +122,7 @@ function _M.turnOff(...)
    end
    local curOutputs = lastOutputs or 0
    for i,v in ipairs(arg) do
-     if v < 32 and v > 1 then
+     if v < 32 and v > 0 then
         curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
      end
    end
