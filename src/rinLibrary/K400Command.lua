@@ -202,6 +202,7 @@ function _M.checkPasscode(pc, code, tries)
        if not msg then
           if  count > tries then
                 _M.setErrHandler(f)
+                _M.abortDialog()
                 return false
           end          
           if count > 1 and err then
@@ -216,6 +217,7 @@ function _M.checkPasscode(pc, code, tries)
             pass, ok = _M.edit('ENTER PCODE','','passcode')            
             if not ok or not pass then
                 _M.setErrHandler(f)
+                _M.abortDialog()
                 return false
              end 
           end              
@@ -225,6 +227,7 @@ function _M.checkPasscode(pc, code, tries)
           break
        end   
     end    
+    _M.abortDialog()
     _M.setErrHandler(f)
     return true
 end
