@@ -83,7 +83,6 @@ _M.NUM_SETP = 16
 
 local function setOutputs(outp)
     if outp ~= lastOutputs then
-        print(string.format("setting outputs to %08x", outp))
         _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
         lastOutputs = outp
     end
