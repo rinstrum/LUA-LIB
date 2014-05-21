@@ -74,19 +74,26 @@ _M.TYPE_LGC_OR   = 10
 _M.TYPE_LGC_XOR  = 11
 _M.TYPE_BUZZER   = 12
 
-local lastOutputs = 0
+local lastOutputs = nil
 local timedOutputs = 0   -- keeps track of which IO are already running off timers
 -- bits set if under LUA control, clear if under instrument control
-local lastIOEnable = 0
+local lastIOEnable = nil
 
 _M.NUM_SETP = 16
 
 local function setOutputs(outp)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
+    if outp ~= lastOutputs then
+        print(string.format("setting outputs to %08x", outp))
+        _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
+        lastOutputs = outp
+    end
 end
 
 local function setOutputEnable(en)
-    _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
+    if en ~= lastIOEnable then
+        _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
+        lastIOEnable = en
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -96,17 +103,14 @@ function _M.turnOn(...)
    if arg.n == 0 then
       return
    end
-   local curOutputs = lastOutputs
+   local curOutputs = lastOutputs or 0
    for i,v in ipairs(arg) do
      if v < 32 and v > 1 then
         curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
      end
    end
 
-   if (curOutputs ~= lastOutputs) then
-      setOutputs(curOutputs)
-      lastOutputs = curOutputs
-      end
+   setOutputs(curOutputs)
 end
 
 -------------------------------------------------------------------------------
@@ -116,17 +120,14 @@ function _M.turnOff(...)
    if arg.n == 0 then
       return
    end
-   local curOutputs = lastOutputs
+   local curOutputs = lastOutputs or 0
    for i,v in ipairs(arg) do
      if v < 32 and v > 1 then
         curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
      end
    end
 
- if (curOutputs ~= lastOutputs) then
-      setOutputs(curOutputs)
-      lastOutputs = curOutputs
-      end
+   setOutputs(curOutputs)
 end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
@@ -138,11 +139,10 @@ function _M.turnOnTimed(IO, t)
   if bit32.band(timedOutputs, IOMask) == 0 then
       _M.turnOn(IO)
       _M.system.timers.addTimer(0, t,
-             function (IO,IOMask)
+             function ()
                    timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask))
                    _M.turnOff(IO)
-             end ,
-             IO, IOMask)
+             end)
       timedOutputs = bit32.bor(timedOutputs, IOMask)
   else
      _M.dbg.warn('IO Timer overlap: ', IO)
@@ -160,16 +160,14 @@ end
 -- dwi.releaseOutput(1,2,3,4)
 
 function _M.enableOutput(...)
-    local curIOEnable =  lastIOEnable
+    local curIOEnable = lastIOEnable or 0
 
     for i,v in ipairs(arg) do
         v = tonumber(v)
         curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
        end
-   if (curIOEnable ~= lastIOEnable) then
-      setOutputEnable(curIOEnable)
-      lastIOEnable = curIOEnable
-    end
+
+    setOutputEnable(curIOEnable)
 end
 
 -------------------------------------------------------------------------------
@@ -182,7 +180,7 @@ end
 -- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
 -- dwi.releaseOutput(1,2,3,4)
 function _M.releaseOutput(...)
-    local curIOEnable =  lastIOEnable
+    local curIOEnable = lastIOEnable or 0
 
     for i,v in ipairs(arg) do
         v = tonumber(v)
@@ -190,10 +188,7 @@ function _M.releaseOutput(...)
                                    bit32.bnot(bit32.lshift(0x0001,(v-1))))
        end
 
-    if (curIOEnable ~= lastIOEnable) then
-        setOutputEnable(curIOEnable)
-        lastIOEnable = curIOEnable
-    end
+    setOutputEnable(curIOEnable)
 end
 
 --------------------------------------------------------------------------------
