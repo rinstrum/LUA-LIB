@@ -13,6 +13,7 @@ local type = type
 local floor = math.floor
 local bit32 = require "bit"
 local powersOfTen = require "rinLibrary.powersOfTen"
+local rinMsg = require "rinLibrary.rinMessage"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -180,7 +181,7 @@ function _M.loadRIS(filename)
                  line = line .. ';'
             end     
        
-            local _,cmd,reg,data,err = _M.processMsg(line)
+            local _,cmd,reg,data,err = rinMsg.processMsg(line)
             if err then
                _M.dbg.error('RIS error: ',err)
             end   
