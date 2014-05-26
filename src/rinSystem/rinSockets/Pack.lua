@@ -96,6 +96,7 @@ end
 -- Write a message to a socket
 -- @param sock Socket to write to
 -- @param msg Data to write
+-- @return Length of the send queue
 function _M.writeSocket(sock, msg)
 	local queue = writers[sock]
     if queue == nil then
@@ -105,6 +106,7 @@ function _M.writeSocket(sock, msg)
     queue.finish = queue.finish + 1
 	queue[queue.finish] = msg
     writers[sock] = queue
+    return queue.finish
 end
 
 -------------------------------------------------------------------------------

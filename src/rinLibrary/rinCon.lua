@@ -35,6 +35,7 @@ local serBBuffer    = {}
 local SerBCallback  = nil
 
 local largeSerialBMessageWarning = false  -- Have we warned about an over sized message yet?
+local queueClearing = false
 
 rinMsg.copyRelocatedFields(_M)
 
@@ -115,7 +116,13 @@ end
 -- Sends a raw message
 -- @param raw  string to send
 function _M.sendRaw(raw)
-   sockets.writeSocket(_M.socketA, raw)
+    if sockets.writeSocket(_M.socketA, raw) > 5 and not queueClearing then
+        -- There is a queue of messages building up.  Send a mostly harmless
+        -- ping to the display and away its response.  This flushes the queue.
+        queueClearing = true
+        _M.readReg(_M.REG_SERIALNO)
+        queueClearing = false
+    end
 end
 
 -------------------------------------------------------------------------------
