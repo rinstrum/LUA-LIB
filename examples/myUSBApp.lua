@@ -94,6 +94,14 @@ local function kbdHandler(key)
     end
 end
 usb.setUSBKBDCallback(kbdHandler)
+
+-------------------------------------------------------------------------------
+-- Callback for USB serial events
+local function usbSerialHandler(c, err, port)
+    print("USB serial", c, err)
+end
+usb.serialUSBdeviceHandler(usbSerialHandler)
+
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
