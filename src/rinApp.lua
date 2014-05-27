@@ -17,13 +17,14 @@ local io = io
 
 local socks = require "rinSystem.rinSockets.Pack"
 local ini = require "rinLibrary.rinINI"
+local usb = require "rinLibrary.rinUSB"
 
 local _M = {}
 _M.running = false
 _M.config = {
          '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
          '; logger can be any of the supported groups - eg console or file',
-         "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",         
+         "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",
          level = 'INFO',
          timestamp = 'on',
          logger = 'console',
@@ -35,28 +36,27 @@ _M.config = {
 _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
-_M.usb = require "devicemounter"
-_M.ev_lib = require "ev_lib"
-_M.kb_lib = require "kb_lib"
+
 local input = require "linux.input"
 
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config)
 
+usb.depricatedUSBhandlers(_M)
 
 local userTerminalCallback = nil
 
 
 -------------------------------------------------------------------------------
--- called to register application's callback for keys pressed in the terminal.  
--- Nothing is called unless the user hits <Enter>.  The callback function is 
+-- called to register application's callback for keys pressed in the terminal.
+-- Nothing is called unless the user hits <Enter>.  The callback function is
 -- called with the data entered by the user.  Have the callback return true
--- to indicate that the message has been processed, false otherwise.  
+-- to indicate that the message has been processed, false otherwise.
 -- @param f callback given data entered by user in the terminal screen
 function _M.setUserTerminal(f)
    userTerminalCallback = f
-end    
+end
 
 
 -- captures input from terminal to change debug level
@@ -67,8 +67,8 @@ local function userioCallback(sock)
         if userTerminalCallback(data) then
             return
         end
-    end    
-    
+    end
+
     if data == nil then
         sock.close()
         socks.removeSocket(sock)
@@ -80,89 +80,7 @@ local function userioCallback(sock)
         for k,v in pairs(_M.devices) do
                 v.dbg.setLevel(_M.dbg.level)
             end
-    end  
-end
-
-local userUSBRegisterCallback = nil
-local userUSBEventCallback = nil
-local userUSBKBDCallback = nil
-
--------------------------------------------------------------------------------
--- Called to register a callback to run whenever a USB device change is detected
--- @param f  Callback function takes event table as a parameter
-function _M.setUSBRegisterCallback(f)
-   userUSBRegisterCallback = f
-end
-
--------------------------------------------------------------------------------
--- Called to get current callback that runs whenever a USB device change is detected
--- @return current callback
-function _M.getUSBRegisterCallback(f)
-   return userUSBRegisterCallback
-end
-
--------------------------------------------------------------------------------
--- Called to register a callback to run whenever a USB device event is detected
--- @param f  Callback function takes event table as a parameter
-function _M.setUSBEventCallback(f)
-   userUSBEventCallback = f
-end
-
--------------------------------------------------------------------------------
--- Called to get current callback that runs whenever a USB device event is detected
--- @return current callback
-function _M.getUSBEventCallback()
-   return userUSBEventCallback
-end
-
--------------------------------------------------------------------------------
--- Called to register a callback to run whenever a USB Keyboard event is processed
--- @param f  Callback function takes key string as a parameter
-function _M.setUSBKBDCallback(f)
-   userUSBKBDCallback = f
-end
-
--------------------------------------------------------------------------------
--- Called to get current callback that runs whenever whenever a USB Keyboard event is processed
--- @return current callback
-function _M.getUSBKBDCallback()
-   return userUSBKBDCallback
-end
-
-local eventDevices = {}
-function _M.eventCallback(sock)
-   local ev = _M.ev_lib.getEvent(sock)
-   if ev then
-      if userUSBEventCallback then
-          userUSBEventCallback(ev)
-      end    
-      local key = _M.kb_lib.getR400Keys(ev)
-      if key and userUSBKBDCallback then
-            userUSBKBDCallback(key)
-      end   
-    end      
-end
-
-function _M.usbCallback(t)
-   _M.dbg.debug('',t)
-   for k,v in pairs(t) do
-      if v[1] == 'event' then
-         if v[2] == 'added' then
-            eventDevices[k] = _M.ev_lib.openEvent(k)
-            _M.system.sockets.addSocket(eventDevices[k],_M.eventCallback) 
-         elseif v[2] == 'removed' and eventDevices[k] ~= nil then
-            _M.system.sockets.removeSocket(eventDevices[k])
-            eventDevices[k] = nil
-         end   
-      end    
-    end  
-   if userUSBRegisterCallback then
-      userUSBRegisterCallback(t)
-   end   
-end
-
-local function usbSockCallback(sock)
-   local ret = _M.usb.receiveCallback()
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -174,24 +92,24 @@ end
 -- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
 function _M.addK400(model, ip, portA, portB)
-    
+
     -- Create the socket
     local ip = ip or "127.0.0.1"
     local portA = portA or 2222
     local portB = portB or 2223
-    
+
     local model = model or ""
-    
+
     local device = require("rinLibrary.K400")()
 
     _M.devices[#_M.devices+1] = device
-  
+
   	local sA = _M.system.sockets.createTCPsocket(ip, portA, 0.001)
     local sB = _M.system.sockets.createTCPsocket(ip, portB, 0.001)
-    
+
     -- Connect to the K400, and attach system if using the system library
     device.connect(model, sA, sB, _M)
-   
+
     -- Register the K400 with system
     _M.system.sockets.addSocket(device.socketA, device.socketACallback)
     _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
@@ -210,18 +128,8 @@ function _M.addK400(model, ip, portA, portB)
     device.setupStatus()
     device.lcdControl('lua')
     device.configure(model)
-    return device 
+    return device
 end
-   
--------------------------------------------------------------------------------
--- called to initialise the USB port if in use
-
-function _M.initUSB()   
-  _M.system.sockets.addSocket(_M.usb.init(),usbSockCallback)
-  _M.usb.registerCallback(_M.usbCallback)
-  _M.usb.checkDev()  -- call to check if any usb devices already mounted
-end
-   
 
 -------------------------------------------------------------------------------
 -- We need somewhere to keep the socket descriptor so we can send messages to it
@@ -250,7 +158,7 @@ local function bidirectionalFromExternal(sock)
     else
     	if _M.userBidirectionalCallback then
             _M.userBidirectionalCallback(m)
-        end    
+        end
     end
 end
 
@@ -274,7 +182,7 @@ local function socketBidirectionalAccept(sock, ip, port)
         _M.dbg.debug('bidirectional connection from', ip, port)
         if _M.userBidirectionalConnectCallback then
             _M.userBidirectionalConnectCallback(m)
-        end    
+        end
 
     end
 end
@@ -319,38 +227,38 @@ local cleanedUp = false
 
 -------------------------------------------------------------------------------
 -- called to register application's main loop function
--- @param f Mail Loop function to call 
+-- @param f Mail Loop function to call
 function _M.setMainLoop(f)
    userMainLoop = f
-end    
+end
 
 -------------------------------------------------------------------------------
 -- called to register application's cleanup function
--- @param f cleanup function to call 
+-- @param f cleanup function to call
 function _M.setCleanup(f)
    userCleanup = f
-end    
-    
+end
+
 -------------------------------------------------------------------------------
 -- Initialise rinApp and all connected devices
 function _M.init()
     if _M.initialised then
         return
-    end    
-    _M.initUSB()
-    for i,v in ipairs(_M.devices) do
-        v.init() 
     end
-    _M.initialised = true    
-end    
+    usb.initUSB()
+    for i,v in ipairs(_M.devices) do
+        v.init()
+    end
+    _M.initialised = true
+end
 
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
--- enabled by configure() 
+-- enabled by configure()
 function _M.cleanup()
     if cleanedUp then
         return
-    end        
+    end
     if userCleanup then
       userCleanup()
     end
@@ -360,7 +268,7 @@ function _M.cleanup()
         v.streamCleanup()
         v.endKeys()
         v.delay(0.050)
-     end 
+     end
     _M.dbg.info('','------   Application Finished  ------')
     cleanedUp = true
 end
@@ -372,12 +280,11 @@ function _M.run()
     while _M.running do
         if userMainLoop then
            userMainLoop()
-        end   
-        _M.system.handleEvents()           -- handleEvents runs the event handlers 
+        end
+        _M.system.handleEvents()           -- handleEvents runs the event handlers
     end
-   _M.cleanup()    
+   _M.cleanup()
 end
-
 
 
 -------------------------------------------------------------------------------

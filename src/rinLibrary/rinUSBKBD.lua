@@ -15,6 +15,7 @@ local tostring = tostring
 
 local _M = {}
 
+local usb = require "rinLibrary.rinUSB"
 local editing = false
 local rinApp
 
@@ -41,12 +42,12 @@ function _M.getKey()
     local function kbdHandler(key)
         keypressed = key
     end
-    rinApp.setUSBKBDCallback(kbdHandler)
+    usb.setUSBKBDCallback(kbdHandler)
 
     while rinApp.running and keypressed == '' do
         rinApp.system.handleEvents()
     end
-    rinApp.setUSBKBDCallback(f)
+    usb.setUSBKBDCallback(f)
 
     return keypressed
 end
@@ -63,7 +64,7 @@ end
 -- @param dwi Indicator to use for edit display
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param typ type of value to enter ('integer','number','string'
+-- @param typ type of value to enter ('integer','number','string')
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
