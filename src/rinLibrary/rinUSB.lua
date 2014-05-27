@@ -119,7 +119,7 @@ end
 -- @param flow Flavour of flow control used (default RS232_FLOW_OFF)
 -- The call back takes three arguments:
 --  c The character just read from the serial device
---  err The error indication if c is nil
+--  err The error indication if c is nil (on creation, "open" is passed as a pseudo-error)
 --  port The incoming serial port
 function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
     local b = baud or rs232.RS232_BAUD_9600
@@ -153,6 +153,7 @@ function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
                                                       cb(c, e, port)
                                                   end
                                               end)
+                        cb(nil, "open", port)
                     end
                 end
             end
