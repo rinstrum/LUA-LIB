@@ -6,6 +6,9 @@
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local lpeg   = require "lpeg"
+local C, P, R = lpeg.C, lpeg.P, lpeg.R
+
 
 -- submodules are merged in as follows (and in this order):
 local modules = {
@@ -23,6 +26,31 @@ local modules = {
     "K400Print",
     "K400Command"
 }
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Populate the register name to value mappings
+local function regPopulate(t)
+    local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
+    local regMap = {}
+
+    for k, v in pairs(t) do
+        if type(k) == "string" then
+            local m = regPattern:match(k)
+            if m ~= nil then
+                regMap[string.lower(m)] = v
+            end
+        end
+    end
+
+    function t.getRegisterNumber(r)
+        if type(r) == 'number' then
+            return r
+        elseif type(r) == 'string' then
+            return regMap[string.lower(r)]
+        end
+        return nil
+    end
+end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
@@ -46,6 +74,8 @@ return function ()
     for i = 1, #modules do
         require("rinLibrary." .. modules[i])(_M)
     end
+
+    regPopulate(kt)
 
     -- Provide a warning if an attempt is made to access an undefined field
     local function warnOnUndefined(t, k)
