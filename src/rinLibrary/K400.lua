@@ -29,11 +29,11 @@ local modules = {
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Populate the register name to value mappings
-local function regPopulate(t)
+local function regPopulate(_M)
     local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
     local regMap = {}
 
-    for k, v in pairs(t) do
+    for k, v in pairs(_M) do
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
@@ -42,7 +42,11 @@ local function regPopulate(t)
         end
     end
 
-    function t.getRegisterNumber(r)
+-------------------------------------------------------------------------------
+-- Convert a string register name to the associated register number.
+-- @param r Register name or number
+-- @return Register number
+    function _M.getRegisterNumber(r)
         if type(r) == 'number' then
             return r
         elseif type(r) == 'string' then
