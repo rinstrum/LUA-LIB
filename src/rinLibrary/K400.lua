@@ -27,13 +27,19 @@ local modules = {
     "K400Command"
 }
 
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Populate the register name to value mappings
-local function regPopulate(_M)
+-- Module factory function begins here
+return function ()
+    local _M, kt = {}, {}
     local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
     local regMap = {}
 
-    for k, v in pairs(_M) do
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Add an entry to the register mapping table if it is of the correct form
+-- @param k Key
+-- @param v Value
+    local function regPopulate(k, v)
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
@@ -54,18 +60,15 @@ local function regPopulate(_M)
         end
         return nil
     end
-end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Module factory function begins here
-return function ()
     -- Set up so that duplicate definitions are a fatal error.
-    local _M, kt = {}, {}
     local mt = {
         __index = kt,
         __newindex = function (t, k, v)
                          if kt[k] == nil then
                              kt[k] = v
+                             regPopulate(k, v)
                          else
                              t.dbg.fatal("K400: redefinition of ".. k .. " as", v)
                              os.exit(1)
@@ -78,8 +81,6 @@ return function ()
     for i = 1, #modules do
         require("rinLibrary." .. modules[i])(_M)
     end
-
-    regPopulate(kt)
 
     -- Provide a warning if an attempt is made to access an undefined field
     local function warnOnUndefined(t, k)
