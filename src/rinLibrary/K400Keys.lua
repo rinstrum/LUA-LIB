@@ -330,10 +330,11 @@ _M.BUZZ_SHORT = 0
 _M.BUZZ_MEDIUM = 1
 _M.BUZZ_LONG = 2
 local lastBuzzLen = nil
--------------------------------------------------------------------------------
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Called to set the length of the buzzer sound
 -- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
-function _M.setBuzzLen(len)
+local function setBuzzLen(len)
 
    local len = len or _M.BUZZ_SHORT
    if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
@@ -350,12 +351,11 @@ end
 -- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
 function _M.buzz(times, len)
     local times = times or 1
-    local len = len or _M.BUZZ_SHORT
     times = tonumber(times)
     if times > 4 then
         times = 4
     end
-    _M.setBuzzLen(len)
+    setBuzzLen(len)
     _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
 end
 
