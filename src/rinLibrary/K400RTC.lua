@@ -54,6 +54,17 @@ _M.TM_MMDDYYYY          = 3
 _M.TM_YYMMDD            = 4
 _M.TM_YYYYMMDD          = 5
 
+local stringDateMap = setmetatable(
+    {
+        dmy = _M.TM_DDMMYY,     ddmmyy = _M.TM_DDMMYY,
+        dmyy = _M.TM_DDMMYYYY,  ddmmyyyy = _M.TM_DDMMYYYY,
+        mdy = _M.TM_MMDDYY,     mmddyy = _M.TM_MMDDYY,
+        mdyy = _M.TM_MMDDYYYY,  mmddyyyy = _M.TM_MMDDYYYY,
+        ymd = _M.TM_YYMMDD,     yymmdd = _M.TM_YYMMDD,
+        yymd = _M.TM_YYYYMMDD,  yyyymmdd = _M.TM_YYYYMMDD
+    },
+    { __index = function(t, k) return _M.TM_DDMMYYYY end })
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Decode the numeric format field and set the appropriate ordering
 -- @param fmt Date format enumerated type value
@@ -81,6 +92,10 @@ end
 -- sets the instrument date format
 -- @param fmt TM_MMDDYYYY or TM_DDMMYYYY
 function _M.sendDateFormat(fmt)
+    if type(fmt) == "string" then
+        fmt = stringDateMap[string.lower(fmt)]
+    end
+
     if fmt < _M.TM_DDMMYY or fmt > _M.TM_YYYYMMDD then
         fmt = _M.TM_DDMMYYYY
     end
@@ -88,10 +103,26 @@ function _M.sendDateFormat(fmt)
     setDateFormat(fmt)
 end
 
-_M.RTC = {hour = 0, min = 0, sec = 0, day = 1, month = 1, year = 2010}
-_M.RTC['first'] = 'day'
-_M.RTC['second'] = 'month'
-_M.RTC['third'] = 'year'
+local RTC = {
+    hour = 0, min = 0, sec = 0,
+    day = 1, month = 1, year = 2010,
+    loaded = false
+}
+RTC['first'] = 'day'
+RTC['second'] = 'month'
+RTC['third'] = 'year'
+
+_M.RTC = setmetatable({}, {
+        __index =
+            function(t, k)
+                _M.dbg.warn("K400RTC: ", "attempt to read depricated field: RTC." .. tostring(k))
+                return RTC[k]
+            end,
+        __newindex =
+            function(t, k, v)
+                _M.dbg.error("K400RTC: ", "attempt to write depricated field: RTC." .. tostring(k))
+            end
+    })
 
 -------------------------------------------------------------------------------
 -- Read Real Time Clock data from instrument into local RTC table
@@ -109,20 +140,29 @@ function _M.RTCread(d)
   --dbg.printVar(timestr)
   
   if d == 'date' or d == 'all' then
-    _M.RTC.day, _M.RTC.month, _M.RTC.year =
+    RTC.day, RTC.month, RTC.year =
       string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
   end
   
   if d == 'time' or d == 'all' then
-    _,_,_, _M.RTC.hour, _M.RTC.min =
+    _,_,_, RTC.hour, RTC.min =
       string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
   end
     
   _M.RTC.sec, err = _M.readReg(_M.REG_TIMESEC)
   
   if err then
-    _M.RTC.sec = 0
+    RTC.sec = 0
   end
+  RTC.loaded = true
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Force read the RTC but only allow it once
+local function readRTC()
+    if not RTC.loaded then
+        _M.RTCread('all')
+    end
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -136,7 +176,7 @@ local function writeRTC(r, f, n, l, u)
     local x = tonumber(f)
     if x ~= nil and x >= l and x <= u then
         _M.writeReg(r, x)
-        _M.RTC[n] = x
+        RTC[n] = x
     end
 end
 
@@ -148,7 +188,7 @@ end
 function _M.RTCwriteDate(year, month, day)
     writeRTC(_M.REG_TIMEYEAR,  year,       "year",  2010,   2100)
     writeRTC(_M.REG_TIMEMON,   month,      "month", 1,      12)
-    writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(_M.RTC.year, _M.RTC.month))
+    writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(RTC.year, RTC.month))
 end
 
 -------------------------------------------------------------------------------
@@ -176,17 +216,37 @@ function _M.RTCwrite(year, month, day, hour, minute, second)
 end
 
 -------------------------------------------------------------------------------
+-- Return the current date
+-- @return year
+-- @return month
+-- @return day
+function _M.RTCreadDate()
+    readRTC()
+    return RTC.year, RTC.month, RTC.day
+end
+
+-------------------------------------------------------------------------------
+-- Return the current time
+-- @return hours
+-- @return minutes
+-- @return seconds
+function _M.RTCreadTime()
+    readRTC()
+    return RTC.hour, RTC.min, RTC.sec
+end
+
+-------------------------------------------------------------------------------
 -- Called every second to update local RTC 
 function _M.RTCtick()
-    _M.RTC.sec = _M.RTC.sec + 1
-    if _M.RTC.sec > 59 then
-        _M.RTC.sec = 0
-        _M.RTC.min = _M.RTC.min + 1
-        if _M.RTC.min > 59 then  
-            _M.RTC.min = 0
-            _M.RTC.hour = _M.RTC.hour + 1
-            if _M.RTC.hour > 23 then    
-                _M.RTC.hour = 0
+    RTC.sec = RTC.sec + 1
+    if RTC.sec > 59 then
+        RTC.sec = 0
+        RTC.min = RTC.min + 1
+        if RTC.min > 59 then  
+            RTC.min = 0
+            RTC.hour = RTC.hour + 1
+            if RTC.hour > 23 then    
+                RTC.hour = 0
                 _M.RTCread()
             end                 
         end
@@ -198,16 +258,16 @@ end
 -- Private function
 function _M.RTCtostring()
     return string.format("%02d/%02d/%02d %02d:%02d:%02d",
-                        _M.RTC[_M.RTC.first],
-                        _M.RTC[_M.RTC.second],
-                        _M.RTC[_M.RTC.third],
-                        _M.RTC.hour,
-                        _M.RTC.min,
-                        _M.RTC.sec)
+                        RTC[RTC.first],
+                        RTC[RTC.second],
+                        RTC[RTC.third],
+                        RTC.hour,
+                        RTC.min,
+                        RTC.sec)
 end
 
 -------------------------------------------------------------------------------
--- Sets the order of the date string.byte
+-- Sets the order of the date string
 -- @param first  = 'day', 'month' or 'year'
 -- @param second  = 'day', 'monht','year'
 -- @param third = 'day','month','year'
@@ -216,9 +276,18 @@ function _M.RTCdateFormat(first,second,third)
     local second = second or 'month'
     local third = third or 'year'
   
-    _M.RTC.first = first
-    _M.RTC.second = second
-    _M.RTC.third = third
+    RTC.first = first
+    RTC.second = second
+    RTC.third = third
 end  
+
+-------------------------------------------------------------------------------
+-- Gets the order of the date string
+-- @return first field
+-- @return second field
+-- @return third field
+function _M.RTCgetDateFormat()
+    return RTC.first, RTC.second, RTC.third
+end
 
 end
