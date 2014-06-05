@@ -31,8 +31,7 @@ clean:
 	rm -rf $(M01_DIR)
 
 test:
-	@cd src && rinLibrary/tests/csvTest.lua
-	@cd src && lua rinLibrary/tests/powersOfTenTest.lua
+	@cd src && busted -p 'lut$$' .
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
