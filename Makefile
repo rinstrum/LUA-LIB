@@ -31,7 +31,7 @@ clean:
 	rm -rf $(M01_DIR)
 
 test:
-	@cd src && busted -p 'lut$$' .
+	busted -p 'lut$$' --suppress-pending -m './src/?.lua' .
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
