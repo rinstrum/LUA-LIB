@@ -131,14 +131,11 @@ describe("CSV tests #csv", function()
                 else
                     assert.stub(csv.saveCSV).was.not_called()
                 end
-                --test(saveCalled == r.s, "loadCSV", i, "save function anomoly")
                 assert.equal(r.res, res)
                     if r.v ~= nil then
                         assert.same(r.v, r.t.data)
-                        --compareResult(r.v, r.t, i, "loadCSV")
                     else
                         assert.is_nil(t.data)
-                        --test(t.data == nil, "loadCSV", i, " table has data when it shouldn't")
                     end
                 csv.saveCSV:revert()
             end)
