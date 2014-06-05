@@ -132,11 +132,11 @@ describe("CSV tests #csv", function()
                     assert.stub(csv.saveCSV).was.not_called()
                 end
                 assert.equal(r.res, res)
-                    if r.v ~= nil then
-                        assert.same(r.v, r.t.data)
-                    else
-                        assert.is_nil(t.data)
-                    end
+                if r.v ~= nil then
+                    assert.same(r.v, r.t.data)
+                else
+                    assert.is_nil(t.data)
+                end
                 csv.saveCSV:revert()
             end)
         end
