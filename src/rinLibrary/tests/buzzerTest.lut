@@ -14,7 +14,7 @@ describe("buzzer #buzz", function ()
         return m
     end
 
-    it("registres", function()
+    it("registers", function()
         local m = makeModule()
         assert.equal(m.REG_BUZZ_LEN, regLen)
         assert.equal(m.REG_BUZZ_NUM, regNum)
