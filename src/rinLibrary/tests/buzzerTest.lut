@@ -1,0 +1,65 @@
+-------------------------------------------------------------------------------
+-- Buzzer unit test.
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+
+describe("buzzer #buzz", function ()
+    local regLen, regNum = 0x0327, 0x0328
+    local short, medium, long = 0, 1, 2
+
+    local function makeModule()
+        local m = {}
+        (require "rinLibrary.K400Buzz" )(m)
+        return m
+    end
+
+    it("registres", function()
+        local m = makeModule()
+        assert.equal(m.REG_BUZZ_LEN, regLen)
+        assert.equal(m.REG_BUZZ_NUM, regNum)
+    end)
+
+    it("enumerations", function()
+        local m = makeModule()
+        assert.equal(m.BUZZ_SHORT,  short)
+        assert.equal(m.BUZZ_MEDIUM, medium)
+        assert.equal(m.BUZZ_LONG,   long)
+    end)
+
+    -- These tests are digging deep into the non-exposed internals
+    it("length", function()
+        local z = require "rinLibrary.tests.messages"
+        local m = makeModule()
+
+        assert.is_nil(m.getLastBuzzLen())
+        z.checkSetRegister(m, {{ r=regLen, short }}, m.setBuzzLen)
+
+        local cases = {
+            { long,      long     },
+            { short,     short    },
+            { medium,    medium   },
+            { short - 1, short    },
+            { long + 1,  long     }
+        }
+        for _, p in pairs(cases) do
+            local i, val = p[1], p[2]
+
+            z.checkSetRegister(m, {{ r=regLen, val }}, m.setBuzzLen, i)
+            assert.is_equal(val, m.getLastBuzzLen())
+            z.checkNoSetRegister(m, m.setBuzzLen, i)
+        end
+    end)
+
+    it("buzz", function()
+        local z = require "rinLibrary.tests.messages"
+        local m = makeModule()
+
+        z.checkSetRegister(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
+        z.checkSetRegister(m, {{ r=regNum, 1 }},                            m.buzz, 1)
+        z.checkSetRegister(m, {{ r=regNum, 4 }},                            m.buzz, 5)
+        z.checkSetRegister(m, {{ r=regLen, long },    { r=regLen, long}},   m.buzz, 3, m.BUZZ_LONG)
+        z.checkSetRegister(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz, 1, short - 1)
+        z.checkSetRegister(m, {{ r=regLen, medium },  { r=regLen, medium }},m.buzz, 3, m.BUZZ_MEDIUM)
+    end)
+end)

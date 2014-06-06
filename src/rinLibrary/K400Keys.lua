@@ -314,49 +314,4 @@ function _M.sendKey(key,status)
     end
 end
 
--------------------------------------------------------------------------------
---- Buzzer Control.
--- Functions to control instrument buzzer
--- @section buzzer
-
-
--- The lengths of beeps, takes 0 (short), 1(med) or 2(long).
--- There are no gaps between long beeps
-_M.REG_BUZZ_LEN =  0x0327
--- takes 1 – 4, will clear to 0 once beeps have been executed
-_M.REG_BUZZ_NUM =  0x0328
-
-_M.BUZZ_SHORT = 0
-_M.BUZZ_MEDIUM = 1
-_M.BUZZ_LONG = 2
-local lastBuzzLen = nil
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Called to set the length of the buzzer sound
--- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
-local function setBuzzLen(len)
-
-   local len = len or _M.BUZZ_SHORT
-   if len > _M.BUZZ_LONG then len = _M.BUZZ_LONG end
-   if len ~= lastBuzzLen then
-      _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_LEN, len)
-      lastBuzzLen = len
-   end
-
-end
-
--------------------------------------------------------------------------------
--- Called to trigger instrument buzzer
--- @param times  - number of times to buzz, 1..4
--- @param len - length of buzzer sound (BUZZ_SHORT, BUZZ_MEDIUM, BUZZ_LONG)
-function _M.buzz(times, len)
-    local times = times or 1
-    times = tonumber(times)
-    if times > 4 then
-        times = 4
-    end
-    setBuzzLen(len)
-    _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_BUZZ_NUM, times)
-end
-
 end
