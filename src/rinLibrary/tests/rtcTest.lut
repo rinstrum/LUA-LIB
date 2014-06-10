@@ -23,6 +23,8 @@ describe("RTC #rtc", function ()
     local function makeModule()
         local m = {}
         (require "rinLibrary.K400RTC" )(m)
+        m.flushed = 0
+        m.flush = function() m.flushed = m.flushed + 1 end
         return m
     end
 
@@ -114,6 +116,7 @@ describe("RTC #rtc", function ()
                 local m = makeModule()
 
                 z.checkWriteReg(m, results, m.RTCwriteTime, sh, sm, ss)
+                assert.is_equal(1, m.flushed)
             end)
         end
     end)
@@ -132,6 +135,7 @@ describe("RTC #rtc", function ()
                 z.checkWriteReg(m, results, m.RTCwrite, yr, mo, da, ho, mi, se)
                 assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
                 assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
+                assert.is_equal(1, m.flushed)
             end)
         end
     end)
@@ -146,6 +150,7 @@ describe("RTC #rtc", function ()
         m.RTCtick()
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ 23, 0, 0, n=3 }, table.pack(m.RTCreadTime()))
+        assert.is_equal(1, m.flushed)
     end)
 
     it("format", function()
@@ -155,6 +160,7 @@ describe("RTC #rtc", function ()
         local results = makeResults(yr, mo, da, ho, mi, se)
 
         z.checkWriteReg(m, results, m.RTCwrite, yr, mo, da, ho, mi, se)
+        assert.is_equal(1, m.flushed)
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
         assert.is_equal("02/01/2022 03:04:05", m.RTCtostring())
