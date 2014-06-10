@@ -129,10 +129,10 @@ describe("RTC #rtc", function ()
                 }) do
             it("test "..k, function()
                 local yr, mo, da, ho, mi, se = v[1], v[2], v[3], v[4], v[5], v[6]
-                local results = makeResults(yr, mo, da, ho, mi, se)
+                local results = makeResults(unpack(v))
                 local m = makeModule()
 
-                z.checkWriteReg(m, results, m.RTCwrite, yr, mo, da, ho, mi, se)
+                z.checkWriteReg(m, results, m.RTCwrite, unpack(v))
                 assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
                 assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
                 assert.is_equal(1, m.flushed)
