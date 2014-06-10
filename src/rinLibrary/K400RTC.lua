@@ -210,6 +210,7 @@ function _M.RTCwriteTime(hour, minute, second)
     writeRTC(_M.REG_TIMESEC,   second,     "sec",   0,      59)
     writeRTC(_M.REG_TIMEMIN,   minute,     "min",   0,      59)
     writeRTC(_M.REG_TIMEHOUR,  hour,       "hour",  0,      23)
+    _M.flush()
     RTC.load_time = true
 end
 
