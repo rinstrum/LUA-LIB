@@ -113,15 +113,24 @@ function _M.disconnect()
 end
 
 -------------------------------------------------------------------------------
--- Sends a raw message
--- @param raw  string to send
-function _M.sendRaw(raw)
-    if sockets.writeSocket(_M.socketA, raw) > 5 and not queueClearing then
+-- Flush the output stream and guarantee that all outstanding messages have
+-- been written
+function _M.flush()
+    if not queueClearing then
         -- There is a queue of messages building up.  Send a mostly harmless
         -- ping to the display and away its response.  This flushes the queue.
         queueClearing = true
         _M.readReg(_M.REG_SERIALNO)
         queueClearing = false
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Sends a raw message
+-- @param raw  string to send
+function _M.sendRaw(raw)
+    if sockets.writeSocket(_M.socketA, raw) > 5 then
+        _M.flush()
     end
 end
 

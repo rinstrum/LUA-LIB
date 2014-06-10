@@ -106,7 +106,7 @@ end
 local RTC = {
     hour = 0, min = 0, sec = 0,
     day = 1, month = 1, year = 2010,
-    loaded = false
+    load_date = false, load_time = false
 }
 RTC['first'] = 'day'
 RTC['second'] = 'month'
@@ -121,7 +121,8 @@ _M.RTC = setmetatable({}, {
         __newindex =
             function(t, k, v)
                 _M.dbg.error("K400RTC: ", "attempt to write depricated field: RTC." .. tostring(k))
-            end
+            end,
+        __metatable = {}
     })
 
 -------------------------------------------------------------------------------
@@ -142,11 +143,13 @@ function _M.RTCread(d)
   if d == 'date' or d == 'all' then
     RTC.day, RTC.month, RTC.year =
       string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+    RTC.load_date = true
   end
   
   if d == 'time' or d == 'all' then
     _,_,_, RTC.hour, RTC.min =
       string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+    RTC.load_time = true
   end
     
   _M.RTC.sec, err = _M.readReg(_M.REG_TIMESEC)
@@ -154,14 +157,20 @@ function _M.RTCread(d)
   if err then
     RTC.sec = 0
   end
-  RTC.loaded = true
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Force read the RTC but only allow it once
+-- Force read the RTC but only allow it once and only load the sections that
+-- haven't yet been loaded.
 local function readRTC()
-    if not RTC.loaded then
+    local d, t = RTC.load_date, RTC.load_time
+    
+    if not d and not t then
         _M.RTCread('all')
+    elseif d and not t then
+        _M.RTCread('time')
+    elseif not d and t then
+        _M.RTCread('date')
     end
 end
 
@@ -189,6 +198,7 @@ function _M.RTCwriteDate(year, month, day)
     writeRTC(_M.REG_TIMEYEAR,  year,       "year",  2010,   2100)
     writeRTC(_M.REG_TIMEMON,   month,      "month", 1,      12)
     writeRTC(_M.REG_TIMEDAY,   day,        "day",   1,      monthLength(RTC.year, RTC.month))
+    RTC.load_date = true
 end
 
 -------------------------------------------------------------------------------
@@ -200,6 +210,7 @@ function _M.RTCwriteTime(hour, minute, second)
     writeRTC(_M.REG_TIMESEC,   second,     "sec",   0,      59)
     writeRTC(_M.REG_TIMEMIN,   minute,     "min",   0,      59)
     writeRTC(_M.REG_TIMEHOUR,  hour,       "hour",  0,      23)
+    RTC.load_time = true
 end
 
 -------------------------------------------------------------------------------
@@ -288,6 +299,11 @@ end
 -- @return third field
 function _M.RTCgetDateFormat()
     return RTC.first, RTC.second, RTC.third
+end
+
+if _TEST then
+    _M.monthLength = monthLength
+    _M.rtc = RTC
 end
 
 end

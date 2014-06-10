@@ -6,9 +6,11 @@
 
 _M = {}
 
--------------------------------------------------------------------------------
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Verify that a register was set by the test case and validate the
 -- conents of the message sent
+-- @param func String representing the name of the function being expected
+-- @param ret Return value from the function call
 -- @param m The module under test
 -- @param regs Table containing the registers to verify
 -- @param f the function to call
@@ -17,31 +19,48 @@ _M = {}
 -- The regs table should contain a number of tables.  In each of these the
 -- .r element is the register to check and the [1], [2], ... are the
 -- expected arguments.
-function _M.checkSetRegister(m, regs, f, ...)
-    local old = m.CMD_WRFINALHEX
-    local wr = {}
+local function check(func, cmd, ret, m, regs, f, ...)
+    local old, wr = {}, {}
+    local names = { 'CMD_WRFINALHEX', 'CMD_WRFINALDEC',
+                    'CMD_RDFINALHEX', 'CMD_RDFINALDEC',
+                    func
+                  }
 
-    m.CMD_WRFINALHEX = wr
-    stub(m, 'sendReg')
+    for _,v in ipairs(names) do
+        old[v], m[v] = m[v], wr
+    end
+
+    m[func] = spy.new(function() return ret end)
     f(...)
     for _, res in pairs(regs) do
-        assert.stub(m.sendReg).was.called_with(wr, res.r, unpack(res))
+        if cmd then
+            assert.spy(m[func]).was.called_with(wr, res.r, unpack(res))
+        else
+            assert.spy(m[func]).was.called_with(res.r, unpack(res))
+        end
     end
-    m.sendReg:revert()
-    m.CMD_WRFINALHEX = old
+
+    for _,v in ipairs(names) do
+        m[v] = old[v]
+    end
+
+    return ret
 end
 
-
--------------------------------------------------------------------------------
--- Verify that no registers were set by a function call
--- @param m The module under test
--- @param f the function to call
--- @param ... the arguments to the function f
-function _M.checkNoSetRegister(m, f, ...)
-    stub(m, 'sendReg')
+local function checkNo(func, m, f, ...)
+    stub(m, func)
     f(...)
-    assert.stub(m.sendReg).was.not_called()
-    m.sendReg:revert()
+    assert.stub(m[func]).was.not_called()
+    m[func]:revert()
 end
+
+function _M.checkSendReg(...) check('sendReg', true, nil, ...) end
+function _M.checkNoSendReg(...) checkNo('sendReg', ...) end
+
+function _M.checkSendRegWait(...) check('sendRegWait', true, ...) end
+function _M.checkNoSendRegWait(...) checkNo('sendRegWait', ...) end
+
+function _M.checkWriteReg(...) check('writeReg', false, nil, ...) end
+function _M.checkNoWriteReg(...) checkNo('writeReg', ...) end
 
 return _M
