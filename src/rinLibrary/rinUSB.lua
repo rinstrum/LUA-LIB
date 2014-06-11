@@ -166,8 +166,11 @@ end
 function _M.initUSB()
     socks.addSocket(usb.init(), function (sock) usb.receiveCallback() end)
     usb.registerCallback(usbCallback)
-    usb.checkDev()  -- call to check if any usb devices already mounted
 end
+
+-------------------------------------------------------------------------------
+-- called to pre-load any existing USB
+_M.checkUSBdevices = usb.checkDev
 
 -------------------------------------------------------------------------------
 -- Add depricated wrapper routines to the given table/object.
