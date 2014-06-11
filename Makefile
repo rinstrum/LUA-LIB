@@ -31,7 +31,10 @@ clean:
 	rm -rf $(M01_DIR)
 
 test:
-	busted -p 'lut$$' --suppress-pending -m './src/?.lua' .
+	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
+
+net:
+	busted -p 'lnt$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
