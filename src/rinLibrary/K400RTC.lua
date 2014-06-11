@@ -152,7 +152,7 @@ function _M.RTCread(d)
     RTC.load_time = true
   end
     
-  _M.RTC.sec, err = _M.readReg(_M.REG_TIMESEC)
+  RTC.sec, err = _M.readReg(_M.REG_TIMESEC)
   
   if err then
     RTC.sec = 0
