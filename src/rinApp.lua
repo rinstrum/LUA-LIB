@@ -277,7 +277,7 @@ end
 -- Main rinApp program loop
 function _M.run()
     _M.init()
-    _M.checkUSBdevices()
+    usb.checkUSBdevices()
     while _M.running do
         if userMainLoop then
            userMainLoop()
