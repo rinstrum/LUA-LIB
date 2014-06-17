@@ -126,6 +126,7 @@ function _M.readSettings()
     _M.saveAutoLeft()
  end
  
+ local REG_COMMS_START = 0x0309
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
 -- @return nil if ok or error string if model doesn't match
@@ -139,6 +140,8 @@ function _M.configure(model)
      _M.dbg.info(instrumentModel, instrumentSerialNumber)
      
     _M.readSettings()
+    
+    _M.sendRegWait(_M.CMD_EX, REG_COMMS_START)  -- clear start message
     
     if err then 
       instrumentModel = ''
