@@ -34,7 +34,7 @@ test:
 	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
 
 net:
-	busted -p 'lnt$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
+	busted -p 'lnt$$' --suppress-pending -m './src/?.lua;../L001-507/src/?.lua' $(BUSTED_OPTS) .
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)

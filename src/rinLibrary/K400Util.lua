@@ -53,6 +53,15 @@ function _M.connect(model, sockA, sockB, app)
 end 
 
 -------------------------------------------------------------------------------
+-- Called to disconnect the K400 library and clean everything up
+function _M.terminate()
+    _M.restoreLcd()
+    _M.lcdControl('default')
+    _M.streamCleanup()
+    _M.endKeys()
+end
+
+-------------------------------------------------------------------------------
 -- Called to read a register value and return value and dp position
 -- Used to work out the dp position of a register value so subsequent 
 -- reads can use the hexadecimal format and convert locally using 

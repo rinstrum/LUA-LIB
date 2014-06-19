@@ -37,8 +37,6 @@ _M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
 _M.dbg    = require "rinLibrary.rinDebug"
 
-local input = require "linux.input"
-
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.dbg.configureDebug(_M.config)
@@ -92,23 +90,20 @@ end
 -- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
 function _M.addK400(model, ip, portA, portB)
-
     -- Create the socket
-    local ip = ip or "127.0.0.1"
-    local portA = portA or 2222
-    local portB = portB or 2223
-
-    local model = model or ""
-
     local device = require("rinLibrary.K400")()
+    table.insert(_M.devices, device)
 
-    _M.devices[#_M.devices+1] = device
+    device.ipaddress = ip or "127.0.0.1"
+    device.portA = portA or 2222
+    device.portB = portB or 2223
+    device.model = model or ""
 
-  	local sA = _M.system.sockets.createTCPsocket(ip, portA, 0.001)
-    local sB = _M.system.sockets.createTCPsocket(ip, portB, 0.001)
+  	local sA = _M.system.sockets.createTCPsocket(device.ipaddress, device.portA, 0.001)
+    local sB = _M.system.sockets.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
     -- Connect to the K400, and attach system if using the system library
-    device.connect(model, sA, sB, _M)
+    device.connect(device.model, sA, sB, _M)
 
     -- Register the K400 with system
     _M.system.sockets.addSocket(device.socketA, device.socketACallback)
@@ -127,7 +122,7 @@ function _M.addK400(model, ip, portA, portB)
     device.setupKeys()
     device.setupStatus()
     device.lcdControl('lua')
-    device.configure(model)
+    device.configure(device.model)
     return device
 end
 
@@ -223,7 +218,6 @@ end
 
 local userMainLoop = nil
 local userCleanup = nil
-local cleanedUp = false
 
 -------------------------------------------------------------------------------
 -- called to register application's main loop function
@@ -256,21 +250,22 @@ end
 -- Called to restore the system to initial state by shutting down services
 -- enabled by configure()
 function _M.cleanup()
-    if cleanedUp then
+    if not _M.initialised then
         return
     end
     if userCleanup then
-      userCleanup()
+        userCleanup()
+        userCleanup = nil
     end
+    userMainLoop = nil
     for k,v in pairs(_M.devices) do
-        v.restoreLcd()
-        v.lcdControl('default')
-        v.streamCleanup()
-        v.endKeys()
-        v.delay(0.050)
-     end
+        v.terminate()
+        --v.delay(0.050)
+    end
+    socks.terminate()
+    
+    _M.initialised = false
     _M.dbg.info('','------   Application Finished  ------')
-    cleanedUp = true
 end
 
 -------------------------------------------------------------------------------
