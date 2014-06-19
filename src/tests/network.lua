@@ -121,6 +121,7 @@ local function waitFor(s, c, response)
         res = s:receive(1)
     end
     s:send(response)
+    return res ~= nil
 end
 
 -------------------------------------------------------------------------------
@@ -131,6 +132,9 @@ function _M.xeq(host, ...)
     local xeq = table.concat({..., '\r\n'})
     local h = checkHost(host)
     local s = socket.connect(host, 23)
+
+    -- Don't let us stall forever
+    s:settimeout(1.1)
 
     -- We're pretty brutal about what we send and accept.
     -- We should parse the responses and deal with the options properly.
@@ -149,7 +153,10 @@ function _M.xeq(host, ...)
     --  tn_iac, tn_do, tn_window,
     --  tn_iac, tn_will, tn_echo,
     --  tn_iac, tn_will, tn_suppressGoAhead
-    s:receive('*line')
+    if s:receive('*line') == nil then
+        s:close()
+        return nil
+    end
 
     s:send(tncmd({   tn_iac, tn_wont, tn_echo,
                      tn_iac, tn_sb, tn_window, 0, 80, 0, 48,
@@ -158,20 +165,28 @@ function _M.xeq(host, ...)
                  }))
 
     -- The expected response here is a null options string
-    s:receive('*line')
+    if s:receive('*line') == nil then
+        s:close()
+        return nil
+    end
 
-    waitFor(s, ':', 'root\n')
-    waitFor(s, ':', 'root\n')
-    waitFor(s, '#', xeq)
+    if not waitFor(s, ':', 'root\n') or -- login
+       not waitFor(s, ':', 'root\n') or -- password
+       not waitFor(s, '#', xeq) then    -- shell prompt
+       s:close()
+       return nil
+    end
 
     local done, z = false, {}
     while not done do
         local x = s:receive(1)
-        if x == '#' then done = true
+        if x == '#' or x == nil then
+            done = true
         else
             table.insert(z, x)
         end
     end
+    s:send('exit\r\n\r\n')
     s:close()
     return table.concat(z)
 end
