@@ -172,6 +172,7 @@ function _M.xeq(host, ...)
             table.insert(z, x)
         end
     end
+    s:close()
     return table.concat(z)
 end
 
