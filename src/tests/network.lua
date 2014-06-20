@@ -107,31 +107,25 @@ local function tncmd(t)
     return table.concat(s)
 end
 
-local function dump(s)
-    for i=1, #s do
-        io.write(string.format("%02x ", string.byte(s, i)))
-    end
-    print(' -- ' .. #s)
-end
-
 -- Wait for a specific character to arrive and send the response command
 local function waitFor(s, c, response)
     local res = ''
     while res ~= c and res ~= nil do
         res = s:receive(1)
     end
-    s:send(response)
+    if response ~= nil then
+        s:send(response)
+    end
     return res ~= nil
 end
 
 -------------------------------------------------------------------------------
--- Execute a command on the specified host using a telnet connection.
--- @param host Either a string host address or a device descriptor
--- @return The output from the command
-function _M.xeq(host, ...)
-    local xeq = table.concat({..., '\r\n'})
-    local h = checkHost(host)
-    local s = socket.connect(host, 23)
+-- Open a new telnet connection
+-- @param host Host to connect to
+-- @param port Port to conenct to (default 23)
+-- @return Telnet session identifier
+function _M.telnetOpen(host, port)
+    local s = socket.connect(host, port or 23)
 
     -- Don't let us stall forever
     s:settimeout(1.1)
@@ -172,23 +166,62 @@ function _M.xeq(host, ...)
 
     if not waitFor(s, ':', 'root\n') or -- login
        not waitFor(s, ':', 'root\n') or -- password
-       not waitFor(s, '#', xeq) then    -- shell prompt
+       not waitFor(s, '#', nil) then    -- shell prompt
        s:close()
        return nil
     end
+    return s
+end
 
+-------------------------------------------------------------------------------
+-- Close a telnet connection
+-- @param s Telnet session to close
+function _M.telnetClose(s)
+    s:send('exit\r\n\r\n')
+    s:close()
+end
+
+-------------------------------------------------------------------------------
+-- Send a command to a telnet connection and return the output
+-- @param s Telnet session to send the command to
+function _M.telnetSend(s, ...)
     local done, z = false, {}
+    local lastNL, firstNL = nil, false
+
+    s:send(table.concat({..., '\r\n'}))
     while not done do
         local x = s:receive(1)
         if x == '#' or x == nil then
             done = true
+        elseif not firstNL then
+            if x == '\n' then
+                firstNL = true
+            end
         else
             table.insert(z, x)
+            if x == '\r' then
+                lastNL = #z
+            end
         end
     end
-    s:send('exit\r\n\r\n')
-    s:close()
+    if lastNL ~= nil then
+        while #z >= lastNL do
+            table.remove(z)
+        end
+    end
     return table.concat(z)
+end
+
+-------------------------------------------------------------------------------
+-- Execute a command on the specified host using a telnet connection.
+-- @param host Either a string host address or a device descriptor
+-- @return The output from the command
+function _M.xeq(host, ...)
+    local h = checkHost(host)
+    local s = _M.telnetOpen(host)
+    local z = _M.telnetSend(s, ...)
+    _M.telnetClose(s)
+    return z
 end
 
 return _M
