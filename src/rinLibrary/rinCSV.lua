@@ -164,6 +164,12 @@ local function writerow(f, s)
     f:write('\n')
 end
 
+local function appendrow(t, s)
+    local f = io.open(t.fname, "a+")
+    writerow(f, line)
+    f:close()
+end
+
 -------------------------------------------------------------------------------
 -- Save table t to a .CSV file
 -- @param t database table to save.
@@ -327,9 +333,7 @@ function _M.logLineCSV(t, line)
         if t.differentOnFileSystem then
             dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
         else
-            local f = io.open(t.fname, "a+")
-            writerow(f, line)
-            f:close()
+            appendrow(t, line)
         end
     end
 end
@@ -581,10 +585,11 @@ end
 -- @param name name of table in database to use
 -- @param l line (1d array) of data to save
 function _M.addLineDB(db,name,l)
-      table.insert(db[name].data,l)
-      local f = io.open(db[name].fname,"a+")
-      f:write(_M.toCSV(l) .. '\n')
-      f:close()
+    local t = db[name]
+    if t ~= nil then
+        table.insert(t.data, l)
+        appendrow(t, l)
+    end
 end
 
 -------------------------------------------------------------------------------
