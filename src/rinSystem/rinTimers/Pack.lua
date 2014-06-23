@@ -211,4 +211,11 @@ function _M.processTimeouts()
     end
 end
 
+-------------------------------------------------------------------------------
+-- Close down and stop all timers.
+function _M.reset()
+    lastEventTimer = nil
+    timers = {}
+end
+
 return _M

@@ -3,7 +3,29 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-local rinApp = require "rinApp"
+package.loaded["rinLibrary.rinDebug"] = {
+    DEBUG = 0,
+    INFO = 1,
+    WARN = 2,
+    ERROR = 3,
+    FATAL = 4,
+    level = 1,
+    setLevel = function(l) end,
+    restoreLevel = function() end,
+    setLogger = function(c) end,
+    setConfig = function(c) end,
+    configureDebug = function(c) end,
+    setDebugCallback = function(f) end,
+    print = function() end,
+    debug = function() end,
+    info = function() end,
+    warn = function() end,
+    error = function() end,
+    fatal = function() end,
+    printVar = function() end,
+}
+
+local rinAppFactory = require "rinApp"
 local ftp = require "socket.ftp"
 local posix = require "posix"
 
@@ -23,20 +45,25 @@ _M.password = 'root'
 -- @return Upper unit device
 -- @return Lower unit device
 function _M.openDevices(upper, lower)
+    local rinApp = rinAppFactory()
+
+    --rinApp.dbg.setLevel('FATAL')
+
     upper = upper or _M.upperIPaddress
     lower = lower or _M.lowerIPaddress
 
     upperDevice = rinApp.addK400("K401", upper, _M.upperPort)
     lowerDevice = rinApp.addK400("K401", lower, _M.lowerPort)
 
-    return upperDevice, lowerDevice
+    return rinApp, upperDevice, lowerDevice
 end
 
 -------------------------------------------------------------------------------
 -- Close the connections to the K400 units.
 -- @param upper The address of the upper unit (default upperIPaddress)
 -- @param lower The address of the lower unit (default lowerIPaddress)
-function _M.closeDevices(upper, lower)
+function _M.closeDevices(rinApp)
+    rinApp.terminate()
 end
 
 -------------------------------------------------------------------------------

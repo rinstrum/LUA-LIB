@@ -19,6 +19,7 @@ local socks = require "rinSystem.rinSockets.Pack"
 local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
 
+local function createRinApp()
 local _M = {}
 _M.running = false
 _M.config = {
@@ -124,6 +125,14 @@ function _M.addK400(model, ip, portA, portB)
     device.lcdControl('lua')
     device.configure(device.model)
     return device
+end
+
+function _M.terminate()
+    for _, d in pairs(_M.devices) do
+        d.terminate()
+    end
+    _M.devices = {}
+    _M.system.reset()
 end
 
 -------------------------------------------------------------------------------
@@ -262,9 +271,11 @@ function _M.cleanup()
         v.terminate()
         --v.delay(0.050)
     end
-    socks.terminate()
-    
+    _M.devices = {}
+    _M.system.reset()
+
     _M.initialised = false
+    _M.running = true
     _M.dbg.info('','------   Application Finished  ------')
 end
 
@@ -292,3 +303,9 @@ _M.system.sockets.createServerSocket(2225, socketUnidirectionalAccept)
 _M.running = true
 _M.dbg.info('','------   Application Started %LATEST% -----')
 return _M
+end
+
+if _TEST then
+    return createRinApp
+end
+return createRinApp()

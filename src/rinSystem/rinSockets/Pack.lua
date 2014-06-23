@@ -16,6 +16,15 @@ local sockets = {}
 local writers = {}
 local sockSet = {}
 
+function _M.reset()
+    for k, _ in pairs(sockets) do
+        k:close()
+    end
+    sockets = {}
+    writers = {}
+    sockSet = {}
+end
+
 -------------------------------------------------------------------------------
 -- Callback function that ignoes incoming data for a read only socket.
 -- @param sock The socket to read all available data from

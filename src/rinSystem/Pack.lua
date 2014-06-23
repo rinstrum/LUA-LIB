@@ -41,4 +41,12 @@ function _M.handleEvents()
 		
 end
 
+
+-------------------------------------------------------------------------------
+-- Close down everything read for a restart at some later point
+function _M.reset()
+    timers.reset()
+    sockets.reset()
+end
+
 return _M

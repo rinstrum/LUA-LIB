@@ -6,7 +6,7 @@
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-local lpeg   = require "lpeg"
+local lpeg = require "lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
 

@@ -5,6 +5,9 @@ STAGE_DIR = opkg
 M01_DIR = M01
 WWW_DIR = usr/local/www/html
 
+NET_LUA_PATH := './src/?.lua;../L001-507/src/?.lua'
+NET_C_PATH := '../L000-515/lua-linux-headers/?.so'
+
 #Commands
 MKDIR= mkdir -p
 INSTALL= install -p
@@ -34,7 +37,7 @@ test:
 	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
 
 net:
-	busted -p 'lnt$$' --suppress-pending -m './src/?.lua;../L001-507/src/?.lua' $(BUSTED_OPTS) .
+	busted -p 'lnt$$' --suppress-pending -m $(NET_LUA_PATH) --cpath=$(NET_C_PATH) $(BUSTED_OPTS) .
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)

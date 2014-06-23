@@ -1,0 +1,37 @@
+-------------------------------------------------------------------------------
+-- Analog network test.
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+
+describe("Beep #beep", function ()
+    local net = require "tests.network"
+
+    it("upper", function()
+        local app, upper, lower = net.openDevices()
+
+        upper.buzz(4, upper.BUZZ_SHORT)
+        app.system.timers.addEvent(function() app.running = false end)
+        app.run()
+        net.closeDevices(app)
+    end)
+
+    it("lower", function()
+        local app, upper, lower = net.openDevices()
+
+        lower.buzz(2, lower.BUZZ_MEDIUM)
+        app.system.timers.addEvent(function() app.running = false end)
+        app.run()
+        net.closeDevices(app)
+    end)
+
+    it("both", function()
+        local app, upper, lower = net.openDevices()
+
+        upper.buzz(3, upper.BUZZ_MEDIUM)
+        lower.buzz(1, lower.BUZZ_LONG)
+        app.system.timers.addEvent(function() app.running = false end)
+        app.run()
+        net.closeDevices(app)
+    end)
+end)
