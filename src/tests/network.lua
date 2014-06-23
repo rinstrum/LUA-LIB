@@ -109,9 +109,13 @@ end
 
 -- Wait for a specific character to arrive and send the response command
 local function waitFor(s, c, response)
-    local res = ''
-    while res ~= c and res ~= nil do
-        res = s:receive(1)
+    local res, l = '', #c
+    while res ~= c do
+        local ch = s:receive(1)
+        if ch == nil then
+            break
+        end
+        res = (res .. ch):sub(-l)
     end
     if response ~= nil then
         s:send(response)
@@ -164,9 +168,9 @@ function _M.telnetOpen(host, port)
         return nil
     end
 
-    if not waitFor(s, ':', 'root\n') or -- login
-       not waitFor(s, ':', 'root\n') or -- password
-       not waitFor(s, '#', nil) then    -- shell prompt
+    if not waitFor(s, 'login: ', 'root\n') or -- login
+       not waitFor(s, 'Password: ', 'root\n') or -- password
+       not waitFor(s, ']# ', nil) then    -- shell prompt
        s:close()
        return nil
     end
@@ -185,20 +189,29 @@ end
 -- Send a command to a telnet connection and return the output
 -- @param s Telnet session to send the command to
 function _M.telnetSend(s, ...)
-    local done, z = false, {}
+    local z = {}
     local lastNL, firstNL = nil, false
 
     s:send(table.concat({..., '\r\n'}))
-    while not done do
+    local prompt, pos = ']# ', 1
+    while true do
         local x = s:receive(1)
-        if x == '#' or x == nil then
-            done = true
+        if x == nil then
+            break
         elseif not firstNL then
             if x == '\n' then
                 firstNL = true
             end
         else
             table.insert(z, x)
+            if x == prompt:sub(pos, pos) then
+                pos = pos + 1
+                if pos > #prompt then
+                    break
+                end
+            else
+                pos = 1
+            end
             if x == '\r' then
                 lastNL = #z
             end
