@@ -14,6 +14,7 @@ local io = io
 local ipairs = ipairs
 local tostring = tostring
 local error = error
+local xeq = os.execute
 
 local dbg = require "rinLibrary.rinDebug"
 
@@ -159,6 +160,10 @@ end
 -- Functions to manage CSV files directly
 -- @section CSV
 
+local function sync(t)
+    xeq("sync")
+end
+
 local function writerow(f, s)
     f:write(_M.toCSV(s))
     f:write('\n')
@@ -168,6 +173,7 @@ local function appendrow(t, s)
     local f = io.open(t.fname, "a+")
     writerow(f, line)
     f:close()
+    sync()
 end
 
 -------------------------------------------------------------------------------
@@ -193,6 +199,7 @@ function _M.saveCSV(t)
             writerow(f, row)
         end
         f:close()
+        sync()
 
         t.differentOnFileSystem = nil
     end
