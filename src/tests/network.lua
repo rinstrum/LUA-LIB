@@ -5,13 +5,12 @@
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"
 local ftp = require "socket.ftp"
-local ltn12 = require "ltn12"
 local posix = require "posix"
 
 local _M = {}
 
-_M.upperIPaddress = '172.17.1.26'
-_M.lowerIPaddress = '172.17.1.27'
+_M.upperIPaddress = 'm4223testbox-upper.rinstrumau.local' -- '172.17.1.26'
+_M.lowerIPaddress = 'm4223testbox-lower.rinstrumau.local' -- '172.17.1.27'
 _M.upperPort = 2222
 _M.lowerPort = 2222
 _M.username = 'root'
@@ -24,10 +23,8 @@ _M.password = 'root'
 -- @return Upper unit device
 -- @return Lower unit device
 function _M.openDevices(upper, lower)
-    print('pre', upper, lower)
     upper = upper or _M.upperIPaddress
     lower = lower or _M.lowerIPaddress
-    print('post', upper, lower)
 
     upperDevice = rinApp.addK400("K401", upper, _M.upperPort)
     lowerDevice = rinApp.addK400("K401", lower, _M.lowerPort)
