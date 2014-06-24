@@ -40,6 +40,7 @@ _M.dbg    = require "rinLibrary.rinDebug"
 
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
+_M.config.level = 'DEBUG'
 _M.dbg.configureDebug(_M.config)
 
 usb.depricatedUSBhandlers(_M)
@@ -125,14 +126,6 @@ function _M.addK400(model, ip, portA, portB)
     device.lcdControl('lua')
     device.configure(device.model)
     return device
-end
-
-function _M.terminate()
-    for _, d in pairs(_M.devices) do
-        d.terminate()
-    end
-    _M.devices = {}
-    _M.system.reset()
 end
 
 -------------------------------------------------------------------------------
@@ -267,9 +260,9 @@ function _M.cleanup()
         userCleanup = nil
     end
     userMainLoop = nil
-    for k,v in pairs(_M.devices) do
-        v.terminate()
-        --v.delay(0.050)
+
+    for _, d in pairs(_M.devices) do
+        d.terminate()
     end
     _M.devices = {}
     _M.system.reset()
@@ -279,16 +272,23 @@ function _M.cleanup()
     _M.dbg.info('','------   Application Finished  ------')
 end
 
+-- One iteration of the rinApp main loop.
+local function step()
+    if userMainLoop then
+       userMainLoop()
+    end
+    _M.system.handleEvents()           -- handleEvents runs the event handlers
+end
+if _TEST then
+    _M.step = step
+end
+
 -------------------------------------------------------------------------------
 -- Main rinApp program loop
 function _M.run()
     _M.init()
-    usb.checkUSBdevices()
     while _M.running do
-        if userMainLoop then
-           userMainLoop()
-        end
-        _M.system.handleEvents()           -- handleEvents runs the event handlers
+        _M.step()
     end
    _M.cleanup()
 end

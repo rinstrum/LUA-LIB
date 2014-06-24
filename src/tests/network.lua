@@ -63,7 +63,23 @@ end
 -- @param upper The address of the upper unit (default upperIPaddress)
 -- @param lower The address of the lower unit (default lowerIPaddress)
 function _M.closeDevices(rinApp)
-    rinApp.terminate()
+    rinApp.cleanup()
+end
+
+function _M.setAsync(app)
+    setloop({
+        pcall = pcall,
+        create_timer =  function(sec, on_timeout)
+                            app.system.timers.addTimer(0, sec, on_timeout)
+                        end,
+        step =          function()
+                            if app.running then
+                                app.step()
+                            end
+                        end
+    })
+
+    app.init()
 end
 
 -------------------------------------------------------------------------------

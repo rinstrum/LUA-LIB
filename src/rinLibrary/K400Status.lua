@@ -234,14 +234,14 @@ end
 -- dwi.setIOCallback(1,handleIO1)
 --
 function _M.setIOCallback(IO, callback)
-
+    local status = bit32.lshift(0x00000001,IO-1)
     if callback then
-       local status = bit32.lshift(0x00000001,IO-1)
        IOBinds[status] = {}
        IOBinds[status]['IO'] = IO
        IOBinds[status]['f'] = callback
        IOBinds[status]['lastStatus'] = 0xFFFFFFFF
     else
+        IOBinds[status] = nil
        _M.dbg.warn('','setIOCallback:  nil value for callback function')
     end
 end
@@ -257,10 +257,15 @@ end
 -- dwi.setAllIOCallback(handleIO)
 --
 function _M.setAllIOCallback(callback)
-    IOBinds[0] = {}   -- setup a callback for all SETP changes
-    IOBinds[0]['IO'] = 'All'
-    IOBinds[0]['f'] = callback
-    IOBinds[0]['lastStatus'] = 0xFFFFFF
+    if callback ~= nil then
+        IOBinds[0] = {}   -- setup a callback for all SETP changes
+        IOBinds[0]['IO'] = 'All'
+        IOBinds[0]['f'] = callback
+        IOBinds[0]['lastStatus'] = 0xFFFFFF
+    else
+        IOBinds[0] = nil
+       _M.dbg.warn('','setIOCallback:  nil value for all callback function')
+    end
 end
 
 -------------------------------------------------------------------------------
