@@ -104,9 +104,6 @@ describe("Digital #digital", function ()
     end)
 
     it("reverse", function(done)
-        -- need to implement a test where lower if the source and upper the destination of the
-        -- IOs.  This doesn't seem to function correctly and needs debugging.  The callback isn't
-        -- getting called.
         local cb = spy.new(function() end)
 
         finally(function()
@@ -121,9 +118,8 @@ describe("Digital #digital", function ()
         app.system.timers.addTimer(0, 0.3, function() lower.turnOn(1) end)
         app.system.timers.addTimer(0, 0.5, function() lower.turnOff(1) end)
         app.system.timers.addTimer(0, 0.9, async(function()
-            --assert.spy(cb).was.called_with(1, true)
-            --assert.spy(cb).was.called_with(1, false)
-            pending("non-functional test case")
+            assert.spy(cb).was.called_with(1, true)
+            assert.spy(cb).was.called_with(1, false)
             done()
         end))
     end)
