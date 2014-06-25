@@ -42,6 +42,7 @@ _M.password = 'root'
 -- Open connections to two K400 units.
 -- @param upper The address of the upper unit (default upperIPaddress)
 -- @param lower The address of the lower unit (default lowerIPaddress)
+-- @return Application reference
 -- @return Upper unit device
 -- @return Lower unit device
 function _M.openDevices(upper, lower)
@@ -60,12 +61,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Close the connections to the K400 units.
--- @param upper The address of the upper unit (default upperIPaddress)
--- @param lower The address of the lower unit (default lowerIPaddress)
+-- @param rinApp The application reference.
 function _M.closeDevices(rinApp)
     rinApp.cleanup()
 end
 
+-------------------------------------------------------------------------------
+-- Switch operations to asynchronous more
+-- @param app The application reference.
 function _M.setAsync(app)
     setloop({
         pcall = pcall,
@@ -78,8 +81,29 @@ function _M.setAsync(app)
                             end
                         end
     })
-
     app.init()
+end
+
+-------------------------------------------------------------------------------
+-- Open connections to two K400 units and set asynchronous test mode.
+-- @param u The address of the upper unit (default upperIPaddress)
+-- @param l The address of the lower unit (default lowerIPaddress)
+-- @return Application reference
+-- @return Upper unit device
+-- @return Lower unit device
+function _M.openAsync(u, l)
+    local app, upper, lower = _M.openDevices(u, l)
+    _M.setAsync(app)
+    return app, upper, lower
+end
+
+-------------------------------------------------------------------------------
+-- Close the connections to the K400 units configured in asynchronous mode.
+-- @param app The application reference.
+function _M.closeAsync(app)
+    app.system.timers.addEvent(function() app.running = false end)
+    app.run()
+    _M.closeDevices(app)
 end
 
 -------------------------------------------------------------------------------
@@ -116,7 +140,7 @@ end
 -- Push a file to the target host using the FTP protocol
 -- @param host Either a string host address or a device descriptor
 -- @param filepath The full path to the file sought including the leading '/'
--- @param The contents for the file
+-- @param contents The contents for the file
 function _M.putFile(host, filepath, contents)
     return ftp.put(ftpurl(host, filepath), contents)
 end

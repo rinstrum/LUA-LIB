@@ -9,15 +9,11 @@ describe("Digital #digital", function ()
     local app, upper, lower
 
     setup(function()
-        app, upper, lower = net.openDevices()
-        net.setAsync(app)
-        app.init()
+        app, upper, lower = net.openAsync()
     end)
 
     teardown(function()
-        app.system.timers.addEvent(function() app.running = false end)
-        app.run()
-        net.closeDevices(app)
+        net.closeAsync(app)
     end)
 
     it("timer", function(done)

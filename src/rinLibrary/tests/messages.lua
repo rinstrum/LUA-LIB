@@ -54,6 +54,8 @@ local function checkNo(func, m, f, ...)
     m[func]:revert()
 end
 
+-------------------------------------------------------------------------------
+-- Various routines to verify that different kinds of message were sent or not
 function _M.checkSendReg(...) check('sendReg', true, nil, ...) end
 function _M.checkNoSendReg(...) checkNo('sendReg', ...) end
 
