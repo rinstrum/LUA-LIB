@@ -1,0 +1,13 @@
+The file input.so is the results of partially building the L000-515 package.
+
+    cd L000-515/lua-linux-headers
+    make
+
+This results in the input.so file found here.
+
+The Lua test scripts require this to operate and for it to be in the cpath and
+inside a linux directory.
+
+
+At some point, a better method of accessing this library should be implemented.
+Probably building the 000-515 package completely and installing it.
