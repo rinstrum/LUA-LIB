@@ -128,11 +128,11 @@ function _M.turnOff(...)
 
    setOutputs(curOutputs)
 end
+
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param IO is output 1..32
 -- @param t is time in seconds
-
 function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(timedOutputs, IOMask) == 0 then
