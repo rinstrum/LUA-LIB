@@ -15,8 +15,6 @@ describe("Analog #analog", function ()
     end)
 
     after_each(function()
-        --app.system.timers.addEvent(function() app.running = false end)
-        --app.run()
         net.closeDevices(app)
 
         app = nil
@@ -39,10 +37,10 @@ describe("Analog #analog", function ()
 --        end)
 
         local function check(mvv, target, fuzz)
-            local VOLT_0MVV  = 1.3
-            local VOLT_2MVV  = 4.48
             local function convertMVV(mvv)
-                return (VOLT_0MVV + VOLT_2MVV * mvv / 2.0)
+                local VOLT_0MVV  = 1.3
+                local VOLT_2MVV  = 4.48
+                return (VOLT_0MVV + VOLT_2MVV * mvv * 0.5)
             end
 
             reader.setAnalogVolt(convertMVV(mvv))
