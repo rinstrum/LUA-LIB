@@ -1,0 +1,73 @@
+-------------------------------------------------------------------------------
+-- Analog network test.
+-- @author Darren
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+require "tests.assertions"
+
+describe("Analog #analog", function ()
+    local net = require "tests.network"
+    local app, upper, lower
+
+    before_each(function()
+        app, upper, lower = net.openDevices()
+    end)
+
+    after_each(function()
+        --app.system.timers.addEvent(function() app.running = false end)
+        --app.run()
+        net.closeDevices(app)
+
+        app = nil
+        upper = nil
+        lower = nil
+    end)
+
+    local function doLimitTest(reader, setter)
+        --  Callback to capture changes to current weight
+        local curWeight = 0
+        setter.addStream(setter.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
+
+        -- Callback to monitor motion status
+--        setter.setStatusCallback(setter.STAT_MOTION, function(status, active)
+--            if active then
+--                print('','motion')
+--            else
+--                print('stable',curWeight)
+--            end
+--        end)
+
+        local function check(mvv, target, fuzz)
+            local VOLT_0MVV  = 1.3
+            local VOLT_2MVV  = 4.48
+            local function convertMVV(mvv)
+                return (VOLT_0MVV + VOLT_2MVV * mvv / 2.0)
+            end
+
+            reader.setAnalogVolt(convertMVV(mvv))
+            setter.delay(0.2)
+            setter.waitStatus(setter.STAT_NOTMOTION)
+            assert.approximately(curWeight, target, fuzz)
+        end
+
+        local count = 0
+        app.setMainLoop(function()
+            check(0.0, 2, 10)
+            check(2.5, 10000, 10)
+
+            count = count + 1
+            if count >= 2 then
+                app.running = false
+            end
+        end)
+
+        -- Finally, put a timer in place so we don't run forever
+        app.system.timers.addTimer(0, 20, function() app.running = false error("timed out") end)
+        app.run()
+        assert.is_true(count > 0)
+    end
+
+    it("check limits", function() doLimitTest(lower, upper) end)
+    --it("reverse limits", function() doLimitTest(upper, lower) end)
+end)
