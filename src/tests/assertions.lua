@@ -6,7 +6,11 @@
 
 local s = require "say"
 
+-------------------------------------------------------------------------------
 -- Assert two real values are approximately equal
+-- @param state Internal assert state
+-- @param args Arguments to the assert call
+-- @local
 local function approximately(state, args)
     assert(args.n >= 3, s("assertion.internal.argtolittle", { "approximately", 3, tostring(argcnt) }))
     local target = tonumber(args[1])
@@ -24,7 +28,11 @@ s:set("assertion.approximately.negative", "Expected numbers to be not approximat
 
 assert:register("assertion", "approximately", approximately, "assertion.approximately.positive", "assertion.approximately.negative")
 
+-------------------------------------------------------------------------------
 -- Assert two arrays of real values are approximately equal
+-- @param state Internal assert state
+-- @param args Arguments to the assert call
+-- @local
 local function roughly(state, args)
     assert(args.n >= 3, s("assertion.internal.argtolittle", { "roughly", 3, tostring(argcnt) }))
     local fuzz = tonumber(args[3])

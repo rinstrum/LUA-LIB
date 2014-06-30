@@ -34,10 +34,18 @@ end
 
 return function()
     local d = {}
-    local r = {}
+    local _M = {}
 
-    function r.size() return #d, d.columns end
-    function r.add(...)
+------------------------------------------------------------------------------
+-- Return the dimensions of the data set.
+-- @return The number of rows
+-- @return The number of columns
+    function _M.size() return #d, d.columns end
+
+------------------------------------------------------------------------------
+-- Add a data point to the statistical accumulations
+-- @return The number of data points present after this one is added.
+    function _M.add(...)
         local datum = {...}
         if d.columns == nil then
             d.columns = #datum
@@ -55,64 +63,88 @@ return function()
         return #d
     end
 
-    function r.sum()
+------------------------------------------------------------------------------
+-- Accumulate the sums of the data
+-- @return A table containing sums for each column of data.
+    function _M.sum()
         if d.sigma == nil then
             d.sigma = sum(d, function(x) return x end)
         end
         return d.sigma
     end
 
-    function r.sumSquares()
+------------------------------------------------------------------------------
+-- Accumulate the sums of the squares of the data
+-- @return A table containing sums of squares for each column of data.
+    function _M.sumSquares()
         if d.sigma2 == nil then
             d.sigma2 = sum(d, function(x) return x*x end)
         end
         return d.sigma2
     end
 
-    function r.mean()
+------------------------------------------------------------------------------
+-- The mean of the data
+-- @return A table containing the mean of each column of data.
+    function _M.mean()
         if d.mean == nil then
             -- This isn't numerically stable but should be good enough for now
             local rn = 1/#d
-            d.mean = map(r.sum(), function(x) return x * rn end)
+            d.mean = map(_M.sum(), function(x) return x * rn end)
         end
         return d.mean
     end
 
-    function r.variance()
+------------------------------------------------------------------------------
+-- The sample variance of the data
+-- @return A table containing the sample variance of each column of data.
+    function _M.variance()
         if d.variance == nil then
-            local m, fac = r.mean(), 1 / (#d -1)
+            local m, fac = _M.mean(), 1 / (#d -1)
             local sums = sum(d, function(x, _, j) local d = x - m[j] return d * d end)
             d.variance = map(sums, function(x) return x * fac end)
         end
         return d.variance
     end
 
-    function r.population_variance()
+------------------------------------------------------------------------------
+-- The population variance of the data
+-- @return A table containing the population variance of each column of data.
+    function _M.population_variance()
         if d.pop_variance == nil then
-            local m, fac = r.mean(), 1 / #d
+            local m, fac = _M.mean(), 1 / #d
             local sums = sum(d, function(x, _, j) local d = x - m[j] return d * d end)
             d.pop_variance = map(sums, function(x) return x * fac end)
         end
         return d.pop_variance
     end
 
-    function r.stddev()
+------------------------------------------------------------------------------
+-- The sample standard deviation of the data
+-- @return A table containing the sample standard deviation of each column of data.
+    function _M.stddev()
         if d.stddev == nil then
-            d.stddev = map(r.variance(), math.sqrt)
+            d.stddev = map(_M.variance(), math.sqrt)
         end
         return d.stddev
     end
 
-    function r.population_stddev()
+------------------------------------------------------------------------------
+-- The population standard deviation of the data
+-- @return A table containing the population standard deviation of each column of data.
+    function _M.population_stddev()
         if d.pop_stddev == nil then
-            d.pop_stddev = map(r.population_variance(), math.sqrt)
+            d.pop_stddev = map(_M.population_variance(), math.sqrt)
         end
         return d.pop_stddev
     end
 
-    function r.r()
+------------------------------------------------------------------------------
+-- The correlation coefficients for the data
+-- @return A table containing the correlation between each column and the first.
+    function _M.r()
         if d.r == nil then
-            local m, sd = r.mean(), r.stddev()
+            local m, sd = _M.mean(), _M.stddev()
             local f = 1 / ((#d - 1) * sd[1])
             local x1 = map(d, function(r) return r[1] - m[1] end)
             local fact = map(sd, function(x) return f / x end)
@@ -121,5 +153,5 @@ return function()
         end
         return d.r
     end
-    return r
+    return _M
 end
