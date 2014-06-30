@@ -102,6 +102,13 @@ return function()
         return d.stddev
     end
 
+    function r.population_stddev()
+        if d.stddev == nil then
+            d.stddev = map(r.population_variance(), math.sqrt)
+        end
+        return d.stddev
+    end
+
     function r.r()
         if d.r == nil then
             local m, sd = r.mean(), r.stddev()

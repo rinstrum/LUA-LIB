@@ -71,6 +71,13 @@ describe("Regresstion test #regression", function()
         assert.roughly({ 8.858678822273132 }, d.stddev(), 1e-8)
     end)
 
+    it("Population standard deviation test", function()
+        bulk(d, 3, 5, 7, 11, 13, 17)
+        assert.roughly({ 4.818944098266987 }, d.population_stddev(), 1e-8)
+        d.add(29)
+        assert.roughly({ 8.201542911089899 }, d.population_stddev(), 1e-8)
+    end)
+
     it("Correlation", function()
         bulk(d, {1, 2, 3}, {2, 4, 9}, {3, 5.99, 12}, {4, 8.1, -37})
         assert.roughly({ 1, 0.9999060091368215, -0.6622228959070557 }, d.r(), 1e-8)
