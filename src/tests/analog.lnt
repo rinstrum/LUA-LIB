@@ -22,13 +22,19 @@ describe("Analog #analog", function ()
         lower = nil
     end)
 
-    local function doLimitTest(reader, setter)
+    local function convertMVV(mvv)
+        local VOLT_0MVV  = 1.3
+        local VOLT_2MVV  = 4.48
+        return (VOLT_0MVV + VOLT_2MVV * mvv * 0.5)
+    end
+
+    it("check limits", function()
         --  Callback to capture changes to current weight
         local curWeight = 0
-        setter.addStream(setter.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
+        upper.addStream(upper.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
 
         -- Callback to monitor motion status
---        setter.setStatusCallback(setter.STAT_MOTION, function(status, active)
+--        upper.setStatusCallback(upper.STAT_MOTION, function(status, active)
 --            if active then
 --                print('','motion')
 --            else
@@ -37,15 +43,9 @@ describe("Analog #analog", function ()
 --        end)
 
         local function check(mvv, target, fuzz)
-            local function convertMVV(mvv)
-                local VOLT_0MVV  = 1.3
-                local VOLT_2MVV  = 4.48
-                return (VOLT_0MVV + VOLT_2MVV * mvv * 0.5)
-            end
-
-            reader.setAnalogVolt(convertMVV(mvv))
-            setter.delay(0.2)
-            setter.waitStatus(setter.STAT_NOTMOTION)
+            lower.setAnalogVolt(convertMVV(mvv))
+            upper.delay(0.4)
+            upper.waitStatus(upper.STAT_NOTMOTION)
             assert.approximately(curWeight, target, fuzz)
         end
 
@@ -64,8 +64,20 @@ describe("Analog #analog", function ()
         app.system.timers.addTimer(0, 20, function() app.running = false error("timed out") end)
         app.run()
         assert.is_true(count > 0)
-    end
+    end)
 
-    it("check limits", function() doLimitTest(lower, upper) end)
-    --it("reverse limits", function() doLimitTest(upper, lower) end)
+    it("linearity", function()
+        --  Callback to capture changes to current weight
+        local curWeight = 0
+        lower.addStream(lower.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
+
+        local data = require("tests.regression")()
+        for i = 0, 5 do
+            upper.setAnalogVolt(convertMVV(i * 0.5))
+            lower.delay(0.4)
+            lower.waitStatus(lower.STAT_NOTMOTION)
+            data.add(i, curWeight)
+        end
+        assert.roughly({1, 1}, data.r(), 1e-5)
+    end)
 end)
