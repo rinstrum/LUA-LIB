@@ -112,9 +112,9 @@ return function()
     function r.r()
         if d.r == nil then
             local m, sd = r.mean(), r.stddev()
-            local nm1 = #d - 1
+            local f = 1 / ((#d - 1) * sd[1])
             local x1 = map(d, function(r) return r[1] - m[1] end)
-            local fact = map(sd, function(x) return 1 / (sd[1] * x * nm1) end)
+            local fact = map(sd, function(x) return f / x end)
             local sums = sum(d, function(x, i, j) return x1[i] * (x - m[j]) end)
             d.r = map(sums, function(x, j) return x * fact[j] end)
         end
