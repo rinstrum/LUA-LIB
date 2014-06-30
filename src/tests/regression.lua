@@ -68,26 +68,6 @@ return function()
         return d.sigmaXX
     end
 
-    local function sumXY()
-        if d.sigmaXY == nil then
-            d.sigmaXY = {}
-            for i = 1, d.columns do
-                d.sigmaXY[i] = zero(i-1)
-            end
-            for i = 2, d.columns do
-                for j = 1, i-1 do
-                    local s = 0
-                    for k = 1, #d do
-                        s = s + d[k][i] * d[k][j]
-                    end
-                    d.sigmaXY[i][j] = s
-                    --d.sigmaXY[j][i] = s
-                end
-            end
-        end
-        return d.sigmaXY
-    end
-
     function r.mean()
         if d.mean == nil then
             -- This isn't numerically stable but should be good enough for now
