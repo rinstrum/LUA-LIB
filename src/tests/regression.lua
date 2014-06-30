@@ -45,8 +45,9 @@ return function()
         if d.columns == #datum then
             table.insert(d, datum)
             for _, i in pairs({
-                                "sigmaX", "sigmaXX", "sigmaXY",
-                                "mean", "variance", "pop", "stddev", "r"
+                                "sigma", "sigma2",
+                                "mean", "variance", "stddev",
+                                "pop_variance", "pop_stddev", "r"
                               }) do
                 d[i] = nil
             end
@@ -54,25 +55,25 @@ return function()
         return #d
     end
 
-    local function sumX()
-        if d.sigmaX == nil then
-            d.sigmaX = sum(d, function(x) return x end)
+    function r.sum()
+        if d.sigma == nil then
+            d.sigma = sum(d, function(x) return x end)
         end
-        return d.sigmaX
+        return d.sigma
     end
 
-    local function sumXX()
-        if d.sigmaXX == nil then
-            d.sigmaXX = sum(d, function(x) return x*x end)
+    function r.sumSquares()
+        if d.sigma2 == nil then
+            d.sigma2 = sum(d, function(x) return x*x end)
         end
-        return d.sigmaXX
+        return d.sigma2
     end
 
     function r.mean()
         if d.mean == nil then
             -- This isn't numerically stable but should be good enough for now
             local rn = 1/#d
-            d.mean = map(sumX(d), function(x) return x * rn end)
+            d.mean = map(r.sum(), function(x) return x * rn end)
         end
         return d.mean
     end
@@ -87,12 +88,12 @@ return function()
     end
 
     function r.population_variance()
-        if d.pop == nil then
+        if d.pop_variance == nil then
             local m, fac = r.mean(), 1 / #d
             local sums = sum(d, function(x, _, j) local d = x - m[j] return d * d end)
-            d.pop = map(sums, function(x) return x * fac end)
+            d.pop_variance = map(sums, function(x) return x * fac end)
         end
-        return d.pop
+        return d.pop_variance
     end
 
     function r.stddev()
@@ -103,10 +104,10 @@ return function()
     end
 
     function r.population_stddev()
-        if d.stddev == nil then
-            d.stddev = map(r.population_variance(), math.sqrt)
+        if d.pop_stddev == nil then
+            d.pop_stddev = map(r.population_variance(), math.sqrt)
         end
-        return d.stddev
+        return d.pop_stddev
     end
 
     function r.r()
