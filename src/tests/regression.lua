@@ -39,18 +39,18 @@ return function()
     function r.size() return #d, d.columns end
     function r.add(...)
         local datum = {...}
-            if d.columns == nil then
-                d.columns = #datum
+        if d.columns == nil then
+            d.columns = #datum
+        end
+        if d.columns == #datum then
+            table.insert(d, datum)
+            for _, i in pairs({
+                                "sigmaX", "sigmaXX", "sigmaXY",
+                                "mean", "variance", "pop", "stddev", "r"
+                              }) do
+                d[i] = nil
             end
-            if d.columns == #datum then
-                table.insert(d, datum)
-                for _, i in pairs({
-                                    "sigmaX", "sigmaXX", "sigmaXY",
-                                    "mean", "variance", "pop", "stddev", "r"
-                                  }) do
-                    d[i] = nil
-                end
-            end
+        end
         return #d
     end
 
