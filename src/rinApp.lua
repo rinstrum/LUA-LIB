@@ -288,7 +288,7 @@ end
 function _M.run()
     _M.init()
     while _M.running do
-        _M.step()
+        step()
     end
    _M.cleanup()
 end
