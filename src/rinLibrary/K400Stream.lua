@@ -130,7 +130,7 @@ end
 -- @return streamReg identity
 -- @return error message
 function _M.addStream(streamReg, callback, onChange)
-    local reg = _M.getRegisterNumber(streamReg)
+    local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
 
     for k,v in pairs(availRegistersUser) do
@@ -170,7 +170,7 @@ end
 -- Remove a stream from the device
 -- @param streamReg Register to be removed
 function _M.removeStream(streamReg)
-    local reg = _M.getRegisterNumber(streamReg)
+    local reg = private.getRegisterNumber(streamReg)
     local availReg = streamRegistersUser[reg]
 
      if availReg == nil then return end   -- stream already removed
@@ -252,7 +252,7 @@ end
 -- @return streamReg indentity
 -- @return error message
 function _M.addStreamLib(streamReg, callback, onChange)
-    local reg = _M.getRegisterNumber(streamReg)
+    local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
 
     for k,v in pairs(availRegistersLib) do
@@ -291,7 +291,7 @@ end
 -- Remove a stream from the library set of streams
 -- @param streamReg Register to be removed
 function _M.removeStreamLib(streamReg)
-    local reg = _M.getRegisterNumber(streamReg)
+    local reg = private.getRegisterNumber(streamReg)
     local availReg = streamRegistersLib[reg]
 
      if availReg == nil then return end   -- stream already removed
