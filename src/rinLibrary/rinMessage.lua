@@ -97,37 +97,41 @@ _M.TYP_BITFIELD         = 0x0C
 -- }
 
 --  Errors
-_M.ERR_UNKNOWN          = 0xC000
-_M.ERR_NOTIMPLMN        = 0xA000
-_M.ERR_ACCESSDENIED     = 0x9000
-_M.ERR_DATAUNDRNG       = 0x8800
-_M.ERR_DATAOVRRNG       = 0x8400
-_M.ERR_ILLVALUE         = 0x8200
-_M.ERR_ILLOP            = 0x8100
-_M.ERR_BADPARAM         = 0x8040
-_M.ERR_MENUINUSE        = 0x8020
-_M.ERR_VIEWMODEREQ      = 0x8010
-_M.ERR_CHECKSUMREQ      = 0x8008
+local ERR_UNKNOWN          = 0xC000
+local ERR_NOTIMPLMN        = 0xA000
+local ERR_ACCESSDENIED     = 0x9000
+local ERR_DATAUNDRNG       = 0x8800
+local ERR_DATAOVRRNG       = 0x8400
+local ERR_ILLVALUE         = 0x8200
+local ERR_ILLOP            = 0x8100
+local ERR_BADPARAM         = 0x8040
+local ERR_MENUINUSE        = 0x8020
+local ERR_VIEWMODEREQ      = 0x8010
+local ERR_CHECKSUMREQ      = 0x8008
 
 local errStrings =
 {
-    [0xC000] = "Unknown error",
-    [0xA000] = "Feature not implemented",
-    [0x9000] = "Access denied",
-    [0x8800] = "Data under range",
-    [0x8400] = "Data over range",
-    [0x8200] = "Illegal value",
-    [0x8100] = "Illegal operation",
-    [0x8040] = "Bad parameter",
-    [0x8020] = "Menu in use",
-    [0x8010] = "Viewer mode required",
-    [0x8008] = "Checksum required"
+    [ERR_UNKNOWN]       = "Unknown error",
+    [ERR_NOTIMPLMN]     = "Feature not implemented",
+    [ERR_ACCESSDENIED]  = "Access denied",
+    [ERR_DATAUNDRNG]    = "Data under range",
+    [ERR_DATAOVRRNG]    = "Data over range",
+    [ERR_ILLVALUE]      = "Illegal value",
+    [ERR_ILLOP]         = "Illegal operation",
+    [ERR_BADPARAM]      = "Bad parameter",
+    [ERR_MENUINUSE]     = "Menu in use",
+    [ERR_VIEWMODEREQ]   = "Viewer mode required",
+    [ERR_CHECKSUMREQ]   = "Checksum required"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Build a grammer to parse and decode the messages.
 local delim, addr, cmd, reg, data, crc, excess, tocrc
 
+-------------------------------------------------------------------------------
+-- Extract CRC portion of message string.
+-- @param s Message string to decode
+-- @local
 local function datacrc(s)
     crc = tonum(string.sub(s, -4), 16)
     data = string.sub(s, 1, -5)
@@ -213,11 +217,16 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
     return str.format("%02X%02X%04X:%s", addr, cmd, reg, data)
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-------------------------------------------------------------------------------
 -- Default Error Handler, logs error to debug at WARN level with error string
--- and received command
--- takes arguments: Address, Command, Register, Data, Err String
--- from message processing
+-- and received command.  The arguments come from the standard message processing
+-- decode.
+-- @param addr Address
+-- @param cmd Command
+-- @param reg Register
+-- @param data Data
+-- @param s Error String
+-- @local
 local errHandler = function(addr, cmd, reg, data, s)
     local tmps
 
