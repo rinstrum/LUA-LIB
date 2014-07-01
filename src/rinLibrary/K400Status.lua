@@ -76,7 +76,8 @@ _M.REG_LUA_ESTAT    = 0x0305
 _M.REG_LUA_STAT_RTC = 0x032A
 _M.REG_LUA_STAT_RDG = 0x032B
 _M.REG_LUA_STAT_IO  = 0x032C
-_M.REG_SETPSTATUS  = 0x032E
+_M.REG_SETPSTATUS   = 0x032E
+_M.REG_LUA_STAT_NET = 0x030A
 
 _M.lastIOStatus = 0
 
@@ -97,7 +98,7 @@ _M.STAT_ERROR           = 0x00001000
 _M.STAT_ULOAD           = 0x00002000
 _M.STAT_OLOAD           = 0x00004000
 _M.STAT_NOTERROR        = 0x00008000
--- K412 specific status bits
+-- Batching specific status bits
 _M.STAT_IDLE            = 0x00010000
 _M.STAT_RUN             = 0x00020000
 _M.STAT_PAUSE           = 0x00040000
@@ -120,6 +121,10 @@ _M.ESTAT_DISPMODE        = 0x00000006
 _M.ESTAT_DISPMODE_RS     = 1
 _M.ESTAT_RANGE           = 0x00000018
 _M.ESTAT_RANGE_RS        = 3
+_M.ESTAT_MENU_ACTIVE     = 0x00000020
+_M.ESTAT_PROD_LOAD       = 0x00000040
+_M.ESTAT_PROD_SAVE       = 0x00000080
+_M.ESTAT_POWER_OFF       = 0x00000100
 _M.ESTAT_INIT            = 0x01000000
 _M.ESTAT_RTC             = 0x02000000
 _M.ESTAT_RDG             = 0x04000000
@@ -601,7 +606,11 @@ end
 -- @param s true to enable RTC change monitoring, false to disable
 function _M.writeRTCStatus(s)
    local s = s or true
-   if s then s = 1 else s = 0 end
+   if s == true then
+      s = 1
+   else
+      s = 0
+   end
    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s)
 end
 
@@ -616,6 +625,15 @@ local function handleINIT(status, active)
 --       _M.RTCread()
 --   end
 end
+
+-------------------------------------------------------------------------------
+-- Control the use of Net status bits
+-- @param s 1 for net1,2 for net2, 3 for both and 0 for none
+function _M.writeNetStatus(s)
+   local s = s or 0
+   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET,s)
+end
+
 -------------------------------------------------------------------------------
 -- Setup status monitoring via a stream
 function _M.setupStatus()
