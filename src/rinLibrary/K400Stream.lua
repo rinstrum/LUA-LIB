@@ -338,7 +338,7 @@ function _M.setStreamFreq(freq)
 end
 
 -------------------------------------------------------------------------------
---  Set the frequency used for library streaming
+-- Set the frequency used for library streaming
 -- @param freq Frequency of streaming
 -- @return The previous frequency
 function _M.setStreamFreqLib(freq)
@@ -380,7 +380,7 @@ end
 -- Called to initalise the instrument and read initial conditions
 function _M.init()
     _M.renewStreamData()
-    _M.sendKey(_M.KEY_CANCEL,'long')
+    _M.sendKey(_M.KEY_CANCEL, 'long')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

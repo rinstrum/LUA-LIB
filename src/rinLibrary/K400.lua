@@ -34,7 +34,7 @@ return function ()
     local _M, kt = {}, {}
     local depricated, private, dwarned = {}, {}, {}
     local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
-    local regMap = {}
+    local regMap, regUnmap = {}, {}
 
 -------------------------------------------------------------------------------
 -- Add an entry to the register mapping table if it is of the correct form
@@ -46,7 +46,9 @@ return function ()
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
-                regMap[string.lower(m)] = v
+                local r = string.lower(m)
+                regMap[r] = v
+                regUnmap[v] = r
             end
         end
     end
@@ -66,6 +68,15 @@ return function ()
             return regMap[string.lower(r)]
         end
         return nil
+    end
+
+-------------------------------------------------------------------------------
+-- Convert a register number to the associated canonical register name.
+-- @param r Register name
+-- @return Register name
+-- @local
+    function private.getRegisterName(r)
+        return regUnmap(r)
     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

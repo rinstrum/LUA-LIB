@@ -145,7 +145,8 @@ _M.REG_SELECT_PRODUCT_RENAME    = 0xB012
 -- @param data to send
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 function _M.sendReg(cmd, reg, data, crc)
-  _M.send(nil, cmd, reg, data, "noReply",crc)
+    local r = private.getRegisterNumber(reg)
+    _M.send(nil, cmd, r, data, "noReply",crc)
 end
 
 -------------------------------------------------------------------------------
@@ -165,6 +166,11 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
           return nil, 'Nil Register'
     end
 
+    local r = private.getRegisterNumber(reg)
+    if r == nil then
+        return nil, "Unknown Register"
+    end
+
     local waiting = true
     local regData = ''
     local regError = ''
@@ -174,16 +180,16 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
           waiting = false
     end
 
-    local f = _M.getDeviceRegister(reg)
-    _M.bindRegister(reg, waitf)
-    _M.send(nil, cmd, reg, data, "reply", crc)
-    local tmr = _M.system.timers.addTimer(0, t, waitf, nil,'Timeout')
+    local f = _M.getDeviceRegister(r)
+    _M.bindRegister(r, waitf)
+    _M.send(nil, cmd, r, data, "reply", crc)
+    local tmr = _M.system.timers.addTimer(0, t, waitf, nil, 'Timeout')
 
     while waiting do
         _M.system.handleEvents()
     end
 
-    _M.bindRegister(reg, f)
+    _M.bindRegister(r, f)
 
     _M.system.timers.removeTimer(tmr)
     return regData, regErr
@@ -200,7 +206,7 @@ function _M.literalToFloat(data)
       if not a then
            return data
       else
-       data = string.gsub(string.sub(data,a,b),'%s','')  -- remove spaces
+       data = string.gsub(string.sub(data,a,b), '%s', '')  -- remove spaces
        return tonumber(data)
       end
 end
@@ -228,7 +234,7 @@ end
 function _M.readReg(reg)
     local data, err
 
-    data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
+    data, err = _M.sendRegWait(_M.CMD_RDLIT, reg)
     if err then
        _M.dbg.debug('Read Error', err)
        return nil, err
