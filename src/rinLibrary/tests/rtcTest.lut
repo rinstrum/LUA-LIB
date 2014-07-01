@@ -6,7 +6,7 @@
 
 describe("RTC #rtc", function ()
     local dmy, dmyy, mdy, mdyy, ymd, yymd = 0, 1, 2, 3, 4, 5
-    local regs = {
+    local dregs = {
         timecur          = 0x0150,
         timeformat       = 0x0151,
         timeday          = 0x0152,
@@ -21,30 +21,30 @@ describe("RTC #rtc", function ()
     }
 
     local function makeModule()
-        local m = {}
-        (require "rinLibrary.K400RTC" )(m)
+        local m, p, d = {}, {}, {}
+        (require "rinLibrary.K400RTC" )(m, p, d)
         m.flushed = 0
         m.flush = function() m.flushed = m.flushed + 1 end
-        return m
+        return m, p, d
     end
 
-    describe("registers #reg", function()
-        local m = makeModule()
-            for k, v in pairs(regs) do
+    describe("depricated registers", function()
+        local _, _, d = makeModule()
+            for k, v in pairs(dregs) do
             it("test "..k, function()
-                assert.equal(v, m["REG_" .. string.upper(k)])
+                assert.equal(v, d["REG_" .. string.upper(k)])
             end)
         end
     end)
 
     it("enumerations", function()
-        local m = makeModule()
-        assert.equal(dmy,   m.TM_DDMMYY)
-        assert.equal(dmyy,  m.TM_DDMMYYYY)
-        assert.equal(mdy,   m.TM_MMDDYY)
-        assert.equal(mdyy,  m.TM_MMDDYYYY)
-        assert.equal(ymd,   m.TM_YYMMDD)
-        assert.equal(yymd,  m.TM_YYYYMMDD)
+        local _, _, d = makeModule()
+        assert.equal(dmy,   d.TM_DDMMYY)
+        assert.equal(dmyy,  d.TM_DDMMYYYY)
+        assert.equal(mdy,   d.TM_MMDDYY)
+        assert.equal(mdyy,  d.TM_MMDDYYYY)
+        assert.equal(ymd,   d.TM_YYMMDD)
+        assert.equal(yymd,  d.TM_YYYYMMDD)
     end)
 
     describe("month lengths #monlen", function()
@@ -77,12 +77,12 @@ describe("RTC #rtc", function ()
 
     local function makeResults(yr, mo, da, ho, mi, se)
         local results = {}
-        if yr ~= nil then table.insert(results, { r=regs.timeyear, yr }) end
-        if mo ~= nil then table.insert(results, { r=regs.timemon,  mo }) end
-        if da ~= nil then table.insert(results, { r=regs.timeday,  da }) end
-        if ho ~= nil then table.insert(results, { r=regs.timehour, ho }) end
-        if mi ~= nil then table.insert(results, { r=regs.timemin,  mi }) end
-        if se ~= nil then table.insert(results, { r=regs.timesec,  se }) end
+        if yr ~= nil then table.insert(results, { r=dregs.timeyear, yr }) end
+        if mo ~= nil then table.insert(results, { r=dregs.timemon,  mo }) end
+        if da ~= nil then table.insert(results, { r=dregs.timeday,  da }) end
+        if ho ~= nil then table.insert(results, { r=dregs.timehour, ho }) end
+        if mi ~= nil then table.insert(results, { r=dregs.timemin,  mi }) end
+        if se ~= nil then table.insert(results, { r=dregs.timesec,  se }) end
         return results
     end
 

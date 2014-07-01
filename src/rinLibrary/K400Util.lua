@@ -17,7 +17,7 @@ local rinMsg = require "rinLibrary.rinMessage"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 _M.REG_LCDMODE          = 0x000D
 
 local instrumentModel = ''

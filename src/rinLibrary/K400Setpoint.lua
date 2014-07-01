@@ -11,7 +11,7 @@ local bit32 = require "bit"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 
 _M.REG_IO_STATUS    = 0x0051
 _M.REG_IO_ENABLE    = 0x0054

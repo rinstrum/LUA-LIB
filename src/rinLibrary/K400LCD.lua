@@ -117,7 +117,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 
 --LCD display registers
 _M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string

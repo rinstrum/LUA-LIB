@@ -13,7 +13,7 @@ local powersOfTen = require "rinLibrary.powersOfTen"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009

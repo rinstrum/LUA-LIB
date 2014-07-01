@@ -11,7 +11,7 @@ local bit32 = require "bit"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 
 -------------------------------------------------------------------------------
 --- Analogue Output Control.

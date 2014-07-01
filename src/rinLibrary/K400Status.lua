@@ -47,7 +47,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M)
+return function (_M, private, depricated)
 
 --- Status Bits for REG_SYSSTATUS.
 --@table sysstatus
@@ -606,7 +606,7 @@ function _M.writeRTCStatus(s)
 end
 
 local function handleRTC(status, active)
-    _M.RTCtick()
+    private.RTCtick()
 end
 
 local function handleINIT(status, active)
