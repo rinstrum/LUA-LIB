@@ -91,7 +91,8 @@ local streamRegistersUser = {}
 -- Divide the data stream up and run the relevant callbacks
 -- @param data Data received from register
 -- @param err Potential error message
-function _M.streamCallback(data, err)
+-- @local
+local function streamCallback(data, err)
 
     if err then return end
     if (string.len(data) % 8 ~= 0) or
@@ -160,7 +161,7 @@ function _M.addStream(streamReg, callback, onChange)
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
                 STM_START)
 
-    _M.bindRegister(bit32.bor(REG_LUAUSER,REG_STREAMDATA), _M.streamCallback)
+    _M.bindRegister(bit32.bor(REG_LUAUSER,REG_STREAMDATA), streamCallback)
     return streamReg
 end
 
@@ -213,7 +214,8 @@ local streamRegistersLib = {}
 -- Divide the data stream up and run the callbacks for Library streams
 -- @param data Data received from register
 -- @param err Potential error message
-function _M.streamCallbackLib(data, err)
+-- @local
+local function streamCallbackLib(data, err)
 
     if err then return end
     if (string.len(data) % 8 ~= 0) or
@@ -279,7 +281,7 @@ function _M.addStreamLib(streamReg, callback, onChange)
                 bit32.bor(REG_LUALIB, REG_STREAMDATA),
                 STM_START)
 
-   _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), _M.streamCallbackLib)
+   _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
     return streamReg
 end
 
