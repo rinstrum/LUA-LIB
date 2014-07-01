@@ -15,8 +15,6 @@ local min, max = math.min, math.max
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, depricated)
-    -- The lengths of beeps, takes 0 (short), 1(med) or 2(long).
-    -- There are no gaps between long beeps
     local REG_BUZZ_LEN =  0x0327
     local REG_BUZZ_NUM =  0x0328
 
@@ -36,7 +34,7 @@ return function (_M, private, depricated)
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Called to set the length of the buzzer sound
 -- @see buzz
--- @param len - length of buzzer sound ('short', 'medium', 'long')
+-- @param len - length of buzzer sound ('short', 'medium' or 'long')
 -- @local
     local function setBuzzLen(len)
         local l = lengthMap[len]
@@ -47,7 +45,8 @@ return function (_M, private, depricated)
     end
 
 -------------------------------------------------------------------------------
--- Called to trigger instrument buzzer.  There are no gaps between long beeps.
+-- Called to trigger instrument buzzer.
+-- There are no gaps between long beeps.
 -- @param times - number of times to buzz, 1..4
 -- @param len - length of buzzer sound ('short', 'medium' or 'long')
 -- @usage
