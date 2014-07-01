@@ -113,11 +113,10 @@ end
 function _M.sendDateFormat(fmt)
     if type(fmt) == "string" then
         fmt = stringDateMap[string.lower(fmt)]
-    end
-
-    if fmt < TM_DDMMYY or fmt > TM_YYYYMMDD then
+    elseif fmt < TM_DDMMYY or fmt > TM_YYYYMMDD then
         fmt = TM_DDMMYYYY
     end
+
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)
 end
