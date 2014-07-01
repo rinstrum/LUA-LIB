@@ -55,6 +55,16 @@ local firstKey = true    -- flag to catch any garbage
 -- @field KEY_PWR_F3
 -- @field KEY_PWR_CANCEL
 
+--- Key Groups.
+--@table keygroups
+-- @field keyGroup.all
+-- @field keyGroup.primary
+-- @field keyGroup.functions
+-- @field keyGroup.keypad
+-- @field keyGroup.numpad
+-- @field keyGroup.cursor
+-- @field keyGroup.extended
+
 _M.KEY_0                = 0x0000
 _M.KEY_1                = 0x0001
 _M.KEY_2                = 0x0002
@@ -145,27 +155,6 @@ local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls
 
 -------------------------------------------------------------------------------
--- Setup key handling stream
-function _M.setupKeys()
-    _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
-    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 1)
-    keyID = _M.addStreamLib(REG_GET_KEY, _M.keyCallback, 'change')
-end
-
--------------------------------------------------------------------------------
--- Cancel keypress handling
--- @param flush Flush the current keypresses that have not yet been handled
-function _M.endKeys(flush)
-    if flush then
-        _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
-    end
-
-    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 0)
-
-    _M.removeStream(keyID)
-end
-
--------------------------------------------------------------------------------
 -- Give the idle timeout timer a kick
 -- @local
 function private.bumpIdleTimer()
@@ -184,7 +173,8 @@ end
 -- Note: keybind tables should be sorted by priority
 -- @param data Data on key streamed
 -- @param err Potential error message
-function _M.keyCallback(data, err)
+-- @local
+local function keyCallback(data, err)
 
     local state = "short"
     local key = bit32.band(data, 0x3F)
@@ -252,19 +242,59 @@ function _M.keyCallback(data, err)
 end
 
 -------------------------------------------------------------------------------
+-- Setup key handling stream
+-- This function must be called before any key processing can take place.
+-- This routine is called automatically by the standard rinApp application
+-- framework.
+-- @usage
+-- -- Initialise the key handling subsystem
+-- device.setupKeys()
+--
+-- Note: this function generally does not need to be called as the application
+-- framework takes care of this.
+function _M.setupKeys()
+    _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 1)
+    keyID = _M.addStreamLib(REG_GET_KEY, keyCallback, 'change')
+end
+
+-------------------------------------------------------------------------------
+-- Cancel keypress handling
+-- This function must be called after the application's main loop finishes.
+-- This routine is called automatically by the standard rinApp application
+-- framework.
+-- @param flush Flush the current keypresses that have not yet been handled
+-- @usage
+-- -- Close down the key handling subsystem
+-- device.endKeys()
+--
+-- Note: this function generally does not need to be called as the application
+-- framework takes care of this.
+function _M.endKeys(flush)
+    if flush then
+        _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+    end
+
+    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 0)
+
+    _M.removeStream(keyID)
+end
+
+-------------------------------------------------------------------------------
 -- Set a callback to run if more than t seconds of idle time is detected
 -- between keys.  This is used to trap operator leaving without proper menu exit.
 -- @param f function to run when idle time expired
 -- @param t is timeout in seconds
 -- @usage
 -- local function idle()
---    dwi.abortDialog()
+--     device.abortDialog()
 -- end
--- dwi.setIdleCallback(idle,15) -- call idle if 15 seconds elapses between keys
+-- device.setIdleCallback(idle, 15) -- call idle if 15 seconds elapses between keys
 function _M.setIdleCallback(f,t)
-   idleCallback = f
-   idleTimeout = t or 10
+    idleCallback = f
+    idleTimeout = t or 10
 end
+
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
 -- @param key to monitor (KEY_* )
@@ -272,33 +302,35 @@ end
 -- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
 -- @usage
 -- local function F1Pressed(key, state)
---  if state == 'short' then
---       dbg.info('F1 pressed')
---    end
---    return true    -- F1 handled here so don't send back to instrument for handling
---  end
---  dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
---
+--     if state == 'short' then
+--         dbg.info('F1 pressed')
+--     end
+--     return true    -- F1 handled here so don't send back to instrument for handling
+-- end
+-- device.setKeyCallback(device.KEY_F1, F1Pressed)
 function _M.setKeyCallback(key, callback)
     keyBinds[key].directCallback = callback
 end
 
---- Key Groups.
---@table keygroups
--- @field keyGroup.all
--- @field keyGroup.primary
--- @field keyGroup.functions
--- @field keyGroup.keypad
--- @field keyGroup.numpad
--- @field keyGroup.cursor
--- @field keyGroup.extended
-
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key group
--- Return true in the callback to prevent the handling from being passed along to the next keygroup
+-- An individual key handler will override a group handler.  Likewise, the
+-- groups have their own priority order from the fine grained to the all
+-- encompassing.
 -- @param keyGroup A keygroup given in keyGroup.*
 -- @param callback Function to run when there is an event on the keygroup
 -- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
+-- Return true in the callback to prevent the handling from being passed along to the next keygroup
+-- @usage
+-- -- Callback to handle F1 key event 
+-- local function handleKey(key, state)
+--     showMarquee(string.format("%s Pressed ", key))
+--     if key == device.KEY_PWR_CANCEL and state == 'long' then 
+--         rinApp.running = false
+--     end
+--     return true     -- key handled so don't send back to instrument
+-- end
+-- device.setKeyGroupCallback(device.keyGroup.all, handleKey)
 function _M.setKeyGroupCallback(keyGroup, callback)
     keyGroup.callback = callback
 end
@@ -307,6 +339,9 @@ end
 -- Send an artificial key press to the instrument
 -- @param key (.KEY_*)
 -- @param status 'long' or 'short'
+-- @usage
+-- -- Send a short cancel key press to the display
+-- device.sendKey(device.KEY_CANCEL, 'short')
 function _M.sendKey(key,status)
     if key then
         local data = key
