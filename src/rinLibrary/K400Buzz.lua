@@ -49,7 +49,7 @@ return function (_M, private, depricated)
 -------------------------------------------------------------------------------
 -- Called to trigger instrument buzzer.  There are no gaps between long beeps.
 -- @param times - number of times to buzz, 1..4
--- @param len - length of buzzer sound ('short', 'medium', 'long')
+-- @param len - length of buzzer sound ('short', 'medium' or 'long')
     function _M.buzz(times, len)
         
         local n = max(1, min(4, tonumber(times or 1)))
