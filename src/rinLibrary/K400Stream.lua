@@ -127,7 +127,8 @@ end
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
 -- @param onChange Change parameter
--- return streamReg identity
+-- @return streamReg identity
+-- @return error message
 function _M.addStream(streamReg, callback, onChange)
     local reg = _M.getRegisterNumber(streamReg)
     local availReg = nil
@@ -248,7 +249,8 @@ end
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
 -- @param onChange Change parameter
--- return streamReg indentity
+-- @return streamReg indentity
+-- @return error message
 function _M.addStreamLib(streamReg, callback, onChange)
     local reg = _M.getRegisterNumber(streamReg)
     local availReg = nil
@@ -302,7 +304,7 @@ function _M.removeStreamLib(streamReg)
 end
 
 -------------------------------------------------------------------------------
---  Called to cleanup any unused streaming
+-- Cleanup any unused streaming
 function _M.streamCleanup()
     _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
