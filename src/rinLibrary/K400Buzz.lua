@@ -50,6 +50,15 @@ return function (_M, private, depricated)
 -- Called to trigger instrument buzzer.  There are no gaps between long beeps.
 -- @param times - number of times to buzz, 1..4
 -- @param len - length of buzzer sound ('short', 'medium' or 'long')
+-- @usage
+-- -- Emit an SOS sequence
+-- -- The delays are required since execution continues
+-- -- before the buzzer is finished.
+-- device.buzz(3, 'short')
+-- device.delay(1.4)
+-- device.buzz(3, 'medium')
+-- device.delay(2.2)
+-- device.buzz(3, 'short')
     function _M.buzz(times, len)
         
         local n = max(1, min(4, tonumber(times or 1)))
