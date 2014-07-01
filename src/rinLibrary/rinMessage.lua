@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
 -- Creates a connection to the M4223
--- @module rinLibrary.rincon
+-- @module rinLibrary.rinMessage
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -14,14 +14,14 @@ local table  = table
 local tonum  = tonumber
 local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 
-local rinMsg = {}
+local _M = {}
 
 -- Addresses control bits
-rinMsg.ADDR_RESP            = 0x80
-rinMsg.ADDR_ERR             = 0x40
-rinMsg.ADDR_REPLY           = 0x20
-rinMsg.ADDR_NOREPLY         = 0x00
-rinMsg.ADDR_BROADCAST       = 0x00
+_M.ADDR_RESP            = 0x80
+_M.ADDR_ERR             = 0x40
+_M.ADDR_REPLY           = 0x20
+_M.ADDR_NOREPLY         = 0x00
+_M.ADDR_BROADCAST       = 0x00
 --- Instrument Commands.
 -- @table rinCMD
 -- @field CMD_RDTYPE       Read Register Type
@@ -41,41 +41,41 @@ rinMsg.ADDR_BROADCAST       = 0x00
 -- @field CMD_EX           Execute with data as execute parameter
 
 -- Commands
-rinMsg.CMD_RDTYPE           = 0x01
-rinMsg.CMD_RDRANGEMIN       = 0x02
-rinMsg.CMD_RDRANGEMAX       = 0x03
-rinMsg.CMD_RDRAW            = 0x04
+_M.CMD_RDTYPE           = 0x01
+_M.CMD_RDRANGEMIN       = 0x02
+_M.CMD_RDRANGEMAX       = 0x03
+_M.CMD_RDRAW            = 0x04
 
-rinMsg.CMD_RDLIT            = 0x05
-rinMsg.CMD_WRRAW            = 0x06
-rinMsg.CMD_RDDEFAULT        = 0x07
-rinMsg.CMD_RDNAME           = 0x09
-rinMsg.CMD_RDITEM           = 0x0D
-rinMsg.CMD_RDPERMISSION     = 0x0F
+_M.CMD_RDLIT            = 0x05
+_M.CMD_WRRAW            = 0x06
+_M.CMD_RDDEFAULT        = 0x07
+_M.CMD_RDNAME           = 0x09
+_M.CMD_RDITEM           = 0x0D
+_M.CMD_RDPERMISSION     = 0x0F
 
-rinMsg.CMD_RDFINALHEX       = 0x11
-rinMsg.CMD_RDFINALDEC       = 0x16
-rinMsg.CMD_WRFINALHEX       = 0x12
-rinMsg.CMD_WRFINALDEC       = 0x17
-rinMsg.CMD_EX               = 0x10
+_M.CMD_RDFINALHEX       = 0x11
+_M.CMD_RDFINALDEC       = 0x16
+_M.CMD_WRFINALHEX       = 0x12
+_M.CMD_WRFINALDEC       = 0x17
+_M.CMD_EX               = 0x10
 
 -- Register Types
-rinMsg.TYP_CHAR             = 0x00
-rinMsg.TYP_UCHAR            = 0x01
-rinMsg.TYP_SHORT            = 0x02
-rinMsg.TYP_USHORT           = 0x03
-rinMsg.TYP_LONG             = 0x04
-rinMsg.TYP_ULONG            = 0x05
-rinMsg.TYP_STRING           = 0x06
-rinMsg.TYP_OPTION           = 0x07
-rinMsg.TYP_MENU             = 0x08
-rinMsg.TYP_WEIGHT           = 0x09
-rinMsg.TYP_BLOB             = 0x0A
-rinMsg.TYP_EXECUTE          = 0x0B
-rinMsg.TYP_BITFIELD         = 0x0C
+_M.TYP_CHAR             = 0x00
+_M.TYP_UCHAR            = 0x01
+_M.TYP_SHORT            = 0x02
+_M.TYP_USHORT           = 0x03
+_M.TYP_LONG             = 0x04
+_M.TYP_ULONG            = 0x05
+_M.TYP_STRING           = 0x06
+_M.TYP_OPTION           = 0x07
+_M.TYP_MENU             = 0x08
+_M.TYP_WEIGHT           = 0x09
+_M.TYP_BLOB             = 0x0A
+_M.TYP_EXECUTE          = 0x0B
+_M.TYP_BITFIELD         = 0x0C
 
 -- Unused currently
--- rinMsg.typStrings =
+-- _M.typStrings =
 -- {
 --   [0x00] = "char",
 --   [0x01] = "unsigned char",
@@ -97,17 +97,17 @@ rinMsg.TYP_BITFIELD         = 0x0C
 -- }
 
 --  Errors
-rinMsg.ERR_UNKNOWN          = 0xC000
-rinMsg.ERR_NOTIMPLMN        = 0xA000
-rinMsg.ERR_ACCESSDENIED     = 0x9000
-rinMsg.ERR_DATAUNDRNG       = 0x8800
-rinMsg.ERR_DATAOVRRNG       = 0x8400
-rinMsg.ERR_ILLVALUE         = 0x8200
-rinMsg.ERR_ILLOP            = 0x8100
-rinMsg.ERR_BADPARAM         = 0x8040
-rinMsg.ERR_MENUINUSE        = 0x8020
-rinMsg.ERR_VIEWMODEREQ      = 0x8010
-rinMsg.ERR_CHECKSUMREQ      = 0x8008
+_M.ERR_UNKNOWN          = 0xC000
+_M.ERR_NOTIMPLMN        = 0xA000
+_M.ERR_ACCESSDENIED     = 0x9000
+_M.ERR_DATAUNDRNG       = 0x8800
+_M.ERR_DATAOVRRNG       = 0x8400
+_M.ERR_ILLVALUE         = 0x8200
+_M.ERR_ILLOP            = 0x8100
+_M.ERR_BADPARAM         = 0x8040
+_M.ERR_MENUINUSE        = 0x8020
+_M.ERR_VIEWMODEREQ      = 0x8010
+_M.ERR_CHECKSUMREQ      = 0x8008
 
 local errStrings =
 {
@@ -156,7 +156,7 @@ local msgpat = P({
 -- @return data (string)
 -- @return error (nil if not error, string otherwise)
 -- @return excess (string containing left over residue characters)
-function rinMsg.processMsg(msg, err)
+function _M.processMsg(msg, err)
     if msg == nil and (err == "closed" or "Transport endpoint is not connected") then
         return nil, nil, nil, nil, err, nil
     elseif msg == nil then
@@ -167,7 +167,7 @@ function rinMsg.processMsg(msg, err)
         return nil, nil, nil, nil, "bad crc", excess
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
-    elseif bit32.band(addr, rinMsg.ADDR_ERR) == rinMsg.ADDR_ERR then
+    elseif bit32.band(addr, _M.ADDR_ERR) == _M.ADDR_ERR then
         return addr % 32, cmd, reg, data, errStrings[tonum(data, 16)], excess
     end
     return addr % 32, cmd, reg, data, nil, excess
@@ -178,7 +178,7 @@ end
 -- @param msg  message string to send
 -- @param crc  if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
 -- @return The message wrappered up and ready to send
-function rinMsg.encapsulateMsg(msg, crc)
+function _M.encapsulateMsg(msg, crc)
     if crc == 'crc' then
         return table.concat({'\01', msg, str.format("%04X", ccitt(msg)), '\04'})
     else
@@ -194,17 +194,17 @@ end
 -- @param data Data to be sent
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @return The formatted message suitable for formatMsg
-function rinMsg.buildMsg(addr, cmd, reg, data, reply)
-    local addr = addr or rinMsg.ADDR_BROADCAST
-    local cmd = cmd or rinMsg.CMD_RDFINALHEX
+function _M.buildMsg(addr, cmd, reg, data, reply)
+    local addr = addr or _M.ADDR_BROADCAST
+    local cmd = cmd or _M.CMD_RDFINALHEX
     local data = data or ""
     local reply = reply or 'reply'
 
     if reply == 'reply' then
-        addr = bit32.bor(addr, rinMsg.ADDR_REPLY)
+        addr = bit32.bor(addr, _M.ADDR_REPLY)
     end
 
-    if cmd == rinMsg.CMD_WRFINALHEX or cmd == rinMsg.CMD_EX then
+    if cmd == _M.CMD_WRFINALHEX or cmd == _M.CMD_EX then
         if type(data) == 'number' then
             data = str.format("%X", data)
         end
@@ -236,7 +236,7 @@ end
 --      Address, Command, Register, Data, Err String.
 -- @param errHandler Function for handling errors,
 -- @return previously registered handler
-function rinMsg.setErrHandler(eh)
+function _M.setErrHandler(eh)
     local f = errHandler
     errHandler = eh
     return f
@@ -245,8 +245,8 @@ end
 -------------------------------------------------------------------------------
 -- Removes the error handler
 -- @return original registered handler
-function rinMsg.removeErrHandler()
-    return rinMsg.setErrHandler(nil)
+function _M.removeErrHandler()
+    return _M.setErrHandler(nil)
 end
 
 -------------------------------------------------------------------------------
@@ -256,7 +256,7 @@ end
 -- @param reg Register
 -- @param data Data
 -- @param e Err String
-function rinMsg.handleError(addr, cmd, reg, data, e)
+function _M.handleError(addr, cmd, reg, data, e)
     if errHandler ~= nil then
         errHandler(addr, cmd, reg, data, e)
     end
@@ -266,7 +266,7 @@ end
 -- Copy all relocated fields to a specified table.  This is for backwards
 -- compatibility.
 -- @param t Table to add fields to
-function rinMsg.copyRelocatedFields(t)
+function _M.copyRelocatedFields(t)
     -- No precompilation of the pattern here, this function is only called
     -- at startup.  It is also usually called but once and at most only a small
     -- number of times.
@@ -274,11 +274,11 @@ function rinMsg.copyRelocatedFields(t)
     local pfnc = (P"set" + P"remove") * P"ErrHandler"
     local pat  = (pvar + pfnc) * -1
 
-    for k, v in pairs(rinMsg) do
+    for k, v in pairs(_M) do
         if type(k) == "string" and pat:match(k) then
             t[k] = v
         end
     end
 end
 
-return rinMsg
+return _M
