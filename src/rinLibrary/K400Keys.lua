@@ -301,7 +301,7 @@ function _M.setKeyGroupCallback(keyGroup, callback)
 end
 
 -------------------------------------------------------------------------------
--- Send an artificial  key press to the instrument
+-- Send an artificial key press to the instrument
 -- @param key (.KEY_*)
 -- @param status 'long' or 'short'
 function _M.sendKey(key,status)
