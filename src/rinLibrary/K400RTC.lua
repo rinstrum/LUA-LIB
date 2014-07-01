@@ -276,8 +276,6 @@ end
 
 -------------------------------------------------------------------------------
 -- Called every second to update local RTC
--- @usage
--- You don't need to call this, it is for library internal use only.
 -- @local
 function private.RTCtick()
     RTC.sec = RTC.sec + 1
