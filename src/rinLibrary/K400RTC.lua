@@ -9,7 +9,7 @@
 local string = string
 local tonumber = tonumber
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-------------------------------------------------------------------------------
 -- Return the length of a month in a given year
 -- @param y Year
 -- @param m Month
