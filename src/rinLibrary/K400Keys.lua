@@ -165,7 +165,10 @@ function _M.endKeys(flush)
     _M.removeStream(keyID)
 end
 
-function _M.bumpIdleTimer()
+-------------------------------------------------------------------------------
+-- Give the idle timeout timer a kick
+-- @local
+function private.bumpIdleTimer()
     _M.system.timers.removeTimer(idleTimerID)
     if idleCallback then
         idleTimerID = _M.system.timers.addTimer(0,idleTimeout,idleCallback)
@@ -244,7 +247,7 @@ function _M.keyCallback(data, err)
         _M.sendReg(_M.CMD_WRFINALDEC, REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
-        _M.bumpIdleTimer()
+        private.bumpIdleTimer()
     end
 end
 

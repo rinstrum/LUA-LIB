@@ -59,7 +59,7 @@ end
 
 function _M.startDialog()
     dialogRunning = dialogRunning + 1
-    _M.bumpIdleTimer()
+    private.bumpIdleTimer()
 end
 
 local function getKeyCallback(key, state)
