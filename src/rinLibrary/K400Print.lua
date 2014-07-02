@@ -48,7 +48,7 @@ function _M.printCustomTransmit(tokenStr, comPort)
     if comPort ~= curPrintPort  then
         curPrintPort = comPort
         _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTPORT, comPort)
-        _M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
+        --_M.sendRegWait(_M.CMD_EX, _M.REG_SAVESETTING,0)
     end
     tokenStr = _M.expandCustomTransmit(tokenStr)
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_PRINTTOKENSTR, tokenStr)
