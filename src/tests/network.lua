@@ -13,7 +13,6 @@ package.loaded["rinLibrary.rinDebug"] = {
     setLevel = function(l) end,
     restoreLevel = function() end,
     setLogger = function(c) end,
-    setConfig = function(c) end,
     configureDebug = function(c) end,
     setDebugCallback = function(f) end,
     print = function() end,
