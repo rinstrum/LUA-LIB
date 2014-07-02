@@ -26,14 +26,17 @@ local rinApp
 -- local rinApp = require "rinApp"
 -- local usbKBD = require "rinLibrary/rinUSBKBD"
 -- usbKBD.link(rinApp)
-
 function _M.link(app)
-  rinApp = app
+    rinApp = app
 end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from keyboard
 -- @return key pressed
+-- @usage
+-- while true do
+--     print('key press:', device.getKey())
+-- end
 function _M.getKey()
 
     local keypressed = ''
@@ -56,7 +59,7 @@ end
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
 function _M.isEditing()
-   return editing
+    return editing
 end
 
 -------------------------------------------------------------------------------
