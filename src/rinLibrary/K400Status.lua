@@ -76,15 +76,13 @@ _M.SYS_CENTREOFZERO     = 0x00000800
 _M.SYS_ZERO             = 0x00000400
 _M.SYS_NET              = 0x00000200
 
-_M.REG_LUA_STATUS   = 0x0329
-_M.REG_LUA_ESTAT    = 0x0305
-_M.REG_LUA_STAT_RTC = 0x032A
-_M.REG_LUA_STAT_RDG = 0x032B
-_M.REG_LUA_STAT_IO  = 0x032C
-_M.REG_SETPSTATUS   = 0x032E
-_M.REG_LUA_STAT_NET = 0x030A
-
-_M.lastIOStatus = 0
+local REG_LUA_STATUS   = 0x0329
+local REG_LUA_ESTAT    = 0x0305
+local REG_LUA_STAT_RTC = 0x032A
+local REG_LUA_STAT_RDG = 0x032B
+local REG_LUA_STAT_IO  = 0x032C
+local REG_SETPSTATUS   = 0x032E
+local REG_LUA_STAT_NET = 0x030A
 
 -- Status
 _M.STAT_NET             = 0x00000001
@@ -155,18 +153,18 @@ local curStatus, curIO, curSETP
 -- Called when stream data is being renewed
 -- @local
 function private.renewStatusBinds()
-   for k,v in pairs(IOBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(SETPBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(statBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
-   for k,v in pairs(eStatBinds) do
-       v.lastStatus = 0xFFFFFFFF
-   end
+    for _, v in pairs(IOBinds) do
+        v.lastStatus = 0xFFFFFFFF
+    end
+    for _, v in pairs(SETPBinds) do
+        v.lastStatus = 0xFFFFFFFF
+    end
+    for _, v in pairs(statBinds) do
+        v.lastStatus = 0xFFFFFFFF
+    end
+    for _, v in pairs(eStatBinds) do
+        v.lastStatus = 0xFFFFFFFF
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -248,7 +246,7 @@ end
 -- end
 -- device.setIOCallback(1, handleIO1)
 function _M.setIOCallback(IO, callback)
-    local status = bit32.lshift(0x00000001,IO-1)
+    local status = bit32.lshift(0x00000001, IO-1)
     if callback then
        IOBinds[status] = {}
        IOBinds[status]['IO'] = IO
@@ -289,16 +287,16 @@ end
 local function SETPCallback(data, err)
     curSETP = bit32.band(data, 0xFFFF)
     for k,v in pairs(SETPBinds) do
-       local status = bit32.band(data,k)
+       local status = bit32.band(data, k)
        if k == 0 then  --handle the all setp case
           status = curSETP
        end
        if status ~= v.lastStatus  then
            if v.running then
                if k == 0 then
-                   _M.dbg.warn('SETP Event lost: ',v.SETP,string.format('%04X',status))
+                   _M.dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
                else
-                   _M.dbg.warn('SETP Event lost: ',v.SETP,status ~=0)
+                   _M.dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
                end
            else
               v.running = true
@@ -324,9 +322,9 @@ end
 --         print (SETP,' is on!')
 --     end
 -- end
--- dwi.setSETPCallback(1, handleSETP1)
+-- device.setSETPCallback(1, handleSETP1)
 function _M.setSETPCallback(SETP, callback)
-    local status = bit32.lshift(0x00000001,SETP-1)
+    local status = bit32.lshift(0x00000001, SETP-1)
     SETPBinds[status] = {}
     SETPBinds[status]['SETP'] = SETP
     SETPBinds[status]['f'] = callback
@@ -438,13 +436,13 @@ end
 -- Called to check state of current instrument status
 -- @return true if all of the status bits are set in cur instrument status
 -- @usage
--- dwi.enableOutput(5)
--- if dwi.allStatusSet(dwi.STAT_NOTMOTION,
---                     dwi.STAT_NOTZERO,
---                     dwi.STAT_GROSS) then
---     dwi.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
+-- device.enableOutput(5)
+-- if device.allStatusSet(device.STAT_NOTMOTION,
+--                        device.STAT_NOTZERO,
+--                        device.STAT_GROSS) then
+--     device.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
 -- else
---     dwi.turnOff(5)
+--     device.turnOff(5)
 -- end
 function _M.allStatusSet(...)
     if arg.n == 0 then
@@ -500,11 +498,11 @@ end
 -- Called to check state of current IO
 -- @return true if any of the listed IO are active
 -- @usage
--- dwi.enableOutput(3)
--- if not dwi.anyIOSet(1,2,4,5) then
---     dwi.turnOn(3)  -- turn on output 3 if no other outputs on
+-- device.enableOutput(3)
+-- if not device.anyIOSet(1,2,4,5) then
+--     device.turnOn(3)  -- turn on output 3 if no other outputs on
 -- else
---     dwi.turnOff(3)
+--     device.turnOff(3)
 -- end
 function _M.anyIOSet(...)
     return anyBitSet(curIO,...)
@@ -514,14 +512,14 @@ end
 -- Called to check state of IO
 -- @return true if all of the listed IO are active
 -- @usage
--- dwi.enableOutput(3)
--- if dwi.allIOSet(1,2) then
---     dwi.turnOn(3)  -- turn on output 3 if IO 1 and 2 both on
+-- device.enableOutput(3)
+-- if device.allIOSet(1,2) then
+--     device.turnOn(3)  -- turn on output 3 if IO 1 and 2 both on
 -- else
---     dwi.turnOff(3)
+--     device.turnOff(3)
 -- end
 function _M.allIOSet(...)
-    return(allBitSet(curIO,...))
+    return allBitSet(curIO,...)
 end
 
 -------------------------------------------------------------------------------
@@ -537,11 +535,11 @@ end
 -- Called to check state of current SETP
 -- @return true if any of the listed SETP are active
 -- @usage
--- dwi.enableOutput(1)
--- if not dwi.anySETPSet(1,2) then
---     dwi.turnOn(1)  -- turn on output 1 if setpoints 1 and 2 are both inactive
+-- device.enableOutput(1)
+-- if not device.anySETPSet(1,2) then
+--     device.turnOn(1)  -- turn on output 1 if setpoints 1 and 2 are both inactive
 -- else
---     dwi.turnOff(1)
+--     device.turnOff(1)
 -- end
 function _M.anySETPSet(...)
     return anyBitSet(curSETP,...)
@@ -551,11 +549,11 @@ end
 -- Called to check state of SETP
 -- @return true if all of the listed IO are active
 -- @usage
--- dwi.enableOutput(1)
--- if dwi.allSETPSet(1,2) then
---     dwi.turnOn(1)  -- turn on output 1 if Setpoints 1 and 2 are active
+-- device.enableOutput(1)
+-- if device.allSETPSet(1,2) then
+--     device.turnOn(1)  -- turn on output 1 if Setpoints 1 and 2 are active
 -- else
---     dwi.turnOff(1)
+--     device.turnOff(1)
 -- end
 function _M.allSETPSet(...)
     return(allBitSet(curSETP,...))
@@ -564,9 +562,9 @@ end
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true
 -- @usage
--- dwi.waitStatus(dwi.STAT_NOTMOTION)  -- wait for no motion
--- dwi.waitStatus(dwi.STAT_COZ)        -- wait for Centre of zero
--- dwi.waitStatus(dwi.STAT_ZERO,dwi.STAT_NOTMOTION) -- wait for no motion and zero
+-- device.waitStatus(device.STAT_NOTMOTION)  -- wait for no motion
+-- device.waitStatus(device.STAT_COZ)        -- wait for Centre of zero
+-- device.waitStatus(device.STAT_ZERO, device.STAT_NOTMOTION) -- wait for no motion and zero
 function _M.waitStatus(...)
     local stat = bit32.bor(...)
     while bit32.band(curStatus, stat) ~= stat do
@@ -579,7 +577,7 @@ end
 -- @param IO 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @usage
--- dwi.waitIO(1,true) -- wait until IO1 turns on
+-- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
     local mask = bit32.lshift(0x00000001,(IO-1))
     while _M.app.running do
@@ -596,7 +594,7 @@ end
 -- @param SETP 1..16
 -- @param state true to wait for SETP to come on or false to wait for it to go off
 -- @usage
--- dwi.waitSETP(1,true) -- wait until Setpoint 1 turns on
+-- device.waitSETP(1, true) -- wait until Setpoint 1 turns on
 function _M.waitSETP(SETP, state)
     local mask = bit32.lshift(0x00000001,(SETP-1))
     while _M.app.running do
@@ -609,8 +607,14 @@ function _M.waitSETP(SETP, state)
 end
 
 -------------------------------------------------------------------------------
--- Control the use of RTC status bit
+-- Control the use of RTC status bit.
+-- The RTC status is enabled as part of the normal initialisation process
+-- for the application framework.  You shouldn't need to call this and if
+-- in doubt don't.
 -- @param s true to enable RTC change monitoring, false to disable
+-- @usage
+-- device.writeRTCStatus(true)  -- enable RTC monitoring
+-- device.writeRTCStatus(false) -- disable RTC monitoring
 function _M.writeRTCStatus(s)
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC, s == false and 0 or 1)
 end
@@ -639,14 +643,23 @@ end
 
 -------------------------------------------------------------------------------
 -- Control the use of Net status bits
--- @param s 1 for net1,2 for net2, 3 for both and 0 for none
+-- @param s net1, net2, both or none
+-- @usage
+-- device.writeNetStatus('net1')
+-- device.writeNetStatus('none')
+-- device.writeNetStatus('both')
 function _M.writeNetStatus(s)
-    local s = s or 0
-    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET,s)
+    if type(s) == 'string' then
+        s = ({ net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 })[s]
+    end
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET, s or 0)
 end
 
 -------------------------------------------------------------------------------
--- Setup status monitoring via a stream
+-- Setup status monitoring via a stream.
+-- This routine is called automatically by the rinApp application framework.
+-- @usage
+-- device.setupStatus()
 function _M.setupStatus()
     curStatus = 0
     statID  = _M.addStreamLib(_M.REG_LUA_STATUS, statusCallback,  'change')
@@ -661,6 +674,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Cancel status handling
+-- There is typically no need to ever call this.
+-- @usage
+-- device.endStatus()
 function _M.endStatus()
     _M.removeStreamLib(statID)
     _M.removeStreamLib(eStatID)
@@ -670,15 +686,30 @@ end
 
 -------------------------------------------------------------------------------
 -- Cancel IO status handling
+-- There is typically no need to ever call this.
+-- @usage
+-- device.endIOStatus()
 function _M.endIOStatus()
     _M.removeStreamLib(IOID)
 end
 
 -------------------------------------------------------------------------------
 -- Cancel SETP status handling
+-- There is typically no need to ever call this.
+-- @usage
+-- device.endSETPStatus()
 function _M.endSETPStatus()
     _M.removeStreamLib(SETPID)
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the depricated fields
+depricated.REG_LUA_STATUS   = REG_LUA_STATUS
+depricated.REG_LUA_ESTAT    = REG_LUA_ESTAT
+depricated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
+depricated.REG_LUA_STAT_RDG = REG_LUA_STAT_RDG
+depricated.REG_LUA_STAT_IO  = REG_LUA_STAT_IO
+depricated.REG_SETPSTATUS   = REG_SETPSTATUS
+depricated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
 
 end
