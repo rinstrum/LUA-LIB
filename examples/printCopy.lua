@@ -1,13 +1,13 @@
 -------------------------------------------------------------------------------
 -- Print Copy
--- 
+--
 -- Application to print Carbon copy
---    
--- Copy this file to your project directory and insert the specific code of 
+--
+-- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
 -- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
+package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
@@ -22,29 +22,29 @@ dwi.loadRIS("printCopy.RIS")               -- load default instrument settings
 --=============================================================================
 
 -------------------------------------------------------------------------------
--- Handler for SerB messages 
+-- Handler for SerB messages
 -------------------------------------------------------------------------------
 
 printCopy = {}  -- table to hold print lines of text
 
 function printHandler(s)
-   dwi.dbg.print('SER3B:',s)
-   dwi.printCustomTransmit(dwi.expandCustomTransmit(s),dwi.PRINT_SER1A)
+   dwi.dbg.print('SER3B:', s)
+   dwi.printCustomTransmit(s, 'ser1a')
    table.insert(printCopy,s)
- end
+end
 --dwi.setDelimiters('\02','\03')
 dwi.setSerBCallback(printHandler)
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event 
+-- Callback to handle F1 key event
 local function F3Pressed(key, state)
-   rinApp.dbg.info('Copy Printed')   
+   rinApp.dbg.info('Copy Printed')
    if #printCopy > 0 then
-       dwi.printCustomTransmit([[--------------------------\C1]],dwi.PRINT_SER1A)
+       dwi.printCustomTransmit([[--------------------------\C1]], 'ser1a')
        for k,v in ipairs(printCopy) do
-         dwi.printCustomTransmit(dwi.expandCustomTransmit(v),dwi.PRINT_SER1A)
+         dwi.printCustomTransmit(v, 'ser1a')
        end
-       dwi.printCustomTransmit([[<<Copy>>\C1]],dwi.PRINT_SER1A)
+       dwi.printCustomTransmit([[<<Copy>>\C1]], 'ser1a')
        printCopy = {}
     end
    return true
@@ -58,16 +58,16 @@ local function pwrCancelPressed(key, state)
     if state == 'long' then
       rinApp.running = false
       return true
-    end 
+    end
     return false
 end
 dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================
--- Initialisation 
+-- Initialisation
 --=============================================================================
---  This is a good place to put your initialisation code 
+--  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
 dwi.writeBotLeft("PRINT")
@@ -79,13 +79,13 @@ dwi.writeBotRight("COPY")
 -- mainLoop gets continually called by the framework
 -- Main Application logic goes here
 function mainLoop()
-     
+
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
 --=============================================================================
--- Clean Up 
+-- Clean Up
 --=============================================================================
 -- Put any application clean up here
 

@@ -90,7 +90,7 @@ end
 -- Called to save any changed settings and re-initialise instrument 
 --
 function _M.saveSettings()
-    _M.sendRegWait(_M.CMD_EX,_M.REG_SAVESETTING)
+    _M.sendRegWait(_M.CMD_EX, private.REG_SAVESETTING)
 end
 
 _M.REG_PRIMARY_DISPMODE   = 0x0306
