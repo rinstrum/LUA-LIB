@@ -25,6 +25,17 @@ local eventDevices = {}
 -- Called to register a callback to run whenever a USB device change is detected
 -- @param f  Callback function takes event table as a parameter
 -- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- function registerCB(t)
+--     for _, v in pairs(t) do
+--         print('register:', t[1])
+--         print('    what:', t[2])   -- 'added' or 'removed'
+--         print('    whom:', t[3])
+--     end
+-- end
+-- usb.setUSBRegisterCallback(registerCB)
 function _M.setUSBRegisterCallback(f)
     local r = userUSBRegisterCallback
     userUSBRegisterCallback = f
@@ -34,7 +45,13 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device change is detected
 -- @return current callback
-function _M.getUSBRegisterCallback(f)
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getUSBRegisterCallback() == nil then
+--     print('No USB register callback installed')
+-- end
+function _M.getUSBRegisterCallback()
     return userUSBRegisterCallback
 end
 
@@ -42,6 +59,28 @@ end
 -- Called to register a callback to run whenever a USB device event is detected
 -- @param f  Callback function takes event table as a parameter
 -- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+-- local input = require "linux.input"
+--
+-- function eventCB(ev)
+--     if ev.type == input.EV_SYN and ev.code == input.SYN_CONFIG then
+--         print "Event: -------------- Config Sync ------------ "
+--     elseif ev.type == input.EV_SYN and ev.code == input.SYN_REPORT then
+--         print "Event: -------------- Report Sync ------------ "
+--     elseif ev.type == input.EV_MSC and (ev.code == input.MSC_RAW or ev.code == input.MSC_SCAN) then
+--         print(string.format("Event: type %d (%s), code %d (%s), value %02x",
+--                 ev.type, ev_lib.events[ev.type],
+--                 ev.code, ev_lib.names[ev.type][ev.code],
+--                 ev.value))
+--     else
+--         print(string.format("Event: type %d (%s), code %d (%s), value %d",
+--                 ev.type, ev_lib.events[ev.type],
+--                 ev.code, ev_lib.names[ev.type][ev.code],
+--                 ev.value))
+--     end
+-- end
+-- usb.setUSBEventCallback(eventCB)
 function _M.setUSBEventCallback(f)
     local r = userUSBEventCallback
     userUSBEventCallback = f
@@ -51,6 +90,12 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device event is detected
 -- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getUSBEventCallback() == nil then
+--     print('No USB user event callback installed')
+-- end
 function _M.getUSBEventCallback()
     return userUSBEventCallback
 end
@@ -59,6 +104,10 @@ end
 -- Called to register a callback to run whenever a USB Keyboard event is processed
 -- @param f  Callback function takes key string as a parameter
 -- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setUSBKBDCallback(function(key) print(key, 'pressed') end)
 function _M.setUSBKBDCallback(f)
     local r = userUSBKBDCallback
     userUSBKBDCallback = f
@@ -68,6 +117,12 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a USB Keyboard event is processed
 -- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getUSBKBDCallback() == nil then
+--     print('No USB keyboard callback installed')
+-- end
 function _M.getUSBKBDCallback()
     return userUSBKBDCallback
 end
@@ -125,10 +180,19 @@ end
 -- @param parity Type of parity bit used (default RS232_PARITY_NONE)
 -- @param stopbits Number of stop bits used (default RS232_STOP_1)
 -- @param flow Flavour of flow control used (default RS232_FLOW_OFF)
--- The call back takes three arguments:
---  c The character just read from the serial device
---  err The error indication if c is nil (on creation, "open" is passed as a pseudo-error)
---  port The incoming serial port
+-- @usage
+-- Refer to the myUSBApp example provided.
+--
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- -- The call back takes three arguments:
+-- --     c The character just read from the serial device
+-- --     err The error indication if c is nil (on creation, "open" is passed as a pseudo-error)
+-- --     port The incoming serial port
+-- local function usbSerialHandler(c, err, port)
+--     print("USB serial", c, err)
+-- end
+-- usb.serialUSBdeviceHandler(usbSerialHandler)
 function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
     local b = baud or rs232.RS232_BAUD_9600
     local d = data or rs232.RS232_DATA_8
@@ -185,6 +249,11 @@ end
 -- Add depricated wrapper routines to the given table/object.
 -- This routing is called automatically by the rinApp framework.
 -- @param app The object to add the wrapper routines to
+-- @usage
+-- local usb = require 'rinUSB'
+-- local t = {}
+-- usb.depricatedUSBhandlers(t)
+-- t.initUSB() -- call the usb.initUSB() function.
 function _M.depricatedUSBhandlers(app)
     for k, v in pairs(_M) do
         if type(k) == "string" and type(v) == "function" and "depricatedUSBhandlers" ~= k then
