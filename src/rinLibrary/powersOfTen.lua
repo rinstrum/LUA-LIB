@@ -5,6 +5,10 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+--- Powers of ten.
+--@table powersOfTen
+-- @field n The value 10^n for integral n
+
 -- A table containing integral powers of ten then their reciprocals.
 --
 -- This is implemented as a memo function so as to avoid an expensive
