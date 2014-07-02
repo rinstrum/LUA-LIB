@@ -72,7 +72,11 @@ function _M.getUSBKBDCallback()
     return userUSBKBDCallback
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-------------------------------------------------------------------------------
+-- Callback to detect events happing for USB devices and to further dispatch
+-- there as required.
+-- @param sock File descriptor the USB device is communicating with.
+-- @local
 local function eventCallback(sock)
     local ev = ev_lib.getEvent(sock)
     if ev then
@@ -86,7 +90,11 @@ local function eventCallback(sock)
     end
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-------------------------------------------------------------------------------
+-- Callback to receive meta-events associated with USB device appearance
+-- and disappearance.
+-- @param t Event table
+-- @local
 local function usbCallback(t)
     dbg.debug('', t)
     for k,v in pairs(t) do
@@ -162,7 +170,11 @@ function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
 end
 
 -------------------------------------------------------------------------------
--- called to initialise the USB port if in use
+-- Called to initialise the USB port if in use
+-- This routing is called automatically by the rinApp framework.
+-- @usage
+-- local usb = require 'rinUSB'
+-- usb.initUSB()
 function _M.initUSB()
     socks.addSocket(usb.init(), function (sock) usb.receiveCallback() end)
     usb.registerCallback(usbCallback)
@@ -171,6 +183,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Add depricated wrapper routines to the given table/object.
+-- This routing is called automatically by the rinApp framework.
 -- @param app The object to add the wrapper routines to
 function _M.depricatedUSBhandlers(app)
     for k, v in pairs(_M) do
