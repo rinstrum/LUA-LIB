@@ -49,6 +49,12 @@ local REG_MSEC1000          = 0x015C
 local REG_MSEC              = 0x015D
 local REG_MSECLAST          = 0x015F
 
+--- Registers.
+--@table Registers
+-- @field msec Millisecond timer from the display
+-- @field mseclast Millisecond time when the last ADC reading was taken.
+-- @field msec1000 Millisecond timer modulo 1000
+
 --- Date Formats.
 --@table Date Formats
 -- @field dmy Date formated like 22/02/4
