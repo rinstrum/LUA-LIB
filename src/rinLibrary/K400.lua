@@ -40,7 +40,8 @@ return function ()
 -- Add an entry to the register mapping table if it is of the correct form
 -- @param k Key
 -- @param v Value
--- @see getRegisterNumber
+-- @see private.getRegisterNumber
+-- @see private.getRegisterName
 -- @local
     local function regPopulate(k, v)
         if type(k) == "string" then
@@ -57,6 +58,7 @@ return function ()
 -- Convert a string register name to the associated register number.
 -- @param r Register name or number
 -- @return Register number
+-- @see private.getRegisterName
 -- @usage
 -- -- Find out what register number the gross weight is stored in
 -- print(device.getRegisterNumber('gross')
@@ -74,6 +76,7 @@ return function ()
 -- Convert a register number to the associated canonical register name.
 -- @param r Register name
 -- @return Register name
+-- @see private.getRegisterNumber
 -- @local
     function private.getRegisterName(r)
         return regUnmap(r)
