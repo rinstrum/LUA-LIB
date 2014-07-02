@@ -25,6 +25,7 @@ local rinApp
 -- @usage
 -- local rinApp = require "rinApp"
 -- local usbKBD = require "rinLibrary/rinUSBKBD"
+--
 -- usbKBD.link(rinApp)
 function _M.link(app)
     rinApp = app
@@ -58,6 +59,13 @@ end
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
+-- @usage
+-- local usbKBD = require "rinLibrary.rinUSBKBD"
+--
+-- if not usbKBD.isEditing() then
+--     device.writeTopLeft('Hello')
+--     device.writeBotLeft('World')
+-- end
 function _M.isEditing()
     return editing
 end
@@ -71,12 +79,16 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
+-- @usage
+-- local usbKBD = require "rinLibrary.rinUSBKBD"
+--
+-- print(usbKBD.edit(device, 'NAME', 'FRED', 'string'))
 function _M.edit(dwi, prompt, def, typ, units, unitsOther)
 
     local def = def or ''
     if type(def) ~= 'string' then
          def = tostring(def)
-     end
+    end
 
     local u = units or 0
     local uo = unitsOther or 0
@@ -146,9 +158,9 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     dwi.restoreBot()
 
     if editType == 'string' then
-       return editVal, ok
+        return editVal, ok
     else
-       return tonumber(editVal), ok
+        return tonumber(editVal), ok
     end
 end
 
