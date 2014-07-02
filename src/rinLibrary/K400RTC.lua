@@ -49,6 +49,21 @@ local REG_MSEC1000          = 0x015C
 local REG_MSEC              = 0x015D
 local REG_MSECLAST          = 0x015F
 
+--- Date Formats.
+--@table Date Formats
+-- @field dmy Date formated like 22/02/4
+-- @field dmyy Date formated like 22/02/2043
+-- @field mdy Date formated like 02/22/43
+-- @field mdyy Date formated like 02/22/2043
+-- @field ymd Date formated like 43/02/22
+-- @field yymd Date formated like 2043/02/22
+-- @field ddmmyy Date formated like 22/02/4
+-- @field ddmmyyyy Date formated like 22/02/2043
+-- @field mmddyy Date formated like 02/22/43
+-- @field mmddyyyy Date formated like 02/22/2043
+-- @field yymmdd Date formated like 43/02/22
+-- @field yyyymmdd Date formated like 2043/02/22
+
 local TM_DDMMYY             = 0
 local TM_DDMMYYYY           = 1
 local TM_MMDDYY             = 2
