@@ -133,9 +133,6 @@ _M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
 _M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
 _M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
 
-_M.REG_BUZ_LEN      = 0x0327
-_M.REG_BUZ_NUM      = 0x0328
-
 local botAnnunState = 0
 local topAnnunState = 0
 local waitPos = 1

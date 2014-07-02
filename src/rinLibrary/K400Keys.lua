@@ -352,6 +352,23 @@ function _M.sendKey(key,status)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Send an artificial IO key press to the instrument
+-- @param io IO number (1 to 32)
+-- @param status 'long' or 'short'
+-- @usage
+-- -- Send a short IO10 key press to the display
+-- device.sendIOKey(10, 'short')
+function _M.sendIOKey(io,status)
+    if io and io >= 1 and io <= 32 then
+        local data = io + 0x1F -- IO1 is 0x20
+        if status == 'long' then
+            data = bit32.bor(data, 0x80)
+        end
+        _M.sendRegWait(_M.CMD_WRFINALDEC,REG_APP_DO_KEYS, data)
+    end
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the depricated fields
 depricated.REG_GET_KEY          = REG_GET_KEY
