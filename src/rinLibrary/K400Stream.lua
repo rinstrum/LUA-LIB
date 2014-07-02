@@ -361,7 +361,7 @@ function _M.renewStreamData()
             end
             v.lastData = ''
    end
-   _M.renewStatusBinds()
+   private.renewStatusBinds()
 
 
    if streamUser then

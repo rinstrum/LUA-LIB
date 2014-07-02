@@ -11,37 +11,42 @@ local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
 
-local function anyBitSet(data,...)
-  local ret = false
+-------------------------------------------------------------------------------
+-- Function to test if any of the specified bits are set in the data.
+-- @param data The value to check against.
+-- @param ... The bit positions of interest.
+-- @return true iff one of the bits is set.
+-- @local
+local function anyBitSet(data, ...)
+    if arg.n == 0 then
+        return false
+    end
 
-  if arg.n == 0 then
-     return false
-  end
-
-  for i,v in ipairs(arg) do
-
-     if bit32.band(bit32.lshift(0x01,v-1),data) ~= 0 then
-        ret = true
-     end
-   end
-
-  return  ret
+    for i,v in ipairs(arg) do
+        if bit32.band(bit32.lshift(0x01, v-1), data) ~= 0 then
+            return true
+        end
+    end
+    return false
 end
 
-local function allBitSet(data,...)
-  local ret = true
+-------------------------------------------------------------------------------
+-- Function to test if all of the specified bits are set in the data.
+-- @param data The value to check against.
+-- @param ... The bit positions of interest.
+-- @return true iff all of the bits is set.
+-- @local
+local function allBitSet(data, ...)
+    if arg.n == 0 then
+        return false
+    end
 
-  if arg.n == 0 then
-     return false
-  end
-
-  for i,v in ipairs(arg) do
-     if bit32.band(bit32.lshift(0x01,v-1),data) == 0 then
-        ret = false
-     end
-   end
-
-  return  ret
+    for i,v in ipairs(arg) do
+        if bit32.band(bit32.lshift(0x01, v-1), data) == 0 then
+            return false
+        end
+    end
+    return true
 end
 
 
@@ -146,9 +151,10 @@ local SETPID = nil
 
 local curStatus, curIO, curSETP
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-------------------------------------------------------------------------------
 -- Called when stream data is being renewed
-function _M.renewStatusBinds()
+-- @local
+function private.renewStatusBinds()
    for k,v in pairs(IOBinds) do
        v.lastStatus = 0xFFFFFFFF
    end
@@ -167,6 +173,7 @@ end
 -- Called when status changes are streamed
 -- @param data Data on status streamed
 -- @param err Potential error message
+-- @local
 local function statusCallback(data, err)
     curStatus = data
     for k,v in pairs(statBinds) do
@@ -188,6 +195,8 @@ end
 -- Set the callback function for a status bit
 -- @param stat STAT_ status bit
 -- @param callback Function to run when there is an event on change in status
+-- @usage
+-- device.setStatusCallback(device.STAT_MOTION, function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(stat, callback)
     statBinds[stat] = {}
     statBinds[stat]['f'] = callback
@@ -198,6 +207,7 @@ end
 -- Called when IO status changes are streamed
 -- @param data Data on SETP status streamed
 -- @param err Potential error message
+-- @local
 local function IOCallback(data, err)
     curIO = data
     for k,v in pairs(IOBinds) do
@@ -232,12 +242,11 @@ end
 -- @param callback Function taking IO and on/off status as parameters
 -- @usage
 -- function handleIO1(IO, active)
---    if (active) then
---       print (IO,' is on!')
---    end
+--     if (active) then
+--         print (IO,' is on!')
+--     end
 -- end
--- dwi.setIOCallback(1,handleIO1)
---
+-- device.setIOCallback(1, handleIO1)
 function _M.setIOCallback(IO, callback)
     local status = bit32.lshift(0x00000001,IO-1)
     if callback then
@@ -256,11 +265,10 @@ end
 -- @param callback Function taking current IO status as a parameter
 -- @usage
 -- function handleIO(data)
---    -- 4 bits of status information for IO 3..6 turned into a grading indication
---    curGrade = bit32.rshift(bit32.band(data,0x03C),2)
+--     -- 4 bits of status information for IO 3..6 turned into a grading indication
+--     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
 -- end
--- dwi.setAllIOCallback(handleIO)
---
+-- device.setAllIOCallback(handleIO)
 function _M.setAllIOCallback(callback)
     if callback ~= nil then
         IOBinds[0] = {}   -- setup a callback for all SETP changes
@@ -277,6 +285,7 @@ end
 -- Called when SETP status changes are streamed
 -- @param data Data on SETP status streamed
 -- @param err Potential error message
+-- @local
 local function SETPCallback(data, err)
     curSETP = bit32.band(data, 0xFFFF)
     for k,v in pairs(SETPBinds) do
@@ -311,12 +320,11 @@ end
 -- @param callback Function taking SETP and on/off status as parameters
 -- @usage
 -- function handleSETP1(SETP, active)
---    if (active) then
---       print (SETP,' is on!')
---    end
+--     if (active) then
+--         print (SETP,' is on!')
+--     end
 -- end
--- dwi.setSETPCallback(1,handleSETP1)
---
+-- dwi.setSETPCallback(1, handleSETP1)
 function _M.setSETPCallback(SETP, callback)
     local status = bit32.lshift(0x00000001,SETP-1)
     SETPBinds[status] = {}
@@ -330,11 +338,10 @@ end
 -- @param callback Function taking current SETP status as a parameter
 -- @usage
 -- function handleSETP(data)
---    -- 4 bits of status information for SETP 3..6 turned into a grading indication
---    curGrade = bit32.rshift(bit32.band(data,0x03C),2)
+--     -- 4 bits of status information for SETP 3..6 turned into a grading indication
+--     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
 -- end
--- dwi.setAllSETPCallback(handleSETP)
---
+-- device.setAllSETPCallback(handleSETP)
 function _M.setAllSETPCallback(callback)
     SETPBinds[0] = {}   -- setup a callback for all SETP changes
     SETPBinds[0]['SETP'] = 'All'
@@ -346,28 +353,29 @@ end
 -- Called when extended status changes are streamed
 -- @param data Data on status streamed
 -- @param err Potential error message
+-- @local
 local function eStatusCallback(data, err)
-   _M.settings.hiRes       = bit32.band(data,_M.ESTAT_HIRES) > 0
-   _M.settings.curDispMode = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_DISPMODE),_M.ESTAT_DISPMODE_RS)
-   _M.settings.curRange    = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_RANGE),_M.ESTAT_RANGE_RS)
+    _M.settings.hiRes       = bit32.band(data,_M.ESTAT_HIRES) > 0
+    _M.settings.curDispMode = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_DISPMODE),_M.ESTAT_DISPMODE_RS)
+    _M.settings.curRange    = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_RANGE),_M.ESTAT_RANGE_RS)
 
     for k,v in pairs(eStatBinds) do
-       local status = bit32.band(data,k)
-       if status ~= v.lastStatus  then
-           if v.running then
-              _M.dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
-           else
-              v.running = true
-              v.lastStatus = status
-              if v.mainf then
-                  v.mainf(k,status ~= 0)
-              end
-              if v.f then
-                  v.f(k, status ~= 0)
-              end
-              v.running = false
+        local status = bit32.band(data,k)
+        if status ~= v.lastStatus  then
+            if v.running then
+                _M.dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
+            else
+                v.running = true
+                v.lastStatus = status
+                if v.mainf then
+                    v.mainf(k,status ~= 0)
+                end
+                if v.f then
+                    v.f(k, status ~= 0)
+                end
+                v.running = false
             end
-        end
+         end
     end
 end
 
@@ -394,37 +402,36 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current instrument status
 -- @return 32 bits of status data with bits as per STAT_ definitions
+-- @usage
+-- print('curnet status bits are', device.getCurStatus())
 function _M.getCurStatus()
-  return curStatus
+    return curStatus
 end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current instrument status
--- @return true if any of the status bits are set in cur instrument status
+-- @return true if any of the status bits are set in current instrument status
 -- @usage
--- dwi.enableOutput(5)
--- if dwi.anyStatusSet(dwi.STAT_MOTION,
---                     dwi.STAT_ERR,
---                     dwi.STAT_OLOAD,
---                     dwi.STAT_ULOAD) then
---     dwi.turnOn(5)  -- turn on output 5 if motion or any errors
+-- device.enableOutput(5)
+-- if device.anyStatusSet(device.STAT_MOTION,
+--                     device.STAT_ERR,
+--                     device.STAT_OLOAD,
+--                     device.STAT_ULOAD) then
+--     device.turnOn(5)  -- turn on output 5 if motion or any errors
 -- else
---     dwi.turnOff(5)
+--     device.turnOff(5)
 -- end
 function _M.anyStatusSet(...)
-  local ret = false
+    if arg.n == 0 then
+        return false
+    end
 
-  if arg.n == 0 then
-     return false
-  end
-
-  for i,v in ipairs(arg) do
-     if bit32.band(curStatus, v) ~= 0 then
-        ret = true
-     end
-   end
-
-  return  ret
+    for i,v in ipairs(arg) do
+        if bit32.band(curStatus, v) ~= 0 then
+            return true
+        end
+    end
+    return false
 end
 
 -------------------------------------------------------------------------------
@@ -440,50 +447,53 @@ end
 --     dwi.turnOff(5)
 -- end
 function _M.allStatusSet(...)
-  local ret = true
+    if arg.n == 0 then
+        return false
+    end
 
-  if arg.n == 0 then
-     return false
-  end
-
-  for i,v in ipairs(arg) do
-     if bit32.band(curStatus, v) == 0 then
-        ret = false
-     end
-   end
-
-  return  ret
+    for i,v in ipairs(arg) do
+        if bit32.band(curStatus, v) == 0 then
+            return false
+        end
+    end
+    return true
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO
 -- @return 32 bits of IO data
+-- @usage
+-- print('curnet IO bits are', device.getCurIO())
 function _M.getCurIO()
-  return curIO
+    return curIO
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s
+-- @param data The binary integer being converted
+-- @param bits The number of significant bits in data
 -- @return 32 characters of IO data
 -- @local
-function _M.getBitStr(data,bits)
-  local s = {}
-  for i = bits-1,0,-1 do
-    if bit32.band(data,bit32.lshift(0x01,i)) ~= 0 then
-        ch = '1'
-    else
-        ch = '0'
+local function getBitStr(data, bits)
+    local s = {}
+    for i = bits-1, 0, -1 do
+        if bit32.band(data, bit32.lshift(0x01, i)) ~= 0 then
+            ch = '1'
+        else
+            ch = '0'
+        end
+        table.insert(s,ch)
     end
-    table.insert(s,ch)
-  end
-  return(table.concat(s))
+    return table.concat(s)
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s
 -- @return 32 characters of IO data
+-- @usage
+-- print('curnet IO bits are: ' .. device.getCurIOStr())
 function _M.getCurIOStr()
-  return getBitStr(curIO, 32)
+    return getBitStr(curIO, 32)
 end
 
 -------------------------------------------------------------------------------
@@ -497,7 +507,7 @@ end
 --     dwi.turnOff(3)
 -- end
 function _M.anyIOSet(...)
-  return anyBitSet(curIO,...)
+    return anyBitSet(curIO,...)
 end
 
 -------------------------------------------------------------------------------
@@ -511,14 +521,16 @@ end
 --     dwi.turnOff(3)
 -- end
 function _M.allIOSet(...)
-   return(allBitSet(curIO,...))
+    return(allBitSet(curIO,...))
 end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 16 setpoints
 -- @return 16 bits of SETP status data
+-- @usage
+-- print('curnet setpoint bits are', device.getCurSETP())
 function _M.getCurSETP()
-  return curSETP
+    return curSETP
 end
 
 -------------------------------------------------------------------------------
@@ -532,7 +544,7 @@ end
 --     dwi.turnOff(1)
 -- end
 function _M.anySETPSet(...)
-  return anyBitSet(curSETP,...)
+    return anyBitSet(curSETP,...)
 end
 
 -------------------------------------------------------------------------------
@@ -546,7 +558,7 @@ end
 --     dwi.turnOff(1)
 -- end
 function _M.allSETPSet(...)
-  return(allBitSet(curSETP,...))
+    return(allBitSet(curSETP,...))
 end
 
 -------------------------------------------------------------------------------
@@ -555,12 +567,11 @@ end
 -- dwi.waitStatus(dwi.STAT_NOTMOTION)  -- wait for no motion
 -- dwi.waitStatus(dwi.STAT_COZ)        -- wait for Centre of zero
 -- dwi.waitStatus(dwi.STAT_ZERO,dwi.STAT_NOTMOTION) -- wait for no motion and zero
---
 function _M.waitStatus(...)
-   local stat = bit32.bor(...)
-   while bit32.band(curStatus, stat) ~= stat do
-     _M.system.handleEvents()
-   end
+    local stat = bit32.bor(...)
+    while bit32.band(curStatus, stat) ~= stat do
+        _M.system.handleEvents()
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -569,17 +580,15 @@ end
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @usage
 -- dwi.waitIO(1,true) -- wait until IO1 turns on
---
 function _M.waitIO(IO, state)
-   local mask = bit32.lshift(0x00000001,(IO-1))
-   while _M.app.running do
-     local data = bit32.band(curIO, mask)
-     if (state and data ~= 0) or
-        (not state and data == 0) then
-          break
-     end
-     _M.system.handleEvents()
-   end
+    local mask = bit32.lshift(0x00000001,(IO-1))
+    while _M.app.running do
+        local data = bit32.band(curIO, mask)
+        if (state and data ~= 0) or (not state and data == 0) then
+            break
+        end
+        _M.system.handleEvents()
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -588,36 +597,38 @@ end
 -- @param state true to wait for SETP to come on or false to wait for it to go off
 -- @usage
 -- dwi.waitSETP(1,true) -- wait until Setpoint 1 turns on
---
 function _M.waitSETP(SETP, state)
-   local mask = bit32.lshift(0x00000001,(SETP-1))
-   while _M.app.running do
-     local data = bit32.band(curSETP, mask)
-     if (state and data ~= 0) or
-        (not state and data == 0) then
-          break
-     end
-     _M.system.handleEvents()
-   end
+    local mask = bit32.lshift(0x00000001,(SETP-1))
+    while _M.app.running do
+        local data = bit32.band(curSETP, mask)
+        if (state and data ~= 0) or (not state and data == 0) then
+            break
+        end
+        _M.system.handleEvents()
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Control the use of RTC status bit
 -- @param s true to enable RTC change monitoring, false to disable
 function _M.writeRTCStatus(s)
-   local s = s or true
-   if s == true then
-      s = 1
-   else
-      s = 0
-   end
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC,s)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC, s == false and 0 or 1)
 end
 
+-------------------------------------------------------------------------------
+-- Process a RTC update tick
+-- @param status Status
+-- @param active Active?
+-- @local
 local function handleRTC(status, active)
     private.RTCtick()
 end
 
+-------------------------------------------------------------------------------
+-- Process initialisation status message
+-- @param status Status
+-- @param active Active?
+-- @local
 local function handleINIT(status, active)
 --   _M.dbg.info('INIT',string.format('%08X',status),active)
 --   if active then
@@ -630,8 +641,8 @@ end
 -- Control the use of Net status bits
 -- @param s 1 for net1,2 for net2, 3 for both and 0 for none
 function _M.writeNetStatus(s)
-   local s = s or 0
-   _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET,s)
+    local s = s or 0
+    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET,s)
 end
 
 -------------------------------------------------------------------------------
@@ -660,12 +671,13 @@ end
 -------------------------------------------------------------------------------
 -- Cancel IO status handling
 function _M.endIOStatus()
-   _M.removeStreamLib(IOID)
+    _M.removeStreamLib(IOID)
 end
+
 -------------------------------------------------------------------------------
 -- Cancel SETP status handling
 function _M.endSETPStatus()
-   _M.removeStreamLib(SETPID)
+    _M.removeStreamLib(SETPID)
 end
 
 
