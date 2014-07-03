@@ -143,10 +143,11 @@ _M.REG_SELECT_PRODUCT_RENAME    = 0xB012
 -- @param cmd CMD_  command
 -- @param reg REG_  register
 -- @param data to send
--- @param crc - 'crc' if message sent with crc, false (default) otherwise
+-- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @local
 function _M.sendReg(cmd, reg, data, crc)
     local r = private.getRegisterNumber(reg)
-    _M.send(nil, cmd, r, data, "noReply",crc)
+    _M.send(nil, cmd, r, data, "noReply", crc)
 end
 
 -------------------------------------------------------------------------------
@@ -155,9 +156,10 @@ end
 -- @param reg REG_  register
 -- @param data to send
 -- @param t timeout in sec
+-- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
--- @param crc - 'crc' if message sent with crc, false (default) otherwise
+-- @local
 function _M.sendRegWait(cmd, reg, data, t, crc)
 
     local t = t or 2.0
@@ -201,14 +203,15 @@ end
 -- otherwise the original data string is returned
 -- @param data returned from _CMD_RDLIT
 -- @return floating point number or data string
-function _M.literalToFloat(data)
-      local a,b = string.find(data,'[+-]?%s*%d*%.?%d*')
-      if not a then
-           return data
-      else
-       data = string.gsub(string.sub(data,a,b), '%s', '')  -- remove spaces
-       return tonumber(data)
-      end
+-- @local
+function private.literalToFloat(data)
+    local a, b = string.find(data,'[+-]?%s*%d*%.?%d*')
+    if not a then
+        return data
+    else
+        data = string.gsub(string.sub(data,a,b), '%s', '')  -- remove spaces
+        return tonumber(data)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -216,7 +219,8 @@ end
 -- @param data returned from _CMD_RDFINALHEX or from stream
 -- @param dp decimal position (if nil then instrument dp used)
 -- @return floating point number
-function _M.toFloat(data, dp)
+-- @local
+function private.toFloat(data, dp)
     local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
 
     data = tonumber(data,16)
@@ -231,15 +235,17 @@ end
 -- @param reg REG_  register
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
+-- @usage
+-- print('serial number is', device.readReg(device.REG_SERIALNO))
 function _M.readReg(reg)
     local data, err
 
     data, err = _M.sendRegWait(_M.CMD_RDLIT, reg)
     if err then
-       _M.dbg.debug('Read Error', err)
-       return nil, err
+        _M.dbg.debug('Read Error', err)
+        return nil, err
     else
-       return _M.literalToFloat(data), nil
+        return private.literalToFloat(data), nil
     end
 end
 
@@ -247,16 +253,25 @@ end
 -- Called to write data to an instrument register
 -- @param reg REG_  register
 -- @param data to send
+-- @usage
+-- device.writeReg(device.REG_USERNUM1, 0)
 function _M.writeReg(reg, data)
-  _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
 end
 
 -------------------------------------------------------------------------------
 -- Called to run a register execute command with data as the execute parameter
 -- @param reg REG_  register
 -- @param data to send
+-- @usage
+-- device.exReg(device.REG_FLUSH_KEYS, 0) -- flush pending key presses
 function _M.exReg(reg, data)
-  _M.sendRegWait(_M.CMD_EX, reg, data)
+    _M.sendRegWait(_M.CMD_EX, reg, data)
 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the depricated fields
+depricated.literalToFloat = private.literalToFloat
+depricated.toFloat = private.toFloat
 
 end
