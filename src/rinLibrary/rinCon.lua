@@ -155,7 +155,7 @@ end
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 -- @usage
--- stream.send(dwi.ADDR_BROADCAST , dwi.CMD_RDLIT, dwi.REG_GROSSNET, ,'reply')
+-- stream.send(dwi.ADDR_BROADCAST, dwi.CMD_RDLIT, dwi.REG_GROSSNET, data, 'reply')
 function _M.send(addr, cmd, reg, data, reply, crc)
     _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
@@ -168,7 +168,7 @@ end
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 -- @return preconfigured function
 -- @usage
--- stream.send(dwi.CMD_RDLIT, dwi.REG_GROSSNET, ,'reply')
+-- stream.send(dwi.CMD_RDLIT, dwi.REG_GROSSNET,'reply')
 function _M.preconfigureMsg(reg, cmd, reply, crc)
     return function (data) _M.send(nil, cmd, reg, data, reply, crc) end
 end
