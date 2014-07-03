@@ -195,6 +195,7 @@ end
 -- @param arg is any variable
 -- @param margin is the number of spaces to leave on each line of a table display
 -- @local
+-- @return string formatted appropriately based on the string type 
 varString = function(arg, margin)
     local t
     local margin = margin or 0

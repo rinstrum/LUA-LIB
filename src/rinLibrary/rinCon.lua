@@ -128,6 +128,8 @@ end
 -------------------------------------------------------------------------------
 -- Sends a raw message
 -- @param raw  string to send
+-- @usage 
+-- stream.writeSocket(rawdata)
 function _M.sendRaw(raw)
     if sockets.writeSocket(_M.socketA, raw) > 5 then
         _M.flush()
@@ -138,6 +140,8 @@ end
 -- Sends a message with delimiters added optionally with CRC
 -- @param msg  message string to send
 -- @param crc  if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
+-- @usage
+-- stream.sendMSG('hello', crc)
 function _M.sendMsg(msg, crc)
     _M.sendRaw(rinMsg.encapsulateMsg(msg, crc or ''))
 end
@@ -150,6 +154,8 @@ end
 -- @param data Data to be sent
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
+-- @usage
+-- stream.send(dwi.ADDR_BROADCAST , dwi.CMD_RDLIT, dwi.REG_GROSSNET, ,'reply')
 function _M.send(addr, cmd, reg, data, reply, crc)
     _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
@@ -161,6 +167,8 @@ end
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @param crc - 'crc' if message sent with crc, false (default) otherwise
 -- @return preconfigured function
+-- @usage
+-- stream.send(dwi.CMD_RDLIT, dwi.REG_GROSSNET, ,'reply')
 function _M.preconfigureMsg(reg, cmd, reply, crc)
     return function (data) _M.send(nil, cmd, reg, data, reply, crc) end
 end
@@ -171,6 +179,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Get the binding for a specified device register
+-- @param r register to be checked
 -- @return Device register binding
 function _M.getDeviceRegister(r)
     return deviceRegisters[r]
@@ -191,6 +200,8 @@ function _M.unbindRegister(reg)
     deviceRegisters[reg] = nil
 end
 
+-- @param err returned error code
+-- @local
 local function serBProcess(err)
     local msg = table.concat(serBBuffer)
     _M.dbg.debug(_M.socketB:getpeername(), '-->', msg, err)
@@ -201,10 +212,8 @@ local function serBProcess(err)
     serBBuffer = {}
 end
 -------------------------------------------------------------------------------
--- Designed to be registered with rinSystem.
---
--- This routine should be a lot smarter about the reading.  One character at
--- a time is grossly inefficient.
+-- Designed to be registered with rinSystem. This routine should be a lot 
+-- smarter about the reading.  One character at a time is grossly inefficient.
 function _M.socketBCallback()
 
     local char, prevchar, err
@@ -258,12 +267,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Set delimiters for messages received from the socket linked to SERB
--- E.g. for \r\n delimiting use parameters: nil, '\r', '\n'
 -- @param start start character, nil if not used
 -- @param end1 first end character, nil if not used
 -- @param end2 second end character, nil if not used
 -- @param t is a timeout in seconds to return any message received without
 -- matching delimiters.  If 0 then partial messages are never returned
+-- @usage 
+-- dwi.setDelimiters(, '\r', '\n')
 function _M.setDelimiters(start, end1, end2, t)
    if type(start) == 'number' then
       start = str.char(start)
