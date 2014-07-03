@@ -130,6 +130,7 @@ local delim, addr, cmd, reg, data, crc, excess, tocrc
 
 -------------------------------------------------------------------------------
 -- Extract CRC portion of message string.
+-- You should not need to call this directly.  The rinLibrary takes care of this.
 -- @param s Message string to decode
 -- @local
 local function datacrc(s)
@@ -152,6 +153,7 @@ local msgpat = P({
 
 -------------------------------------------------------------------------------
 -- Processes the message and feeds back the individual parts
+-- You should not need to call this directly.  The rinLibrary takes care of this.
 -- @param msg Message to be processed
 -- @param err Error in receive (nil if none)
 -- @return address (0x00 to 0x1F)
@@ -160,6 +162,14 @@ local msgpat = P({
 -- @return data (string)
 -- @return error (nil if not error, string otherwise)
 -- @return excess (string containing left over residue characters)
+-- @see encapsulateMsg
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- local addr, cmd, reg, data, err = msg.processMsg(message, nil)
+-- if err == nil then
+-- ...
+-- end
 function _M.processMsg(msg, err)
     if msg == nil and (err == "closed" or "Transport endpoint is not connected") then
         return nil, nil, nil, nil, err, nil
@@ -179,9 +189,16 @@ end
 
 -------------------------------------------------------------------------------
 -- Formats a message with delimiters added optionally with CRC
+-- You should not need to call this directly.  The rinLibrary takes care of this.
 -- @param msg  message string to send
 -- @param crc  if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
 -- @return The message wrappered up and ready to send
+-- @see processMsg
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- print('wrappered message without crc:', msg.encapsulateMsg('hello'))
+-- print('wrappered message with crc:', msg.encapsulateMsg('goodbye'))
 function _M.encapsulateMsg(msg, crc)
     if crc == 'crc' then
         return table.concat({'\01', msg, str.format("%04X", ccitt(msg)), '\04'})
@@ -192,12 +209,17 @@ end
 
 -------------------------------------------------------------------------------
 -- Formats a structured message built up from individual parameters as follows
+-- You should not need to call this directly.  The rinLibrary takes care of this.
 -- @param addr Indicator address (0x00 to 0x1F)
 -- @param cmd Command (CMD_*)
 -- @param reg Register (REG_*)
 -- @param data Data to be sent
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @return The formatted message suitable for formatMsg
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- print('message is:', msg.buildMsg(0x101, 0x3, 0x21, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
 function _M.buildMsg(addr, cmd, reg, data, reply)
     local addr = addr or _M.ADDR_BROADCAST
     local cmd = cmd or _M.CMD_RDFINALHEX
@@ -245,6 +267,20 @@ end
 --      Address, Command, Register, Data, Err String.
 -- @param errHandler Function for handling errors,
 -- @return previously registered handler
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- function errorHandler(addr, cmd, reg, data, err)
+--     print("error", err)
+--     print("to", addr)
+--     print("command", cmd)
+--     print("for", reg)
+--     print("payload", data)
+-- end
+--
+-- local oldErrorHandler = msg.setErrHandler(errorHandler)
+-- ...
+-- msg.setErrHandler(oldErrorHandler)
 function _M.setErrHandler(eh)
     local f = errHandler
     errHandler = eh
@@ -254,17 +290,29 @@ end
 -------------------------------------------------------------------------------
 -- Removes the error handler
 -- @return original registered handler
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- local errorHandler = msg.removeErrHandler()
+-- ...
+-- msg.setErrHandler(errorHandler)
 function _M.removeErrHandler()
     return _M.setErrHandler(nil)
 end
 
 -------------------------------------------------------------------------------
 -- Error handler which calls currently specified error handling routine.
+-- You should not need to call this directly.  The rinLibrary takes care of this.
 -- @param addr Address
 -- @param cmd Command
 -- @param reg Register
 -- @param data Data
 -- @param e Err String
+-- @usage
+-- -- Insert an error into the system for processing by the error handler
+-- msg = require "rinLibrary.rinMessage"
+--
+-- msg.handleError(0x0001, 0x10, 0x22, 'hello', 'fatal error')
 function _M.handleError(addr, cmd, reg, data, e)
     if errHandler ~= nil then
         errHandler(addr, cmd, reg, data, e)
@@ -274,7 +322,15 @@ end
 -------------------------------------------------------------------------------
 -- Copy all relocated fields to a specified table.  This is for backwards
 -- compatibility.
+-- There is typically no need to call this function directly.  The rinLibrary
+-- framework does this on your behalf.
 -- @param t Table to add fields to
+-- @usage
+-- local msg = require "rinLibrary.rinMessage"
+--
+-- local t = {}
+--
+-- msg.copyRelocatedFields(t)
 function _M.copyRelocatedFields(t)
     -- No precompilation of the pattern here, this function is only called
     -- at startup.  It is also usually called but once and at most only a small
