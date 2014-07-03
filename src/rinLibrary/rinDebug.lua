@@ -155,6 +155,7 @@ end
 -- Converts table t into a string
 -- @param t is a table
 -- @param margin is a blank string to enable pretty formatting of t
+-- @return string formatted version of the table
 -- @local
 tableString = function(t, margin)
     local s = ''
@@ -194,8 +195,8 @@ end
 -- Converts arg into a string
 -- @param arg is any variable
 -- @param margin is the number of spaces to leave on each line of a table display
--- @local
 -- @return string formatted appropriately based on the string type 
+-- @local
 varString = function(arg, margin)
     local t
     local margin = margin or 0
