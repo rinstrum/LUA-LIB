@@ -20,6 +20,15 @@ local tostring = tostring
 -- @param fname  name of file
 -- @param t is table of settings
 -- @return t if successful, nil otherwise
+-- @usage
+-- local function saveConfig()
+-- local config = {
+--         general = { name = 'Fred'},  -- [general] group settings 
+--         comms = {baud = '9600',bits = 8, parity = 'N', stop = 1},  -- [comms] group settings
+--         }
+-- local t = ini.saveINI('config.ini',config)  -- save INI file to disk using config table
+-- end 
+
 function _M.saveINI(fname, t)
     local f = io.open(fname, "w+")
     if f == nil then 
@@ -58,6 +67,10 @@ end
 -- @param fname name of file
 -- @param def  default table of settings
 -- @return table t or nil if file invalid
+-- @usage
+-- local function loadConfig()
+-- local t = ini.loadINI('config.ini',config)  -- load INI file from disk using config table 
+-- end 
 function _M.loadINI(fname, def)
 
     local lt = {}
@@ -112,6 +125,11 @@ end
 -- returns table t contents in an INI format string
 -- @param t is table of settings
 -- @return A string in INI format
+-- @usage
+-- local function printConfig
+-- local t = ini.loadINI('config.ini',config) 
+-- print(ini.stringINI(t))
+-- end
 function _M.stringINI(t)
 
     local initab = {}
