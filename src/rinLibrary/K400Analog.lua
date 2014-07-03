@@ -35,10 +35,8 @@ _M.ANALOG_COMMS = 3
 -- @param src Source for output.
 -- Must be set to ANALOG_COMMS to control directly
 function _M.setAnalogSource(src)
-   _M.sendRegWait(_M.CMD_WRFINALDEC,
-                _M.REG_ANALOGUE_SOURCE,
-                src)
-  _M.saveSettings()
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.REG_ANALOGUE_SOURCE, src)
+    private.saveSettings()
 end
 
 -------------------------------------------------------------------------------

@@ -143,7 +143,7 @@ function _M.addStream(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _, availRegistersUser[availReg].dp = _M.getRegDP(reg)
+    _, availRegistersUser[availReg].dp = private.getRegDP(reg)
     local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,reg),16)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
@@ -265,7 +265,7 @@ function _M.addStreamLib(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _, availRegistersLib[availReg].dp = _M.getRegDP(reg)
+    _, availRegistersLib[availReg].dp = private.getRegDP(reg)
     availRegistersLib[availReg].reg = reg
     availRegistersLib[availReg].callback = callback
     availRegistersLib[availReg].onChange = onChange

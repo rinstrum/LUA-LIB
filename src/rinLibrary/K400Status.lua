@@ -636,7 +636,7 @@ end
 local function handleINIT(status, active)
 --   _M.dbg.info('INIT',string.format('%08X',status),active)
 --   if active then
---       _M.readSettings()
+--       private.readSettings()
 --       _M.RTCread()
 --   end
 end
