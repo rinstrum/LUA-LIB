@@ -1,6 +1,8 @@
 -------------------------------------------------------------------------------
--- Creates a connection to the M4223
--- @module rinLibrary.rincon
+-- Creates a connection to the M4223.
+-- Most of the functions here are for internal predominately.
+-- It is generally advised that they not be called directly.
+-- @module rinLibrary.rinCon
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -43,10 +45,16 @@ rinMsg.copyRelocatedFields(_M)
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
 --
--- This routine should be a lot smarter about the reading.  One character at
--- a time is grossly inefficient.  Read a buffer full, split the packets and
--- decode each.
+-- This routine is called by the rinApp application framework.  You don't usually
+-- need to call it yourself.
+-- @return Message received
+-- @return error code or nil if none
+-- @usage
+-- local msg, err = socketACallback()
 function _M.socketACallback()
+    -- This routine should be a lot smarter about the reading.  One character at
+    -- a time is grossly inefficient.  Read a buffer full, split the packets and
+    -- decode each.
     local char, prevchar, err
     while true do
         prevchar = char
@@ -104,7 +112,11 @@ function _M.socketACallback()
 end
 
 -------------------------------------------------------------------------------
--- Disconnect from the R400
+-- Disconnect from the R400.
+-- This routine is called by the rinApp application framework.  You don't usually
+-- need to call it yourself.
+-- @usage
+-- device.disconnect()
 function _M.disconnect()
     _M.socketA:close()
     _M.socketA = nil
@@ -114,7 +126,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Flush the output stream and guarantee that all outstanding messages have
--- been written
+-- been written.  This function is safe to call from user applications.
+-- @usage
+-- device.flush()
 function _M.flush()
     if not queueClearing then
         -- There is a queue of messages building up.  Send a mostly harmless
@@ -126,10 +140,16 @@ function _M.flush()
 end
 
 -------------------------------------------------------------------------------
--- Sends a raw message
--- @param raw  string to send
--- @usage 
--- stream.writeSocket(rawdata)
+-- Sends a raw message to the display.  This message should be a properly
+-- and correctly formatted message.
+-- @param raw string to send
+-- @see encapsulateMsg
+-- @see buildMsg
+-- @see send
+-- @usage
+-- local msg = require 'rinLibrary.rinMessage'
+-- local message = msg.buildMsg(addr, cmd, reg, data, reply)
+-- device.sendRaw(msg.encapsulateMsg(message), 'crc')
 function _M.sendRaw(raw)
     if sockets.writeSocket(_M.socketA, raw) > 5 then
         _M.flush()
@@ -137,11 +157,14 @@ function _M.sendRaw(raw)
 end
 
 -------------------------------------------------------------------------------
--- Sends a message with delimiters added optionally with CRC
--- @param msg  message string to send
--- @param crc  if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
+-- Sends a message with delimiters added optionally with CRC.
+-- The message is encapsulated and the checksum added, however the message
+-- must be correctly formatted for the display device.
+-- @param msg message string to send
+-- @param crc if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
+-- @see buildMsg
 -- @usage
--- stream.sendMSG('hello', crc)
+-- stream.sendMsg(message, crc)
 function _M.sendMsg(msg, crc)
     _M.sendRaw(rinMsg.encapsulateMsg(msg, crc or ''))
 end
@@ -150,27 +173,49 @@ end
 -- Sends a structured message built up from individual parameters as follows
 -- @param addr Indicator address (0x00 to 0x1F)
 -- @param cmd Command (CMD_*)
--- @param reg Register (REG_*)
+-- @param reg Register (REG_*) must be numeric
 -- @param data Data to be sent
--- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
--- @param crc - 'crc' if message sent with crc, false (default) otherwise
+-- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
+-- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @see preconfigureMsg
 -- @usage
--- stream.send(dwi.ADDR_BROADCAST, dwi.CMD_RDLIT, dwi.REG_GROSSNET, data, 'reply')
-function _M.send(addr, cmd, reg, data, reply, crc)
+-- stream.send(device.ADDR_BROADCAST, device.CMD_RDLIT, 'grossnet', data, 'reply')
+-- @local
+local function internalSend(addr, cmd, reg, data, reply, crc)
     _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
 
 -------------------------------------------------------------------------------
--- Return a function allowing for repeatable commands
--- @param reg register  (REG_*)
--- @param cmd command   (CMD_*)
--- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
--- @param crc - 'crc' if message sent with crc, false (default) otherwise
--- @return preconfigured function
+-- Sends a structured message built up from individual parameters as follows
+-- @param addr Indicator address (0x00 to 0x1F)
+-- @param cmd Command (CMD_*)
+-- @param reg Register
+-- @param data Data to be sent
+-- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
+-- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @see preconfigureMsg
 -- @usage
--- stream.send(dwi.CMD_RDLIT, dwi.REG_GROSSNET,'reply')
+-- stream.send(device.ADDR_BROADCAST, device.CMD_RDLIT, 'grossnet', data, 'reply')
+function _M.send(addr, cmd, reg, data, reply, crc)
+    local r = private.getRegisterNumber(reg)
+    internalSend(addr, cmd, r, data, reply, crc)
+end
+
+-------------------------------------------------------------------------------
+-- Return a function allowing for repeatable commands
+-- @param reg register
+-- @param cmd command (CMD_*)
+-- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
+-- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @return preconfigured function
+-- @see send
+-- @usage
+-- local msg = device.preconfigureMsg(device.CMD_RDLIT, device.REG_GROSSNET, 'reply')
+-- local x1 = msg('')
+-- local x2 = msg('')
 function _M.preconfigureMsg(reg, cmd, reply, crc)
-    return function (data) _M.send(nil, cmd, reg, data, reply, crc) end
+    local r = private.getRegisterNumber(reg)
+    return function(data) internalSend(nil, cmd, r, data, reply, crc) end
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -179,43 +224,70 @@ end
 
 -------------------------------------------------------------------------------
 -- Get the binding for a specified device register
--- @param r register to be checked
+-- @param reg register to be checked
 -- @return Device register binding
-function _M.getDeviceRegister(r)
+-- @usage
+-- local func = device.getDeviceRegister('grossnet')
+function _M.getDeviceRegister(reg)
+    local r = private.getRegisterNumber(reg)
     return deviceRegisters[r]
 end
 
 -------------------------------------------------------------------------------
--- Set up a callback for when data on a specific register is received
--- @param reg Register to give callback, (REG_*), 0 is used to match anything received that has no other binding
+-- Set up a callback for when data on a specific register is received.
+-- This function is safe to call from user applications.
+-- @param reg Register to give callback, 0 is used to match anything received that has no other binding
 -- @param callback Function to be run when data is received
+-- @return previous register binding
+-- @usage
+-- local curIO = 0
+-- local function IOStatusHandler(data, err)
+--     curIO = tonumber(data, 16)
+-- end
+-- device.bindRegister('iostatus', IOStatusHandler)
 function _M.bindRegister(reg, callback)
-    deviceRegisters[reg] = callback
+    local r = private.getRegisterNumber(reg)
+    local prev = deviceRegisters[r]
+    deviceRegisters[r] = callback
+    return prev
 end
 
 -------------------------------------------------------------------------------
 -- Unbind a register
--- @param reg Register to remove callback, (REG_*)
+-- This function is safe to call from user applications.
+-- @param reg Register to remove callback
+-- @return previous register binding
+-- @usage
+-- device.unbindRegister('iostatus')
 function _M.unbindRegister(reg)
-    deviceRegisters[reg] = nil
+    return _M.bindRegister(reg, nil)
 end
 
+-------------------------------------------------------------------------------
+-- Dispatch the serial B stream to other things
 -- @param err returned error code
 -- @local
 local function serBProcess(err)
     local msg = table.concat(serBBuffer)
     _M.dbg.debug(_M.socketB:getpeername(), '-->', msg, err)
     if SerBCallback then
-        SerBCallback(msg,err)
+        SerBCallback(msg, err)
     end
     sockets.writeSet("uni", msg)
     serBBuffer = {}
 end
--------------------------------------------------------------------------------
--- Designed to be registered with rinSystem. This routine should be a lot 
--- smarter about the reading.  One character at a time is grossly inefficient.
-function _M.socketBCallback()
 
+-------------------------------------------------------------------------------
+-- Read input from the serial B stream, build up messages and handle start and
+-- end characters.
+-- This routine is designed to be registered with rinSystem.
+-- @return Assembled message
+-- @return Error code or nil if no error
+-- @usage
+-- local msg, err = device.socketBCallback()
+function _M.socketBCallback()
+    -- This routine should be a lot smarter about the reading.
+    -- One character at a time is grossly inefficient.
     local char, prevchar, err
     local msg
 
@@ -264,46 +336,56 @@ function _M.socketBCallback()
     return nil, err
 end
 
-
 -------------------------------------------------------------------------------
--- Set delimiters for messages received from the socket linked to SERB
+-- Set delimiters for messages received from the socket linked to SERB.
+-- This function is safe to call from user applications.
 -- @param start start character, nil if not used
 -- @param end1 first end character, nil if not used
 -- @param end2 second end character, nil if not used
 -- @param t is a timeout in seconds to return any message received without
 -- matching delimiters.  If 0 then partial messages are never returned
 -- @usage 
--- dwi.setDelimiters(, '\r', '\n')
+-- device.setDelimiters(nil, '\r', '\n')
 function _M.setDelimiters(start, end1, end2, t)
-   if type(start) == 'number' then
-      start = str.char(start)
+    if type(start) == 'number' then
+        start = str.char(start)
     end
-   if type(end1) == 'number' then
-      end1 = str.char(end1)
+    if type(end1) == 'number' then
+        end1 = str.char(end1)
     end
-   if type(end2) == 'number' then
-      end2 = str.char(end2)
+    if type(end2) == 'number' then
+        end2 = str.char(end2)
     end
-   startChar = start
-   end1Char = end1
-   end2Char = end2
-   serBTimeout = tonumber(t)
 
+    startChar = start
+    end1Char = end1
+    end2Char = end2
+    serBTimeout = tonumber(t)
 end
 
 -------------------------------------------------------------------------------
 -- Set callback function for the SerB data stream
 -- @param f callback function that takes a message string as an argument
--- optional second argument is 'timeout' if message is partial
+-- @usage
+-- function serialBCallback(message, error)
+--     ...
+-- end
+-- device.setSerBCallback(serialBCallback)
 function _M.setSerBCallback(f)
-  SerBCallback = f
+    SerBCallback = f
 end
 
 -------------------------------------------------------------------------------
 -- Callback when a new connection is incoming on the external debug stream.
+-- This call is handled automatically by the rinApp application framework
+-- and should never be called by user code.
 -- @param sock The newly connected socket
 -- @param ip The source IP address of the socket
 -- @param port The source port of the socket
+-- @usage
+-- local sockets = require "rinSystem.rinSockets.Pack"
+--
+-- sockets.createServerSocket(1111, device.socketDebugAcceptCallback)
 function _M.socketDebugAcceptCallback(sock, ip, port)
 	sockets.addSocket(sock, sockets.flushReadSocket)
     sockets.setSocketTimeout(sock, 0.001)
