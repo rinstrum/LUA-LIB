@@ -15,7 +15,7 @@ local bit32 = require "bit"
 -- Function to test if any of the specified bits are set in the data.
 -- @param data The value to check against.
 -- @param ... The bit positions of interest.
--- @return true iff one of the bits is set.
+-- @return true if one of the bits is set.
 -- @local
 local function anyBitSet(data, ...)
     if arg.n == 0 then
@@ -34,7 +34,7 @@ end
 -- Function to test if all of the specified bits are set in the data.
 -- @param data The value to check against.
 -- @param ... The bit positions of interest.
--- @return true iff all of the bits is set.
+-- @return true if all of the bits is set.
 -- @local
 local function allBitSet(data, ...)
     if arg.n == 0 then
@@ -60,7 +60,7 @@ return function (_M, private, depricated)
 -- @field SYS_UNDERLOAD        Scale underload
 -- @field SYS_ERR              Error active
 -- @field SYS_SETUP            Instrument in setup mode
--- @field SYS_CALINPROG      Instrument calibration in progress
+-- @field SYS_CALINPROG        Instrument calibration in progress
 -- @field SYS_MOTION           Weight unstable
 -- @field SYS_CENTREOFZERO     Centre of Zero (within 0.25 divisions of zero)
 -- @field SYS_ZERO             Weight within zero band setting
@@ -79,10 +79,43 @@ _M.SYS_NET              = 0x00000200
 local REG_LUA_STATUS   = 0x0329
 local REG_LUA_ESTAT    = 0x0305
 local REG_LUA_STAT_RTC = 0x032A
-local REG_LUA_STAT_RDG = 0x032B
-local REG_LUA_STAT_IO  = 0x032C
 local REG_SETPSTATUS   = 0x032E
 local REG_LUA_STAT_NET = 0x030A
+
+--- Status Bits for REG_LUA_STATUS.
+--@table luastatus
+-- @field STAT_NET             Displayed weight is in NET mode
+-- @field STAT_GROSS           Displayed weight is in GROSS mode
+-- @field STAT_ZERO            Weight is in zero band
+-- @field STAT_NOTZERO         Weight is not in zero band
+-- @field STAT_COZ             Weight is in Centre Of Zero (within 0.25 divisions of zero)
+-- @field STAT_NOTCOZ          Weight is not in Centre of Zero
+-- @field STAT_MOTION          Weight is unstable
+-- @field STAT_NOTMOTION       Weight is stable
+-- @field STAT_RANGE1          Weight is in range/interval 1
+-- @field STAT_RANGE2          Weight is in range/interval 2
+-- @field STAT_PT              Tare in use is a preset tare
+-- @field STAT_NOTPT           Tare in use is not a preset tare
+-- @field STAT_ERROR           There is an error active
+-- @field STAT_ULOAD           Scale is underloaded
+-- @field STAT_OLOAD           Scale is overloaded
+-- @field STAT_NOTERROR        There is no error active
+-- @field STAT_HELD            Weight is held, not available in batching firmware
+-- @field STAT_NOTHELD         Weight is not held, not available in batching firmware
+-- @field STAT_IDLE            Batch is idle, only available in batching firmware
+-- @field STAT_RUN             Batch is running, only available in batching firmware
+-- @field STAT_PAUSE           Batch is paused, only available in batching firmware
+-- @field STAT_SLOW            Batch is filling at slow speed, only available in batching firmware
+-- @field STAT_MED             Batch is filling at medium speed, only available in batching firmware
+-- @field STAT_FAST            Batch is filling at fast speed, only available in batching firmware
+-- @field STAT_TIME            Batch is waiting for a timer to finish, only available in batching firmware
+-- @field STAT_INPUT           Batch is waiting for an input, only available in batching firmware
+-- @field STAT_NO_INFO         None of the 5 status bits above are true, only available in batching firmware
+-- @field STAT_FILL            Batch is in a fill stage, only available in batching firmware
+-- @field STAT_DUMP            Batch is in a dump stage, only available in batching firmware
+-- @field STAT_PULSE           Batch is in a pulse stage, only available in batching firmware
+-- @field STAT_START           Batch is in the start stage, only available in batching firmware
+-- @field STAT_NO_TYPE         None of the 4 status bits above are true, only available in batching firmware
 
 -- Status
 _M.STAT_NET             = 0x00000001
@@ -101,6 +134,9 @@ _M.STAT_ERROR           = 0x00001000
 _M.STAT_ULOAD           = 0x00002000
 _M.STAT_OLOAD           = 0x00004000
 _M.STAT_NOTERROR        = 0x00008000
+-- Non-batching status bits
+_M.STAT_HELD            = 0x00010000
+_M.STAT_NOTHELD         = 0x00020000
 -- Batching specific status bits
 _M.STAT_IDLE            = 0x00010000
 _M.STAT_RUN             = 0x00020000
@@ -116,7 +152,20 @@ _M.STAT_DUMP            = 0x04000000
 _M.STAT_PULSE           = 0x08000000
 _M.STAT_START           = 0x10000000
 _M.STAT_NO_TYPE         = 0x20000000
-_M.STAT_INIT            = 0x80000000
+
+--- Status Bits for REG_LUA_ESTAT.
+--@table luaextendedstatus
+-- @field ESTAT_HIRES          Weight is in high resolution (x10) mode
+-- @field ESTAT_DISPMODE       Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
+-- @field ESTAT_RANGE          The current range/interval, 0 for range/interval 1, 1 for range/interval 2
+-- @field ESTAT_MENU_ACTIVE    The user is currently in the menus
+-- @field ESTAT_PROD_LOAD      The product has just been changed/loaded
+-- @field ESTAT_PROD_SAVE      The product has just been updated/saved
+-- @field ESTAT_POWER_OFF      The user is holding the power key down and the power off count-down is currently being displayed
+-- @field ESTAT_INIT           The settings have been re-initialised
+-- @field ESTAT_RTC            When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
+-- @field ESTAT_SER1           When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
+-- @field ESTAT_SER2           When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 
 -- Extended status bits
 _M.ESTAT_HIRES           = 0x00000001
@@ -130,8 +179,6 @@ _M.ESTAT_PROD_SAVE       = 0x00000080
 _M.ESTAT_POWER_OFF       = 0x00000100
 _M.ESTAT_INIT            = 0x01000000
 _M.ESTAT_RTC             = 0x02000000
-_M.ESTAT_RDG             = 0x04000000
-_M.ESTAT_IO              = 0x08000000
 _M.ESTAT_SER1            = 0x10000000
 _M.ESTAT_SER2            = 0x20000000
 
@@ -440,7 +487,7 @@ end
 -- if device.allStatusSet(device.STAT_NOTMOTION,
 --                        device.STAT_NOTZERO,
 --                        device.STAT_GROSS) then
---     device.turnOn(5)  -- turn on output 5 if stable gross weight not in zeroband
+--     device.turnOn(5)  -- turn on output 5 if stable gross weight not in zero band
 -- else
 --     device.turnOff(5)
 -- end
@@ -461,7 +508,7 @@ end
 -- Called to get current state of the 32 bits of IO
 -- @return 32 bits of IO data
 -- @usage
--- print('curnet IO bits are', device.getCurIO())
+-- print('current IO bits are', device.getCurIO())
 function _M.getCurIO()
     return curIO
 end
@@ -489,7 +536,7 @@ end
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s
 -- @return 32 characters of IO data
 -- @usage
--- print('curnet IO bits are: ' .. device.getCurIOStr())
+-- print('current IO bits are: ' .. device.getCurIOStr())
 function _M.getCurIOStr()
     return getBitStr(curIO, 32)
 end
@@ -526,7 +573,7 @@ end
 -- Called to get current state of the 16 setpoints
 -- @return 16 bits of SETP status data
 -- @usage
--- print('curnet setpoint bits are', device.getCurSETP())
+-- print('current setpoint bits are', device.getCurSETP())
 function _M.getCurSETP()
     return curSETP
 end
@@ -707,8 +754,6 @@ end
 depricated.REG_LUA_STATUS   = REG_LUA_STATUS
 depricated.REG_LUA_ESTAT    = REG_LUA_ESTAT
 depricated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
-depricated.REG_LUA_STAT_RDG = REG_LUA_STAT_RDG
-depricated.REG_LUA_STAT_IO  = REG_LUA_STAT_IO
 depricated.REG_SETPSTATUS   = REG_SETPSTATUS
 depricated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
 
