@@ -86,6 +86,8 @@ _M.cmdString[11] = 'HI RES'
 -------------------------------------------------------------------------------
 -- Called to execute a Zero command
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.zero()
 function _M.zero()
     local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15.0)
     if msg then
@@ -99,6 +101,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to execute a Tare command
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.tare()
 function _M.tare()
 
     local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15.0)
@@ -114,6 +118,8 @@ end
 -- Called to execute a Pre-set Tare command
 -- @param pt is the preset tare value 
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.presetTare(0)
 function _M.presetTare(pt)
     local pt = pt or 0
     local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5.0)
@@ -128,6 +134,8 @@ end
 -------------------------------------------------------------------------------
 -- Command to set Gross Mode
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.gross()
 function _M.gross()
     local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_GROSS,1.0)
     if msg then
@@ -141,6 +149,8 @@ end
 -------------------------------------------------------------------------------
 -- Command to set Net mode
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.net()
 function _M.net()
     local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_NET,1.0)
     if msg then
@@ -154,6 +164,8 @@ end
 -------------------------------------------------------------------------------
 -- Command to toggle Gross Net status
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- device.grossNetToggle()
 function _M.grossNetToggle()
     local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_TOGGLE,1.0)
     if msg then
@@ -189,6 +201,10 @@ passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 -- @param code = passcode to unlock, nil to prompt user
 -- @param tries = number of tries to make before giving up (default 1)
 -- @return true if unlocked false otherwise
+-- @usage
+-- if device.checkPasscode('full', _, 5) then
+--     print('you have full access now')
+-- end
 function _M.checkPasscode(pc, code, tries)
     local pc = pc or 'full'
     local pcode = passcodes[pc].pcode
@@ -235,6 +251,9 @@ end
 -------------------------------------------------------------------------------
 -- Command to lock instrument
 -- @param pc = 'full','safe','oper'
+-- Set a timeout of thirty seconds before full access is lost
+-- timers = require 'rinSystem.rinTimers.Pack'
+-- timers.addTimer(0, 30, function() device.lockPasscode('full') end)
 function _M.lockPasscode(pc)
     local pc = pc or 'full'
     local pcode = passcodes[pc].pcode
@@ -255,6 +274,11 @@ end
 -- @param oldCode passcode to unlock, nil to prompt user
 -- @param newCode passcode to set, nil to prompt user
 -- @return true if successful
+-- @usage
+-- local pc = device.selectOption('ENTER PASSCODE', {'full', 'safe', 'oper'}, 'full', true)
+-- if pc then
+--     device.changePasscode(pc)
+-- end
 function _M.changePasscode(pc, oldCode, newCode)
    local pc = pc or 'full'
    local pcodeData = passcodes[pc].pcodeData
@@ -278,7 +302,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Zero
--- @return CMD_ constant followed by command return string
+-- @return CMD_ constant
+-- @return command return string
+-- @usage
+-- local ret, msg = device.calibrateZero()
+-- if ret == 0 then
+--     print('Zero MVV:', device.readZeroMVV())
+-- end
+-- print(msg)
 function _M.calibrateZero()
     
     local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBZERO,nil,1.0)
@@ -302,7 +333,15 @@ end
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param span weight value for calibration
--- @return CMD_ constant followed by command return string
+-- @return CMD_ constant
+-- @return command return string
+-- @usage
+-- local ret, msg = device.calibrateSpan(device.editReg('calibwgt')) 
+-- if ret == 0 then
+--     print('Span Calibration Weight: ', device.readSpanWeight())
+--     print('Span MVV: ', device.readSpanMVV())
+-- end
+-- print(msg)
 function _M.calibrateSpan(span)
     
     if type(span) == 'string' then
@@ -335,7 +374,12 @@ end
 -------------------------------------------------------------------------------
 -- Command to calibrate Zero using MV/V signal
 -- @param MVV signal for zero
--- @return CMD_ constant followed by command return string
+-- @return CMD_ constant
+-- @return command return string
+-- @usage
+-- local MVV = device.edit('MVV ZERO', '0', 'number')
+-- local ret, msg = device.calibrateZeroMVV(MVV) 
+-- print(msg)
 function _M.calibrateZeroMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
@@ -353,6 +397,10 @@ end
 -- Command to calibrate Span using MV/V signal
 -- @param MVV signal for fullscale
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- local MVV = device.edit('MVV SPAN','2.0','number')
+-- local ret, msg = device.calibrateSpanMVV(MVV)   
+-- print(msg)
 function _M.calibrateSpanMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
@@ -372,41 +420,66 @@ _M.REG_SPANMVV  = 0x0113
 _M.REG_LINWGT   = 0x0114
 _M.REG_LINPC    = 0x0115
 _M.NUM_LINPTS   = 10
+
 -------------------------------------------------------------------------------
 -- Command to read MVV zero calibration
--- @return MVV signal or nil with error string if error encountered
+-- @return MVV signal or nil on error
+-- @return error string if error encountered, nil otherwise
+-- @usage
+-- local ret, msg = device.calibrateZero()
+-- if ret == 0 then
+--     print('Zero MVV:', device.readZeroMVV())
+-- end
+-- print(msg)
 function _M.readZeroMVV()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_ZEROMVV)
     if data then
         data = _M.toFloat(data,4)
         return data, nil
     else
-        return data,error
+        return data, error
     end     
 end
 
 -------------------------------------------------------------------------------
 -- Command to read MVV span calibration
--- @return MVV signal or nil with error string if error encountered
+-- @return MVV signal or nil on error
+-- @return error string if error encountered, nil otherwise
+-- @usage
+-- local ret, msg = device.calibrateSpan(device.editReg('calibwgt')) 
+-- if ret == 0 then
+--     print('Span Calibration Weight: ', device.readSpanWeight())
+--     print('Span MVV: ', device.readSpanMVV())
+-- end
+-- print(msg)
 function _M.readSpanMVV()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANMVV)
     if data then
         data = _M.toFloat(data,4)
         return data, nil
     else
-         return data,error
+         return data, error
     end   
 end
+
 -------------------------------------------------------------------------------
 -- Command to read span calibration weight
--- @return span weight used on the last span calibration
+-- @return span weight used on the last span calibration or nil on error
+-- @return error string if error encountered, nil otherwise
+-- @usage
+-- local ret, msg = device.calibrateSpan(device.editReg('calibwgt')) 
+-- if ret == 0 then
+--     print('Span Calibration Weight: ', device.readSpanWeight())
+--     print('Span MVV: ', device.readSpanMVV())
+-- end
+-- print(msg)
 function _M.readSpanWeight()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANWGT)
     if data then
         data = _M.toFloat(data)
         return data, nil
     else
-        return data,error
+        return data, error
     end   
 end
 
@@ -415,7 +488,13 @@ end
 -- @return linearisation results in a table of 10 lines with each line having
 -- pc (percentage of fullscale that point in applied), 
 -- correction (amount of corrected weight)
--- if error return nil plus error string  
+-- @return error string or nil for no error
+-- @usage
+-- local ret, msg = device.calibrateLin(pt, device.editReg('calibwgt'))   
+-- if ret == 0 then  
+--     print('Linearisation Calibration: ', device.readLinCal())
+-- end
+-- print(msg)
 function _M.readLinCal()
     local t = {}
     for i = 1,_M.NUM_LINPTS do
@@ -442,6 +521,12 @@ end
 -- @param pt is the linearisation point 1..10 
 -- @param val is the weight value for the current linearisation point
 -- @return CMD_ constant followed by command return string
+-- @usage
+-- local ret, msg = device.calibrateLin(pt, device.editReg('calibwgt'))   
+-- if ret == 0 then  
+--     print('Linearisation Calibration: ', device.readLinCal())
+-- end
+-- print(msg)
 function _M.calibrateLin(pt, val)
     if type(pt) == 'string' then
        pt = tonumber(pt)
@@ -481,7 +566,14 @@ end
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
 -- @param pt is the linearisation point 1..10 
--- @return CMD_ constant followed by command return string
+-- @return CMD_ constant
+-- @return command return string
+-- @usage
+-- local ret, msg = device.clearLin(pt)   
+-- if ret == 0 then  
+--     print('Linearisation Calibration: ', device.readLinCal())
+-- end
+-- print(msg)
 function _M.clearLin(pt)
     if type(pt) == 'string' then
        pt = tonumber(pt)
@@ -500,6 +592,4 @@ function _M.clearLin(pt)
     end
 end
 
-
 end
-
