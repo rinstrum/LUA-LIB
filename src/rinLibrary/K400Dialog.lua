@@ -39,6 +39,10 @@ local msgTimer = nil		-- timer for user message display
 -------------------------------------------------------------------------------
 -- Is a message currently being displayed?
 -- @return true iff a message is displayed
+-- @usage
+-- if not device.messageDisplayed() then
+--     device.displayMessage('hello', 2.123)
+-- end
 function _M.messageDisplayed()
     return msgDisp
 end
@@ -46,10 +50,15 @@ end
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
 -- @return true iff a dialog is displayed
+-- @local
 function _M.dialogRunning()
     return dialogRunning ~= 0
 end
 
+-------------------------------------------------------------------------------
+-- Stop the currently running dialog and exit to the previous or the main
+-- application loop.
+-- @local
 function _M.abortDialog()
     dialogRunning = dialogRunning - 1
     if dialogRunning < 0 then
@@ -57,17 +66,28 @@ function _M.abortDialog()
     end
 end
 
+-------------------------------------------------------------------------------
+-- Enter into a new dialog.
+-- @local
 function _M.startDialog()
     dialogRunning = dialogRunning + 1
     private.bumpIdleTimer()
 end
 
+-------------------------------------------------------------------------------
+-- General callback to cache the pressed key.
+-- @param key The key that was activated
+-- @param state The length of the key activation
+-- @local
 local function getKeyCallback(key, state)
     getKeyPressed = key
     getKeyState = state
     return true
 end
 
+-------------------------------------------------------------------------------
+-- Cancel a displayed message, if any.
+-- @local
 local function endDisplayMessage()
 	if msgDisp then
         msgDisp = false
@@ -83,6 +103,10 @@ end
 -- @param t number of seconds to display message (can be fractional; e.g. 2.125)
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
+-- @usage
+-- -- Display an happy message for one and a half seconds.
+-- -- Program will continue operation immediately.
+-- device.displayMessage('joy', 1.5)
 function _M.displayMessage(msg, t, units, unitsOther)
 	local u = units or 0			-- optional units defaults to none
 	local uo = unitsOther or 0		-- optional other units defaults to none
@@ -104,6 +128,10 @@ end
 -- @param t number of seconds to display message (can be fractional; e.g. 2.125)
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
+-- @usage
+-- -- Display an unhappy message for one and a half seconds.
+-- -- Program will pause operation immediately.
+-- device.displayMessageWait('unhappy', 1.5)
 function _M.displayMessageWait(msg, t, units, unitsOther)
    _M.displayMessage(msg,t,units,unitsOther)
    while msgDisp do
@@ -115,6 +143,9 @@ end
 -- Called to get a key from specified key group
 -- @param keyGroup keyGroup.all is default group
 -- @return key (KEY_), state ('short','long','up')
+-- @usage
+-- device.displayMessage('Press key', 3)
+-- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup)
     local keyGroup = keyGroup or _M.keyGroup.all
     local f = keyGroup.callback
@@ -137,6 +168,10 @@ function _M.getKey(keyGroup)
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
 -- @return true of editing false otherwise
+-- @usage
+-- if not device.isEditing() then
+--     device.displayMessage('idle')
+-- end
 function _M.isEditing()
    return editing
 end
@@ -145,6 +180,8 @@ end
 -- Change the screen update frequency for the next dialog presented.
 -- @param s The update frequency in seconds to set for next time
 -- @return The previous update frequency
+-- @usage
+-- device.setScreenUpdateFrequency(1)   -- slow down updates
 function _M.setScreenUpdateFrequency(s)
     local old = scrUpdTm
     scrUpdTm = s or 0.5
@@ -162,6 +199,7 @@ end
 -- @param s String of legal characters
 -- @param p Position in string
 -- @return The relevant character
+-- @local
 local function keyCharSelect(s, p)
     if s == nil then return nil end
     local z = math.fmod(p, #s)
@@ -187,16 +225,18 @@ local keyMapping = {
 }
 
 -----------------------------------------------------------------------------------------------
--- return a character for the key pressed, according to the number of times it has been pressed
+-- Return a character for the key pressed, according to the number of times it has been pressed
 -- @param k key pressed
 -- @param p number of times key has been pressed
 -- @return letter, number or symbol character represented on the number key pad
------------------------------------------------------------------------------------------------
-
-function _M.keyChar(k, p)
+-- @local
+local function keyChar(k, p)
     return keyCharSelect(keyMapping[k], p)
 end
 
+-----------------------------------------------------------------------------------------------
+-- Trim white space from a string.
+-- @local
 local function sTrim(s)       -- removes whitespace from strings
     return s:match'^%s*(.*%S)' or ''
 end
@@ -205,13 +245,18 @@ end
 -- Set the key timeout in terms of the number of blink half cycles
 -- @param n The timeout
 -- @return The previous timeout
-function _M.setEditKeyTimout(n)
+-- @usage
+-- device.setEditKeyTimeout(3)
+function _M.setEditKeyTimeout(n)
     local old = sEditKeyTimeout
     sEditKeyTimeout = n or 4
     if n < 2 then n = 4 end
     return old
 end
 
+-----------------------------------------------------------------------------------------------
+-- Simulate a blinking cursor but altering the string periodically.
+-- @local
 local function blinkCursor()
 --  used in sEdit() function below
     sEditKeyTimer = sEditKeyTimer + 1 -- increment key press timer for sEdit()
@@ -243,7 +288,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
-
+-- @usage
+-- local name = device.sEdit('NEW NAME', 'ZINC', 8)
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     editing = true                  -- is editing occurring
@@ -309,7 +355,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                     pKey = key              -- remember the key pressed
                 end
 --              print('i:' .. sEditIndex)    -- debug
-                strTab[sEditIndex] = _M.keyChar(key, presses)    -- update the string (table) with the new character
+                strTab[sEditIndex] = keyChar(key, presses)    -- update the string (table) with the new character
             --
             elseif (key == _M.KEY_DP) and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
                 if (pKey and (sEditIndex >= sLen)) or (strTab[sEditIndex] == " ") then    -- if not first key pressed and not space at end
@@ -397,6 +443,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
+-- @usage
+-- local qty = device.edit('QUANTITY', 123, 'integer')
 function _M.edit(prompt, def, typ, units, unitsOther)
 
     local key, state
@@ -490,72 +538,57 @@ function _M.edit(prompt, def, typ, units, unitsOther)
 end
 
 _M.REG_EDIT_REG = 0x0320
+
 -------------------------------------------------------------------------------
---  Called to edit value of specified register
--- @param reg is the address of the register to edit
+-- Called to edit value of specified register
+-- @param register is the address of the register to edit
 -- @param prompt is true if name of register to be displayed during editing,
 -- or set to a literal prompt to display
--- @return value of reg
-function _M.editReg(reg,prompt)
-   endDisplayMessage()
-   if (prompt) then
-      _M.saveBot()
-      if type(prompt) == 'string' then
-         _M.writeBotRight(prompt)
-      else
-         _M.writeBotRight(_M.sendRegWait(_M.CMD_RDNAME,reg))
-      end
-   end
-   _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
-   _M.startDialog()
-   while true do
-     local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
+-- @return value of register
+-- @usage
+-- device.editReg('userid1', 'NAME')
+function _M.editReg(register, prompt)
+    local reg = private.getRegisterNumber(register)
+    endDisplayMessage()
+    if (prompt) then
+        _M.saveBot()
+        if type(prompt) == 'string' then
+            _M.writeBotRight(prompt)
+        else
+            _M.writeBotRight(_M.sendRegWait(_M.CMD_RDNAME,reg))
+        end
+    end
+    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+    _M.startDialog()
+    while true do
+        local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
 
-     if err or (data and tonumber(data,16) ~= reg) then
-       break
-     end
-     _M.delay(0.050)
-     if not _M.dialogRunning() or not _M.app.running then
-        _M.sendKey(_M.KEY_CANCEL,'long')
-     end
-   end
-   _M.abortDialog()
-   if prompt then
-      _M.restoreBot()
-   end
-   return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
+        if err or (data and tonumber(data,16) ~= reg) then
+            break
+        end
+        _M.delay(0.050)
+        if not _M.dialogRunning() or not _M.app.running then
+            _M.sendKey(_M.KEY_CANCEL,'long')
+        end
+    end
+    _M.abortDialog()
+    if prompt then
+        _M.restoreBot()
+    end
+    return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
 end
 
 -------------------------------------------------------------------------------
 -- Called to delay for t sec while keeping event handlers running
 -- @param t delay time in sec
+-- @usage
+-- device.delay(0.1)    -- pause for 100 ms
 function _M.delay(t)
     local delayWaiting = true
     local tmr = _M.system.timers.addTimer(0, t, function () delayWaiting = false end)
     while delayWaiting do
         _M.system.handleEvents()
     end
-end
-
-local askOKWaiting = false
-local askOKResult = 0
--------------------------------------------------------------------------------
--- Private function
-local function askOKCallback(key, state)
-
-    if state ~= 'short' then
-        return false
-    end
-
-    if key == _M.KEY_OK then
-        askOKWaiting = false
-        askOKResult = _M.KEY_OK
-    elseif key == _M.KEY_CANCEL then
-        askOKWaiting = false
-        askOKResult = _M.KEY_CANCEL
-    end
-
-    return true
 end
 
 -------------------------------------------------------------------------------
@@ -565,7 +598,27 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return either KEY_OK or KEY_CANCEL
+-- @usage
+-- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED')
 function _M.askOK(prompt, q, units, unitsOther)
+    local askOKWaiting = false
+    local askOKResult = 0
+
+    local function askOKCallback(key, state)
+        if state ~= 'short' then
+            return false
+        end
+
+        if key == _M.KEY_OK then
+            askOKWaiting = false
+            askOKResult = _M.KEY_OK
+        elseif key == _M.KEY_CANCEL then
+            askOKWaiting = false
+            askOKResult = _M.KEY_CANCEL
+        end
+
+        return true
+    end
 
     local f = _M.keyGroup.keypad.callback
     local prompt = prompt or ''
@@ -605,7 +658,9 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string  if OK pressed or nil if CANCEL pressed
-function _M.selectOption(prompt, options, def, loop,units,unitsOther)
+-- @usage
+-- local opt = selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
+function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     loop = loop or false
     local options = options or {'cancel'}
     local u = units or 0

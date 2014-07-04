@@ -61,7 +61,7 @@ return function ()
 -- @see private.getRegisterName
 -- @usage
 -- -- Find out what register number the gross weight is stored in
--- print(device.getRegisterNumber('gross')
+-- print(private.getRegisterNumber('gross')
 -- @local
     function private.getRegisterNumber(r)
         if type(r) == 'number' then
