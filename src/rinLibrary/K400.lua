@@ -34,7 +34,7 @@ return function ()
     local _M, kt = {}, {}
     local depricated, private, dwarned = {}, {}, {}
     local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
-    local regMap, regUnmap = {}, {}
+    local regMap, regUnmap = {}, { [0] = 0 }
 
 -------------------------------------------------------------------------------
 -- Add an entry to the register mapping table if it is of the correct form
@@ -56,9 +56,10 @@ return function ()
 
 -------------------------------------------------------------------------------
 -- Convert a string register name to the associated register number.
+-- @function getRegisterNumber
 -- @param r Register name or number
 -- @return Register number
--- @see private.getRegisterName
+-- @see getRegisterName
 -- @usage
 -- -- Find out what register number the gross weight is stored in
 -- print(private.getRegisterNumber('gross')
@@ -74,12 +75,18 @@ return function ()
 
 -------------------------------------------------------------------------------
 -- Convert a register number to the associated canonical register name.
--- @param r Register name
+-- @function getRegisterName
+-- @param r Register name or number
 -- @return Register name
--- @see private.getRegisterNumber
+-- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        return regUnmap(r)
+        if type(r) == 'number' then
+            return regUnmap[r]
+        elseif type(r) == 'string' then
+            return r
+        end
+        return nil
     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
