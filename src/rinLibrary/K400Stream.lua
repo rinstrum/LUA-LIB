@@ -256,7 +256,7 @@ end
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
 -- @param onChange Change parameter
--- @return streamReg indentity
+-- @return streamReg identity
 -- @return error message
 -- @local
 function private.addStreamLib(streamReg, callback, onChange)
@@ -356,7 +356,8 @@ end
 -- @return The previous frequency
 -- @usage
 -- device.setStreamFreqLib('onchange')
-function _M.setStreamFreqLib(freq)
+-- @local
+function private.setStreamFreqLib(freq)
     local f = freqLib
     freqLib = freq or f
     return f
@@ -425,5 +426,6 @@ depricated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
 
 depricated.addStreamLib      = private.addStreamLib
 depricated.removeStreamLib   = private.removeStreamLib
+depricated.setStreamFreqLib  = private.setStreamFreqLib
 
 end
