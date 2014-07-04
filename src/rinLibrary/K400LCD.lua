@@ -363,16 +363,21 @@ function _M.writeBotRight(s, t)
 end
 
 
-local writeBotAnnuns   = _M.preconfigureMsg(REG_DISP_BOTTOM_ANNUN,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
-local writeTopAnnuns   = _M.preconfigureMsg(REG_DISP_TOP_ANNUN,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
+-----------------------------------------------------------------------------
+-- Set the bottom annunicators directly.
+-- @param s Bit mask for the annunicators
+-- @local
+local function writeBotAnnuns(s)
+    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_BOTTOM_ANNUN, s, "noReply")
+end
 
-local writeAutoTopMsg = _M.preconfigureMsg(REG_DISP_AUTO_TOP_ANNUN,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
+-----------------------------------------------------------------------------
+-- Set the top annunicators directly.
+-- @param s Bit mask for the annunicators
+-- @local
+local function writeTopAnnuns(s)
+    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_TOP_ANNUN, s, "noReply")
+end
 
 -----------------------------------------------------------------------------
 -- Link register address with Top annunciators to update automatically
@@ -381,7 +386,8 @@ local writeAutoTopMsg = _M.preconfigureMsg(REG_DISP_AUTO_TOP_ANNUN,
 -- @usage
 -- device.writeAutoTopAnnun(0)
 function _M.writeAutoTopAnnun(reg)
-    writeAutoTopMsg(private.getRegisterNumber(reg))
+    local r = private.getRegisterNumber(reg)
+    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_TOP_ANNUN, r, "noReply")
 end
 
 

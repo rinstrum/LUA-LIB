@@ -75,8 +75,6 @@ function _M.setAnalogType(typ)
     return analogNames[prev]
 end
 
-local setAnalogClipMsg = _M.preconfigureMsg(REG_ANALOGUE_CLIP,
-                                            _M.CMD_WRFINALDEC, "noReply")
 -------------------------------------------------------------------------------
 -- Control behaviour of analog output outside of normal range.
 -- If clip is active then output will be clipped to the nominal range
@@ -85,7 +83,8 @@ local setAnalogClipMsg = _M.preconfigureMsg(REG_ANALOGUE_CLIP,
 -- @param c clipping enabled?
 function _M.setAnalogClip(c)
     if c == true then c = 1 elseif c == false then c = 0 end
-    setAnalogClipMsg(c)
+
+    _M.send(nil, _M.CMD_WRFINALDEC, REG_ANALOGUE_CLIP, c, 'noReply')
 end
 
 -------------------------------------------------------------------------------

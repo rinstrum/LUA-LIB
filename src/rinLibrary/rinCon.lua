@@ -173,49 +173,15 @@ end
 -- Sends a structured message built up from individual parameters as follows
 -- @param addr Indicator address (0x00 to 0x1F)
 -- @param cmd Command (CMD_*)
--- @param reg Register (REG_*) must be numeric
--- @param data Data to be sent
--- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
--- @param crc 'crc' if message sent with crc, false (default) otherwise
--- @see preconfigureMsg
--- @usage
--- stream.send(device.ADDR_BROADCAST, device.CMD_RDLIT, 'grossnet', data, 'reply')
--- @local
-local function internalSend(addr, cmd, reg, data, reply, crc)
-    _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
-end
-
--------------------------------------------------------------------------------
--- Sends a structured message built up from individual parameters as follows
--- @param addr Indicator address (0x00 to 0x1F)
--- @param cmd Command (CMD_*)
 -- @param reg Register
 -- @param data Data to be sent
 -- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
--- @see preconfigureMsg
 -- @usage
 -- stream.send(device.ADDR_BROADCAST, device.CMD_RDLIT, 'grossnet', data, 'reply')
 function _M.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
-    internalSend(addr, cmd, r, data, reply, crc)
-end
-
--------------------------------------------------------------------------------
--- Return a function allowing for repeatable commands
--- @param reg register
--- @param cmd command (CMD_*)
--- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
--- @param crc 'crc' if message sent with crc, false (default) otherwise
--- @return preconfigured function
--- @see send
--- @usage
--- local msg = device.preconfigureMsg(device.CMD_RDLIT, device.REG_GROSSNET, 'reply')
--- local x1 = msg('')
--- local x2 = msg('')
-function _M.preconfigureMsg(reg, cmd, reply, crc)
-    local r = private.getRegisterNumber(reg)
-    return function(data) internalSend(nil, cmd, r, data, reply, crc) end
+    _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
