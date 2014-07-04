@@ -255,7 +255,7 @@ end
 function _M.setupKeys()
     _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
     _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 1)
-    keyID = _M.addStreamLib(REG_GET_KEY, keyCallback, 'change')
+    keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
 end
 
 -------------------------------------------------------------------------------

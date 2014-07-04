@@ -129,6 +129,11 @@ end
 -- @param onChange Change parameter
 -- @return streamReg identity
 -- @return error message
+-- @usage
+-- local function handleWeight(data, err)
+--     print('Weight = ', data)
+-- end
+-- device.addStream('grossnet', handleWeight, 'change')
 function _M.addStream(streamReg, callback, onChange)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
@@ -144,7 +149,7 @@ function _M.addStream(streamReg, callback, onChange)
     end
 
     _, availRegistersUser[availReg].dp = private.getRegDP(reg)
-    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,reg),16)
+    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,reg), 16)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
     availRegistersUser[availReg].onChange = onChange
@@ -169,6 +174,8 @@ end
 -------------------------------------------------------------------------------
 -- Remove a stream from the device
 -- @param streamReg Register to be removed
+-- @usage
+-- device.removeStream('grossnet')
 function _M.removeStream(streamReg)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = streamRegistersUser[reg]
@@ -217,7 +224,6 @@ local streamRegistersLib = {}
 -- @param err Potential error message
 -- @local
 local function streamCallbackLib(data, err)
-
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then
@@ -245,13 +251,15 @@ end
 -- Takes parameter 'change' (default) to run callback only if data
 -- received changed, 'always' otherwise
 -- These stream registers are used by standard library functions so
--- not all of the 5 registers will be available for general use
+-- not all of the 5 registers will be available for general use.
+-- In other words, don't use this function.
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
 -- @param onChange Change parameter
 -- @return streamReg indentity
 -- @return error message
-function _M.addStreamLib(streamReg, callback, onChange)
+-- @local
+function private.addStreamLib(streamReg, callback, onChange)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
 
@@ -290,7 +298,8 @@ end
 -------------------------------------------------------------------------------
 -- Remove a stream from the library set of streams
 -- @param streamReg Register to be removed
-function _M.removeStreamLib(streamReg)
+-- @local
+function private.removeStreamLib(streamReg)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = streamRegistersLib[reg]
 
@@ -304,7 +313,10 @@ function _M.removeStreamLib(streamReg)
 end
 
 -------------------------------------------------------------------------------
--- Cleanup any unused streaming
+-- Cleanup any unused streaming.
+-- This routine is called automatically by the rinApp application framework.
+-- @usage
+-- device.streamCleanup()
 function _M.streamCleanup()
     _M.sendRegWait(_M.CMD_EX,
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
@@ -324,60 +336,66 @@ function _M.streamCleanup()
 
     streamRegistersUser = {}
     streamRegistersLib = {}
-
 end
 
 -------------------------------------------------------------------------------
---  Set the frequency used for streaming
--- @param freq Frequency of streaming (_M.STM_FREQ_*)
--- @return The previous frequency
-function _M.setStreamFreq(freq)
-    local f = freqUser
-    freqUser = freq or freqUser
-    return f
-end
-
--------------------------------------------------------------------------------
--- Set the frequency used for library streaming
+-- Set the frequency used for streaming.
 -- @param freq Frequency of streaming
 -- @return The previous frequency
-function _M.setStreamFreqLib(freq)
-    local f = freqLib
-    freqLib = freq or freqLib
+-- @usage
+-- device.setStreamFreq('onchange')
+function _M.setStreamFreq(freq)
+    local f = freqUser
+    freqUser = freq or f
     return f
 end
 
+-------------------------------------------------------------------------------
+-- Set the frequency used for library streaming.
+-- @param freq Frequency of streaming
+-- @return The previous frequency
+-- @usage
+-- device.setStreamFreqLib('onchange')
+function _M.setStreamFreqLib(freq)
+    local f = freqLib
+    freqLib = freq or f
+    return f
+end
 
 -------------------------------------------------------------------------------
--- Called to force all stream registers to resend current state
+-- Called to force all stream registers to resend current state.
+-- @usage
+-- device.renewStreamData()
 function _M.renewStreamData()
-   local streamUser = false
-   for k,v in pairs(availRegistersLib) do
+    local streamUser = false
+    for _,v in pairs(availRegistersLib) do
             v.lastData = ''
-   end
-   for k,v in pairs(availRegistersUser) do
-            if v.reg ~= 0 then
-                streamUser = true
-            end
-            v.lastData = ''
-   end
-   private.renewStatusBinds()
+    end
+    for _,v in pairs(availRegistersUser) do
+        if v.reg ~= 0 then
+            streamUser = true
+        end
+        v.lastData = ''
+    end
+    private.renewStatusBinds()
 
 
-   if streamUser then
-      _M.send(nil,_M.CMD_RDFINALHEX,
-                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
-                 '','reply')
-   end
-   _M.send(nil,_M.CMD_RDFINALHEX,
-                 bit32.bor(REG_LUALIB, REG_STREAMDATA),
-                 '','reply')
-
+    if streamUser then
+        _M.send(nil,_M.CMD_RDFINALHEX,
+                    bit32.bor(REG_LUAUSER, REG_STREAMDATA),
+                    '', 'reply')
+    end
+    _M.send(nil,_M.CMD_RDFINALHEX,
+                bit32.bor(REG_LUALIB, REG_STREAMDATA),
+                '', 'reply')
 end
 
 
 -------------------------------------------------------------------------------
--- Called to initalise the instrument and read initial conditions
+-- Called to initalise the instrument and read initial conditions.
+-- This routine is called automatically by the rinApp application framework.
+-- @usage
+-- device.init()
 function _M.init()
     _M.renewStreamData()
     _M.sendKey(_M.KEY_CANCEL, 'long')
@@ -404,5 +422,8 @@ depricated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
 depricated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
 depricated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
 depricated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
+
+depricated.addStreamLib      = private.addStreamLib
+depricated.removeStreamLib   = private.removeStreamLib
 
 end

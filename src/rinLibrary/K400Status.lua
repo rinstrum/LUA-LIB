@@ -662,10 +662,10 @@ end
 -- device.setupStatus()
 function _M.setupStatus()
     curStatus = 0
-    statID  = _M.addStreamLib(_M.REG_LUA_STATUS, statusCallback,  'change')
-    eStatID = _M.addStreamLib(_M.REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = _M.addStreamLib(_M.REG_IO_STATUS,  IOCallback,      'change')
-    SETPID  = _M.addStreamLib(_M.REG_SETPSTATUS, SETPCallback,    'change')
+    statID  = private.addStreamLib(_M.REG_LUA_STATUS, statusCallback,  'change')
+    eStatID = private.addStreamLib(_M.REG_LUA_ESTAT,  eStatusCallback, 'change')
+    IOID    = private.addStreamLib(_M.REG_IO_STATUS,  IOCallback,      'change')
+    SETPID  = private.addStreamLib(_M.REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC,  handleRTC)
     _M.setEStatusMainCallback(_M.ESTAT_INIT, handleINIT)
@@ -678,10 +678,10 @@ end
 -- @usage
 -- device.endStatus()
 function _M.endStatus()
-    _M.removeStreamLib(statID)
-    _M.removeStreamLib(eStatID)
-    _M.removeStreamLib(IOID)
-    _M.removeStreamLib(SETPID)
+    private.removeStreamLib(statID)
+    private.removeStreamLib(eStatID)
+    private.removeStreamLib(IOID)
+    private.removeStreamLib(SETPID)
 end
 
 -------------------------------------------------------------------------------
@@ -690,7 +690,7 @@ end
 -- @usage
 -- device.endIOStatus()
 function _M.endIOStatus()
-    _M.removeStreamLib(IOID)
+    private.removeStreamLib(IOID)
 end
 
 -------------------------------------------------------------------------------
@@ -699,7 +699,7 @@ end
 -- @usage
 -- device.endSETPStatus()
 function _M.endSETPStatus()
-    _M.removeStreamLib(SETPID)
+    private.removeStreamLib(SETPID)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
