@@ -32,15 +32,19 @@ local analogNames = {   [CUR] = 'current',  [VOLT] = 'volt' }
 local curAnalogType = -1
 local lastAnalogue = nil
 
-_M.ANALOG_COMMS = 3
+local ANALOG_COMMS = 3
+local analogSourceMap = {   comms = ANALOG_COMMS    }
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
 -- @param src Source for output.
--- Must be set to ANALOG_COMMS to control directly
+-- Must be set to 'comms' to control directly
 -- @usage
--- device.setAnalogSource(device.ANALOG_COMMS)
+-- device.setAnalogSource('comms')
 function _M.setAnalogSource(src)
+    if type(src) == 'string' then
+        src = analogSourceMap[src]
+    end
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
@@ -138,6 +142,7 @@ end
 -- Fill in all the depricated fields
 depricated.CUR = CUR
 depricated.VOLT = VOLT
+depricated.ANALOG_COMMS = ANALOG_COMMS
 
 depricated.REG_ANALOGUE_DATA = REG_ANALOGUE_DATA
 depricated.REG_ANALOGUE_TYPE = REG_ANALOGUE_TYPE
