@@ -15,7 +15,7 @@ local bit32 = require "bit"
 -- Function to test if any of the specified bits are set in the data.
 -- @param data The value to check against.
 -- @param ... The bit positions of interest.
--- @return true if one of the bits is set.
+-- @return true iff one of the bits is set.
 -- @local
 local function anyBitSet(data, ...)
     if arg.n == 0 then
@@ -34,7 +34,7 @@ end
 -- Function to test if all of the specified bits are set in the data.
 -- @param data The value to check against.
 -- @param ... The bit positions of interest.
--- @return true if all of the bits is set.
+-- @return true iff all of the bits is set.
 -- @local
 local function allBitSet(data, ...)
     if arg.n == 0 then
