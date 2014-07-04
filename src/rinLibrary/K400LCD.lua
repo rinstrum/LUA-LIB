@@ -11,6 +11,11 @@ local math = math
 local string = string
 local bit32 = require "bit"
 
+-------------------------------------------------------------------------------
+-- Return the number of LCD characters a string will consume.
+-- @param s The string to assess
+-- @return The number of display characters
+-- @local
 local function strLenR400(s)
    local len = 0
    local dotFound = true
@@ -25,9 +30,11 @@ local function strLenR400(s)
         len = len + 1
      end
    end
-  return(len)
+  return len
 end
 
+-------------------------------------------------------------------------------
+-- @local
 local function strSubR400(s,stPos,endPos)
    local len = 0
    local dotFound = true
@@ -53,10 +60,14 @@ local function strSubR400(s,stPos,endPos)
           substr = substr .. ch
      end
    end
-  return(substr)
+  return substr
 end
 
--- takes a string and pads ... with . . . for R420 to handle
+-------------------------------------------------------------------------------
+-- Takes a string and pads ... with . . . for R420 to handle.
+-- @param s String
+-- @return Padded string
+-- @local
 local function padDots(s)
     if #s == 0 then
         return s
@@ -66,53 +77,58 @@ local function padDots(s)
     if string.sub(str,1,1) == '.' then
         str = ' '..str
     end
-    return(str)
+    return str
 end
 
--- local function to split a long string into shorter strings of multiple words
--- that fit into length len
+-------------------------------------------------------------------------------
+-- Split a long string into shorter strings of multiple words
+-- that fit into length len.
+-- @param s String
+-- @param len Length of display field
+-- @return list of fragments of the string formatted to fit the field width
+-- @local
 local function splitWords(s,len)
-  local t = {}
-  local p = ''
-  local len = len or 8
+    local t = {}
+    local p = ''
+    local len = len or 8
 
-  if strLenR400(s) <= len then
-     table.insert(t,s)
-     return t
-     end
-
-  for w in string.gmatch(s, "%S+") do
-    if strLenR400(p) + strLenR400(w) < len then
-       if p == '' then
-          p = w
-       else
-          p = p .. ' '..w
-       end
-    elseif strLenR400(p) > len then
-       table.insert(t,strSubR400(p,1,len))
-       p = strSubR400(p,len+1,-1)
-       if strLenR400(p) + strLenR400(w) < len then
-           p = p .. ' ' .. w
-       else
-          table.insert(t,p)
-          p = w
-       end
-    else
-       if #p > 0 then
-           table.insert(t,p)
-       end
-       p = w
+    if strLenR400(s) <= len then
+        table.insert(t,s)
+        return t
     end
-   end
 
-   while strLenR400(p) > len do
-      table.insert(t,strSubR400(p,1,len))
-      p = strSubR400(p,len+1,-1)
-   end
-   if #p > 0 or #t == 0 then
-     table.insert(t,p)
-   end
- return t
+    for w in string.gmatch(s, "%S+") do
+        if strLenR400(p) + strLenR400(w) < len then
+            if p == '' then
+                p = w
+            else
+                p = p .. ' '..w
+            end
+        elseif strLenR400(p) > len then
+            table.insert(t,strSubR400(p,1,len))
+            p = strSubR400(p,len+1,-1)
+            if strLenR400(p) + strLenR400(w) < len then
+                p = p .. ' ' .. w
+            else
+                table.insert(t,p)
+                p = w
+            end
+        else
+            if #p > 0 then
+                table.insert(t,p)
+            end
+            p = w
+        end
+    end
+
+    while strLenR400(p) > len do
+        table.insert(t,strSubR400(p,1,len))
+        p = strSubR400(p,len+1,-1)
+    end
+    if #p > 0 or #t == 0 then
+        table.insert(t,p)
+    end
+    return t
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -120,18 +136,18 @@ end
 return function (_M, private, depricated)
 
 --LCD display registers
-_M.REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
-_M.REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-_M.REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
-_M.REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
-_M.REG_DISP_TOP_ANNUN       = 0x00B2
-_M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
-_M.REG_DISP_BOTTOM_ANNUN    = 0x00B4
-_M.REG_DISP_BOTTOM_UNITS    = 0x00B5
+local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
+local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
+local REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
+local REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
+local REG_DISP_TOP_ANNUN       = 0x00B2
+local REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
+local REG_DISP_BOTTOM_ANNUN    = 0x00B4
+local REG_DISP_BOTTOM_UNITS    = 0x00B5
 
-_M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
-_M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
-_M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
+local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
+local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
+local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
 
 local botAnnunState = 0
 local topAnnunState = 0
@@ -163,6 +179,10 @@ local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
 -- @param s string to justify
 -- @param w width to justify to
 -- @return justified string
+-- @usage
+-- if device.rightJustify('hello', 6) == ' hello' then
+--     print('yes')
+-- end
 function _M.rightJustify(s, w)
     local l = strLenR400(s)
     if l >= w then
@@ -171,30 +191,49 @@ function _M.rightJustify(s, w)
     return string.rep(" ", w-l) .. s
 end
 
+-------------------------------------------------------------------------------
+-- Save the bottom left and right fields and units.
+-- @usage
+-- device.saveBot()
+-- device.writeBotLeft('fnord')
+-- device.restoreBot()
 function _M.saveBot()
-   saveBotLeft = curBotLeft
-   saveBotRight = curBotRight
-   saveBotUnits = curBotUnits
-   saveBotUnitsOther = curBotUnitsOther
+    saveBotLeft = curBotLeft
+    saveBotRight = curBotRight
+    saveBotUnits = curBotUnits
+    saveBotUnitsOther = curBotUnitsOther
 end
 
+-------------------------------------------------------------------------------
+-- Restore the bottom left and right fields and units.
+-- @usage
+-- device.saveBot()
+-- device.writeBotLeft('fnord')
+-- device.restoreBot()
 function _M.restoreBot()
-  _M.writeBotLeft(saveBotLeft)
-  _M.writeBotRight(saveBotRight)
-  _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
+    _M.writeBotLeft(saveBotLeft)
+    _M.writeBotRight(saveBotRight)
+    _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
 end
 
+-------------------------------------------------------------------------------
+-- Save the top and bottom left field auto settings
+-- @usage
+-- device.saveAutoLeft()
 function _M.saveAutoLeft()
     saveAutoTopLeft = _M.readAutoTopLeft()
     saveAutoBotLeft = _M.readAutoBotLeft()
 end
 
+-------------------------------------------------------------------------------
+-- Shift the top left display section one position
+-- @local
 local function slideTopLeft()
     slideTopLeftPos = slideTopLeftPos + 1
     if slideTopLeftPos > #slideTopLeftWords then
        slideTopLeftPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
+    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_LEFT,
          string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
 end
 
@@ -202,6 +241,8 @@ end
 -- Write string to Top Left of LCD, curTopLeft is set to s
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
+-- @usage
+-- device.writeTopLeft('HELLO WORLD', 0.6)
 function _M.writeTopLeft(s,t)
     local t = t or 0.8
 
@@ -215,7 +256,7 @@ function _M.writeTopLeft(s,t)
             slideTopLeftWords = splitWords(s,6)
             slideTopLeftPos = 1
             _M.system.timers.removeTimer(slideTopLeftTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_TOP_LEFT,
+            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
                 slideTopLeftTimer = _M.system.timers.addTimer(t,t,slideTopLeft)
@@ -229,19 +270,24 @@ end
 -------------------------------------------------------------------------------
 -- Write string to Top Right of LCD, curTopRight is set to s
 -- @param s string to display
+-- @usage
+-- device.writeTopRight('ABCD')
 function _M.writeTopRight(s)
     if s and s ~= curTopRight then
-        _M.sendReg(_M.CMD_WRFINALHEX, _M.REG_DISP_TOP_RIGHT, s)
+        _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_RIGHT, s)
         curTopRight = s
     end
 end
 
+-------------------------------------------------------------------------------
+-- Shift the bottom left display section one position
+-- @local
 local function slideBotLeft()
     slideBotLeftPos = slideBotLeftPos + 1
     if slideBotLeftPos > #slideBotLeftWords then
        slideBotLeftPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
+    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_LEFT,
          string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
 end
 
@@ -249,6 +295,8 @@ end
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
+-- @usage
+-- device.writeBotLeft('AARDVARK BOTHER HORSES')
 function _M.writeBotLeft(s, t)
     local t = t or 0.8
 
@@ -263,7 +311,7 @@ function _M.writeBotLeft(s, t)
             slideBotLeftWords = splitWords(s,9)
             slideBotLeftPos = 1
             _M.system.timers.removeTimer(slideBotLeftTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_LEFT,
+            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_LEFT,
                  string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
             if #slideBotLeftWords > 1 then
                 slideBotLeftTimer = _M.system.timers.addTimer(t,t,slideBotLeft)
@@ -274,12 +322,15 @@ function _M.writeBotLeft(s, t)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Shift the bottom right display section one position
+-- @local
 local function slideBotRight()
     slideBotRightPos = slideBotRightPos + 1
     if slideBotRightPos > #slideBotRightWords then
        slideBotRightPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
+    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_RIGHT,
          string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
 end
 
@@ -287,6 +338,8 @@ end
 -- Write string to Bottom Right of LCD, curBotRight is set to s
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
+-- @usage
+-- device.writeBotRight('AARDVARK BOTHER HORSES')
 function _M.writeBotRight(s, t)
     local t = t or 0.8
 
@@ -300,7 +353,7 @@ function _M.writeBotRight(s, t)
             slideBotRightWords = splitWords(s,8)
             slideBotRightPos = 1
             _M.system.timers.removeTimer(slideBotRightTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX,_M.REG_DISP_BOTTOM_RIGHT,
+            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_RIGHT,
                  string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
             if #slideBotRightWords > 1 then
                 slideBotRightTimer = _M.system.timers.addTimer(t,t,slideBotRight)
@@ -309,72 +362,126 @@ function _M.writeBotRight(s, t)
     end
 end
 
-_M.writeBotAnnuns   = _M.preconfigureMsg(_M.REG_DISP_BOTTOM_ANNUN,
+
+local writeBotAnnuns   = _M.preconfigureMsg(REG_DISP_BOTTOM_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
-_M.writeTopAnnuns   = _M.preconfigureMsg(_M.REG_DISP_TOP_ANNUN,
+local writeTopAnnuns   = _M.preconfigureMsg(REG_DISP_TOP_ANNUN,
+                                         _M.CMD_WRFINALHEX,
+                                         "noReply")
+
+local writeAutoTopMsg = _M.preconfigureMsg(REG_DISP_AUTO_TOP_ANNUN,
                                          _M.CMD_WRFINALHEX,
                                          "noReply")
 
 -----------------------------------------------------------------------------
--- link register address  with Top annunciators to update automatically
---@function writeAutoTopAnnun
---@param reg address of register to link Top Annunciator state to.
--- Set to 0 to enable direct control of the area
-_M.writeAutoTopAnnun  = _M.preconfigureMsg(_M.REG_DISP_AUTO_TOP_ANNUN,
-                                         _M.CMD_WRFINALHEX,
-                                         "noReply")
-
-_M.setAutoTopAnnun = _M.writeAutoTopAnnun
-
------------------------------------------------------------------------------
--- link register address with Top Left display to update automatically
---@param reg address of register to link Top Left display to.
--- Set to 0 to enable direct control of the area
-function _M.writeAutoTopLeft(reg)
-   if reg ~= curAutoTopLeft then
-       _M.system.timers.removeTimer(slideTopLeftTimer)
-       curTopLeft = nil
-       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
-       saveAutoTopLeft = curAutoTopLeft
-       curAutoTopLeft = reg
-   end
+-- Link register address with Top annunciators to update automatically
+-- @param reg address of register to link Top Annunciator state to.
+-- Set to 0 to enable direct control of the area.
+-- @usage
+-- device.writeAutoTopAnnun(0)
+function _M.writeAutoTopAnnun(reg)
+    writeAutoTopMsg(private.getRegisterNumber(reg))
 end
 
-_M.setAutoTopLeft = _M.writeAutoTopLeft
 
 -----------------------------------------------------------------------------
--- reads the current Top Left auto update register
+-- Link register address with Top Left display to update automatically
+-- @param register address of register to link Top Left display to.
+-- Set to 0 to enable direct control of the area
+-- @usage
+-- device.writeAutoTopLeft('grossnet')
+function _M.writeAutoTopLeft(register)
+    local reg = private.getRegisterNumber(register)
+
+    if reg ~= curAutoTopLeft then
+        _M.system.timers.removeTimer(slideTopLeftTimer)
+        curTopLeft = nil
+        _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
+        saveAutoTopLeft = curAutoTopLeft
+        curAutoTopLeft = reg
+    end
+end
+
+-----------------------------------------------------------------------------
+-- Reads the current Top Left auto update register
 -- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoTopLeft()
+-- device.writeAutoTopLeft(0)
+-- ...
+-- device.writeAutoTopLeft(old)
 function _M.readAutoTopLeft()
-   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_TOP_LEFT)
-   reg = tonumber(reg)
-   curAutoTopLeft = reg
-   return reg
+    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_DISP_AUTO_TOP_LEFT)
+    reg = tonumber(reg)
+    curAutoTopLeft = reg
+    return private.getRegisterName(reg)
 end
+
 -----------------------------------------------------------------------------
--- link register address with Bottom Left display to update automatically
---@param reg address of register to link Bottom Left display to.
+-- Link register address with Bottom Left display to update automatically
+-- @param register address of register to link Bottom Left display to.
 -- Set to 0 to enable direct control of the area
-function _M.writeAutoBotLeft(reg)
-   if reg ~= curAutoBotLeft then
-       _M.system.timers.removeTimer(slideBotLeftTimer)
-       curBotLeft = nil
-       _M.send(nil, _M.CMD_WRFINALHEX, _M.REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
-       saveAutoBotLeft = curAutoBotLeft
-       curAutoBotLeft = reg
-   end
+-- @usage
+-- device.writeAutoBotLeft('grossnet')
+function _M.writeAutoBotLeft(register)
+    local reg = private.getRegisterNumber(register)
+
+    if reg ~= curAutoBotLeft then
+        _M.system.timers.removeTimer(slideBotLeftTimer)
+        curBotLeft = nil
+        _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
+        saveAutoBotLeft = curAutoBotLeft
+        curAutoBotLeft = reg
+    end
 end
-_M.setAutoBotLeft = _M.writeAutoBotLeft
 
 -----------------------------------------------------------------------------
 -- reads the current Bottom Left auto update register
 -- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoBotLeft()
+-- device.writeAutoBotLeft(0)
+-- ...
+-- device.writeAutoBotLeft(old)
 function _M.readAutoBotLeft()
-   local reg = _M.sendRegWait(_M.CMD_RDFINALDEC,_M.REG_DISP_AUTO_BOTTOM_LEFT)
-   reg = tonumber(reg)
-   curAutoBotLeft = reg
-   return reg
+    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_DISP_AUTO_BOTTOM_LEFT)
+    reg = tonumber(reg)
+    curAutoBotLeft = reg
+    return private.getRegisterName(reg)
+end
+
+-------------------------------------------------------------------------------
+-- Convert the annunicator bit maps to a value
+-- @param t String to value table
+-- @param l List of annunicators
+-- @local
+local function convertAnnunicatorBits(t, l)
+    local res = 0
+    for _, v in pairs(l) do
+        local bit = v
+        if type(v) == 'string' then
+            bit = t[string.lower(v)]
+        end
+        res = bit32.bor(res, bit)
+    end
+    return res
+end
+
+-------------------------------------------------------------------------------
+-- Convert one annunicator a value
+-- @param t String to value table
+-- @param a Annunicator to set
+-- @param default Default setting
+-- @local
+-- @local
+local function convertAnnunicator(t, a, default)
+    if type(a) == 'string' then
+        return t[a] or default
+    elseif type(a) == 'number' then
+        return a
+    end
+    return default
 end
 
 --- Bottom LCD Annunciators
@@ -393,48 +500,74 @@ end
 -- @field WAITALL
 
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
-_M.BATTERY   = 0x0001
-_M.CLOCK     = 0x0002
-_M.BAT_LO    = 0x0004
-_M.BAT_MIDL  = 0x0008
-_M.BAT_MIDH  = 0x0010
-_M.BAT_HI    = 0x0020
-_M.BAT_FULL  = 0x003D
-_M.WAIT      = 0x0040
-_M.WAIT45    = 0x0100
-_M.WAIT90    = 0x0200
-_M.WAIT135   = 0x0080
-_M.WAITALL   = 0x03C0
-local WAIT_SEGS = { _M.WAIT, _M.WAIT45, _M.WAIT90, _M.WAIT135 }
+local BATTERY   = 0x0001
+local CLOCK     = 0x0002
+local BAT_LO    = 0x0004
+local BAT_MIDL  = 0x0008
+local BAT_MIDH  = 0x0010
+local BAT_HI    = 0x0020
+local BAT_FULL  = 0x003D
+local WAIT      = 0x0040
+local WAIT45    = 0x0100
+local WAIT90    = 0x0200
+local WAIT135   = 0x0080
+local WAITALL   = 0x03C0
+local WAIT_SEGS = { WAIT, WAIT45, WAIT90, WAIT135 }
+
+local bottomAnnunicators = {
+    battery     = BATTERY,
+    clock       = CLOCK,
+    bat_lo      = BAT_LO,
+    bat_midl    = BAT_MIDL,
+    bat_midh    = BAT_MIDH,
+    bat_hi      = BAT_HI,
+    bat_full    = BAT_FULL,
+    wait        = WAIT,
+    wait45      = WAIT45,
+    wait90      = WAIT90,
+    wait135     = WAIT135,
+    waitall     = WAITALL
+}
 
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Bottom Annunciators
--- @param d holds bit locations
-function _M.setBitsBotAnnuns(d)
-  botAnnunState = bit32.bor(botAnnunState, d)
-  _M.writeBotAnnuns(botAnnunState)
+-- @param ... holds bit locations
+-- @usage
+-- device.setBitsBotAnnuns('battery', 'clock')
+function _M.setBitsBotAnnuns(...)
+    local bits = convertAnnunicatorBits(bottomAnnunicators, {...})
+    botAnnunState = bit32.bor(botAnnunState, bits)
+    writeBotAnnuns(botAnnunState)
 end
 
 -------------------------------------------------------------------------------
 -- Clears the annunciator bits for Bottom Annunciators
--- @param d holds bit locations
-function _M.clrBitsBotAnnuns(d)
-  botAnnunState = bit32.band(botAnnunState, bit32.bnot(d))
-  _M.writeBotAnnuns(botAnnunState)
+-- @param ... holds bit locations
+-- @usage
+-- device.clrBitsBotAnnuns('battery')
+function _M.clrBitsBotAnnuns(...)
+    local bits = convertAnnunicatorBits(bottomAnnunicators, {...})
+    botAnnunState = bit32.band(botAnnunState, bit32.bnot(bits))
+    writeBotAnnuns(botAnnunState)
 end
 
 -------------------------------------------------------------------------------
 -- Rotate the WAIT annunciator
--- @param dir  1 clockwise, -1 anticlockwise 0 no change
+-- @param dir 1 clockwise, -1 anticlockwise 0 no change
+-- @usage
+-- while true do
+--     device.rotWAIT(-1)
+--     device.delay(0.7)
+-- end
 function _M.rotWAIT(dir)
     if dir ~= 0 then
         waitPos = (waitPos - dir / math.abs(dir)) % #WAIT_SEGS
         if waitPos == 0 then waitPos = #WAIT_SEGS end
     end
 
-    botAnnunState = bit32.band(botAnnunState, bit32.bnot(_M.WAITALL))
+    botAnnunState = bit32.band(botAnnunState, bit32.bnot(WAITALL))
     botAnnunState = bit32.bor(botAnnunState, WAIT_SEGS[waitPos])
-    _M.writeBotAnnuns(botAnnunState)
+    writeBotAnnuns(botAnnunState)
 end
 
 --- Top LCD Annunciators
@@ -459,39 +592,66 @@ end
 -- @field RANGE_SEGE
 
 -- REG_DISP_TOP_ANNUN BIT SETTINGS
-_M.SIGMA        = 0x00001
-_M.BALANCE      = 0x00002
-_M.COZ          = 0x00004
-_M.HOLD         = 0x00008
-_M.MOTION       = 0x00010
-_M.NET          = 0x00020
-_M.RANGE        = 0x00040
-_M.ZERO         = 0x00080
-_M.BAL_SEGA     = 0x00100
-_M.BAL_SEGB     = 0x00200
-_M.BAL_SEGC     = 0x00400
-_M.BAL_SEGD     = 0x00800
-_M.BAL_SEGE     = 0x01000
-_M.BAL_SEGF     = 0x02000
-_M.BAL_SEGG     = 0x04000
-_M.RANGE_SEGADG = 0x08000
-_M.RANGE_SEGC   = 0x10000
-_M.RANGE_SEGE   = 0x20000
+local SIGMA        = 0x00001
+local BALANCE      = 0x00002
+local COZ          = 0x00004
+local HOLD         = 0x00008
+local MOTION       = 0x00010
+local NET          = 0x00020
+local RANGE        = 0x00040
+local ZERO         = 0x00080
+local BAL_SEGA     = 0x00100
+local BAL_SEGB     = 0x00200
+local BAL_SEGC     = 0x00400
+local BAL_SEGD     = 0x00800
+local BAL_SEGE     = 0x01000
+local BAL_SEGF     = 0x02000
+local BAL_SEGG     = 0x04000
+local RANGE_SEGADG = 0x08000
+local RANGE_SEGC   = 0x10000
+local RANGE_SEGE   = 0x20000
+
+local topAnnunicators = {
+    sigma           = SIGMA,
+    balance         = BALANCE,
+    coz             = COZ,
+    hold            = HOLD,
+    motion          = MOTION,
+    net             = NET,
+    range           = RANGE,
+    zero            = ZERO,
+    bal_sega        = BAL_SEGA,
+    bal_segb        = BAL_SEGB,
+    bal_segc        = BAL_SEGC,
+    bal_segd        = BAL_SEGD,
+    bal_sege        = BAL_SEGE,
+    bal_segf        = BAL_SEGF,
+    bal_segg        = BAL_SEGG,
+    range_segadg    = RANGE_SEGADG,
+    range_segc      = RANGE_SEGC,
+    range_sege      = RANGE_SEGE
+}
 
 -------------------------------------------------------------------------------
 -- Sets the annunciator bits for Top Annunciators
--- @param d holds bit locations
-function _M.setBitsTopAnnuns(d)
-  topAnnunState = bit32.bor(topAnnunState, d)
-  _M.writeTopAnnuns(topAnnunState)
+-- @param ... holds bit locations
+-- @usage
+-- device.setBitsTopAnnuns('sigma', 'motion', 'zero', 'range')
+function _M.setBitsTopAnnuns(...)
+    local bits = convertAnnunicatorBits(topAnnunicators, {...})
+    topAnnunState = bit32.bor(topAnnunState, bits)
+    writeTopAnnuns(topAnnunState)
 end
 
 -------------------------------------------------------------------------------
 -- Clears the annunciator bits for Top Annunciators
 -- @param d holds bit locations
-function _M.clrBitsTopAnnuns(d)
-  topAnnunState = bit32.band(topAnnunState, bit32.bnot(d))
-  _M.writeTopAnnuns(topAnnunState)
+-- @usage
+-- device.clrBitsTopAnnuns('net', 'hold')
+function _M.clrBitsTopAnnuns(...)
+    local bits = convertAnnunicatorBits(topAnnunicators, {...})
+    topAnnunState = bit32.band(topAnnunState, bit32.bnot(bits))
+    writeTopAnnuns(topAnnunState)
 end
 
 --- Main Units
@@ -508,17 +668,31 @@ end
 -- @field UNITS_L
 -- @field UNITS_ARROW_H
 -- REG_DISP UNITS BIT SETTINGS
-_M.UNITS_NONE    = 0x00
-_M.UNITS_KG      = 0x01
-_M.UNITS_LB      = 0x02
-_M.UNITS_T       = 0x03
-_M.UNITS_G       = 0x04
-_M.UNITS_OZ      = 0x05
-_M.UNITS_N       = 0x06
-_M.UNITS_ARROW_L = 0x07
-_M.UNITS_P       = 0x08
-_M.UNITS_L       = 0x09
-_M.UNITS_ARROW_H = 0x0A
+local UNITS_NONE    = 0x00
+local UNITS_KG      = 0x01
+local UNITS_LB      = 0x02
+local UNITS_T       = 0x03
+local UNITS_G       = 0x04
+local UNITS_OZ      = 0x05
+local UNITS_N       = 0x06
+local UNITS_ARROW_L = 0x07
+local UNITS_P       = 0x08
+local UNITS_L       = 0x09
+local UNITS_ARROW_H = 0x0A
+
+local unitAnnunicators = {
+    none      = UNITS_NONE,
+    kg        = UNITS_KG,
+    lb        = UNITS_LB,
+    t         = UNITS_T,
+    g         = UNITS_G,
+    oz        = UNITS_OZ,
+    n         = UNITS_N,
+    arrow_l   = UNITS_ARROW_L,
+    p         = UNITS_P,
+    l         = UNITS_L,
+    arrow_h   = UNITS_ARROW_H
+}
 
 --- Additional modifiers on bottom display
 --@table Other
@@ -527,45 +701,128 @@ _M.UNITS_ARROW_H = 0x0A
 -- @field UNITS_OTHER_PER_S
 -- @field UNITS_OTHER_PC
 -- @field UNITS_OTHER_TOT
-_M.UNITS_OTHER_PER_H   = 0x14
-_M.UNITS_OTHER_PER_M   = 0x11
-_M.UNITS_OTHER_PER_S   = 0x12
-_M.UNITS_OTHER_PC      = 0x30
-_M.UNITS_OTHER_TOT     = 0x08
+local UNITS_OTHER_PER_H   = 0x14
+local UNITS_OTHER_PER_M   = 0x11
+local UNITS_OTHER_PER_S   = 0x12
+local UNITS_OTHER_PC      = 0x30
+local UNITS_OTHER_TOT     = 0x08
+
+local otherAunnunictors = {
+    per_h   = UNITS_OTHER_PER_H,
+    per_m   = UNITS_OTHER_PER_M,
+    per_s   = UNITS_OTHER_PER_S,
+    pc      = UNITS_OTHER_PC,
+    tot     = UNITS_OTHER_TOT
+}
 
 -------------------------------------------------------------------------------
 -- Set top units
 -- @param units (.UNITS_NONE etc)
+-- @usage
+-- device.writeTopUnits('kg')
 function _M.writeTopUnits (units)
-   local units = units or _M.UNITS_NONE
-   _M.writeReg(_M.REG_DISP_TOP_UNITS,units)
-   curTopUnits = units
+    local u = convertAnnunicator(unitAnnunicators, units, UNITS_NONE)
+
+    _M.writeReg(REG_DISP_TOP_UNITS, u)
+    curTopUnits = u
 end
+
 -------------------------------------------------------------------------------
 -- Set bottom units
 -- @param units (.UNITS_NONE etc)
 -- @param other (.UNITS_OTHER_PER_H etc)
+-- @usage
+-- device.writeBotUnits('oz', 'per_m')
 function _M.writeBotUnits (units, other)
-   local units = units or _M.UNITS_NONE
-   local other = other or _M.UNITS_NONE
-   _M.writeReg(_M.REG_DISP_BOTTOM_UNITS,bit32.bor(bit32.lshift(other,8),units))
-   curBotUnits = units
-   curBotUnitsOther = other
+    local u = convertAnnunicator(unitAnnunicators, units, UNITS_NONE)
+    local o = convertAnnunicator(otherAunnunictors, other, UNITS_NONE)
+
+    _M.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
+    curBotUnits = u
+    curBotUnitsOther = o
 end
 
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
+-- @usage
+-- device.restoreLcd()
 function _M.restoreLcd()
-   _M.writeAutoTopAnnun(0)
-   _M.writeAutoTopLeft(_M.REG_GROSSNET)
-   _M.writeAutoBotLeft(0)
-   _M.writeTopRight('')
-   _M.writeBotLeft('')
-   _M.writeBotRight('')
-   _M.writeBotAnnuns(0)
-   _M.writeBotUnits()
+    _M.writeAutoTopAnnun(0)
+    _M.writeAutoTopLeft(_M.REG_GROSSNET)
+    _M.writeAutoBotLeft(0)
+    _M.writeTopRight('')
+    _M.writeBotLeft('')
+    _M.writeBotRight('')
+    writeBotAnnuns(0)
+    _M.writeBotUnits()
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the depricated fields
+depricated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
+depricated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
+depricated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
+depricated.REG_DISP_TOP_RIGHT           = REG_DISP_TOP_RIGHT
+depricated.REG_DISP_TOP_ANNUN           = REG_DISP_TOP_ANNUN
+depricated.REG_DISP_TOP_UNITS           = REG_DISP_TOP_UNITS
+depricated.REG_DISP_BOTTOM_ANNUN        = REG_DISP_BOTTOM_ANNUN
+depricated.REG_DISP_BOTTOM_UNITS        = REG_DISP_BOTTOM_UNITS
+depricated.REG_DISP_AUTO_TOP_ANNUN      = REG_DISP_AUTO_TOP_ANNUN
+depricated.REG_DISP_AUTO_TOP_LEFT       = REG_DISP_AUTO_TOP_LEFT
+depricated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
+
+depricated.setAutoTopAnnun              = _M.writeAutoTopAnnun
+depricated.setAutoTopLeft               = _M.writeAutoTopLeft
+depricated.writeBotAnnuns               =  writeBotAnnuns           
+depricated.writeTopAnnuns               = writeTopAnnuns
+depricated.setAutoBotLeft               = _M.writeAutoBotLeft
+
+depricated.BATTERY                      = BATTERY
+depricated.CLOCK                        = CLOCK
+depricated.BAT_LO                       = BAT_LO
+depricated.BAT_MIDL                     = BAT_MIDL
+depricated.BAT_MIDH                     = BAT_MIDH
+depricated.BAT_HI                       = BAT_HI
+depricated.BAT_FULL                     = BAT_FULL
+depricated.WAIT                         = WAIT
+depricated.WAIT45                       = WAIT45
+depricated.WAIT90                       = WAIT90
+depricated.WAIT135                      = WAIT135
+depricated.WAITALL                      = WAITALL
+depricated.SIGMA                        = SIGMA
+depricated.BALANCE                      = BALANCE
+depricated.COZ                          = COZ
+depricated.HOLD                         = HOLD
+depricated.MOTION                       = MOTION
+depricated.NET                          = NET
+depricated.RANGE                        = RANGE
+depricated.ZERO                         = ZERO
+depricated.BAL_SEGA                     = BAL_SEGA
+depricated.BAL_SEGB                     = BAL_SEGB
+depricated.BAL_SEGC                     = BAL_SEGC
+depricated.BAL_SEGD                     = BAL_SEGD
+depricated.BAL_SEGE                     = BAL_SEGE
+depricated.BAL_SEGF                     = BAL_SEGF
+depricated.BAL_SEGG                     = BAL_SEGG
+depricated.RANGE_SEGADG                 = RANGE_SEGADG
+depricated.RANGE_SEGC                   = RANGE_SEGC
+depricated.RANGE_SEGE                   = RANGE_SEGE
+depricated.UNITS_NONE                   = UNITS_NONE
+depricated.UNITS_KG                     = UNITS_KG
+depricated.UNITS_LB                     = UNITS_LB
+depricated.UNITS_T                      = UNITS_T
+depricated.UNITS_G                      = UNITS_G
+depricated.UNITS_OZ                     = UNITS_OZ
+depricated.UNITS_N                      = UNITS_N
+depricated.UNITS_ARROW_L                = UNITS_ARROW_L
+depricated.UNITS_P                      = UNITS_P
+depricated.UNITS_L                      = UNITS_L
+depricated.UNITS_ARROW_H                = UNITS_ARROW_H
+depricated.UNITS_OTHER_PER_H            = UNITS_OTHER_PER_H
+depricated.UNITS_OTHER_PER_M            = UNITS_OTHER_PER_M
+depricated.UNITS_OTHER_PER_S            = UNITS_OTHER_PER_S
+depricated.UNITS_OTHER_PC               = UNITS_OTHER_PC
+depricated.UNITS_OTHER_TOT              = UNITS_OTHER_TOT
 
 end
 
