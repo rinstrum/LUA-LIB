@@ -13,10 +13,13 @@ local max = math.max
 
 local _M = {}
 local timers = {}
+local lastEventTimer = nil
 
 -------------------------------------------------------------------------------
 -- Return monotonically increasing time.
+-- @function monotonictime
 -- @return a monotonic seconds based counter
+-- @local
 local monotonictime = socket.gettime
 
 -- Attempt to automatically detect if we're running on a posix based system
@@ -36,6 +39,7 @@ end
 -------------------------------------------------------------------------------
 -- Put an event into the timer table.
 -- @return The event
+-- @local
 local function push(event)
 	local when = event.when
     local n = #timers + 1
@@ -52,6 +56,7 @@ end
 -------------------------------------------------------------------------------
 -- Grab the next event from the timer table.
 -- @return The next event
+-- @local
 local function pop()
 	local s = #timers
     if s == 0 then return nil end
@@ -82,6 +87,7 @@ end
 -- Utility routine to determine is a timer is still active
 -- @param timer The timer being investigates
 -- @return true iff the timer is still active
+-- @local
 local function active(timer)
     return timer ~= nil and timer.cb ~= nil
 end
@@ -94,6 +100,7 @@ end
 -- @param callback Function to run when timer is complete
 -- @param extraargs Function variables
 -- @return Timer key which should be considered a read only object
+-- @local
 local function internalAddTimer(time, delay, reg, callback, extraargs)
 	if callback == nil then
     	return nil
@@ -110,32 +117,64 @@ end
 
 -------------------------------------------------------------------------------
 -- Add a timer to the timer list
--- @param time Time until the timer will go off (milliseconds)
--- @param delay Initial delay for timer
+-- @param time Time between timer events in seconds, 0 means no repeatition
+-- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
+-- @see addRegularTimer
+-- @see removeTimer
+-- @see addEvent
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- timers.addTimer(0, 10, print, 'hello, ten seconds have elapsed')
+-- local t1 = timers.addTimer(1, 0, print, 'tick')
+-- local t2 = timers.addTimer(1, 0.5, print, 'tock')
+-- timers.addTimer(0, 20, timers.removeTimer, t1)
+-- timers.addTimer(0, 21, timers.removeTimer, t2)
+-- timers.addTimer(0, 22, print, 'goodbye)
 function _M.addTimer(time, delay, callback, ...)
     return internalAddTimer(time, delay, false, callback, {...})
 end
 
 -------------------------------------------------------------------------------
--- Add a timer to the timer list
--- @param time Time until the timer will go off (milliseconds)
--- @param delay Initial delay for timer
+-- Add a timer to the timer list, when repeating this timer won't drift
+-- due to delays etc.  It is still possible for timing events to be missed
+-- or skipped but they won't drift.  Unless timing is critical, you won't
+-- need to use this flavour.
+-- @param time Time between timer events in seconds, 0 means no repeatition
+-- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- local t1 = timers.addRegularTimer(1, 0, print, 'tick')
+-- local t2 = timers.addRegularTimer(1, 0.5, print, 'tock')
+-- timers.addTimer(0, 20, timers.removeTimer, t1)
+-- timers.addTimer(0, 21, timers.removeTimer, t2)
+-- timers.addTimer(0, 22, print, 'goodbye)
 function _M.addRegularTimer(time, delay, callback, ...)
     return internalAddTimer(time, delay, true, callback, {...})
 end
 
 -------------------------------------------------------------------------------
--- Add an event to the timer list
+-- Add an event to the timer list.  Events occur immediately but are triggered
+-- from the application's main event loop.  They should be used when you want
+-- something to occur now, but don't want to wait around for it and don't want
+-- other application functions to wait either.  The ordering of events is
+-- preserved.
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
-local lastEventTimer = nil
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- timers.addEvent(print, "first event")
+-- timers.addEvent(print, 'second event')
+-- timers.addEvent(print, 'third event')
 function _M.addEvent(callback, ...)
 	-- We schedule the first such event timer now and any future ones
     -- a hundred microseconds in the future to preserve order of execution.
@@ -150,6 +189,14 @@ end
 -------------------------------------------------------------------------------
 -- Remove a timer from the timer list
 -- @param key Key for a timer
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- local t1 = timers.addTimer(1, 0, print, 'tick')
+-- local t2 = timers.addTimer(1, 0.5, print, 'tock')
+-- device.delay(10)
+-- timers.removeTimer(t1)
+-- timers.removeTimer(t2)
 function _M.removeTimer(key)
 	if key ~= nil then
 		key.cb = nil
@@ -160,8 +207,16 @@ function _M.removeTimer(key)
 end
 
 -------------------------------------------------------------------------------
--- Get the time until the next timer expires
+-- Get the time until the next timer expires.  This routine does not do any
+-- waiting, it simply returns how long until the next scheduled timer event.
+-- Generally, you won't need to call this ever.  The rinApp application
+-- framework takes care of this for you.
 -- @return Delay in seconds
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- local timeTillNext = timers.delayUnitNext()
+-- print('snoozing for ' .. timeTillNext .. ' seconds')
 function _M.delayUntilNext()
 	if timers[1] ~= nil then
     	return max(0, timers[1].when - monotonictime())
@@ -171,8 +226,17 @@ end
 
 -------------------------------------------------------------------------------
 -- Get the time until the specified timer expires.
--- A cancelled or non-existent timer will never trigger of course.
+-- A cancelled or non-existent timer will never trigger of course and return
+-- a huge number.
 -- @return Delay in seconds
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- local t = timers.addTimer(0, 10, print, 'bye')
+--
+-- local function status()
+--     print('timer in ' .. timers.delayUntilTimer(t) .. ' seconds')
+-- end
+-- timers.addTimer(1.123, 2.345, status)
 function _M.delayUntilTimer(event)
     if active(event) then
     	return event.when - monotonictime()
@@ -181,7 +245,14 @@ function _M.delayUntilTimer(event)
 end
 
 -------------------------------------------------------------------------------
--- Attempt to run any timers that have expired.
+-- Attempt to run any timers that have expired at this moment.
+-- Events that fall due dunig the processing of the current events will not
+-- be triggered.  Rather they will be processed on the next call.
+-- The rinApp application framework takes care of calling this for you.
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- timers.processTimeouts()
 function _M.processTimeouts()
 	local now = monotonictime()
 
@@ -213,6 +284,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Close down and stop all timers.
+-- The rinApp application framework takes care of calling this for you.
+-- Calling this yourself is likely to cause portions of the runApp application
+-- framework to cease correctly functioning
+-- @usage
+-- local timers = require 'rinSystem.rinTimers.Pack'
+--
+-- timers.reset()
 function _M.reset()
     lastEventTimer = nil
     timers = {}
