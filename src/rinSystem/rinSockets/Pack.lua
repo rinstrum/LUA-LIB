@@ -16,6 +16,13 @@ local sockets = {}
 local writers = {}
 local sockSet = {}
 
+-- Close down everything socket related
+-- Calling this yourself is likely to cause portions of the runApp application
+-- framework to cease correctly functioning.
+-- @usage
+-- local sockets = require 'rinSystem.rinSockets.Pack'
+--
+-- sockets.reset()
 function _M.reset()
     for k, _ in pairs(sockets) do
         k:close()
@@ -28,6 +35,10 @@ end
 -------------------------------------------------------------------------------
 -- Callback function that ignoes incoming data for a read only socket.
 -- @param sock The socket to read all available data from
+-- @usage
+-- local sockets = require 'rinApp.system.sockets'
+--
+-- sockets.flushReadSocket(mySocket)
 function _M.flushReadSocket(sock)
 	local ch, err, extra = nil, nil, nil
     while err == nil do
@@ -44,6 +55,34 @@ end
 -- @param sock Socket to add to the list
 -- @param callback Callback for the socket
 -- @return a handle to the socket
+-- @see removeSocket
+-- @usage
+-- -- Refer to the 'exernal.lua' example.
+--
+-- local sockets = require 'rinApp.system.sockets'
+-- local mySocket
+--
+-- local function mySocketReader(sock)
+--     local m, err = sockets.readSocket(sock)
+--     if err ~= nil then
+--     	   sockets.removeSocket(sock)
+--     else
+--     	   lines = split(m)
+--         for i = 1, #lines do
+--     	       if lines[i] == "ping" then
+--         	       sockets.writeSocket(mySocket, "pong\r\n")
+--             end
+--         end
+--     end
+-- end
+--
+-- local function myAccept(sock, ip, port)
+--     mySocket = sock
+--     sockets.addSocket(sock, mySocketReader)
+--     sockets.setSocketTimeout(sock, 0.010)
+-- end
+--
+-- sockets.createServerSocket(666, myAccept)
 function _M.addSocket(sock, callback)
     sockets[sock] = callback
     return sock
@@ -52,6 +91,14 @@ end
 -------------------------------------------------------------------------------
 -- Remove a socket from the socket list
 -- @param sock Socket to remove from the list
+-- @see addSocket
+-- @usage
+-- -- Refer to the 'exernal.lua' example or to the
+-- -- addSocket call above that has a fuller example.
+--
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.removeSocket(mySocket)
 function _M.removeSocket(sock)
     writers[sock] = nil
     sockets[sock] = nil
@@ -59,9 +106,15 @@ function _M.removeSocket(sock)
 end
 
 -------------------------------------------------------------------------------
--- Create a server/listening socket
+-- Create a server/listening socket.
+-- Generatlly you'll use createServerSocket to do this for you.
 -- @param sock The socket to listen on
 -- @param callback The callback that will be invoked when a new connection is established
+-- @see createServerSocket
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.listenSocket(mySocket, function(client, ip, port) print('attmpet from', ip, port) end)
 function _M.listenSocket(sock, callback)
 	_M.addSocket(sock, function (s)
     					   -- s and sock are identical here
@@ -82,6 +135,14 @@ end
 -- Set the socket's timeout threshold
 -- @param sock The socket to alter
 -- @param timeout The socket's timeout in seconds
+-- @see addSocket
+-- @usage
+-- -- Refer to the 'exernal.lua' example or to the
+-- -- addSocket call above that has a fuller example.
+--
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.setSocketTimeout(mySocket, 0.1)
 function _M.setSocketTimeout(sock, timeout)
 	sock:settimeout(timeout)
 end
@@ -90,6 +151,17 @@ end
 -- Read a message from a socket
 -- @param sock Socket to read from
 -- @return The message received
+-- @see addSocket
+-- @see writeSocket
+-- @usage
+-- -- Refer to the 'exernal.lua' example or to the
+-- -- addSocket call above that has a fuller example.
+--
+-- local sockets = rinApp.system.sockets
+--
+-- local m, err = sockets.readSocket(sock)
+-- print('message is: ', m)
+-- print('error is:', err)
 function _M.readSocket(sock)
 	local m, err, extra = nil, nil, nil
 	m, err, extra = sock:receive(70000)
@@ -106,6 +178,15 @@ end
 -- @param sock Socket to write to
 -- @param msg Data to write
 -- @return Length of the send queue
+-- @usage
+-- @see addSocket
+-- @see readSocket
+-- -- Refer to the 'exernal.lua' example or to the
+-- -- addSocket call above that has a fuller example.
+--
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.writeSocket(mySocket, 'hello again')
 function _M.writeSocket(sock, msg)
 	local queue = writers[sock]
     if queue == nil then
@@ -119,8 +200,13 @@ function _M.writeSocket(sock, msg)
 end
 
 -------------------------------------------------------------------------------
--- Get a set of sockets that have pending write data
+-- Get a set of sockets that have pending write data.
+-- You don't need to call this, the rinApp application takes care of this.
 -- @return Set of sockets, nil if there are none
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- local readers = sockets.getReaderSockets()
 function _M.getReaderSockets()
 	local r = {}
 	for i, v in pairs(sockets) do
@@ -135,7 +221,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Get a set of sockets that can safely be written to
+-- You don't need to call this, the rinApp application takes care of this.
 -- @return Set of sockets, nil if there are none
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- local writers = sockets.getWriterSockets()
 function _M.getWriterSockets()
 	local r = {}
 	for i, v in pairs(writers) do
@@ -152,7 +243,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Read a readable socket
+-- You don't need to call this, the rinApp application takes care of this.
 -- @param sock A readable socket
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.processReadSocket(mySocket)
 function _M.processReadSocket(sock)
 	local callback = sockets[sock]
     if callback then
@@ -166,6 +262,7 @@ end
 -------------------------------------------------------------------------------
 -- Suppress debug messages to a socket
 -- @param sock A socket
+-- @local
 local function suppressSocketDebug(sock)
     local queue = writers[sock]
     if queue ~= nil then
@@ -175,7 +272,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Write a writable socket
+-- You don't need to call this, the rinApp application takes care of this.
 -- @param sock A writable socket
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.processWriteSocket(mySocket)
 function _M.processWriteSocket(sock)
     local queue = writers[sock]
     if queue ~= nil then
@@ -190,7 +292,7 @@ function _M.processWriteSocket(sock)
         end
 
         local ret, err = sock:send(msg)
-        
+
         if err then
             dbg.warn('FAILED TRANSMIT', msg)
         elseif not queue.suppress then
@@ -206,6 +308,10 @@ end
 -- @param port Port address for the socket
 -- @param timeout The timeout associated with the socket
 -- @return the socket
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- local mySocket = createTCPsocket('1.1.1.1', 666, 0.1)
 function _M.createTCPsocket(ip, port, timeout)
     local s = assert(require "socket".tcp())
     s:connect(ip, port)
@@ -219,6 +325,23 @@ end
 -- @param callback The read callback for the socket
 -- @return the socket
 -- @return error code
+-- @see addSocket
+-- @usage
+-- -- Refer to the 'exernal.lua' example or to the
+-- -- addSocket call above that has a fuller example.
+--
+-- local sockets = rinApp.system.sockets
+--
+-- local function mySocketReader(sock)
+--     ...
+-- end
+--
+-- local function myAccept(sock, ip, port)
+--     sockets.addSocket(sock, mySocketReader)
+--     sockets.setSocketTimeout(sock, 0.010)
+-- end
+--
+-- sockets.createServerSocket(666, myAccept)
 function _M.createServerSocket(port, callback)
 	local server, err = socket.bind('*', port)
 	if server then
@@ -235,13 +358,20 @@ end
 -- @param sock The socket to add
 -- @param callback The filter callback.  Pass nil for complete filtering.
 -- @param silent If true, surpresses debug output for message on this socket
+-- @usage
+-- local sockets = rinApp.system.sockets
 --
--- The callback function looks like:
--- function callback(sock, msg, ...)
--- param sock The socket to be written to
--- param msg The message to be written
--- param ... variable numbers of extra arguments depending on source
--- return msg The message that will actually be sent or nil for no message
+-- -- The callback function looks like:
+-- -- function callback(sock, msg, ...)
+-- -- param sock The socket to be written to
+-- -- param msg The message to be written
+-- -- param ... variable numbers of extra arguments depending on source
+-- -- return msg The message that will actually be sent or nil for no message
+-- function cb(sock, msg)
+--     return msg
+-- end
+--
+-- sockets.addSocketSet('mysey', mySocket, cb)
 function _M.addSocketSet(name, sock, callback, silent)
 	if name == nil or sock == nil then return end
 	if sockSet[name] == nil then
@@ -254,6 +384,10 @@ end
 -- Remove the specified socket from the named socket set.
 -- @param name The name of the socket set
 -- @param sock The socket to remove
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.removeSocketSet('mysey', mySocket)
 function _M.removeSocketSet(name, sock)
 	if name == nil or sock == nil or sockSet[name] == nil then return end
 	sockSet[name][sock] = nil
@@ -262,6 +396,10 @@ end
 -------------------------------------------------------------------------------
 -- Remove the specified socket from all socket sets.
 -- @param sock The socket to remove
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.removeAllSocketSet(mySocket)
 function _M.removeAllSocketSet(sock)
 	if sock ~= nil then
 	    for i, v in pairs(sockSet) do
@@ -275,6 +413,10 @@ end
 -- @param name The socket set to write to
 -- @param msg The message to write
 -- @param ... Optional arguments which will be passed to each call back filter.
+-- @usage
+-- local sockets = rinApp.system.sockets
+--
+-- sockets.writeSet('myset', 'hello there')
 function _M.writeSet(name, msg, ...)
 	if name and msg then
         local s = sockSet[name]

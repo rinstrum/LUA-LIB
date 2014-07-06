@@ -65,7 +65,7 @@ end
 local function bidirectionalFromExternal(sock)
 	local sockets = rinApp.system.sockets
 
-	m, err = sockets.readSocket(sock)
+	local m, err = sockets.readSocket(sock)
     if err ~= nil then
     	sockets.removeSocket(sock)
         bidirectionalSocket = nil

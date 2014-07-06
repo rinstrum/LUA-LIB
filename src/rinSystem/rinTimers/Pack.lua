@@ -148,6 +148,9 @@ end
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
+-- @see addTimer
+-- @see removeTimer
+-- @see addEvent
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
@@ -169,6 +172,9 @@ end
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
 -- @return Timer key which should be considered a read only object
+-- @see addTimer
+-- @see addRegularTimer
+-- @see removeTimer
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
@@ -189,6 +195,9 @@ end
 -------------------------------------------------------------------------------
 -- Remove a timer from the timer list
 -- @param key Key for a timer
+-- @see addTimer
+-- @see addRegularTimer
+-- @see addEvent
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
@@ -212,6 +221,8 @@ end
 -- Generally, you won't need to call this ever.  The rinApp application
 -- framework takes care of this for you.
 -- @return Delay in seconds
+-- @see delayUntilTimer
+-- @see processTimeouts
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
@@ -229,6 +240,8 @@ end
 -- A cancelled or non-existent timer will never trigger of course and return
 -- a huge number.
 -- @return Delay in seconds
+-- @see delayUntilNext
+-- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
 -- local t = timers.addTimer(0, 10, print, 'bye')
@@ -249,6 +262,7 @@ end
 -- Events that fall due dunig the processing of the current events will not
 -- be triggered.  Rather they will be processed on the next call.
 -- The rinApp application framework takes care of calling this for you.
+-- @see delayUntilNext
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
@@ -286,7 +300,7 @@ end
 -- Close down and stop all timers.
 -- The rinApp application framework takes care of calling this for you.
 -- Calling this yourself is likely to cause portions of the runApp application
--- framework to cease correctly functioning
+-- framework to cease correctly functioning.
 -- @usage
 -- local timers = require 'rinSystem.rinTimers.Pack'
 --
