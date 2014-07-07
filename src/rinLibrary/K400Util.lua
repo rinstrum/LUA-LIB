@@ -197,8 +197,8 @@ local function readSettings()
                 data = tonumber(data, 16)
                 if data ~= nil then
                     local cur = settings.dispmode[mode]
-                    cur.dp = bit32.band(data,0x0000000F)
-                    cur.units      = units  [1+bit32.band(bit32.rshift(data,  4), 0x0000000F)]
+                    cur.dp         = bit32.band(data, 0x0000000F)
+                    cur.units      = units  [1 + bit32.band(bit32.rshift(data,  4), 0x0000000F)]
                     cur.countby[3] = countby[1 + bit32.band(bit32.rshift(data,  8), 0x000000FF)]
                     cur.countby[2] = countby[1 + bit32.band(bit32.rshift(data, 16), 0x000000FF)]
                     cur.countby[1] = countby[1 + bit32.band(bit32.rshift(data, 24), 0x000000FF)]
