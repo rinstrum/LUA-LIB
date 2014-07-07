@@ -110,9 +110,9 @@ local typeMap = {
     net =       TYPE_NET,
     motion =    TYPE_MOTION,
     error =     TYPE_ERROR,
-    lgc_and =   TYPE_LGC_AND,
-    lgc_or =    TYPE_LGC_OR,
-    lgc_xor =   TYPE_LGC_XOR,
+    logic_and = TYPE_LGC_AND,
+    logic_or =  TYPE_LGC_OR,
+    logic_xor = TYPE_LGC_XOR,
     buzzer =    TYPE_BUZZER
 }
 
@@ -295,10 +295,11 @@ end
 -- @field NET
 -- @field MOTION
 -- @field ERROR
--- @field LGC_AND
--- @field LGC_OR
--- @field LGC_XOR
+-- @field LOGIC_AND
+-- @field LOGIC_OR
+-- @field LOGIC_XOR
 -- @field BUZZER
+
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
 -- @param setp is setpount 1..16
