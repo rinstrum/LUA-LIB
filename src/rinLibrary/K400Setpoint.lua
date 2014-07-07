@@ -31,50 +31,90 @@ local REG_SETP_SOURCE  = 0xA406
 local REG_SETP_HYS     = 0xA409
 local REG_SETP_SOURCE_REG = 0xA40A
 
-local REG_SETP_TIMING  = 0xA410
-local REG_SETP_RESET   = 0xA411
-local REG_SETP_PULSE_NUM = 0xA412
-local REG_SETP_TIMING_DELAY  = 0xA40C
-local REG_SETP_TIMING_ON     = 0xA40D
+-- There are no wrapper functions for these five yet.
+_M.REG_SETP_TIMING  = 0xA410
+_M.REG_SETP_RESET   = 0xA411
+_M.REG_SETP_PULSE_NUM = 0xA412
+_M.REG_SETP_TIMING_DELAY  = 0xA40C
+_M.REG_SETP_TIMING_ON     = 0xA40D
 
 -- targets are stored in the product database rather than the setpoint one
 local REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
-_M.LOGIC_HIGH = 0
-_M.LOGIC_LOW = 1
+local LOGIC_HIGH = 0
+local LOGIC_LOW = 1
 
-_M.ALARM_NONE = 0
-_M.ALARM_SINGLE = 1
-_M.ALARM_DOUBLE = 2
-_M.ALARM_FLASH = 3
+local logicMap = {
+    high = LOGIC_HIGH,
+    low  = LOGIC_LOW
+}
+
+local ALARM_NONE   = 0
+local ALARM_SINGLE = 1
+local ALARM_DOUBLE = 2
+local ALARM_FLASH  = 3
+
+local alarmTypeMap = {
+    none = ALARM_NONE,
+    single = ALARM_SINGLE,
+    double = ALARM_DOUBLE,
+    flash = ALARM_FLASH
+}
 
 _M.TIMING_LEVEL = 0
 _M.TIMING_EDGE  = 1
 _M.TIMING_PULSE = 2
 _M.TIMING_LATCH = 3
 
-_M.SOURCE_GROSS = 0
-_M.SOURCE_NET = 1
-_M.SOURCE_DISP = 2
-_M.SOURCE_ALT_GROSS = 3
-_M.SOURCE_ALT_NET = 4
-_M.SOURCE_ALT_DISP = 5
-_M.SOURCE_PIECE = 6
-_M.SOURCE_REG = 7
+local SOURCE_GROSS = 0
+local SOURCE_NET = 1
+local SOURCE_DISP = 2
+local SOURCE_ALT_GROSS = 3
+local SOURCE_ALT_NET = 4
+local SOURCE_ALT_DISP = 5
+local SOURCE_PIECE = 6
+local SOURCE_REG = 7
 
-_M.TYPE_OFF      = 0
-_M.TYPE_ON       = 1
-_M.TYPE_OVER     = 2
-_M.TYPE_UNDER    = 3
-_M.TYPE_COZ      = 4
-_M.TYPE_ZERO     = 5
-_M.TYPE_NET      = 6
-_M.TYPE_MOTION   = 7
-_M.TYPE_ERROR    = 8
-_M.TYPE_LGC_AND  = 9
-_M.TYPE_LGC_OR   = 10
-_M.TYPE_LGC_XOR  = 11
-_M.TYPE_BUZZER   = 12
+local sourceMap = {
+    gross =     SOURCE_GROSS,
+    net =       SOURCE_NET,
+    disp =      SOURCE_DISP,
+    alt_gross = SOURCE_ALT_GROSS,
+    alt_net =   SOURCE_ALT_NET,
+    alt_disp =  SOURCE_ALT_DISP,
+    piece =     SOURCE_PIECE,
+    reg =       SOURCE_REG
+}
+
+local TYPE_OFF      = 0
+local TYPE_ON       = 1
+local TYPE_OVER     = 2
+local TYPE_UNDER    = 3
+local TYPE_COZ      = 4
+local TYPE_ZERO     = 5
+local TYPE_NET      = 6
+local TYPE_MOTION   = 7
+local TYPE_ERROR    = 8
+local TYPE_LGC_AND  = 9
+local TYPE_LGC_OR   = 10
+local TYPE_LGC_XOR  = 11
+local TYPE_BUZZER   = 12
+
+local typeMap = {
+    off =       TYPE_OFF,
+    on =        TYPE_ON,
+    over =      TYPE_OVER,
+    under =     TYPE_UNDER,
+    coz =       TYPE_COZ,
+    zero =      TYPE_ZERO,
+    net =       TYPE_NET,
+    motion =    TYPE_MOTION,
+    error =     TYPE_ERROR,
+    lgc_and =   TYPE_LGC_AND,
+    lgc_or =    TYPE_LGC_OR,
+    lgc_xor =   TYPE_LGC_XOR,
+    buzzer =    TYPE_BUZZER
+}
 
 local lastOutputs = nil
 local timedOutputs = 0   -- keeps track of which IO are already running off timers
@@ -207,10 +247,10 @@ function _M.setpRegAddress(setp, register)
     if (setp > NUM_SETP) or (setp < 1) then
         dbg.error('Setpoint Invalid: ', setp)
         return(0)
-    elseif reg == _M.REG_SETP_TARGET then
+    elseif reg == REG_SETP_TARGET then
         return (reg+setp-1)
     else
-        return (reg+((setp-1)*_M.REG_SETP_REPEAT))
+        return (reg+((setp-1)*REG_SETP_REPEAT))
     end
 end
 
@@ -225,7 +265,7 @@ end
 -- Set the number of Setpoints
 -- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
-    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.REG_SETP_NUM, n)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, REG_SETP_NUM, n)
 end
 
 -------------------------------------------------------------------------------
@@ -233,7 +273,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, _M.REG_SETP_TARGET), target)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
@@ -241,53 +281,63 @@ end
 -- @param setp is setpount 1..16
 -- @param IO is output 1..32, 0 for none
 function _M.setpIO(setp, IO)
-    setpParam(setp, _M.REG_SETP_OUTPUT, IO)
+    setpParam(setp, REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
 --@table Types
--- @field TYPE_OFF
--- @field TYPE_ON
--- @field TYPE_OVER
--- @field TYPE_UNDER
--- @field TYPE_COZ
--- @field TYPE_ZERO
--- @field TYPE_NET
--- @field TYPE_MOTION
--- @field TYPE_ERROR
--- @field TYPE_LGC_AND
--- @field TYPE_LGC_OR
--- @field TYPE_LGC_XOR
--- @field TYPE_BUZZER
+-- @field OFF
+-- @field ON
+-- @field OVER
+-- @field UNDER
+-- @field COZ
+-- @field ZERO
+-- @field NET
+-- @field MOTION
+-- @field ERROR
+-- @field LGC_AND
+-- @field LGC_OR
+-- @field LGC_XOR
+-- @field BUZZER
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
 -- @param setp is setpount 1..16
 -- @param v is setpoint type
 function _M.setpType(setp, v)
-    setpParam(setp, _M.REG_SETP_TYPE, v)
+    if type(v) == 'string' then
+        v = typeMap[string.lower(v)]
+    end
+    setpParam(setp, REG_SETP_TYPE, v)
 end
 
 -------------------------------------------------------------------------------
 -- Set the Logic for the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint logic type (.LOGIC_HIGH, .LOGIC_LOW)
+-- @param v is setpoint logic type "high" or "low"
 function _M.setpLogic(setp, v)
-    setpParam(setp, _M.REG_SETP_LOGIC, v)
+    if type(v) == 'string' then
+        v = logicMap[string.lower(v)]
+    end
+    setpParam(setp, REG_SETP_LOGIC, v)
 end
 
 --- Setpoint Alarms Types.
 --@table Alarms
--- @field ALARM_NONE
--- @field ALARM_SINGLE
--- @field ALARM_DOUBLE
--- @field ALARM_FLASH
+-- @field NONE
+-- @field SINGLE
+-- @field DOUBLE
+-- @field FLASH
 
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint
 -- @param setp is setpount 1..16
 -- @param v is alarm type
 function _M.setpAlarm(setp, v)
-    setpParam(setp, _M.REG_SETP_ALARM, v)
+    if type(v) == 'string' then
+        v = alarmTypeMap[string.lower(v)]
+    end
+
+    setpParam(setp, REG_SETP_ALARM, v)
 end
 
 -------------------------------------------------------------------------------
@@ -295,31 +345,33 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint name (8 character string)
 function _M.setpName(setp, v)
-    setpParam(setp, _M.REG_SETP_NAME, v)
+    setpParam(setp, REG_SETP_NAME, v)
 end
 
 --- Setpoint Source Types.
 --@table Source
--- @field SOURCE_GROSS
--- @field SOURCE_NET
--- @field SOURCE_DISP
--- @field SOURCE_ALT_GROSS
--- @field SOURCE_ALT_NET
--- @field SOURCE_ALT_DISP
--- @field SOURCE_PIECE
--- @field SOURCE_REG
+-- @field GROSS
+-- @field NET
+-- @field DISP
+-- @field ALT_GROSS
+-- @field ALT_NET
+-- @field ALT_DISP
+-- @field PIECE
+-- @field REG
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint source type
+-- @param v is setpoint source type (string)
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
 function _M.setpSource(setp, v, reg)
-    local r = private.getRegisterNumber(reg)
+    if type(v) == 'string' then
+        v = sourceMap[string.lower(sourceType)]
+    end
 
-    setpParam(setp, _M.REG_SETP_SOURCE, v)
-    if (v == _M.SOURCE_REG) and r then
-        setpParam(setp, _M.REG_SETP_SOURCE_REG, r)
+    setpParam(setp, REG_SETP_SOURCE, v)
+    if (v == SOURCE_REG) and reg then
+        setpParam(setp, REG_SETP_SOURCE_REG, private.getRegisterNumber(reg))
     end
 end
 
@@ -328,7 +380,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint hysteresis
 function _M.setpHys(setp, v)
-    setpParam(setp, _M.REG_SETP_HYS, _M.toPrimary(v))
+    setpParam(setp, REG_SETP_HYS, _M.toPrimary(v))
 end
 
 -------------------------------------------------------------------------------
@@ -354,14 +406,40 @@ depricated.REG_SETP_NAME            = REG_SETP_NAME
 depricated.REG_SETP_SOURCE          = REG_SETP_SOURCE
 depricated.REG_SETP_HYS             = REG_SETP_HYS
 depricated.REG_SETP_SOURCE_REG      = REG_SETP_SOURCE_REG
-depricated.REG_SETP_TIMING          = REG_SETP_TIMING
-depricated.REG_SETP_RESET           = REG_SETP_RESET
-depricated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
-depricated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
-depricated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
 depricated.REG_SETP_TARGET          = REG_SETP_TARGET
 
 depricated.NUM_SETP                 = NUM_SETP
+
+depricated.LOGIC_HIGH               = LOGIC_HIGH
+depricated.LOGIC_LOW                = LOGIC_LOW
+
+depricated.ALARM_NONE               = ALARM_NONE
+depricated.ALARM_SINGLE             = ALARM_SINGLE
+depricated.ALARM_DOUBLE             = ALARM_DOUBLE
+depricated.ALARM_FLASH              = ALARM_FLASH
+
+depricated.SOURCE_GROSS             = SOURCE_GROSS
+depricated.SOURCE_NET               = SOURCE_NET
+depricated.SOURCE_DISP              = SOURCE_DISP
+depricated.SOURCE_ALT_GROSS         = SOURCE_ALT_GROSS
+depricated.SOURCE_ALT_NET           = SOURCE_ALT_NET
+depricated.SOURCE_ALT_DISP          = SOURCE_ALT_DISP
+depricated.SOURCE_PIECE             = SOURCE_PIECE
+depricated.SOURCE_REG               = SOURCE_REG
+
+depricated.TYPE_OFF                 = TYPE_OFF
+depricated.TYPE_ON                  = TYPE_ON
+depricated.TYPE_OVER                = TYPE_OVER
+depricated.TYPE_UNDER               = TYPE_UNDER
+depricated.TYPE_COZ                 = TYPE_COZ
+depricated.TYPE_ZERO                = TYPE_ZERO
+depricated.TYPE_NET                 = TYPE_NET
+depricated.TYPE_MOTION              = TYPE_MOTION
+depricated.TYPE_ERROR               = TYPE_ERROR
+depricated.TYPE_LGC_AND             = TYPE_LGC_AND
+depricated.TYPE_LGC_OR              = TYPE_LGC_OR
+depricated.TYPE_LGC_XOR             = TYPE_LGC_XOR
+depricated.TYPE_BUZZER              = TYPE_BUZZER
 
 end
 
