@@ -127,7 +127,7 @@ local NUM_SETP = 16
 -- @local
 local function setOutputs(outp)
     if outp ~= lastOutputs then
-        _M.sendReg(_M.CMD_WRFINALDEC, private.REG_IO_STATUS,  outp)
+        _M.sendReg(_M.CMD_WRFINALDEC, private.REG_IO_STATUS, outp)
         lastOutputs = outp
     end
 end
