@@ -18,27 +18,27 @@ return function (_M, private, depricated)
 private.REG_IO_STATUS    = 0x0051
 local REG_IO_ENABLE    = 0x0054
 
-_M.REG_SETP_NUM     = 0xA400
+local REG_SETP_NUM     = 0xA400
 
 -- add Repeat to each registers below for each setpoint 0..15
-_M.REG_SETP_REPEAT  = 0x0020
-_M.REG_SETP_TYPE    = 0xA401
-_M.REG_SETP_OUTPUT  = 0xA402
-_M.REG_SETP_LOGIC   = 0xA403
-_M.REG_SETP_ALARM   = 0xA404
-_M.REG_SETP_NAME    = 0xA40E
-_M.REG_SETP_SOURCE  = 0xA406
-_M.REG_SETP_HYS     = 0xA409
-_M.REG_SETP_SOURCE_REG = 0xA40A
+local REG_SETP_REPEAT  = 0x0020
+local REG_SETP_TYPE    = 0xA401
+local REG_SETP_OUTPUT  = 0xA402
+local REG_SETP_LOGIC   = 0xA403
+local REG_SETP_ALARM   = 0xA404
+local REG_SETP_NAME    = 0xA40E
+local REG_SETP_SOURCE  = 0xA406
+local REG_SETP_HYS     = 0xA409
+local REG_SETP_SOURCE_REG = 0xA40A
 
-_M.REG_SETP_TIMING  = 0xA410
-_M.REG_SETP_RESET   = 0xA411
-_M.REG_SETP_PULSE_NUM = 0xA412
-_M.REG_SETP_TIMING_DELAY  = 0xA40C
-_M.REG_SETP_TIMING_ON     = 0xA40D
+local REG_SETP_TIMING  = 0xA410
+local REG_SETP_RESET   = 0xA411
+local REG_SETP_PULSE_NUM = 0xA412
+local REG_SETP_TIMING_DELAY  = 0xA40C
+local REG_SETP_TIMING_ON     = 0xA40D
 
 -- targets are stored in the product database rather than the setpoint one
-_M.REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
+local REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
 _M.LOGIC_HIGH = 0
 _M.LOGIC_LOW = 1
@@ -81,8 +81,10 @@ local timedOutputs = 0   -- keeps track of which IO are already running off time
 -- bits set if under LUA control, clear if under instrument control
 local lastIOEnable = nil
 
-_M.NUM_SETP = 16
+local NUM_SETP = 16
 
+-------------------------------------------------------------------------------
+-- @local
 local function setOutputs(outp)
     if outp ~= lastOutputs then
         _M.sendReg(_M.CMD_WRFINALDEC, private.REG_IO_STATUS,  outp)
@@ -90,6 +92,8 @@ local function setOutputs(outp)
     end
 end
 
+-------------------------------------------------------------------------------
+-- @local
 local function setOutputEnable(en)
     if en ~= lastIOEnable then
         _M.sendReg(_M.CMD_WRFINALDEC, REG_IO_ENABLE, en)
@@ -101,34 +105,34 @@ end
 -- Turns IO Output on
 -- @param ... list of IO to turn on 1..32
 function _M.turnOn(...)
-   if arg.n == 0 then
-      return
-   end
-   local curOutputs = lastOutputs or 0
-   for _,v in ipairs(arg) do
-     if v < 32 and v > 0 then
-        curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
-     end
-   end
+    if arg.n == 0 then
+        return
+    end
+    local curOutputs = lastOutputs or 0
+    for _,v in ipairs(arg) do
+        if v < 32 and v > 0 then
+            curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
+        end
+    end
 
-   setOutputs(curOutputs)
+    setOutputs(curOutputs)
 end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output off
 -- @param ... list of IO to turn off 1..32
 function _M.turnOff(...)
-   if arg.n == 0 then
-      return
-   end
-   local curOutputs = lastOutputs or 0
-   for _,v in ipairs(arg) do
-     if v < 32 and v > 0 then
-        curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
-     end
-   end
+    if arg.n == 0 then
+        return
+    end
+    local curOutputs = lastOutputs or 0
+    for _,v in ipairs(arg) do
+        if v < 32 and v > 0 then
+            curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
+        end
+    end
 
-   setOutputs(curOutputs)
+    setOutputs(curOutputs)
 end
 
 -------------------------------------------------------------------------------
@@ -195,30 +199,33 @@ end
 --------------------------------------------------------------------------------
 -- returns actual register address for a particular setpoint parameter
 -- @param setp is setpoint 1..16
--- @param reg is REG_SETP_*
+-- @param register is REG_SETP_*
 -- @return address of this registet for setpoint setp
-function _M.setpRegAddress(setp,reg)
-  if (setp > _M.NUM_SETP) or (setp < 1) then
-     dbg.error('Setpoint Invalid: ', setp)
-     return(0)
-  elseif reg == _M.REG_SETP_TARGET then
-     return (reg+setp-1)
-  else
-     return (reg+((setp-1)*_M.REG_SETP_REPEAT))
-  end
+function _M.setpRegAddress(setp, register)
+    local reg = private.getRegisterNumber(register)
+
+    if (setp > NUM_SETP) or (setp < 1) then
+        dbg.error('Setpoint Invalid: ', setp)
+        return(0)
+    elseif reg == _M.REG_SETP_TARGET then
+        return (reg+setp-1)
+    else
+        return (reg+((setp-1)*_M.REG_SETP_REPEAT))
+    end
 end
 
 --------------------------------------------------------------------------------
 -- Private function
-local function setpParam(setp,reg,v)
-   _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,reg), v)
+local function setpParam(setp, reg, v)
+    local r = private.getRegisterNumber(reg)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, r), v)
 end
 
 -------------------------------------------------------------------------------
 -- Set the number of Setpoints
 -- @param n is the number of setpoints 0..8
 function _M.setNumSetp(n)
-  _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_SETP_NUM,n)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.REG_SETP_NUM, n)
 end
 
 -------------------------------------------------------------------------------
@@ -226,7 +233,7 @@ end
 -- @param setp Setpoint 1..16
 -- @param target Target value
 function _M.setpTarget(setp,target)
-    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp,_M.REG_SETP_TARGET), target)
+    _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, _M.REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
@@ -234,7 +241,7 @@ end
 -- @param setp is setpount 1..16
 -- @param IO is output 1..32, 0 for none
 function _M.setpIO(setp, IO)
-    setpParam(setp,_M.REG_SETP_OUTPUT, IO)
+    setpParam(setp, _M.REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
@@ -257,7 +264,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint type
 function _M.setpType(setp, v)
-  setpParam(setp,_M.REG_SETP_TYPE, v)
+    setpParam(setp, _M.REG_SETP_TYPE, v)
 end
 
 -------------------------------------------------------------------------------
@@ -265,7 +272,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint logic type (.LOGIC_HIGH, .LOGIC_LOW)
 function _M.setpLogic(setp, v)
-  setpParam(setp,_M.REG_SETP_LOGIC, v)
+    setpParam(setp, _M.REG_SETP_LOGIC, v)
 end
 
 --- Setpoint Alarms Types.
@@ -280,7 +287,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is alarm type
 function _M.setpAlarm(setp, v)
- setpParam(setp,_M.REG_SETP_ALARM, v)
+    setpParam(setp, _M.REG_SETP_ALARM, v)
 end
 
 -------------------------------------------------------------------------------
@@ -288,7 +295,7 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint name (8 character string)
 function _M.setpName(setp, v)
-  setpParam(setp,_M.REG_SETP_NAME, v)
+    setpParam(setp, _M.REG_SETP_NAME, v)
 end
 
 --- Setpoint Source Types.
@@ -308,10 +315,12 @@ end
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
 function _M.setpSource(setp, v, reg)
-  setpParam(setp,_M.REG_SETP_SOURCE, v)
-  if (v == _M.SOURCE_REG) and reg then
-     setpParam(setp,_M.REG_SETP_SOURCE_REG, reg)
-  end
+    local r = private.getRegisterNumber(reg)
+
+    setpParam(setp, _M.REG_SETP_SOURCE, v)
+    if (v == _M.SOURCE_REG) and r then
+        setpParam(setp, _M.REG_SETP_SOURCE_REG, r)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -319,13 +328,40 @@ end
 -- @param setp is setpount 1..16
 -- @param v is setpoint hysteresis
 function _M.setpHys(setp, v)
-  setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
+    setpParam(setp, _M.REG_SETP_HYS, _M.toPrimary(v))
+end
+
+-------------------------------------------------------------------------------
+-- Query the number of set points that are available.
+-- @return The number of set points
+-- @usage
+-- local n = device.setPointCount()
+function _M.setPointCount()
+    return NUM_SETP
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the depricated fields
-depricated.REG_IO_STATUS = private.REG_IO_STATUS
-depricated.REG_IO_ENABLE = REG_IO_ENABLE
+depricated.REG_IO_STATUS            = private.REG_IO_STATUS
+depricated.REG_IO_ENABLE            = REG_IO_ENABLE
+depricated.REG_SETP_NUM             = REG_SETP_NUM
+depricated.REG_SETP_REPEAT          = REG_SETP_REPEAT
+depricated.REG_SETP_TYPE            = REG_SETP_TYPE
+depricated.REG_SETP_OUTPUT          = REG_SETP_OUTPUT
+depricated.REG_SETP_LOGIC           = REG_SETP_LOGIC
+depricated.REG_SETP_ALARM           = REG_SETP_ALARM
+depricated.REG_SETP_NAME            = REG_SETP_NAME
+depricated.REG_SETP_SOURCE          = REG_SETP_SOURCE
+depricated.REG_SETP_HYS             = REG_SETP_HYS
+depricated.REG_SETP_SOURCE_REG      = REG_SETP_SOURCE_REG
+depricated.REG_SETP_TIMING          = REG_SETP_TIMING
+depricated.REG_SETP_RESET           = REG_SETP_RESET
+depricated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
+depricated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
+depricated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
+depricated.REG_SETP_TARGET          = REG_SETP_TARGET
+
+depricated.NUM_SETP                 = NUM_SETP
 
 end
 
