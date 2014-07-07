@@ -27,7 +27,8 @@ local CUR = 0
 local VOLT = 1
 
 local analogTypes = {   current = CUR,      volt = VOLT     }
-local analogNames = {   [CUR] = 'current',  [VOLT] = 'volt' }
+local analogNames = {}
+for k,v in pairs(analogTypes) do analogNames[v] = k end
 
 local curAnalogType = -1
 local lastAnalogue = nil
@@ -79,8 +80,9 @@ end
 -- Control behaviour of analog output outside of normal range.
 -- If clip is active then output will be clipped to the nominal range
 -- otherwise the output will drive to the limit of the hardware
--- @function setAnalogClip
 -- @param c clipping enabled?
+-- @usage
+-- device.setAnalogClip(false)
 function _M.setAnalogClip(c)
     if c == true then c = 1 elseif c == false then c = 0 end
 

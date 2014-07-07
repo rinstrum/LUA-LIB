@@ -31,7 +31,7 @@ local function handleNewWeight(data, err)
    curWeight = data
    print('Weight = ',curWeight)  
 end
-dwi.addStream(dwi.REG_GROSSNET, handleNewWeight, 'change')
+dwi.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
 -------------------------------------------------------------------------------
 
@@ -173,8 +173,8 @@ local function mainLoop()
       dwi.writeBotLeft('')
       dwi.writeBotRight('PLACE')
       if dwi.allStatusSet(dwi.STAT_NOTZERO, dwi.STAT_NOTMOTION) then
-         dwi.writeReg(dwi.REG_USERNUM3,dwi.toPrimary(curWeight))
-         dwi.setAutoBotLeft(dwi.REG_USERNUM3)         
+         dwi.writeReg('usernum3', dwi.toPrimary(curWeight))
+         dwi.setAutoBotLeft('usernum3')         
          dwi.writeBotRight('CAPTURED')
          dwi.buzz(2)
          dwi.delay(1)
