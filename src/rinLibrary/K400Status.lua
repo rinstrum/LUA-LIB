@@ -297,13 +297,13 @@ end
 function _M.setIOCallback(IO, callback)
     local status = bit32.lshift(0x00000001, IO-1)
     if callback then
-       IOBinds[status] = {}
-       IOBinds[status]['IO'] = IO
-       IOBinds[status]['f'] = callback
-       IOBinds[status]['lastStatus'] = 0xFFFFFFFF
+        IOBinds[status] = {}
+        IOBinds[status]['IO'] = IO
+        IOBinds[status]['f'] = callback
+        IOBinds[status]['lastStatus'] = 0xFFFFFFFF
     else
         IOBinds[status] = nil
-       dbg.warn('','setIOCallback:  nil value for callback function')
+        dbg.warn('','setIOCallback:  nil value for callback function')
     end
 end
 
@@ -324,7 +324,7 @@ function _M.setAllIOCallback(callback)
         IOBinds[0]['lastStatus'] = 0xFFFFFF
     else
         IOBinds[0] = nil
-       dbg.warn('','setIOCallback:  nil value for all callback function')
+        dbg.warn('','setIOCallback:  nil value for all callback function')
     end
 end
 
