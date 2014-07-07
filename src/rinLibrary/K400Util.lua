@@ -20,7 +20,38 @@ local dbg = require "rinLibrary.rinDebug"
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, depricated)
+
 local REG_LCDMODE          = 0x000D
+
+local REG_COMMS_START = 0x0309
+
+local REG_PRIMARY_DISPMODE   = 0x0306
+local REG_SECONDARY_DISPMODE = 0x0307
+
+local DISPMODE_PRIMARY      = 1
+local DISPMODE_PIECES       = 2
+local DISPMODE_SECONDARY    = 3
+
+local displayModeMap = {
+    primary   = DISPMODE_PRIMARY,
+    pieces    = DISPMODE_PIECES,
+    secondary = DISPMODE_SECONDARY
+}
+
+local units = {"  ", "kg", "lb", "t ", "g ", "oz", "N ", "  ", "p ", "l ", "  "}
+local countby = {1, 2, 5, 10, 20, 50, 100, 200, 500}
+
+local settings = {
+    fullscale = 3000,
+    dispmode = {
+        [DISPMODE_PRIMARY] =   { reg = REG_PRIMARY_DISPMODE,   units = units[2], dp = 0, countby = {1, 2, 5}},
+        [DISPMODE_PIECES] =    { reg = 0,                      units = units[9], dp = 0, countby = {1, 1, 1}},
+        [DISPMODE_SECONDARY] = { reg = REG_SECONDARY_DISPMODE, units = units[3], dp = 0, countby = {2, 5, 10}}
+    },
+    curDispMode = DISPMODE_PRIMARY,
+    hiRes = false,
+    curRange = 1
+}
 
 local instrumentModel = ''
 local instrumentSerialNumber = nil
@@ -113,40 +144,61 @@ function private.saveSettings()
     _M.sendRegWait(_M.CMD_EX, private.REG_SAVESETTING)
 end
 
-local REG_PRIMARY_DISPMODE   = 0x0306
-local REG_SECONDARY_DISPMODE = 0x0307
+-------------------------------------------------------------------------------
+-- Query if the data stream is high resolution or not
+-- @return true iff high resolution
+-- @usage
+-- if device.isHiRes() then
+--     print('high resolution readings')
+-- end
+function _M.isHiRes()
+    return settings.hiRes
+end
 
-_M.DISPMODE_PRIMARY      = 1
-_M.DISPMODE_PIECES       = 2
-_M.DISPMODE_SECONDARY    = 3
-_M.units = {"  ","kg","lb","t ","g ","oz","N ","  ","p ","l ","  "}
-_M.countby = {1,2,5,10,20,50,100,200,500}
-_M.settings = {}
-_M.settings.fullscale = 3000
-_M.settings.dispmode = {}
-_M.settings.dispmode[_M.DISPMODE_PRIMARY] =   {reg = REG_PRIMARY_DISPMODE,   units = _M.units[2], dp = 0, countby = {1,2,5}}
-_M.settings.dispmode[_M.DISPMODE_PIECES] =    {reg = 0,                      units = _M.units[9], dp = 0, countby = {1,1,1}}
-_M.settings.dispmode[_M.DISPMODE_SECONDARY] = {reg = REG_SECONDARY_DISPMODE, units = _M.units[3], dp = 0, countby = {2,5,10}}
-_M.settings.curDispMode = _M.DISPMODE_PRIMARY
-_M.settings.hiRes = false
-_M.settings.curRange = 1
+-------------------------------------------------------------------------------
+-- Query the current number of decimal places in the specified display mode
+-- @parqam display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @return The number of decimal places.
+-- @usage
+-- print(device.getDispModeDP('primary')..' decimal places in the primary display')
+function _M.getDispModeDP(display)
+    local d = displayModeMap[string.lower(display)]
+
+    if d ~= nil then
+        return settings.dispmode[d].dp
+    end
+    return 0
+end
+
+-------------------------------------------------------------------------------
+-- Update the curent settings for hi resolution, display mode and range.
+-- @param hiRes High resolution (boolean)
+-- @param mode Display mode
+-- @param range Range
+-- @local
+function private.updateSettings(hiRes, mode, range)
+    settings.hiRes       = hiRes
+    settings.curDispMode = mode
+    settings.curRange    = range
+end
 
 -------------------------------------------------------------------------------
 -- Called to load settings
 -- @local
 local function readSettings()
-    _M.settings.fullscale = private.getRegDP(_M.REG_FULLSCALE)
-    for mode = _M.DISPMODE_PRIMARY, _M.DISPMODE_SECONDARY do
-        if _M.settings.dispmode[mode].reg ~= 0 then
-            local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.settings.dispmode[mode].reg)
+    settings.fullscale = private.getRegDP(_M.REG_FULLSCALE)
+    for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
+        if settings.dispmode[mode].reg ~= 0 then
+            local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX, settings.dispmode[mode].reg)
             if data and not err then
                 data = tonumber(data, 16)
                 if data ~= nil then
-                    _M.settings.dispmode[mode].dp = bit32.band(data,0x0000000F)
-                    _M.settings.dispmode[mode].units = _M.units[1+bit32.band(bit32.rshift(data,4),0x0000000F)]
-                    _M.settings.dispmode[mode].countby[3] = _M.countby[1+bit32.band(bit32.rshift(data,8),0x000000FF)]
-                    _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
-                    _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
+                    local cur = settings.dispmode[mode]
+                    cur.dp = bit32.band(data,0x0000000F)
+                    cur.units      = units  [1+bit32.band(bit32.rshift(data,  4), 0x0000000F)]
+                    cur.countby[3] = countby[1 + bit32.band(bit32.rshift(data,  8), 0x000000FF)]
+                    cur.countby[2] = countby[1 + bit32.band(bit32.rshift(data, 16), 0x000000FF)]
+                    cur.countby[1] = countby[1 + bit32.band(bit32.rshift(data, 24), 0x000000FF)]
                 else
                     dbg.warn('Bad settings data: ', data)
                 end
@@ -157,8 +209,6 @@ local function readSettings()
     end
     _M.saveAutoLeft()
 end
-
-local REG_COMMS_START = 0x0309
 
 -------------------------------------------------------------------------------
 -- Called to configure the instrument library
@@ -201,7 +251,7 @@ end
 -- ...
 -- device.writeReg(device.REG_USERNUM3, device.toPrimary(curWeight))
 function _M.toPrimary(v, dp)
-    local dp = dp or _M.settings.dispmode[_M.settings.curDispMode].dp  -- use instrument dp if not specified otherwise
+    local dp = dp or settings.dispmode[settings.curDispMode].dp  -- use instrument dp if not specified otherwise
 
     if type(v) == 'string' then
         v = tonumber(v)
@@ -248,5 +298,12 @@ depricated.getRegDP = getRegDP
 depricated.readSettings = readSettings
 depricated.saveSettings = private.saveSettings
 depricated.system = system
+depricated.settings = settings
+depricated.units = units
+depricated.countby = countby
+
+depricated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
+depricated.DISPMODE_PIECES       = DISPMODE_PIECES
+depricated.DISPMODE_SECONDARY    = DISPMODE_SECONDARY
 
 end

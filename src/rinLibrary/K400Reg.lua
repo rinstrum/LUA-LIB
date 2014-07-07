@@ -224,7 +224,7 @@ end
 -- @return floating point number
 -- @local
 function private.toFloat(data, dp)
-    local dp = dp or _M.settings.dispmode[_M.DISPMODE_PRIMARY].dp  -- use instrument dp if not specified otherwise
+    local dp = dp or _M.getDispModeDP('primary')  -- use instrument dp if not specified otherwise
 
     data = tonumber(data,16)
     if data > 0x7FFFFFFF then

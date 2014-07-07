@@ -402,9 +402,10 @@ end
 -- @param err Potential error message
 -- @local
 local function eStatusCallback(data, err)
-    _M.settings.hiRes       = bit32.band(data,_M.ESTAT_HIRES) > 0
-    _M.settings.curDispMode = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_DISPMODE),_M.ESTAT_DISPMODE_RS)
-    _M.settings.curRange    = 1 + bit32.rshift(bit32.band(data,_M.ESTAT_RANGE),_M.ESTAT_RANGE_RS)
+    private.updateSettings(
+        bit32.band(data,_M.ESTAT_HIRES) > 0,
+        1 + bit32.rshift(bit32.band(data, _M.ESTAT_DISPMODE), _M.ESTAT_DISPMODE_RS),
+        1 + bit32.rshift(bit32.band(data, _M.ESTAT_RANGE), _M.ESTAT_RANGE_RS))
 
     for k,v in pairs(eStatBinds) do
         local status = bit32.band(data,k)

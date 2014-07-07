@@ -111,7 +111,7 @@ local function streamCallback(data, err)
             if substr and substr ~= "" then
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
-                     if v.typ == _M.TYP_WEIGHT and _M.settings.hiRes then
+                     if v.typ == _M.TYP_WEIGHT and _M.isHiRes() then
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
                      else
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)

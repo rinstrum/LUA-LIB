@@ -178,9 +178,9 @@ end
 -- @param sock Socket to write to
 -- @param msg Data to write
 -- @return Length of the send queue
--- @usage
 -- @see addSocket
 -- @see readSocket
+-- @usage
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
