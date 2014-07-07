@@ -29,7 +29,7 @@ local instrumentSerialNumber = nil
 -- However, sometimes you'll want to return control to the display device
 -- for a time and grab control again later.
 -- @param mode  is 'lua' to control display from script or 'default'
--- to return control to the default instrement application
+-- to return control to the default instrument application
 -- @usage
 -- device.lcdControl('default')     -- let the display control itself
 -- ...
