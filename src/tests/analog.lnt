@@ -31,7 +31,7 @@ describe("Analog #analog", function ()
     it("check limits", function()
         --  Callback to capture changes to current weight
         local curWeight = 0
-        upper.addStream(upper.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
+        upper.addStream('grossnet', function(d, e) curWeight = d end, 'change')
 
         -- Callback to monitor motion status
 --        upper.setStatusCallback(upper.STAT_MOTION, function(status, active)
@@ -69,6 +69,7 @@ describe("Analog #analog", function ()
     it("linearity", function()
         --  Callback to capture changes to current weight
         local curWeight = 0
+        -- Change the following to 'grossnet' once the REG_ version is depricated
         lower.addStream(lower.REG_GROSSNET, function(d, e) curWeight = d end, 'change')
 
         local data = require("tests.regression")()

@@ -32,7 +32,7 @@ local function handleNewWeight(data, err)
    curWeight = data
    print('Weight = ',curWeight)
 end
-dwi.addStream(dwi.REG_GROSSNET, handleNewWeight, 'change')
+dwi.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
 -------------------------------------------------------------------------------
 

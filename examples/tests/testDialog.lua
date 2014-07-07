@@ -19,7 +19,7 @@ dwi.delay(2.000)
 dwi.writeBotLeft("")
 dwi.writeBotRight("")
 
-id = dwi.editReg(dwi.REG_USERID1,'NAME')
+id = dwi.editReg('userid1', 'NAME')
 dbg.info(' Value: ', id)
 
 -------------------------------------------------------------------------------

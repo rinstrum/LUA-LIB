@@ -167,7 +167,7 @@ function _M.addStream(streamReg, callback, onChange)
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
                 STM_START)
 
-    _M.bindRegister(bit32.bor(REG_LUAUSER,REG_STREAMDATA), streamCallback)
+    _M.bindRegister(bit32.bor(REG_LUAUSER, REG_STREAMDATA), streamCallback)
     return streamReg
 end
 

@@ -38,7 +38,7 @@ local function handleNewWeight(data, err)
    curWeight = data
    print('Weight = ',curWeight)
 end
-dwi.addStream(dwi.REG_GROSSNET, handleNewWeight, 'change')
+dwi.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
 -------------------------------------------------------------------------------
 
@@ -157,8 +157,8 @@ rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
 local function F1Pressed(key, state)
     rinApp.dbg.info('curIO: ',dwi.getCurIOStr())   
     dwi.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
-    dwi.writeReg(dwi.REG_USERNUM1,1)  -- trigger pulses output on setpoint 4
-    dwi.writeReg(dwi.REG_USERNUM1,0)
+    dwi.writeReg('usernum1', 1)  -- trigger pulses output on setpoint 4
+    dwi.writeReg('usernum1', 0)
     dwi.RTC.sec = 58
     dwi.RTC.min = 59    
     return true    -- key handled here so don't send back to instrument for handling
@@ -178,7 +178,7 @@ dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
 -------------------------------------------------------------------------------
 -- Callback to handle F3 key event 
 local function F3Pressed(key, state)
-    dwi.editReg(dwi.setpRegAddress(3,dwi.REG_SETP_TARGET))
+    dwi.editReg(dwi.setpRegAddress(3, 'setp_target'))
     dwi.releaseOutput(SETP_FILL)  -- let R420 drive the fill setpoint)
     return true    -- key handled here so don't send back to instrument for handling
 end

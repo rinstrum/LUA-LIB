@@ -448,7 +448,7 @@ end
 -- Called to get current instrument status
 -- @return 32 bits of status data with bits as per STAT_ definitions
 -- @usage
--- print('curnet status bits are', device.getCurStatus())
+-- print('current status bits are', device.getCurStatus())
 function _M.getCurStatus()
     return curStatus
 end
