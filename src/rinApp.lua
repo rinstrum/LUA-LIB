@@ -19,19 +19,21 @@ local socks = require "rinSystem.rinSockets.Pack"
 local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
 local function createRinApp()
 local _M = {}
 _M.running = false
 _M.config = {
-         '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
-         '; logger can be any of the supported groups - eg console or file',
-         "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",
-         level = 'INFO',
-         timestamp = 'on',
-         logger = 'console',
-		 socket = {IP='192.168.1.20', port=2224},
-         file = {filename = 'debug.log'}
-         }
+    '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
+    '; logger can be any of the supported groups - eg console or file',
+    "; timestamp controls whether or not timestamps are added to messages, 'on' or 'off'",
+    level = 'INFO',
+    timestamp = 'on',
+    logger = 'console',
+    socket = {IP='192.168.1.20', port=2224},
+    file = {filename = 'debug.log'}
+}
 
 -- Create the rinApp resources
 _M.system = require "rinSystem.Pack"
@@ -46,20 +48,27 @@ _M.dbg.configureDebug(_M.config)
 usb.depricatedUSBhandlers(_M)
 
 local userTerminalCallback = nil
+local bidirectionalSocket = nil
 
+local userMainLoop = nil
+local userCleanup = nil
 
 -------------------------------------------------------------------------------
--- called to register application's callback for keys pressed in the terminal.
+-- Called to register application's callback for keys pressed in the terminal.
 -- Nothing is called unless the user hits <Enter>.  The callback function is
 -- called with the data entered by the user.  Have the callback return true
 -- to indicate that the message has been processed, false otherwise.
 -- @param f callback given data entered by user in the terminal screen
+-- @usage
+-- rinApp.setUserTerminal(function(data) print('received', data) end)
 function _M.setUserTerminal(f)
    userTerminalCallback = f
 end
 
-
+-------------------------------------------------------------------------------
 -- captures input from terminal to change debug level
+-- @param sock Socket to read from
+-- @local
 local function userioCallback(sock)
     local data = sock:receive("*l")
 
@@ -91,6 +100,11 @@ end
 -- @param portA port address for the SERA socket (2222 used as default)
 -- @param portB port address for the SERB socket (2223 used as default)
 -- @return device object for this instrument
+-- @usage
+-- local rinApp = require "rinApp"
+--
+-- local device = rinApp.addK400('K401')
+-- local otherDevice = rinApp.addK400('K401', '1.1.1.1')
 function _M.addK400(model, ip, portA, portB)
     -- Create the socket
     local device = require("rinLibrary.K400")()
@@ -129,23 +143,29 @@ function _M.addK400(model, ip, portA, portB)
 end
 
 -------------------------------------------------------------------------------
--- We need somewhere to keep the socket descriptor so we can send messages to it
-local bidirectionalSocket = nil
-
 -- Write to the bidirectional socket
 -- @param msg The message to write
+-- @usage
+-- rinApp.writeBidirectional('hello world!')
 function _M.writeBidirectional(msg)
 	if bidirectionalSocket ~= nil then
 		_M.system.sockets.writeSocket(bidirectionalSocket, msg)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Set a call back that receives all incoming bidirectional communication.
+-- @param f Call back function, takes one argument which contains the current message.
+-- @usage
+-- rinApp.setUserBidirectionalCallback(function(m) print('message received', m) end)
 function _M.setUserBidirectionalCallback(f)
    _M.userBidirectionalCallback = f
 end
+
 -------------------------------------------------------------------------------
 -- Callback function for client connections on the bidirectional socket.
 -- @param sock Socket that has something ready to read.
+-- @local
 local function bidirectionalFromExternal(sock)
 	local sockets = _M.system.sockets
 	m, err = sockets.readSocket(sock)
@@ -159,15 +179,27 @@ local function bidirectionalFromExternal(sock)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Set a call back that handles incoming bidirectional socket connections.
+-- @param f Call back function.
+-- @usage
+-- function cb(sock, ip, port)
+--     print('connection from', ip, port)
+-- end
+--
+-- rinApp.setUserBidirectionalConnectCallback(cb)
 function _M.setUserBidirectionalConnectCallback(f)
    _M.userBidirectionalConnectCallback = f
 end
-
 
 -------------------------------------------------------------------------------
 -- Three callback functions that are called when a new socket connection is
 -- established.  These functions should add the socket to the sockets management
 -- module and set any required timouts
+-- @param sock Incoming connecting socket
+-- @param ip Source IP address
+-- @param port Source port number
+-- @local
 local function socketBidirectionalAccept(sock, ip, port)
 	if bidirectionalSocket ~= nil then
         _M.dbg.info('second bidirectional connection from', ip, port)
@@ -178,19 +210,19 @@ local function socketBidirectionalAccept(sock, ip, port)
         sockets.setSocketTimeout(sock, 0.001)
         _M.dbg.debug('bidirectional connection from', ip, port)
         if _M.userBidirectionalConnectCallback then
-            _M.userBidirectionalConnectCallback(m)
+            _M.userBidirectionalConnectCallback(sock, ip, port)
         end
-
     end
 end
 
 -------------------------------------------------------------------------------
 -- Filter function on the outgoing data.
+-- It is important to note that this function is called for things you
+-- write to the socket set as well as system messages.
 -- @param sock The socket in question (you'll usually ignore this)
 -- @param msg The message to be filtered
 -- @return The message to be sent or nil for no message
--- It is important to note that this function is called for things you
--- write to the socket set as well as system messages.
+-- @local
 local function unidirectionFilter(sock, msg)
     return nil
 end
@@ -200,6 +232,7 @@ end
 -- @param sock The newly connected socket
 -- @param ip The source IP address of the socket
 -- @param port The source port of the socket
+-- @local
 local function socketUnidirectionalAccept(sock, ip, port)
 	local sockets = _M.system.sockets
 	-- Set up so that all incoming traffic is ignored, this stream only
@@ -218,25 +251,38 @@ local function socketUnidirectionalAccept(sock, ip, port)
     rinApp.dbg.info('unidirectional connection from', ip, port)
 end
 
-local userMainLoop = nil
-local userCleanup = nil
-
 -------------------------------------------------------------------------------
--- called to register application's main loop function
+-- Called to register application's main loop function
 -- @param f Mail Loop function to call
+-- @usage
+-- local function mainLoop()
+--     ...
+-- end
+--
+-- rinApp.setMainLoop(mainLoop)
 function _M.setMainLoop(f)
    userMainLoop = f
 end
 
 -------------------------------------------------------------------------------
--- called to register application's cleanup function
+-- Called to register application's cleanup function
 -- @param f cleanup function to call
+-- @usage
+-- local function cleanUp()
+--     ...
+-- end
+--
+-- rinApp.setCleanup(cleanUp)
 function _M.setCleanup(f)
    userCleanup = f
 end
 
 -------------------------------------------------------------------------------
--- Initialise rinApp and all connected devices
+-- Initialise rinApp and all connected devices.
+-- This function is generally called automatically by the run procedure.
+-- @see run
+-- @usage
+-- rinApp.init()
 function _M.init()
     if _M.initialised then
         return
@@ -250,7 +296,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to restore the system to initial state by shutting down services
--- enabled by configure()
+-- enabled by configure().
+-- This function is generally called automatically by the run procedure.
+-- @see run
+-- @usage
+-- rinApp.cleanup()
 function _M.cleanup()
     if not _M.initialised then
         return
@@ -272,7 +322,9 @@ function _M.cleanup()
     _M.dbg.info('','------   Application Finished  ------')
 end
 
+-------------------------------------------------------------------------------
 -- One iteration of the rinApp main loop.
+-- @local
 local function step()
     if userMainLoop then
        userMainLoop()
@@ -284,7 +336,9 @@ if _TEST then
 end
 
 -------------------------------------------------------------------------------
--- Main rinApp program loop
+-- Main rinApp program loop until the program terminates.
+-- @usage
+-- rinApp.run()
 function _M.run()
     _M.init()
     while _M.running do
@@ -294,12 +348,12 @@ function _M.run()
 end
 
 
--------------------------------------------------------------------------------
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Create the server and io sockets
 io.output():setvbuf('no')
-_M.system.sockets.addSocket(_M.userio.connectDevice(), userioCallback)
-_M.system.sockets.createServerSocket(2224, socketBidirectionalAccept)
-_M.system.sockets.createServerSocket(2225, socketUnidirectionalAccept)
+socks.addSocket(_M.userio.connectDevice(), userioCallback)
+socks.createServerSocket(2224, socketBidirectionalAccept)
+socks.createServerSocket(2225, socketUnidirectionalAccept)
 _M.running = true
 _M.dbg.info('','------   Application Started %LATEST% -----')
 return _M
