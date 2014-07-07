@@ -10,6 +10,8 @@
 local string = string
 local tonumber = tonumber
 local powersOfTen = require "rinLibrary.powersOfTen"
+local timers = require 'rinSystem.rinTimers.Pack'
+local system = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -185,15 +187,15 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
     local f = _M.getDeviceRegister(r)
     _M.bindRegister(r, waitf)
     _M.send(nil, cmd, r, data, "reply", crc)
-    local tmr = _M.system.timers.addTimer(0, t, waitf, nil, 'Timeout')
+    local tmr = timers.addTimer(0, t, waitf, nil, 'Timeout')
 
     while waiting do
-        _M.system.handleEvents()
+        system.handleEvents()
     end
 
     _M.bindRegister(r, f)
 
-    _M.system.timers.removeTimer(tmr)
+    timers.removeTimer(tmr)
     return regData, regErr
 end
 

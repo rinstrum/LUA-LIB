@@ -14,6 +14,7 @@ local floor = math.floor
 local bit32 = require "bit"
 local powersOfTen = require "rinLibrary.powersOfTen"
 local rinMsg = require "rinLibrary.rinMessage"
+local system = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -52,10 +53,11 @@ end
 -- @param sockB TCP sockets to connect SERB port
 -- @param app application framework
 -- @usage
+-- local sockets = require "rinSystem.rinSockets.Pack"
 -- local me = {}
 --
--- local sA = _M.system.sockets.createTCPsocket('1.1.1.1', 2222, 0.001)
--- local sB = _M.system.sockets.createTCPsocket('1.1.1.1', 2223, 0.001)
+-- local sA = sockets.createTCPsocket('1.1.1.1', 2222, 0.001)
+-- local sB = sockets.createTCPsocket('1.1.1.1', 2223, 0.001)
 --
 -- device.connect('K401', sA, sB, me)
 function _M.connect(model, sockA, sockB, app)
@@ -63,7 +65,6 @@ function _M.connect(model, sockA, sockB, app)
     _M.socketA = sockA
     _M.socketB = sockB
     _M.app = app
-    _M.system = app.system
     local ip, port = sockA:getpeername()
 end
 
@@ -245,5 +246,6 @@ depricated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
 depricated.getRegDP = getRegDP
 depricated.readSettings = readSettings
 depricated.saveSettings = private.saveSettings
+depricated.system = system
 
 end

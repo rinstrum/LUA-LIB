@@ -10,6 +10,7 @@ local tonumber = tonumber
 local math = math
 local string = string
 local bit32 = require "bit"
+local timers = require 'rinSystem.rinTimers.Pack'
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -255,11 +256,11 @@ function _M.writeTopLeft(s,t)
             curTopLeft = s
             slideTopLeftWords = splitWords(s,6)
             slideTopLeftPos = 1
-            _M.system.timers.removeTimer(slideTopLeftTimer)
+            timers.removeTimer(slideTopLeftTimer)
             _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
-                slideTopLeftTimer = _M.system.timers.addTimer(t,t,slideTopLeft)
+                slideTopLeftTimer = timers.addTimer(t, t, slideTopLeft)
             end
         end
     elseif curAutoTopLeft == 0 then
@@ -310,11 +311,11 @@ function _M.writeBotLeft(s, t)
             curBotLeft = s
             slideBotLeftWords = splitWords(s,9)
             slideBotLeftPos = 1
-            _M.system.timers.removeTimer(slideBotLeftTimer)
+            timers.removeTimer(slideBotLeftTimer)
             _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_LEFT,
                  string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
             if #slideBotLeftWords > 1 then
-                slideBotLeftTimer = _M.system.timers.addTimer(t,t,slideBotLeft)
+                slideBotLeftTimer = timers.addTimer(t, t, slideBotLeft)
             end
         end
     elseif curAutoBotLeft == 0 then
@@ -352,11 +353,11 @@ function _M.writeBotRight(s, t)
             curBotRight = s
             slideBotRightWords = splitWords(s,8)
             slideBotRightPos = 1
-            _M.system.timers.removeTimer(slideBotRightTimer)
+            timers.removeTimer(slideBotRightTimer)
             _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_RIGHT,
                  string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
             if #slideBotRightWords > 1 then
-                slideBotRightTimer = _M.system.timers.addTimer(t,t,slideBotRight)
+                slideBotRightTimer = timers.addTimer(t, t, slideBotRight)
             end
         end
     end
@@ -401,7 +402,7 @@ function _M.writeAutoTopLeft(register)
     local reg = private.getRegisterNumber(register)
 
     if reg ~= curAutoTopLeft then
-        _M.system.timers.removeTimer(slideTopLeftTimer)
+        timers.removeTimer(slideTopLeftTimer)
         curTopLeft = nil
         _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
         saveAutoTopLeft = curAutoTopLeft
@@ -434,7 +435,7 @@ function _M.writeAutoBotLeft(register)
     local reg = private.getRegisterNumber(register)
 
     if reg ~= curAutoBotLeft then
-        _M.system.timers.removeTimer(slideBotLeftTimer)
+        timers.removeTimer(slideBotLeftTimer)
         curBotLeft = nil
         _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
         saveAutoBotLeft = curAutoBotLeft

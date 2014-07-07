@@ -36,7 +36,7 @@ end
 -- Callback function that ignoes incoming data for a read only socket.
 -- @param sock The socket to read all available data from
 -- @usage
--- local sockets = require 'rinApp.system.sockets'
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.flushReadSocket(mySocket)
 function _M.flushReadSocket(sock)
@@ -59,7 +59,7 @@ end
 -- @usage
 -- -- Refer to the 'exernal.lua' example.
 --
--- local sockets = require 'rinApp.system.sockets'
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 -- local mySocket
 --
 -- local function mySocketReader(sock)
@@ -96,7 +96,7 @@ end
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.removeSocket(mySocket)
 function _M.removeSocket(sock)
@@ -112,7 +112,7 @@ end
 -- @param callback The callback that will be invoked when a new connection is established
 -- @see createServerSocket
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.listenSocket(mySocket, function(client, ip, port) print('attmpet from', ip, port) end)
 function _M.listenSocket(sock, callback)
@@ -140,7 +140,7 @@ end
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.setSocketTimeout(mySocket, 0.1)
 function _M.setSocketTimeout(sock, timeout)
@@ -157,7 +157,7 @@ end
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- local m, err = sockets.readSocket(sock)
 -- print('message is: ', m)
@@ -184,7 +184,7 @@ end
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.writeSocket(mySocket, 'hello again')
 function _M.writeSocket(sock, msg)
@@ -204,7 +204,7 @@ end
 -- You don't need to call this, the rinApp application takes care of this.
 -- @return Set of sockets, nil if there are none
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- local readers = sockets.getReaderSockets()
 function _M.getReaderSockets()
@@ -224,7 +224,7 @@ end
 -- You don't need to call this, the rinApp application takes care of this.
 -- @return Set of sockets, nil if there are none
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- local writers = sockets.getWriterSockets()
 function _M.getWriterSockets()
@@ -246,7 +246,7 @@ end
 -- You don't need to call this, the rinApp application takes care of this.
 -- @param sock A readable socket
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.processReadSocket(mySocket)
 function _M.processReadSocket(sock)
@@ -275,7 +275,7 @@ end
 -- You don't need to call this, the rinApp application takes care of this.
 -- @param sock A writable socket
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.processWriteSocket(mySocket)
 function _M.processWriteSocket(sock)
@@ -309,7 +309,7 @@ end
 -- @param timeout The timeout associated with the socket
 -- @return the socket
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- local mySocket = createTCPsocket('1.1.1.1', 666, 0.1)
 function _M.createTCPsocket(ip, port, timeout)
@@ -330,7 +330,7 @@ end
 -- -- Refer to the 'exernal.lua' example or to the
 -- -- addSocket call above that has a fuller example.
 --
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- local function mySocketReader(sock)
 --     ...
@@ -359,7 +359,7 @@ end
 -- @param callback The filter callback.  Pass nil for complete filtering.
 -- @param silent If true, surpresses debug output for message on this socket
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- -- The callback function looks like:
 -- -- function callback(sock, msg, ...)
@@ -385,7 +385,7 @@ end
 -- @param name The name of the socket set
 -- @param sock The socket to remove
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.removeSocketSet('mysey', mySocket)
 function _M.removeSocketSet(name, sock)
@@ -397,7 +397,7 @@ end
 -- Remove the specified socket from all socket sets.
 -- @param sock The socket to remove
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.removeAllSocketSet(mySocket)
 function _M.removeAllSocketSet(sock)
@@ -414,7 +414,7 @@ end
 -- @param msg The message to write
 -- @param ... Optional arguments which will be passed to each call back filter.
 -- @usage
--- local sockets = rinApp.system.sockets
+-- local sockets = require 'rinSystem.rinSockets.Pack'
 --
 -- sockets.writeSet('myset', 'hello there')
 function _M.writeSet(name, msg, ...)

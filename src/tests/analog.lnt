@@ -8,6 +8,7 @@ require "tests.assertions"
 
 describe("Analog #analog", function ()
     local net = require "tests.network"
+    local timers = require 'rinSystem.rinTimers.Pack'
     local app, upper, lower
 
     before_each(function()
@@ -61,7 +62,7 @@ describe("Analog #analog", function ()
         end)
 
         -- Finally, put a timer in place so we don't run forever
-        app.system.timers.addTimer(0, 20, function() app.running = false error("timed out") end)
+        timers.addTimer(0, 20, function() app.running = false error("timed out") end)
         app.run()
         assert.is_true(count > 0)
     end)

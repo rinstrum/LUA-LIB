@@ -11,6 +11,7 @@ local string = string
 local tonumber = tonumber
 local pairs = pairs
 local bit32 = require "bit"
+local timers = require 'rinSystem.rinTimers.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -110,9 +111,9 @@ local function streamCallback(data, err)
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
                      if v.typ == _M.TYP_WEIGHT and _M.settings.hiRes then
-                         _M.system.timers.addEvent(v.callback, _M.toFloat(substr,v.dp+1), err)
+                         timers.addEvent(v.callback, _M.toFloat(substr,v.dp+1), err)
                      else
-                         _M.system.timers.addEvent(v.callback, _M.toFloat(substr,v.dp), err)
+                         timers.addEvent(v.callback, _M.toFloat(substr,v.dp), err)
                      end
                 end
             end
@@ -239,7 +240,7 @@ local function streamCallbackLib(data, err)
             if substr and substr ~= "" then
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
-                     _M.system.timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                     timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
                 end
             end
         end

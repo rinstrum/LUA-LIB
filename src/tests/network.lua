@@ -25,6 +25,7 @@ package.loaded["rinLibrary.rinDebug"] = {
 }
 
 local rinAppFactory = require "rinApp"
+local timers = require 'rinSystem.rinTimers.Pack'
 local ftp = require "socket.ftp"
 local posix = require "posix"
 
@@ -72,7 +73,7 @@ function _M.setAsync(app)
     setloop({
         pcall = pcall,
         create_timer =  function(sec, on_timeout)
-                            app.system.timers.addTimer(0, sec, on_timeout)
+                            timers.addTimer(0, sec, on_timeout)
                         end,
         step =          function()
                             if app.running then
@@ -100,7 +101,7 @@ end
 -- Close the connections to the K400 units configured in asynchronous mode.
 -- @param app The application reference.
 function _M.closeAsync(app)
-    app.system.timers.addEvent(function() app.running = false end)
+    timers.addEvent(function() app.running = false end)
     app.run()
     _M.closeDevices(app)
 end

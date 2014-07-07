@@ -7,6 +7,7 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local sockets = require "rinSystem.rinSockets.Pack"
+local timers = require 'rinSystem.rinTimers.Pack'
 local bit32 = require "bit"
 local rinMsg = require "rinLibrary.rinMessage"
 
@@ -284,15 +285,15 @@ function _M.socketBCallback()
     if err == nil then
         serBProcess()
         if serBTimer then
-           _M.system.timers.removeTimer(serBTimer)
+           timers.removeTimer(serBTimer)
         end
         return nil, nil
     elseif err == 'timeout' then  -- partial message received
         local timeout = serBTimeout or .1
 
-        _M.system.timers.removeTimer(serBTimer)
+        timers.removeTimer(serBTimer)
         if timeout > 0 then
-            serBTimer = _M.system.timers.addTimer(0, timeout, serBProcess, 'timeout')
+            serBTimer = timers.addTimer(0, timeout, serBProcess, 'timeout')
         else
             serBTimer = nil
         end

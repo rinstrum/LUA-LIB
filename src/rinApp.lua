@@ -15,14 +15,23 @@ local dofile = dofile
 local bit32 = require "bit"
 local io = io
 
+local system = require 'rinSystem.Pack'
 local socks = require "rinSystem.rinSockets.Pack"
+local timers = require 'rinSystem.rinTimers.Pack'
 local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
+local dbg = require "rinLibrary.rinDebug"
+
+local depricatedFields, warned = {
+    system = system,
+    dbg = dbg
+}, {}
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 local function createRinApp()
 local _M = {}
+
 _M.running = false
 _M.config = {
     '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
@@ -36,14 +45,12 @@ _M.config = {
 }
 
 -- Create the rinApp resources
-_M.system = require "rinSystem.Pack"
 _M.userio = require "IOSocket.Pack"
-_M.dbg    = require "rinLibrary.rinDebug"
 
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 _M.config.level = 'DEBUG'
-_M.dbg.configureDebug(_M.config)
+dbg.configureDebug(_M.config)
 
 usb.depricatedUSBhandlers(_M)
 
@@ -84,10 +91,10 @@ local function userioCallback(sock)
     elseif data == 'exit' then
         _M.running = false
     else
-        _M.dbg.setLevel(data)
+        dbg.setLevel(data)
           -- Set the level in all devices connected
         for k,v in pairs(_M.devices) do
-                v.dbg.setLevel(_M.dbg.level)
+                v.dbg.setLevel(dbg.level)
             end
     end
 end
@@ -115,22 +122,22 @@ function _M.addK400(model, ip, portA, portB)
     device.portB = portB or 2223
     device.model = model or ""
 
-  	local sA = _M.system.sockets.createTCPsocket(device.ipaddress, device.portA, 0.001)
-    local sB = _M.system.sockets.createTCPsocket(device.ipaddress, device.portB, 0.001)
+  	local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
+    local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
     -- Connect to the K400, and attach system if using the system library
     device.connect(device.model, sA, sB, _M)
 
     -- Register the K400 with system
-    _M.system.sockets.addSocket(device.socketA, device.socketACallback)
-    _M.system.sockets.addSocket(device.socketB, device.socketBCallback)
+    socks.addSocket(device.socketA, device.socketACallback)
+    socks.addSocket(device.socketB, device.socketBCallback)
 
     -- Add a timer for the heartbeat (every 5s)
-    _M.system.timers.addTimer(5.000, 0, device.sendMsg, "2017032F:10", true)
+    timers.addTimer(5.000, 0, device.sendMsg, "2017032F:10", true)
 
 	-- Create the extra debug port
-    _M.system.sockets.createServerSocket(2226, device.socketDebugAcceptCallback)
-	_M.dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
+    socks.createServerSocket(2226, device.socketDebugAcceptCallback)
+	dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
 
     -- Flush the key presses
     device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
@@ -149,7 +156,7 @@ end
 -- rinApp.writeBidirectional('hello world!')
 function _M.writeBidirectional(msg)
 	if bidirectionalSocket ~= nil then
-		_M.system.sockets.writeSocket(bidirectionalSocket, msg)
+		socks.writeSocket(bidirectionalSocket, msg)
     end
 end
 
@@ -167,10 +174,9 @@ end
 -- @param sock Socket that has something ready to read.
 -- @local
 local function bidirectionalFromExternal(sock)
-	local sockets = _M.system.sockets
-	m, err = sockets.readSocket(sock)
+	m, err = socks.readSocket(sock)
     if err ~= nil then
-    	sockets.removeSocket(sock)
+    	socks.removeSocket(sock)
         bidirectionalSocket = nil
     else
     	if _M.userBidirectionalCallback then
@@ -202,13 +208,12 @@ end
 -- @local
 local function socketBidirectionalAccept(sock, ip, port)
 	if bidirectionalSocket ~= nil then
-        _M.dbg.info('second bidirectional connection from', ip, port)
+        dbg.info('second bidirectional connection from', ip, port)
     else
 	    bidirectionalSocket = sock
-	    local sockets = _M.system.sockets
-	    sockets.addSocket(sock, bidirectionalFromExternal)
-        sockets.setSocketTimeout(sock, 0.001)
-        _M.dbg.debug('bidirectional connection from', ip, port)
+	    socks.addSocket(sock, bidirectionalFromExternal)
+        socks.setSocketTimeout(sock, 0.001)
+        dbg.debug('bidirectional connection from', ip, port)
         if _M.userBidirectionalConnectCallback then
             _M.userBidirectionalConnectCallback(sock, ip, port)
         end
@@ -234,19 +239,18 @@ end
 -- @param port The source port of the socket
 -- @local
 local function socketUnidirectionalAccept(sock, ip, port)
-	local sockets = _M.system.sockets
 	-- Set up so that all incoming traffic is ignored, this stream only
     -- does outgoings.  Failure to do this will cause a build up of incoming
     -- data packets and blockage.
-	sockets.addSocket(sock, sockets.flushReadSocket)
+	socks.addSocket(sock, socks.flushReadSocket)
 	-- Set a brief timeout to prevent things clogging up.
-    sockets.setSocketTimeout(sock, 0.001)
+    socks.setSocketTimeout(sock, 0.001)
 	-- Add the socket to the unidirectional broadcast group.  A message
     -- sent here is forwarded to all unidirectional sockets.
     -- We're using an inline filter function that just allows all traffic
     -- through, this function can return nil to prevent a message or something
     -- else to replace a message.
-    sockets.addSocketSet("uni", sock, unidirectionFilter)
+    socks.addSocketSet("uni", sock, unidirectionFilter)
 	-- Finally, log the fact that we've got a new connection
     rinApp.dbg.info('unidirectional connection from', ip, port)
 end
@@ -315,11 +319,11 @@ function _M.cleanup()
         d.terminate()
     end
     _M.devices = {}
-    _M.system.reset()
+    system.reset()
 
     _M.initialised = false
     _M.running = true
-    _M.dbg.info('','------   Application Finished  ------')
+    dbg.info('','------   Application Finished  ------')
 end
 
 -------------------------------------------------------------------------------
@@ -329,7 +333,7 @@ local function step()
     if userMainLoop then
        userMainLoop()
     end
-    _M.system.handleEvents()           -- handleEvents runs the event handlers
+    system.handleEvents()           -- handleEvents runs the event handlers
 end
 if _TEST then
     _M.step = step
@@ -355,7 +359,30 @@ socks.addSocket(_M.userio.connectDevice(), userioCallback)
 socks.createServerSocket(2224, socketBidirectionalAccept)
 socks.createServerSocket(2225, socketUnidirectionalAccept)
 _M.running = true
-_M.dbg.info('','------   Application Started %LATEST% -----')
+dbg.info('','------   Application Started %LATEST% -----')
+
+setmetatable(_M, {
+    __index =
+        function(t, k)
+            if depricatedFields[k] ~= nil then
+                if not warned[k] then
+                    dbg.warn('rinApp:', 'attempt to access depricated field: '..k)
+                    warned[k] = true
+                end
+                return depricatedFields[k]
+            end
+            return nil
+        end,
+
+    __newindex = function(t, k, v)
+            if depricatedFields[k] ~= nil then
+                dbg.error("rinApp:", 'attempt to overwrite depricated field: '..k)
+            else
+                rawset(t, k, v)
+            end
+        end
+})
+
 return _M
 end
 

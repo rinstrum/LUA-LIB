@@ -15,6 +15,8 @@ local ipairs = ipairs
 local tostring = tostring
 local table = table
 local bit32 = require "bit"
+local timers = require 'rinSystem.rinTimers.Pack'
+local system = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -91,7 +93,7 @@ end
 local function endDisplayMessage()
 	if msgDisp then
         msgDisp = false
-	    _M.system.timers.removeTimer(msgTimer)
+	    timers.removeTimer(msgTimer)
         msgTimer = nil
         _M.restoreBot()
     end
@@ -118,7 +120,7 @@ function _M.displayMessage(msg, t, units, unitsOther)
 		_M.saveBot()
 		_M.writeBotLeft(msg)			-- display message
 		_M.writeBotUnits(u,uo)			-- display optional units
-		msgTimer = _M.system.timers.addTimer(0, t, endDisplayMessage)
+		msgTimer = timers.addTimer(0, t, endDisplayMessage)
 	end
 end
 
@@ -135,7 +137,7 @@ end
 function _M.displayMessageWait(msg, t, units, unitsOther)
    _M.displayMessage(msg,t,units,unitsOther)
    while msgDisp do
-       _M.system.handleEvents()
+       system.handleEvents()
    end
 end
 
@@ -156,7 +158,7 @@ function _M.getKey(keyGroup)
     getKeyPressed = nil
     _M.startDialog()
     while _M.dialogRunning() and _M.app.running and getKeyState == '' do
-        _M.system.handleEvents()
+        system.handleEvents()
     end
     _M.abortDialog()
     _M.setKeyGroupCallback(keyGroup, f)
@@ -312,7 +314,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     local uo = unitsOther or 0      -- optional other units defaults to none
 
     endDisplayMessage()             -- abort any existing display prompt
-    local cursorTmr = _M.system.timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     _M.saveBot()
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
@@ -431,7 +433,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     _M.restoreBot() -- restore previously displayed messages
 
-    _M.system.timers.removeTimer(cursorTmr) -- remove cursor blink timer
+    timers.removeTimer(cursorTmr) -- remove cursor blink timer
     return sEditVal, ok                  -- return edited string and OK status
 end
 
@@ -585,9 +587,9 @@ end
 -- device.delay(0.1)    -- pause for 100 ms
 function _M.delay(t)
     local delayWaiting = true
-    local tmr = _M.system.timers.addTimer(0, t, function () delayWaiting = false end)
+    local tmr = timers.addTimer(0, t, function () delayWaiting = false end)
     while delayWaiting do
-        _M.system.handleEvents()
+        system.handleEvents()
     end
 end
 
@@ -638,7 +640,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     askOKResult = _M.KEY_CANCEL
    _M.startDialog()
     while _M.dialogRunning() and askOKWaiting and _M.app.running do
-        _M.system.handleEvents()
+        system.handleEvents()
     end
     _M.abortDialog()
     _M.setKeyGroupCallback(_M.keyGroup.keypad, f)

@@ -6,6 +6,7 @@
 
 describe("Beep #beep", function ()
     local net = require "tests.network"
+    local timers = require 'rinSystem.rinTimers.Pack'
     local app, upper, lower
 
     before_each(function()
@@ -13,7 +14,7 @@ describe("Beep #beep", function ()
     end)
 
     after_each(function()
-        app.system.timers.addEvent(function() app.running = false end)
+        timers.addEvent(function() app.running = false end)
         app.run()
         net.closeDevices(app)
 

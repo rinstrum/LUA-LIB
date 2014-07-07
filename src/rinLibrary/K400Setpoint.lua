@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 local math = math
 local bit32 = require "bit"
+local timers = require 'rinSystem.rinTimers.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -137,7 +138,7 @@ function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(timedOutputs, IOMask) == 0 then
       _M.turnOn(IO)
-      _M.system.timers.addTimer(0, t,
+      timers.addTimer(0, t,
              function ()
                    timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask))
                    _M.turnOff(IO)

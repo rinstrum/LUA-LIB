@@ -12,6 +12,7 @@ local string = string
 local table = table
 local ipairs = ipairs
 local tostring = tostring
+local system = require 'rinSystem.Pack'
 
 local _M = {}
 
@@ -49,7 +50,7 @@ function _M.getKey()
     usb.setUSBKBDCallback(kbdHandler)
 
     while rinApp.running and keypressed == '' do
-        rinApp.system.handleEvents()
+        system.handleEvents()
     end
     usb.setUSBKBDCallback(f)
 

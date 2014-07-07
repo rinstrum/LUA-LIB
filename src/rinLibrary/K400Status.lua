@@ -10,6 +10,7 @@ local string = string
 local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
+local system = require 'rinSystem.Pack'
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -615,7 +616,7 @@ end
 function _M.waitStatus(...)
     local stat = bit32.bor(...)
     while bit32.band(curStatus, stat) ~= stat do
-        _M.system.handleEvents()
+        system.handleEvents()
     end
 end
 
@@ -632,7 +633,7 @@ function _M.waitIO(IO, state)
         if (state and data ~= 0) or (not state and data == 0) then
             break
         end
-        _M.system.handleEvents()
+        system.handleEvents()
     end
 end
 
@@ -649,7 +650,7 @@ function _M.waitSETP(SETP, state)
         if (state and data ~= 0) or (not state and data == 0) then
             break
         end
-        _M.system.handleEvents()
+        system.handleEvents()
     end
 end
 

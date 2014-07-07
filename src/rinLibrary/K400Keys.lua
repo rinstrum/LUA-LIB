@@ -9,6 +9,7 @@
 local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
+local timers = require 'rinSystem.rinTimers.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -158,9 +159,9 @@ local runningKeyCallback = nil  -- keeps track of any running callback to preven
 -- Give the idle timeout timer a kick
 -- @local
 function private.bumpIdleTimer()
-    _M.system.timers.removeTimer(idleTimerID)
+    timers.removeTimer(idleTimerID)
     if idleCallback then
-        idleTimerID = _M.system.timers.addTimer(0,idleTimeout,idleCallback)
+        idleTimerID = timers.addTimer(0,idleTimeout,idleCallback)
     else
         idleTimerID = nil
     end

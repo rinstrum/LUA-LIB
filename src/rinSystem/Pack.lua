@@ -10,18 +10,16 @@ local io = require "io"
 
 local timers = require "rinSystem.rinTimers.Pack"
 local sockets = require "rinSystem.rinSockets.Pack"
+local dbg = require "rinLibrary.rinDebug"
 
 local pairs = pairs
 
-local _M = {}
+local depricatedFields, warned = {
+    timers = timers,
+    sockets = sockets
+}, {}
 
--- Accessible members.  The timers field is the only one you'll typically use
--- and this is better accessed by creating a local: local timers = require 'rinSystem.rinTimers.Pack'
---@table rinSystem
--- @field timers    A reference to the global rinTimers helpers.  Use this to create delayed events and timeouts.
--- @field sockets   A refernce to the global rinSYstem helpers.  You almost certainly don't need to access this.
-_M.timers = timers
-_M.sockets = sockets
+local _M = {}
 
 -------------------------------------------------------------------------------
 -- Main function for handling events.  Receives all incoming events and
@@ -67,5 +65,26 @@ function _M.reset()
     timers.reset()
     sockets.reset()
 end
+
+setmetatable(_M, {
+    __index =
+        function(t, k)
+            if depricatedFields[k] ~= nil then
+                if not warned[k] then
+                    dbg.warn('rinSystem:', 'attempt to access depricated field: '..k)
+                    warned[k] = true
+                end
+                return depricatedFields[k]
+            end
+            return nil
+        end,
+    __newindex = function(t, k, v)
+            if depricatedFields[k] ~= nil then
+                dbg.error("rinSystem:", 'attempt to overwrite depricated field: '..k)
+            else
+                rawset(t, k, v)
+            end
+        end
+})
 
 return _M
