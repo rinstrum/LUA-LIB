@@ -10,6 +10,8 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local timers = requre 'rinSystem.rinTimers.Pack'
+local sockets = requre 'rinSystem.rinSockets.Pack'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -41,7 +43,7 @@ local bidirectionalSocket = nil
 -- @param msg The message to write
 local function writeBidirectional(msg)
 	if bidirectionalSocket ~= nil then
-		rinApp.system.sockets.writeSocket(bidirectionalSocket, msg)
+		sockets.writeSocket(bidirectionalSocket, msg)
     end
 end
 
@@ -63,8 +65,6 @@ end
 -- Callback function for client connections on the bidirectional socket.
 -- @param sock Socket that has something ready to read.
 local function bidirectionalFromExternal(sock)
-	local sockets = rinApp.system.sockets
-
 	local m, err = sockets.readSocket(sock)
     if err ~= nil then
     	sockets.removeSocket(sock)
@@ -88,7 +88,6 @@ local function socketBidirectionalAccept(sock, ip, port)
         rinApp.dbg.info('second bidirectional connection from', ip, port)
     else
 	    bidirectionalSocket = sock
-	    local sockets = rinApp.system.sockets
 
 	    sockets.addSocket(sock, bidirectionalFromExternal)
         sockets.setSocketTimeout(sock, 0.010)
@@ -98,7 +97,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Create the server socket
-rinApp.system.sockets.createServerSocket(2224, socketBidirectionalAccept)
+sockets.createServerSocket(2224, socketBidirectionalAccept)
 
 --=============================================================================
 -- Create a new socket on port 2225 that allows unidirection communications
@@ -131,8 +130,6 @@ end
 -- @param ip The source IP address of the socket
 -- @param port The source port of the socket
 local function socketUnidirectionalAccept(sock, ip, port)
-	local sockets = rinApp.system.sockets
-
 	-- Set up so that all incoming traffic is ignored, this stream only
     -- does outgoings.  Failure to do this will cause a build up of incoming
     -- data packets and blockage.
@@ -155,13 +152,13 @@ end
 -------------------------------------------------------------------------------
 -- Timer call back that injects extra information into the unidirection sockets
 local function unidirectionalTimedMessages()
-	rinApp.system.sockets.writeSet("uni", "IDLE")
+	sockets.writeSet("uni", "IDLE")
 end
 
 -------------------------------------------------------------------------------
 -- Create the server socket and timer
-rinApp.system.timers.addTimer(1.324, 0.3, unidirectionalTimedMessages)
-rinApp.system.sockets.createServerSocket(2225, socketUnidirectionalAccept)
+timers.addTimer(1.324, 0.3, unidirectionalTimedMessages)
+sockets.createServerSocket(2225, socketUnidirectionalAccept)
 
 --=============================================================================
 -- Main Application Loop

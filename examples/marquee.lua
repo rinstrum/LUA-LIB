@@ -10,6 +10,7 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local timers = requre 'rinSystem.rinTimers.Pack'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -48,7 +49,7 @@ local function slide()
     end
 end
 
-rinApp.system.timers.addTimer(slideRepeat,slideStart,slide)
+timers.addTimer(slideRepeat,slideStart,slide)
 -------------------------------------------------------------------------------
 
 -- Format the string for slide

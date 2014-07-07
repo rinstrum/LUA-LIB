@@ -3,6 +3,7 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local sockets = requre 'rinSystem.rinSockets.Pack'
 
 require "struct"
 require "pb"
@@ -40,7 +41,7 @@ local function sendMessage(msg)
 	if bidirectionalSocket ~= nil and msg ~= nil then
         local s = msg:Serialize()
         local p = struct.pack("I2c0", #s, s)
-		rinApp.system.sockets.writeSocket(bidirectionalSocket, p)
+		sockets.writeSocket(bidirectionalSocket, p)
     end
 end
 
@@ -48,8 +49,6 @@ end
 -- Callback function for client connections on the bidirectional socket.
 -- @param sock Socket that has something ready to read.
 local function bidirectionalFromExternal(sock)
-	local sockets = rinApp.system.sockets
-
 	m, err = sockets.readSocket(sock)
     if err ~= nil then
     	sockets.removeSocket(sock)
@@ -88,7 +87,6 @@ local function socketBidirectionalAccept(sock, ip, port)
         rinApp.dbg.info('second bidirectional connection from', ip, port)
     else
 	    bidirectionalSocket = sock
-	    local sockets = rinApp.system.sockets
 
 	    sockets.addSocket(sock, bidirectionalFromExternal)
         sockets.setSocketTimeout(sock, 0.010)
@@ -98,7 +96,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Create the server socket
-rinApp.system.sockets.createServerSocket(2224, socketBidirectionalAccept)
+sockets.createServerSocket(2224, socketBidirectionalAccept)
 
 -- Set up a timer to periodically send data
 

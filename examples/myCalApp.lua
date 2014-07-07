@@ -10,6 +10,7 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local timers = requre 'rinSystem.rinTimers.Pack'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -71,7 +72,7 @@ local function ticker()
 -- insert code here that you want to run on each timer event
     dwi.rotWAIT(1)
 end
-rinApp.system.timers.addTimer(tickerRepeat,tickerStart,ticker)
+timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 
 
