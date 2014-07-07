@@ -117,6 +117,7 @@ end
 -- Used to work out the dp position of a register value so subsequent
 -- reads can use the hexadecimal format and convert locally using
 -- toFloat
+-- @function getRegDP
 -- @param reg  register to read
 -- @return register value number and dp position
 function private.getRegDP(reg)
@@ -139,6 +140,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to save any changed settings and re-initialise instrument
+-- @function saveSettings
 -- @local
 function private.saveSettings()
     _M.sendRegWait(_M.CMD_EX, private.REG_SAVESETTING)
@@ -172,6 +174,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Update the curent settings for hi resolution, display mode and range.
+-- @function updateSettings
 -- @param hiRes High resolution (boolean)
 -- @param mode Display mode
 -- @param range Range
