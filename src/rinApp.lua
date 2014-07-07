@@ -94,7 +94,7 @@ local function userioCallback(sock)
         dbg.setLevel(data)
           -- Set the level in all devices connected
         for k,v in pairs(_M.devices) do
-                v.dbg.setLevel(dbg.level)
+                dbg.setLevel(dbg.level)
             end
     end
 end
@@ -140,7 +140,7 @@ function _M.addK400(model, ip, portA, portB)
 	dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
 
     -- Flush the key presses
-    device.sendRegWait(device.CMD_EX, device.REG_FLUSH_KEYS, 0)
+    device.flushKeys()
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
@@ -252,7 +252,7 @@ local function socketUnidirectionalAccept(sock, ip, port)
     -- else to replace a message.
     socks.addSocketSet("uni", sock, unidirectionFilter)
 	-- Finally, log the fact that we've got a new connection
-    rinApp.dbg.info('unidirectional connection from', ip, port)
+    dbg.info('unidirectional connection from', ip, port)
 end
 
 -------------------------------------------------------------------------------

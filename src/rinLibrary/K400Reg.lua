@@ -12,6 +12,7 @@ local tonumber = tonumber
 local powersOfTen = require "rinLibrary.powersOfTen"
 local timers = require 'rinSystem.rinTimers.Pack'
 local system = require 'rinSystem.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -244,7 +245,7 @@ function _M.readReg(reg)
 
     data, err = _M.sendRegWait(_M.CMD_RDLIT, reg)
     if err then
-        _M.dbg.debug('Read Error', err)
+        dbg.debug('Read Error', err)
         return nil, err
     else
         return private.literalToFloat(data), nil

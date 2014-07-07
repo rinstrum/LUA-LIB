@@ -11,6 +11,7 @@ local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
 local system = require 'rinSystem.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -226,7 +227,7 @@ local function statusCallback(data, err)
        local status = bit32.band(data,k)
        if status ~= v.lastStatus  then
            if v.running then
-               _M.dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
+               dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
            else
               v.running = true
               v.lastStatus = status
@@ -264,9 +265,9 @@ local function IOCallback(data, err)
        if status ~= v.lastStatus  then
            if v.running then
                if k == 0 then
-                   _M.dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
+                   dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
                else
-                   _M.dbg.warn('IO Event lost: ',v.IO,status ~=0)
+                   dbg.warn('IO Event lost: ',v.IO,status ~=0)
                end
            else
               v.running = true
@@ -302,7 +303,7 @@ function _M.setIOCallback(IO, callback)
        IOBinds[status]['lastStatus'] = 0xFFFFFFFF
     else
         IOBinds[status] = nil
-       _M.dbg.warn('','setIOCallback:  nil value for callback function')
+       dbg.warn('','setIOCallback:  nil value for callback function')
     end
 end
 
@@ -323,7 +324,7 @@ function _M.setAllIOCallback(callback)
         IOBinds[0]['lastStatus'] = 0xFFFFFF
     else
         IOBinds[0] = nil
-       _M.dbg.warn('','setIOCallback:  nil value for all callback function')
+       dbg.warn('','setIOCallback:  nil value for all callback function')
     end
 end
 
@@ -342,9 +343,9 @@ local function SETPCallback(data, err)
        if status ~= v.lastStatus  then
            if v.running then
                if k == 0 then
-                   _M.dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
+                   dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
                else
-                   _M.dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
+                   dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
                end
            else
               v.running = true
@@ -409,7 +410,7 @@ local function eStatusCallback(data, err)
         local status = bit32.band(data,k)
         if status ~= v.lastStatus  then
             if v.running then
-                _M.dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
+                dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
             else
                 v.running = true
                 v.lastStatus = status
@@ -664,7 +665,7 @@ end
 -- device.writeRTCStatus(true)  -- enable RTC monitoring
 -- device.writeRTCStatus(false) -- disable RTC monitoring
 function _M.writeRTCStatus(s)
-    _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_RTC, s == false and 0 or 1)
+    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_LUA_STAT_RTC, s == false and 0 or 1)
 end
 
 -------------------------------------------------------------------------------
@@ -682,7 +683,7 @@ end
 -- @param active Active?
 -- @local
 local function handleINIT(status, active)
---   _M.dbg.info('INIT',string.format('%08X',status),active)
+--   dbg.info('INIT',string.format('%08X',status),active)
 --   if active then
 --       private.readSettings()
 --       _M.RTCread()
@@ -710,10 +711,10 @@ end
 -- device.setupStatus()
 function _M.setupStatus()
     curStatus = 0
-    statID  = private.addStreamLib(_M.REG_LUA_STATUS, statusCallback,  'change')
-    eStatID = private.addStreamLib(_M.REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = private.addStreamLib(_M.REG_IO_STATUS,  IOCallback,      'change')
-    SETPID  = private.addStreamLib(_M.REG_SETPSTATUS, SETPCallback,    'change')
+    statID  = private.addStreamLib(REG_LUA_STATUS, statusCallback,  'change')
+    eStatID = private.addStreamLib(REG_LUA_ESTAT,  eStatusCallback, 'change')
+    IOID    = private.addStreamLib(private.REG_IO_STATUS,  IOCallback,      'change')
+    SETPID  = private.addStreamLib(REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC,  handleRTC)
     _M.setEStatusMainCallback(_M.ESTAT_INIT, handleINIT)

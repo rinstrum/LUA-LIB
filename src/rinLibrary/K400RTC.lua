@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 local string = string
 local tonumber = tonumber
+local dbg = require "rinLibrary.rinDebug"
 
 -------------------------------------------------------------------------------
 -- Return the length of a month in a given year
@@ -355,7 +356,7 @@ function _M.RTCdateFormat(first,second,third)
         RTC.second = second
         RTC.third = third
     else
-        _M.dbg.warn('K400: illegal date format specified:', first, second, third)
+        dbg.warn('K400: illegal date format specified:', first, second, third)
     end
 end
 

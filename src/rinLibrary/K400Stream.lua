@@ -12,6 +12,7 @@ local tonumber = tonumber
 local pairs = pairs
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -46,7 +47,7 @@ local frequencyTable = setmetatable({
         auto1    = STM_FREQ_AUTO1,      [STM_FREQ_AUTO1]    = STM_FREQ_AUTO1,
         onchange = STM_FREQ_ONCHANGE,   [STM_FREQ_ONCHANGE] = STM_FREQ_ONCHANGE,
     }, { __index = function(t, k)
-                       _M.dbg.warn("K400: unknown stream frequency", k)
+                       dbg.warn("K400: unknown stream frequency", k)
                        return STM_FREQ_ONCHANGE
                    end
 })
@@ -98,7 +99,7 @@ local function streamCallback(data, err)
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then
-          _M.dbg.error('Corrupt Stream Data: ',data)
+          dbg.error('Corrupt Stream Data: ',data)
           return
     end
 
@@ -111,9 +112,9 @@ local function streamCallback(data, err)
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
                      if v.typ == _M.TYP_WEIGHT and _M.settings.hiRes then
-                         timers.addEvent(v.callback, _M.toFloat(substr,v.dp+1), err)
+                         timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
                      else
-                         timers.addEvent(v.callback, _M.toFloat(substr,v.dp), err)
+                         timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
                      end
                 end
             end
@@ -228,7 +229,7 @@ local function streamCallbackLib(data, err)
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then
-          _M.dbg.error('Corrupt Lib Stream Data: ',data)
+          dbg.error('Corrupt Lib Stream Data: ',data)
           return
     end
 
@@ -240,7 +241,7 @@ local function streamCallbackLib(data, err)
             if substr and substr ~= "" then
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
-                     timers.addEvent(v.callback,_M.toFloat(substr,v.dp), err)
+                     timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
                 end
             end
         end

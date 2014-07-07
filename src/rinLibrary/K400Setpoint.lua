@@ -9,13 +9,14 @@
 local math = math
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, depricated)
 
-_M.REG_IO_STATUS    = 0x0051
-_M.REG_IO_ENABLE    = 0x0054
+private.REG_IO_STATUS    = 0x0051
+local REG_IO_ENABLE    = 0x0054
 
 _M.REG_SETP_NUM     = 0xA400
 
@@ -84,7 +85,7 @@ _M.NUM_SETP = 16
 
 local function setOutputs(outp)
     if outp ~= lastOutputs then
-        _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_STATUS,  outp)
+        _M.sendReg(_M.CMD_WRFINALDEC, private.REG_IO_STATUS,  outp)
         lastOutputs = outp
     end
 end
@@ -145,7 +146,7 @@ function _M.turnOnTimed(IO, t)
              end)
       timedOutputs = bit32.bor(timedOutputs, IOMask)
   else
-     _M.dbg.warn('IO Timer overlap: ', IO)
+     dbg.warn('IO Timer overlap: ', IO)
   end
 end
 
@@ -198,7 +199,7 @@ end
 -- @return address of this registet for setpoint setp
 function _M.setpRegAddress(setp,reg)
   if (setp > _M.NUM_SETP) or (setp < 1) then
-     _M.dbg.error('Setpoint Invalid: ', setp)
+     dbg.error('Setpoint Invalid: ', setp)
      return(0)
   elseif reg == _M.REG_SETP_TARGET then
      return (reg+setp-1)
@@ -321,6 +322,10 @@ function _M.setpHys(setp, v)
   setpParam(setp,_M.REG_SETP_HYS, _M.toPrimary(v))
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the depricated fields
+depricated.REG_IO_STATUS = private.REG_IO_STATUS
+depricated.REG_IO_ENABLE = REG_IO_ENABLE
 
 end
 

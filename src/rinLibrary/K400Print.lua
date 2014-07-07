@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 local string = string
 local bit32 = require "bit"
+local dbg = require "rinLibrary.rinDebug"
 
 local REG_PRINTPORT         = 0xA317
 local REG_PRINTTOKENSTR     = 0x004C
@@ -80,7 +81,7 @@ end
 -- @see printCustomTransmit
 function _M.reqCustomTransmit(tokenStr)
     s = _M.sendRegWait(_M.CMD_WRFINALHEX, REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
-    _M.dbg.printVar(s)
+    dbg.printVar(s)
     return s
 end
 

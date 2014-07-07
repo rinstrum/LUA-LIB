@@ -15,6 +15,7 @@ local bit32 = require "bit"
 local powersOfTen = require "rinLibrary.powersOfTen"
 local rinMsg = require "rinLibrary.rinMessage"
 local system = require 'rinSystem.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -90,7 +91,7 @@ end
 function private.getRegDP(reg)
     local data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
     if err then
-        _M.dbg.error('getDP: ', reg, err)
+        dbg.error('getDP: ', reg, err)
         return nil, nil
     else
         local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
@@ -147,10 +148,10 @@ local function readSettings()
                     _M.settings.dispmode[mode].countby[2] = _M.countby[1+bit32.band(bit32.rshift(data,16),0x000000FF)]
                     _M.settings.dispmode[mode].countby[1] = _M.countby[1+bit32.band(bit32.rshift(data,24),0x000000FF)]
                 else
-                    _M.dbg.warn('Bad settings data: ', data)
+                    dbg.warn('Bad settings data: ', data)
                 end
             else
-                _M.dbg.warn('Incorrect read: ',data,err)
+                dbg.warn('Incorrect read: ',data,err)
             end
         end
     end
@@ -172,7 +173,7 @@ function _M.configure(model)
         instrumentSerialNumber, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
     end
 
-    _M.dbg.info(instrumentModel, instrumentSerialNumber)
+    dbg.info(instrumentModel, instrumentSerialNumber)
 
     readSettings()
 
@@ -216,7 +217,7 @@ end
 function _M.loadRIS(filename)
     local file = io.open(filename, "r")
     if not file then
-      _M.dbg.warn('RIS file not found',filename)
+      dbg.warn('RIS file not found',filename)
       return
     end
     for line in file:lines() do
@@ -228,7 +229,7 @@ function _M.loadRIS(filename)
 
             local _,cmd,reg,data,err = rinMsg.processMsg(line)
             if err then
-               _M.dbg.error('RIS error: ',err)
+               dbg.error('RIS error: ',err)
             end
             _M.sendRegWait(cmd,reg,data)
          end

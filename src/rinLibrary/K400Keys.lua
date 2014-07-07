@@ -10,6 +10,7 @@ local pairs = pairs
 local ipairs = ipairs
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -188,7 +189,7 @@ local function keyCallback(data, err)
         state = "up"
     end
 
---    _M.dbg.debug('Key: ',data,err)
+--    dbg.debug('Key: ',data,err)
     -- Debug - throw away first 0 key garbage
     if data == 0 and firstKey then
         return
@@ -206,7 +207,7 @@ local function keyCallback(data, err)
 
        if groups.directCallback then
             if runningKeyCallback == groups.directCallback then
-               _M.dbg.warn('Attempt to call Key Event Handler recursively : ', key)
+               dbg.warn('Attempt to call Key Event Handler recursively : ', key)
                return
             end
             runningKeyCallback = groups.directCallback
@@ -220,7 +221,7 @@ local function keyCallback(data, err)
           for i=1,#groups do
             if groups[i].callback then
                 if runningKeyCallback == groups[i].callback then
-                    _M.dbg.warn('Attempt to call Key Group Event Handler recursively : ', key)
+                    dbg.warn('Attempt to call Key Group Event Handler recursively : ', key)
                     return
                 end
                 runningKeyCallback = groups[i].callback
@@ -243,6 +244,14 @@ local function keyCallback(data, err)
 end
 
 -------------------------------------------------------------------------------
+-- Flush any outstanding key events.
+-- @usage
+-- device.flushKeys()
+function _M.flushKeys()
+    _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+end
+
+-------------------------------------------------------------------------------
 -- Setup key handling stream
 -- This function must be called before any key processing can take place.
 -- This routine is called automatically by the standard rinApp application
@@ -254,7 +263,7 @@ end
 -- Note: this function generally does not need to be called as the application
 -- framework takes care of this.
 function _M.setupKeys()
-    _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+    _M.flushKeys()
     _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 1)
     keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
 end
@@ -273,7 +282,7 @@ end
 -- framework takes care of this.
 function _M.endKeys(flush)
     if flush then
-        _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+        _M.flushKeys()
     end
 
     _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 0)

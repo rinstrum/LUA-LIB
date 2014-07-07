@@ -434,7 +434,7 @@ _M.NUM_LINPTS   = 10
 function _M.readZeroMVV()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_ZEROMVV)
     if data then
-        data = _M.toFloat(data,4)
+        data = private.toFloat(data,4)
         return data, nil
     else
         return data, error
@@ -455,7 +455,7 @@ end
 function _M.readSpanMVV()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANMVV)
     if data then
-        data = _M.toFloat(data,4)
+        data = private.toFloat(data,4)
         return data, nil
     else
          return data, error
@@ -476,7 +476,7 @@ end
 function _M.readSpanWeight()
     local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANWGT)
     if data then
-        data = _M.toFloat(data)
+        data = private.toFloat(data)
         return data, nil
     else
         return data, error
@@ -503,14 +503,14 @@ function _M.readLinCal()
         if not msg then
             return msg, err
         else
-            t[i].pc = _M.toFloat(msg,0)      
+            t[i].pc = private.toFloat(msg,0)      
         end    
         
         msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINWGT,i-1,1.0)
         if not msg then
             return msg, err
         else
-            t[i].correction = _M.toFloat(msg)      
+            t[i].correction = private.toFloat(msg)      
         end 
     end 
     return t, nil 

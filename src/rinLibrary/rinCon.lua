@@ -10,6 +10,7 @@ local sockets = require "rinSystem.rinSockets.Pack"
 local timers = require 'rinSystem.rinTimers.Pack'
 local bit32 = require "bit"
 local rinMsg = require "rinLibrary.rinMessage"
+local dbg = require "rinLibrary.rinDebug"
 
 local str = string
 local table = table
@@ -22,8 +23,6 @@ return function (_M, private, depricated)
 
 _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
-
-_M.dbg = require "rinLibrary.rinDebug"
 
 local deviceRegisters = {}
 
@@ -82,7 +81,7 @@ function _M.socketACallback()
     if err == nil then
         local msg = table.concat(serABuffer)
         serABuffer = {}
-        _M.dbg.debug(_M.socketA:getpeername(), '>>>', msg)
+        dbg.debug(_M.socketA:getpeername(), '>>>', msg)
         local addr, cmd, reg, data, e, excess = rinMsg.processMsg(msg, nil)
         if e then
             rinMsg.handleError(addr, cmd, reg, data, e)
@@ -90,7 +89,7 @@ function _M.socketACallback()
         elseif excess ~= nil and excess ~= '' then
             -- since we're reading character at a time and cheching delimiters,
             -- this should never happen but let's be a bit paranoid just in case.
-            _M.dbg.warn("excess data after message", excess)
+            dbg.warn("excess data after message", excess)
         end
         if deviceRegisters[reg] then
             deviceRegisters[reg](data, e)
@@ -103,10 +102,10 @@ function _M.socketACallback()
          return nil, nil
     end
 
-    _M.dbg.error("Receive failed: ", err)
+    dbg.error("Receive failed: ", err)
     if err == "closed" or err == "Transport endpoint is not connected" then
     	sockets.removeSocket(_M.socketA)
-        _M.dbg.fatal("Critical error. Exiting.", err)
+        dbg.fatal("Critical error. Exiting.", err)
         os.exit(1)
     end
     return nil, err
@@ -236,7 +235,7 @@ end
 -- @local
 local function serBProcess(err)
     local msg = table.concat(serBBuffer)
-    _M.dbg.debug(_M.socketB:getpeername(), '-->', msg, err)
+    dbg.debug(_M.socketB:getpeername(), '-->', msg, err)
     if SerBCallback then
         SerBCallback(msg, err)
     end
@@ -268,7 +267,7 @@ function _M.socketBCallback()
         table.insert(serBBuffer,char)
         if #serBBuffer > 250 then
            if not largeSerialBMessageWarning then
-              _M.dbg.warn("Receive SERB:", "Large message -- incorrect message delimiters?")
+              dbg.warn("Receive SERB:", "Large message -- incorrect message delimiters?")
               largeSerialBMessageWarning = true
            end
            break
@@ -299,7 +298,7 @@ function _M.socketBCallback()
         end
         return nil, nil
     end
-    _M.dbg.error("Receive SERB failed: ", err)
+    dbg.error("Receive SERB failed: ", err)
     return nil, err
 end
 
@@ -357,7 +356,11 @@ function _M.socketDebugAcceptCallback(sock, ip, port)
 	sockets.addSocket(sock, sockets.flushReadSocket)
     sockets.setSocketTimeout(sock, 0.001)
     sockets.addSocketSet("debug", sock, function (s, m) return m end, true)
-    _M.dbg.info('debug connection from', ip, port)
+    dbg.info('debug connection from', ip, port)
 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the depricated fields
+depricated.dbg = dbg
 
 end

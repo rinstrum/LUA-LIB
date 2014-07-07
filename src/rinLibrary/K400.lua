@@ -9,6 +9,7 @@
 local lpeg = require "lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
+local dbg = require "rinLibrary.rinDebug"
 
 -- submodules are merged in as follows (and in this order):
 local modules = {
@@ -99,7 +100,7 @@ return function ()
                     kt[k] = v
                     regPopulate(k, v)
                 else
-                    t.dbg.fatal("K400: redefinition of ".. k .. " as", v)
+                    dbg.fatal("K400: redefinition of ".. k .. " as", v)
                     os.exit(1)
                 end
             end
@@ -124,12 +125,12 @@ return function ()
             function(t, k)
                 if depricated[k] ~= nil then
                     if not dwarned[k] then
-                        _M.dbg.warn("K400: ", "access of depricated field: " .. tostring(k))
+                        dbg.warn("K400: ", "access of depricated field: " .. tostring(k))
                         dwarned[k] = true
                     end
                     return depricated[k]
                 end
-                _M.dbg.warn("K400: ", "attempt to access undefined field: " .. tostring(k))
+                dbg.warn("K400: ", "attempt to access undefined field: " .. tostring(k))
                 return nil
             end,
 
@@ -137,7 +138,7 @@ return function ()
             function(t, k, v)
                 if depricated[k] ~= nil then
                     if not dwarned[k] then
-                        _M.dbg.warn("K400: ", "write to depricated field: " .. tostring(k))
+                        dbg.warn("K400: ", "write to depricated field: " .. tostring(k))
                         dwarned[k] = true
                     end
                     depricated[k] = v

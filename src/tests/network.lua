@@ -48,7 +48,7 @@ _M.password = 'root'
 function _M.openDevices(upper, lower)
     local rinApp = rinAppFactory()
 
-    --rinApp.dbg.setLevel('FATAL')
+    --dbg.setLevel('FATAL')
 
     upper = upper or _M.upperIPaddress
     lower = lower or _M.lowerIPaddress
