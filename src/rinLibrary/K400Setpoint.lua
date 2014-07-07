@@ -92,7 +92,7 @@ end
 
 local function setOutputEnable(en)
     if en ~= lastIOEnable then
-        _M.sendReg(_M.CMD_WRFINALDEC, _M.REG_IO_ENABLE, en)
+        _M.sendReg(_M.CMD_WRFINALDEC, REG_IO_ENABLE, en)
         lastIOEnable = en
     end
 end
