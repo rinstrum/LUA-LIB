@@ -9,6 +9,8 @@ local string = string
 local tonumber = tonumber
 local tostring = tostring
 local bit32 = require "bit"
+local type = type
+local table = table
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -199,10 +201,12 @@ passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 -- Command to check to see if passcode entry required and prompt if so
 -- @param pc = 'full','safe','oper'
 -- @param code = passcode to unlock, nil to prompt user
--- @param tries = number of tries to make before giving up (default 1)
+-- @param tries = number of tries to make before giving up (default 1),
+-- more than 3 consecutive incorrect attempts will lock the instrument until it
+-- is rebooted
 -- @return true if unlocked false otherwise
 -- @usage
--- if device.checkPasscode('full', _, 5) then
+-- if device.checkPasscode('full', _, 3) then
 --     print('you have full access now')
 -- end
 function _M.checkPasscode(pc, code, tries)
@@ -213,8 +217,8 @@ function _M.checkPasscode(pc, code, tries)
     local tries = tries or 1
     local count = 1
     _M.startDialog()
-    while _M.dialogRunning() and _M.app.running do 
-       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
+    while _M.dialogRunning() and _M.app.running do
+       local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
           if  count > tries then
                 _M.setErrHandler(f)
@@ -229,8 +233,9 @@ function _M.checkPasscode(pc, code, tries)
           if code then
              pass = code
              code = nil
-          else   
-            pass, ok = _M.edit('ENTER PCODE','','passcode')            
+          else
+            local ok = false
+            pass, ok = _M.edit('ENTER PCODE','','passcode')
             if not ok or not pass then
                 _M.setErrHandler(f)
                 _M.abortDialog()
@@ -383,12 +388,12 @@ end
 function _M.calibrateZeroMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
-    end   
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRZERO,_M.toPrimary(MVV,4),1.0)
+    end
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRZERO,_M.toPrimary(MVV,4),1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
-    else 
+    else
         return msg, err
     end
 end
@@ -404,12 +409,12 @@ end
 function _M.calibrateSpanMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
-    end   
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRSPAN,_M.toPrimary(MVV,4),1.0)
+    end
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRSPAN,_M.toPrimary(MVV,4),1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
-    else 
+    else
         return msg, err
     end
 end
@@ -437,8 +442,8 @@ function _M.readZeroMVV()
         data = private.toFloat(data,4)
         return data, nil
     else
-        return data, error
-    end     
+        return data, err
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -458,8 +463,8 @@ function _M.readSpanMVV()
         data = private.toFloat(data,4)
         return data, nil
     else
-         return data, error
-    end   
+         return data, err
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -479,8 +484,8 @@ function _M.readSpanWeight()
         data = private.toFloat(data)
         return data, nil
     else
-        return data, error
-    end   
+        return data, err
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -580,10 +585,10 @@ function _M.clearLin(pt)
     end   
 
     if (pt < 1) or (pt > _M.NUM_LINPTS) then
-        return nil, 'Linearisation point out of range' 
+        return nil, 'Linearisation point out of range'
     end
     
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt-1,1.0)
+    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt-1,1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
