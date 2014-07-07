@@ -303,22 +303,18 @@ end
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint type
-function _M.setpType(setp, v)
-    if type(v) == 'string' then
-        v = typeMap[string.lower(v)]
-    end
+-- @param sType is setpoint type
+function _M.setpType(setp, sType)
+    local v = private.convertNameToValue(sType, typeMap)
     setpParam(setp, REG_SETP_TYPE, v)
 end
 
 -------------------------------------------------------------------------------
 -- Set the Logic for the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint logic type "high" or "low"
-function _M.setpLogic(setp, v)
-    if type(v) == 'string' then
-        v = logicMap[string.lower(v)]
-    end
+-- @param lType is setpoint logic type "high" or "low"
+function _M.setpLogic(setp, lType)
+    local v = private.convertNameToValue(lType, logicMap)
     setpParam(setp, REG_SETP_LOGIC, v)
 end
 
@@ -332,12 +328,9 @@ end
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint
 -- @param setp is setpount 1..16
--- @param v is alarm type
-function _M.setpAlarm(setp, v)
-    if type(v) == 'string' then
-        v = alarmTypeMap[string.lower(v)]
-    end
-
+-- @param aType is alarm type
+function _M.setpAlarm(setp, aType)
+    local v = private.convertNameToValue(aType, alarmTypeMap)
     setpParam(setp, REG_SETP_ALARM, v)
 end
 
@@ -362,13 +355,11 @@ end
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls
 -- @param setp is setpount 1..16
--- @param v is setpoint source type (string)
+-- @param sType is setpoint source type (string)
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
-function _M.setpSource(setp, v, reg)
-    if type(v) == 'string' then
-        v = sourceMap[string.lower(sourceType)]
-    end
+function _M.setpSource(setp, sType, reg)
+    local v = private.convertNameToValue(sType, sourceMap)
 
     setpParam(setp, REG_SETP_SOURCE, v)
     if (v == SOURCE_REG) and reg then

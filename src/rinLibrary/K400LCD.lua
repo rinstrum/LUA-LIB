@@ -466,29 +466,9 @@ end
 local function convertAnnunicatorBits(t, l)
     local res = 0
     for _, v in pairs(l) do
-        local bit = v
-        if type(v) == 'string' then
-            bit = t[string.lower(v)]
-        end
-        res = bit32.bor(res, bit)
+        res = bit32.bor(res, private.convertNameToValue(v, t, 0))
     end
     return res
-end
-
--------------------------------------------------------------------------------
--- Convert one annunicator a value
--- @param t String to value table
--- @param a Annunicator to set
--- @param default Default setting
--- @local
--- @local
-local function convertAnnunicator(t, a, default)
-    if type(a) == 'string' then
-        return t[a] or default
-    elseif type(a) == 'number' then
-        return a
-    end
-    return default
 end
 
 --- Bottom LCD Annunciators
@@ -728,7 +708,7 @@ local otherAunnunictors = {
 -- @usage
 -- device.writeTopUnits('kg')
 function _M.writeTopUnits (units)
-    local u = convertAnnunicator(unitAnnunicators, units, UNITS_NONE)
+    local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
 
     _M.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
@@ -741,8 +721,8 @@ end
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
 function _M.writeBotUnits (units, other)
-    local u = convertAnnunicator(unitAnnunicators, units, UNITS_NONE)
-    local o = convertAnnunicator(otherAunnunictors, other, UNITS_NONE)
+    local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
+    local o = private.convertNameToValue(other, otherAunnunictors, UNITS_NONE)
 
     _M.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u

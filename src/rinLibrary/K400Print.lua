@@ -62,10 +62,8 @@ end
 -- end
 -- device.printCustomTransmit([[<<Copy>>\C1]], 'ser1a')
 function _M.printCustomTransmit(tokenStr, comPortName)
-    local comPort = comPortName or curPrintPort or PRINT_SER1A
-    if type(comPort) == 'string' then
-        comPort = portMap[string.lower(comPort)]
-    end
+    local comPort = private.convertNameToValue(comPortName, portMap, curPrintPort or PRINT_SER1A)
+
     if comPort ~= curPrintPort  then
         curPrintPort = comPort
         _M.sendRegWait(_M.CMD_WRFINALHEX, REG_PRINTPORT, comPort)

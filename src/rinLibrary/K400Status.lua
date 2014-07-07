@@ -51,7 +51,6 @@ local function allBitSet(data, ...)
     return true
 end
 
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, depricated)
@@ -197,6 +196,8 @@ local SETPBinds = {}
 local SETPID = nil
 
 local curStatus, curIO, curSETP
+
+local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
 -------------------------------------------------------------------------------
 -- Called when stream data is being renewed
@@ -693,15 +694,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Control the use of Net status bits
--- @param s net1, net2, both or none
+-- @param status net1, net2, both or none
 -- @usage
 -- device.writeNetStatus('net1')
 -- device.writeNetStatus('none')
 -- device.writeNetStatus('both')
-function _M.writeNetStatus(s)
-    if type(s) == 'string' then
-        s = ({ net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 })[s]
-    end
+function _M.writeNetStatus(status)
+    local s = private.convertNameToValue(status, netStatusMap, 0)
     _M.sendRegWait(_M.CMD_WRFINALHEX, _M.REG_LUA_STAT_NET, s or 0)
 end
 

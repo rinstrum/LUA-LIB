@@ -37,6 +37,9 @@ return function ()
     local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
     local regMap, regUnmap = {}, { [0] = 0 }
 
+    -- Populate the utility functions
+    require('rinLibrary.utilities')(private)
+
 -------------------------------------------------------------------------------
 -- Add an entry to the register mapping table if it is of the correct form
 -- @param k Key
@@ -66,12 +69,7 @@ return function ()
 -- print(private.getRegisterNumber('gross')
 -- @local
     function private.getRegisterNumber(r)
-        if type(r) == 'number' then
-            return r
-        elseif type(r) == 'string' then
-            return regMap[string.lower(r)]
-        end
-        return nil
+        return private.convertNameToValue(r, regMap)
     end
 
 -------------------------------------------------------------------------------
@@ -82,12 +80,7 @@ return function ()
 -- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        if type(r) == 'number' then
-            return regUnmap[r]
-        elseif type(r) == 'string' then
-            return r
-        end
-        return nil
+        return private.convertValueToName(r, regUnmap)
     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

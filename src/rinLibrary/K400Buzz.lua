@@ -24,12 +24,11 @@ return function (_M, private, depricated)
 
     local lastBuzzLen = nil
 
-    local lengthMap = setmetatable(
-        {
-            short = BUZZ_SHORT,   [BUZZ_SHORT] = BUZZ_SHORT,
-            medium = BUZZ_MEDIUM, [BUZZ_MEDIUM] = BUZZ_MEDIUM,
-            long = BUZZ_LONG,     [BUZZ_LONG] = BUZZ_LONG
-        }, { __index = function(t, k) return BUZZ_SHORT end })
+    local lengthMap = {
+        short = BUZZ_SHORT,
+        medium = BUZZ_MEDIUM,
+        long = BUZZ_LONG
+    }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Called to set the length of the buzzer sound
@@ -37,7 +36,7 @@ return function (_M, private, depricated)
 -- @param len - length of buzzer sound ('short', 'medium' or 'long')
 -- @local
     local function setBuzzLen(len)
-        local l = lengthMap[len]
+        local l = private.convertNameToValue(len, lengthMap, BUZZ_SHORT, BUZZ_SHORT, BUZZ_LONG)
         if l ~= lastBuzzLen then
             _M.sendReg(_M.CMD_WRFINALHEX, REG_BUZZ_LEN, l)
             lastBuzzLen = l

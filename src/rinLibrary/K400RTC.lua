@@ -85,16 +85,14 @@ local RTC = {
     first = 'day', second = 'month', third = 'year'
 }
 
-local stringDateMap = setmetatable(
-    {
-        dmy = TM_DDMMYY,     ddmmyy = TM_DDMMYY,
-        dmyy = TM_DDMMYYYY,  ddmmyyyy = TM_DDMMYYYY,
-        mdy = TM_MMDDYY,     mmddyy = TM_MMDDYY,
-        mdyy = TM_MMDDYYYY,  mmddyyyy = TM_MMDDYYYY,
-        ymd = TM_YYMMDD,     yymmdd = TM_YYMMDD,
-        yymd = TM_YYYYMMDD,  yyyymmdd = TM_YYYYMMDD
-    },
-    { __index = function(t, k) return TM_DDMMYYYY end })
+local stringDateMap = {
+    dmy = TM_DDMMYY,     ddmmyy = TM_DDMMYY,
+    dmyy = TM_DDMMYYYY,  ddmmyyyy = TM_DDMMYYYY,
+    mdy = TM_MMDDYY,     mmddyy = TM_MMDDYY,
+    mdyy = TM_MMDDYYYY,  mmddyyyy = TM_MMDDYYYY,
+    ymd = TM_YYMMDD,     yymmdd = TM_YYMMDD,
+    yymd = TM_YYYYMMDD,  yyyymmdd = TM_YYYYMMDD
+}
 
 -------------------------------------------------------------------------------
 -- Decode the numeric format field and set the appropriate ordering
@@ -127,17 +125,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the instrument date format
--- @param fmt TM_MMDDYYYY or TM_DDMMYYYY
+-- @param f TM_MMDDYYYY or TM_DDMMYYYY
 -- @see readDateFormat
 -- @usage
 -- -- Set to international date format
 -- device.sendDateFormat("ymd")
-function _M.sendDateFormat(fmt)
-    if type(fmt) == "string" then
-        fmt = stringDateMap[string.lower(fmt)]
-    elseif fmt < TM_DDMMYY or fmt > TM_YYYYMMDD then
-        fmt = TM_DDMMYYYY
-    end
+function _M.sendDateFormat(f)
+    local fmt = private.convertNameToValue(f, stringDateMap, TM_DDMMYYYY, TM_DDMMYY, TM_YYYYMMDD)
 
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)

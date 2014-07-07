@@ -38,30 +38,26 @@ local analogSourceMap = {   comms = ANALOG_COMMS    }
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
--- @param src Source for output.
+-- @param source Source for output.
 -- Must be set to 'comms' to control directly
 -- @usage
 -- device.setAnalogSource('comms')
-function _M.setAnalogSource(src)
-    if type(src) == 'string' then
-        src = analogSourceMap[src]
-    end
+function _M.setAnalogSource(source)
+    local src = private.convertNameToValue(source, analogSourceMap)
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
--- @param typ Type for output 'current' or 'volt'
+-- @param oType Type for output 'current' or 'volt'
 -- @return The previous analog output type
 -- @usage
 -- device.setAnalogType('volt')
-function _M.setAnalogType(typ)
+function _M.setAnalogType(oType)
     local prev = curAnalogType
 
-    if type(typ) == 'string' then
-        typ = analogTypes[typ]
-    end
+    local typ = private.convertNameToValue(oType, analogTypes, VOLT)
     if typ == CUR then
         curAnalogType = CUR
     else
