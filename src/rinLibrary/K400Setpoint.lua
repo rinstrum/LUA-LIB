@@ -15,34 +15,34 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, depricated)
 
-private.REG_IO_STATUS    = 0x0051
-local REG_IO_ENABLE    = 0x0054
+private.REG_IO_STATUS     = 0x0051
+local REG_IO_ENABLE       = 0x0054
 
-local REG_SETP_NUM     = 0xA400
+local REG_SETP_NUM        = 0xA400
 
 -- add Repeat to each registers below for each setpoint 0..15
-local REG_SETP_REPEAT  = 0x0020
-local REG_SETP_TYPE    = 0xA401
-local REG_SETP_OUTPUT  = 0xA402
-local REG_SETP_LOGIC   = 0xA403
-local REG_SETP_ALARM   = 0xA404
-local REG_SETP_NAME    = 0xA40E
-local REG_SETP_SOURCE  = 0xA406
-local REG_SETP_HYS     = 0xA409
+local REG_SETP_REPEAT     = 0x0020
+local REG_SETP_TYPE       = 0xA401
+local REG_SETP_OUTPUT     = 0xA402
+local REG_SETP_LOGIC      = 0xA403
+local REG_SETP_ALARM      = 0xA404
+local REG_SETP_NAME       = 0xA40E
+local REG_SETP_SOURCE     = 0xA406
+local REG_SETP_HYS        = 0xA409
 local REG_SETP_SOURCE_REG = 0xA40A
 
 -- There are no wrapper functions for these five yet.
-_M.REG_SETP_TIMING  = 0xA410
-_M.REG_SETP_RESET   = 0xA411
-_M.REG_SETP_PULSE_NUM = 0xA412
+_M.REG_SETP_TIMING        = 0xA410
+_M.REG_SETP_RESET         = 0xA411
+_M.REG_SETP_PULSE_NUM     = 0xA412
 _M.REG_SETP_TIMING_DELAY  = 0xA40C
 _M.REG_SETP_TIMING_ON     = 0xA40D
 
 -- targets are stored in the product database rather than the setpoint one
-local REG_SETP_TARGET  = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
+local REG_SETP_TARGET     = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
 local LOGIC_HIGH = 0
-local LOGIC_LOW = 1
+local LOGIC_LOW  = 1
 
 local logicMap = {
     high = LOGIC_HIGH,
@@ -66,14 +66,14 @@ _M.TIMING_EDGE  = 1
 _M.TIMING_PULSE = 2
 _M.TIMING_LATCH = 3
 
-local SOURCE_GROSS = 0
-local SOURCE_NET = 1
-local SOURCE_DISP = 2
-local SOURCE_ALT_GROSS = 3
-local SOURCE_ALT_NET = 4
-local SOURCE_ALT_DISP = 5
-local SOURCE_PIECE = 6
-local SOURCE_REG = 7
+local SOURCE_GROSS      = 0
+local SOURCE_NET        = 1
+local SOURCE_DISP       = 2
+local SOURCE_ALT_GROSS  = 3
+local SOURCE_ALT_NET    = 4
+local SOURCE_ALT_DISP   = 5
+local SOURCE_PIECE      = 6
+local SOURCE_REG        = 7
 
 local sourceMap = {
     gross =     SOURCE_GROSS,
@@ -124,6 +124,13 @@ local lastIOEnable = nil
 local NUM_SETP = 16
 
 -------------------------------------------------------------------------------
+-- write the bit mask of the IOs, bits must first be enabled for comms control
+-- @param 32 bit mask of IOs
+-- @see setOutputEnable
+-- @usage
+-- -- set IO3 on
+-- setOutputEnable(0x04)
+-- setOutputs(0x04)
 -- @local
 local function setOutputs(outp)
     if outp ~= lastOutputs then
@@ -133,6 +140,13 @@ local function setOutputs(outp)
 end
 
 -------------------------------------------------------------------------------
+-- enable IOs for comms control
+-- @param 32 bit mask of IOs
+-- @see setOutputs
+-- @usage
+-- -- set IO3 on
+-- setOutputEnable(0x04)
+-- setOutputs(0x04)
 -- @local
 local function setOutputEnable(en)
     if en ~= lastIOEnable then
@@ -144,6 +158,10 @@ end
 -------------------------------------------------------------------------------
 -- Turns IO Output on
 -- @param ... list of IO to turn on 1..32
+-- @see enableOutput
+-- @usage
+-- -- set IOs 3 and 4 on
+-- device.turnOn(3, 4)
 function _M.turnOn(...)
     if arg.n == 0 then
         return
@@ -161,6 +179,10 @@ end
 -------------------------------------------------------------------------------
 -- Turns IO Output off
 -- @param ... list of IO to turn off 1..32
+-- @see enableOutput
+-- @usage
+-- -- set IOs 3 and 4 off
+-- device.turnOff(3, 4)
 function _M.turnOff(...)
     if arg.n == 0 then
         return
@@ -179,6 +201,10 @@ end
 -- Turns IO Output on
 -- @param IO is output 1..32
 -- @param t is time in seconds
+-- @see enableOutput
+-- @usage
+-- -- turn IO 1 on for 5 seconds
+-- device.turnOnTimed(1, 5)
 function _M.turnOnTimed(IO, t)
   local IOMask =  bit32.lshift(0x0001,(IO-1))
   if bit32.band(timedOutputs, IOMask) == 0 then
@@ -197,6 +223,7 @@ end
 -------------------------------------------------------------------------------
 -- Sets IO Output under LUA control
 -- @param ... list of IO to enable (input 1..32)
+-- @see releaseOutput
 -- @usage
 -- dwi.enableOutput(1,2,3,4)
 -- dwi.turnOn(1)
@@ -218,6 +245,7 @@ end
 -------------------------------------------------------------------------------
 -- Sets IO Output under instrument control
 -- @param ... list of IO to release to the instrument(input 1..32)
+-- @see enableOutput
 -- @usage
 -- dwi.enableOutput(1,2,3,4)
 -- dwi.turnOn(1)
@@ -240,7 +268,10 @@ end
 -- returns actual register address for a particular setpoint parameter
 -- @param setp is setpoint 1..16
 -- @param register is REG_SETP_*
--- @return address of this registet for setpoint setp
+-- @return address of this register for setpoint setp
+-- @usage
+-- -- edit the target for setpoint 3
+-- device.editReg(device.setpRegAddress(3, device.REG_SETP_TARGET))
 function _M.setpRegAddress(setp, register)
     local reg = private.getRegisterNumber(register)
 
@@ -262,8 +293,15 @@ local function setpParam(setp, reg, v)
 end
 
 -------------------------------------------------------------------------------
--- Set the number of Setpoints
--- @param n is the number of setpoints 0..8
+-- Set the number of enabled Setpoints
+-- this disables all setpoints above the set number
+-- @param n is the number of setpoints 0..16
+-- @usage
+-- -- reduce the number of active setpoints to setpoints 1 to 4 temporarily
+-- device.setNumSetp(4)
+-- ...
+-- -- re-enable previously disabled setpoints
+-- device.setNumSetp(8)
 function _M.setNumSetp(n)
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_SETP_NUM, n)
 end
@@ -272,38 +310,47 @@ end
 -- Set Target for setpoint
 -- @param setp Setpoint 1..16
 -- @param target Target value
+-- @usage
+-- -- set the target for setpoint 5 to 150
+-- device.setpTarget(5, 150)
 function _M.setpTarget(setp,target)
     _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------
 -- Set which Output the setpoint controls
--- @param setp is setpount 1..16
+-- @param setp is setpoint 1..16
 -- @param IO is output 1..32, 0 for none
+-- @usage
+-- -- make setpoint 12 use IO 3
+-- device.setpIO(12, 3)
 function _M.setpIO(setp, IO)
     setpParam(setp, REG_SETP_OUTPUT, IO)
 end
 
 --- Setpoint Types.
 --@table Types
--- @field OFF
--- @field ON
--- @field OVER
--- @field UNDER
--- @field COZ
--- @field ZERO
--- @field NET
--- @field MOTION
--- @field ERROR
--- @field LOGIC_AND
--- @field LOGIC_OR
--- @field LOGIC_XOR
--- @field BUZZER
+-- @field OFF setpoint is always inactive
+-- @field ON setpoint is always active
+-- @field OVER setpoint is active when the source is over the target amount
+-- @field UNDER setpoint is active when the source is under the target amount
+-- @field COZ setpoint is active when the source is in the centre of zero
+-- @field ZERO setpoint is active when the source is in the zero band
+-- @field NET setpoint is active when net weight is displayed
+-- @field MOTION setpoint is active when the weight is unstable
+-- @field ERROR setpoint is active when there is an error
+-- @field LOGIC_AND a binary logic AND is performed on the source with the mask value
+-- @field LOGIC_OR a binary logic OR is performed on the source with the mask value
+-- @field LOGIC_XOR a binary logic XOR is performed on the source with the mask value
+-- @field BUZZER setpoint is active when the buzzer is beeping
 
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls
--- @param setp is setpount 1..16
+-- @param setp is setpoint 1..16
 -- @param sType is setpoint type
+-- @usage
+-- -- set setpoint 10 to over
+-- device.setpType(10, 'over')
 function _M.setpType(setp, sType)
     local v = private.convertNameToValue(sType, typeMap)
     setpParam(setp, REG_SETP_TYPE, v)
@@ -311,8 +358,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Logic for the setpoint controls
+-- high means the output will be on when the setpoint is active,
+-- low means the output will be on when the setpoint is inactive
 -- @param setp is setpount 1..16
 -- @param lType is setpoint logic type "high" or "low"
+-- @usage
+-- -- make setpoint 4 active high
+-- device.setpLogic(4, 'high')
 function _M.setpLogic(setp, lType)
     local v = private.convertNameToValue(lType, logicMap)
     setpParam(setp, REG_SETP_LOGIC, v)
@@ -320,15 +372,20 @@ end
 
 --- Setpoint Alarms Types.
 --@table Alarms
--- @field NONE
--- @field SINGLE
--- @field DOUBLE
--- @field FLASH
+-- @field NONE no alarm
+-- @field SINGLE beep once per second
+-- @field DOUBLE beep twice per second
+-- @field FLASH flash the display
 
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint
--- @param setp is setpount 1..16
+-- The alarm can beep once a second, twice a second or flash the display when
+-- the setpoint is active
+-- @param setp is setpoint 1..16
 -- @param aType is alarm type
+-- @usage
+-- -- disable the alarm on setpoint 11
+-- device.setpAlarm(11, 'none')
 function _M.setpAlarm(setp, aType)
     local v = private.convertNameToValue(aType, alarmTypeMap)
     setpParam(setp, REG_SETP_ALARM, v)
@@ -336,28 +393,37 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Name of the setpoint
--- @param setp is setpount 1..16
+-- this name will be displayed when editing targets via the keys
+-- @param setp is setpoint 1..16
 -- @param v is setpoint name (8 character string)
+-- @usage
+-- -- name setpoint 6 fred
+-- device.setpName(6, 'fred')
 function _M.setpName(setp, v)
     setpParam(setp, REG_SETP_NAME, v)
 end
 
 --- Setpoint Source Types.
 --@table Source
--- @field GROSS
--- @field NET
--- @field DISP
--- @field ALT_GROSS
--- @field ALT_NET
--- @field ALT_DISP
--- @field PIECE
--- @field REG
+-- @field GROSS setpoint uses the gross weight
+-- @field NET setpoint uses the net weight
+-- @field DISP setpoint uses the displayed weight
+-- @field ALT_GROSS setpoint uses the gross weight in secondary units
+-- @field ALT_NET setpoint uses the net weight in secondary units
+-- @field ALT_DISP setpoint uses the displayed weight in secondary units
+-- @field PIECE setpoint uses the peice count value
+-- @field REG setpoint uses the value from the supplied register
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls
--- @param setp is setpount 1..16
+-- @param setp is setpoint 1..16
 -- @param sType is setpoint source type (string)
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
+-- @usage
+-- -- set setpoint 1 to use the displayed weight
+-- device.setpSource(1, 'disp')
+-- -- set setpoint 2 to use the total weight
+-- device.setpSource(2, 'reg', device.REG_GRANDTOTAL)
 function _M.setpSource(setp, sType, reg)
     local v = private.convertNameToValue(sType, sourceMap)
 
@@ -369,8 +435,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Hysteresis for of the setpoint controls
--- @param setp is setpount 1..16
+-- @param setp is setpoint 1..16
 -- @param v is setpoint hysteresis
+-- @usage
+-- -- set setpoint 1 target to 1200 and hysteresis to 10
+-- device.setTarget(1, 1200)
+-- device.setpHys(1, 10)
 function _M.setpHys(setp, v)
     setpParam(setp, REG_SETP_HYS, _M.toPrimary(v))
 end
