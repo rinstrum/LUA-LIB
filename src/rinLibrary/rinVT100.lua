@@ -235,7 +235,7 @@ _M.BGMagenta = '45'
 _M.BGCyan = '46'
 _M.BGWhite = '47'
 
-_M.FGWhite = '37'
+_M.FGBlack = '30'
 _M.FGRed = '31'
 _M.FGGreen= '32'
 _M.FGYellow = '33'
@@ -249,17 +249,35 @@ local lastBG = _M.BGBlack
 local currentFG = _M.FGWhite
 local currentBG = _M.BGBlack
 
-local fgMap = setmetatable({
-    white = _M.FGWhite,     red = _M.FGRed,     green = _M.FGGreen,
+local fgMap = {
+    black = _M.FGBlack,     red = _M.FGRed,     green = _M.FGGreen,
     yellow = _M.FGYellow,   blue = _M.FGBlue,   magenta = _M.FGMagenta,
     cyan = _M.FGCyan,       white = _M.FGWhite
-}, { __index = function(t, k) return _M.FGWhite end })
+}
 
-local bgMap = setmetatable({
-    white = _M.BGWhite,     red = _M.BGRed,     green = _M.BGGreen,
+local bgMap = {
+    black = _M.BGBlack,     red = _M.BGRed,     green = _M.BGGreen,
     yellow = _M.BGYellow,   blue = _M.BGBlue,   magenta = _M.BGMagenta,
     cyan = _M.BGCyan,       white = _M.BGWhite
-}, { __index = function(t, k) return _M.BGWhite end })
+}
+
+--------------------------------------------------------------------------------
+-- Convert a colour name to a colour code
+-- @param n Colour name
+-- @param map Colour name to colour code mapping
+-- @param default Fallback colour if unrecognised
+-- @param l Lowest legal colour value
+-- @param u Highest legal colour value
+-- @return The colour code
+-- @local
+local function colour(n, map, default, l, u)
+    if type(n) == 'string' then
+        return map[string.lower(n)]
+    elseif type(n) == 'number' then
+        return (n < l or n > r) and default or n
+    end
+    return default
+end
 
 --------------------------------------------------------------------------------
 -- Set terminal attributes
@@ -273,16 +291,8 @@ function _M.setAttr(fg, bg)
     lastFG = currentFG
     lastBG = currentBG
 
-    currentFG = fg or _M.FGWhite
-    currentBG = bg or _M.BGBlack
-
-    if type(currentFG) == 'string' then
-        currentFG = fgMap[string.lower(currentFG)]
-    end
-
-    if type(currentBG) == 'string' then
-        currentBG = bgMap[string.lower(currentBG)]
-    end
+    currentFG = colour(fg, fgMap, _M.FGWhite, _M.FGBlack, _M.FGWhite)
+    currentBG = colour(bg, bgMap, _M.BGBlack, _M.BGBlack, _M.BGWhite)
 
     return '\27['..currentFG..';'..currentBG..'m'
 end
