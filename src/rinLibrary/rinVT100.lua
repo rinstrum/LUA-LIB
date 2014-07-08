@@ -216,39 +216,39 @@ end
 --@field White
 --@field Yellow
 
-_M.BGBlack = '40'
-_M.BGRed = '41'
-_M.BGGreen = '42'
-_M.BGYellow = '43'
-_M.BGBlue = '44'
-_M.BGMagenta = '45'
-_M.BGCyan = '46'
-_M.BGWhite = '47'
+local BGBlack = '40'
+local BGRed = '41'
+local BGGreen = '42'
+local BGYellow = '43'
+local BGBlue = '44'
+local BGMagenta = '45'
+local BGCyan = '46'
+local BGWhite = '47'
 
-_M.FGBlack = '30'
-_M.FGRed = '31'
-_M.FGGreen= '32'
-_M.FGYellow = '33'
-_M.FGBlue = '34'
-_M.FGMagenta = '35'
-_M.FGCyan = '36'
-_M.FGWhite = '37'
+local FGBlack = '30'
+local FGRed = '31'
+local FGGreen= '32'
+local FGYellow = '33'
+local FGBlue = '34'
+local FGMagenta = '35'
+local FGCyan = '36'
+local FGWhite = '37'
 
-local lastFG = _M.FGWhite
-local lastBG = _M.BGBlack
-local currentFG = _M.FGWhite
-local currentBG = _M.BGBlack
+local lastFG = FGWhite
+local lastBG = BGBlack
+local currentFG = FGWhite
+local currentBG = BGBlack
 
 local fgMap = {
-    black = _M.FGBlack,     red = _M.FGRed,     green = _M.FGGreen,
-    yellow = _M.FGYellow,   blue = _M.FGBlue,   magenta = _M.FGMagenta,
-    cyan = _M.FGCyan,       white = _M.FGWhite
+    black = FGBlack,     red = FGRed,     green = FGGreen,
+    yellow = FGYellow,   blue = FGBlue,   magenta = FGMagenta,
+    cyan = FGCyan,       white = FGWhite,
 }
 
 local bgMap = {
-    black = _M.BGBlack,     red = _M.BGRed,     green = _M.BGGreen,
-    yellow = _M.BGYellow,   blue = _M.BGBlue,   magenta = _M.BGMagenta,
-    cyan = _M.BGCyan,       white = _M.BGWhite
+    black = BGBlack,     red = BGRed,     green = BGGreen,
+    yellow = BGYellow,   blue = BGBlue,   magenta = BGMagenta,
+    cyan = BGCyan,       white = BGWhite
 }
 
 --------------------------------------------------------------------------------
@@ -256,17 +256,10 @@ local bgMap = {
 -- @param n Colour name
 -- @param map Colour name to colour code mapping
 -- @param default Fallback colour if unrecognised
--- @param l Lowest legal colour value
--- @param u Highest legal colour value
 -- @return The colour code
 -- @local
-local function colour(n, map, default, l, u)
-    if type(n) == 'string' then
-        return map[string.lower(n)]
-    elseif type(n) == 'number' then
-        return (n < l or n > r) and default or n
-    end
-    return default
+local function colour(n, map, default)
+    return type(n) == 'string' and map[string.lower(n)] or default
 end
 
 --------------------------------------------------------------------------------
@@ -281,8 +274,8 @@ function _M.setAttr(fg, bg)
     lastFG = currentFG
     lastBG = currentBG
 
-    currentFG = colour(fg, fgMap, _M.FGWhite, _M.FGBlack, _M.FGWhite)
-    currentBG = colour(bg, bgMap, _M.BGBlack, _M.BGBlack, _M.BGWhite)
+    currentFG = colour(fg, fgMap, FGWhite)
+    currentBG = colour(bg, bgMap, BGBlack)
 
     return '\27['..currentFG..';'..currentBG..'m'
 end
@@ -295,7 +288,7 @@ end
 -- VT100.set(VT100.setAttr('yellow', 'white'))
 -- VT100.set(VT100.restoreAttr())
 function _M.restoreAttr()
-    return _M.setAttr(_M.lastFG, _M.lastBG)
+    return _M.setAttr(lastFG, lastBG)
 end
 
 return _M
