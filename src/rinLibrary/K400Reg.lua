@@ -79,13 +79,13 @@ _M.REG_FULLSCALE        = 0x002F
 -- @field REG_USERNUM_NAME4
 -- @field REG_USERNUM_NAME5
 -- @field REG_USERID1         Data for 5 User ID strings
--- @field REG_USERID2         the first 2 are integers
--- @field REG_USERID3         the last 3 are weight values
+-- @field REG_USERID2
+-- @field REG_USERID3
 -- @field REG_USERID4
 -- @field REG_USERID5
 -- @field REG_USERNUM1        Data for 5 User ID numbers
--- @field REG_USERNUM2
--- @field REG_USERNUM3
+-- @field REG_USERNUM2        the first 3 are integers
+-- @field REG_USERNUM3        the last 2 are weight values
 -- @field REG_USERNUM4
 -- @field REG_USERNUM5
 
@@ -112,7 +112,7 @@ _M.REG_USERNUM3         = 0x0312
 _M.REG_USERNUM4         = 0x0313
 _M.REG_USERNUM5         = 0x0314
 
---- K412 Product Registers.
+--- Product Registers.
 --@table productRegisters
 -- @field REG_ACTIVE_PRODUCT_NO    Read the Active Product Number, Write to set the active product by number
 -- @field REG_ACTIVE_PRODUCT_NAME  Read the Active Product Name, Write to set Active Product by name
@@ -120,8 +120,8 @@ _M.REG_USERNUM5         = 0x0314
 -- @field REG_CLR_DOCKET_TOTALS    Clears all docket sub-totals (EXECUTE)
 -- @field REG_SELECT_PRODUCT_NO    Read the Selected Product Number, Write to set the Selected product by number
 -- @field REG_SELECT_PRODUCT_NAME  Read the Selected Product Name, Write to set the Selected product by Name
--- @field REG_SELECT_PRODUCT_DELETE Delete Selected Product (EXECUTE)
--- @field REG_SELECT_PRODUCT_RENAME Write to change name of selected product
+-- @field REG_SELECT_PRODUCT_DELETE Delete Selected Product, totals must be 0 (EXECUTE)
+-- @field REG_SELECT_PRODUCT_RENAME Execute with a string as an argument to change name of selected product (EXECUTE)
 
 _M.REG_ACTIVE_PRODUCT_NO        = 0xB000
 _M.REG_ACTIVE_PRODUCT_NAME      = 0xB006
@@ -178,7 +178,7 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
 
     local waiting = true
     local regData = ''
-    local regError = ''
+    local regErr = ''
     local function waitf(data, err)
           regData = data
           regErr = err

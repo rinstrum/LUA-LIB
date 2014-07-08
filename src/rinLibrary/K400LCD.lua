@@ -365,16 +365,16 @@ end
 
 
 -----------------------------------------------------------------------------
--- Set the bottom annunicators directly.
--- @param s Bit mask for the annunicators
+-- Set the bottom annunciators directly.
+-- @param s Bit mask for the annunciators
 -- @local
 local function writeBotAnnuns(s)
     _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_BOTTOM_ANNUN, s, "noReply")
 end
 
 -----------------------------------------------------------------------------
--- Set the top annunicators directly.
--- @param s Bit mask for the annunicators
+-- Set the top annunciators directly.
+-- @param s Bit mask for the annunciators
 -- @local
 local function writeTopAnnuns(s)
     _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_TOP_ANNUN, s, "noReply")
@@ -459,9 +459,9 @@ function _M.readAutoBotLeft()
 end
 
 -------------------------------------------------------------------------------
--- Convert the annunicator bit maps to a value
+-- Convert the annunciator bit maps to a value
 -- @param t String to value table
--- @param l List of annunicators
+-- @param l List of annunciators
 -- @local
 local function convertAnnunicatorBits(t, l)
     local res = 0
