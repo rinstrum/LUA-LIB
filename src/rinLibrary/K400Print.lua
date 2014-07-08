@@ -77,6 +77,9 @@ end
 -- Called to request response based on custom transmit token string
 -- @param tokenStr custom token string
 -- @see printCustomTransmit
+-- @usage
+-- -- get the current weight as a string
+-- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
     s = _M.sendRegWait(_M.CMD_WRFINALHEX, REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
     dbg.printVar(s)
