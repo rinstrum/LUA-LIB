@@ -5,11 +5,31 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local lpeg = require "lpeg"
+local C, P, R = lpeg.C, lpeg.P, lpeg.R
+
+local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
 
 local lower = string.lower
 local min, max = math.min, math.max
 
-return function (private)
+return function(private)
+    local regMap, regUnmap = {}, { [0] = 0 }
+
+-------------------------------------------------------------------------------
+-- Check if a particular module or modules have been loaded.
+-- @function isModuleLoaded
+-- @param m Module name(s)
+-- @return true iff all the specified modules are loaded
+-- @local
+    function private.isModuleLoaded(...)
+        local r = true
+        for _, m in pairs({...}) do
+            r = r and (private.modules[m] or false)
+        end
+        return r
+    end
+
 -------------------------------------------------------------------------------
 -- Convert a named value into a real value but also let real values through
 -- unmodified.
@@ -51,6 +71,50 @@ return function (private)
             return map[n] or default
         end
         return default
+    end
+
+-------------------------------------------------------------------------------
+-- Add an entry to the register mapping table if it is of the correct form
+-- @function regPopulate
+-- @param k Key
+-- @param v Value
+-- @see private.getRegisterNumber
+-- @see private.getRegisterName
+-- @local
+    function private.regPopulate(k, v)
+        if type(k) == "string" then
+            local m = regPattern:match(k)
+            if m ~= nil then
+                local r = string.lower(m)
+                regMap[r] = v
+                regUnmap[v] = r
+            end
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Convert a string register name to the associated register number.
+-- @function getRegisterNumber
+-- @param r Register name or number
+-- @return Register number
+-- @see getRegisterName
+-- @usage
+-- -- Find out what register number the gross weight is stored in
+-- print(private.getRegisterNumber('gross')
+-- @local
+    function private.getRegisterNumber(r)
+        return private.convertNameToValue(r, regMap)
+    end
+
+-------------------------------------------------------------------------------
+-- Convert a register number to the associated canonical register name.
+-- @function getRegisterName
+-- @param r Register name or number
+-- @return Register name
+-- @see getRegisterNumber
+-- @local
+    function private.getRegisterName(r)
+        return private.convertValueToName(r, regUnmap)
     end
 
 end
