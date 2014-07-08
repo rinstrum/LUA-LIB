@@ -204,6 +204,7 @@ end
 -- processes the return string from CMD_RDLIT command
 -- if data is a floating point number then the converted number is returned
 -- otherwise the original data string is returned
+-- @function literalToFloat
 -- @param data returned from _CMD_RDLIT
 -- @return floating point number or data string
 -- @local
@@ -219,6 +220,7 @@ end
 
 -------------------------------------------------------------------------------
 -- called to convert hexadecimal return string to a floating point number
+-- @function toFloat
 -- @param data returned from _CMD_RDFINALHEX or from stream
 -- @param dp decimal position (if nil then instrument dp used)
 -- @return floating point number

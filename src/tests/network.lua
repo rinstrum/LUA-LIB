@@ -1,5 +1,6 @@
 -------------------------------------------------------------------------------
 -- Network support for tests.
+-- These functions are NOT available inside the rinApp application framework.
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

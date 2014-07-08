@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- General purpose utility functions.
 -- Functions for internal library use
--- @module rinLibrary.K400Buzz
+-- @module rinLibrary.utilities
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -14,7 +14,7 @@ local lower = string.lower
 local min, max = math.min, math.max
 
 return function(private)
-    local regMap, regUnmap = {}, { [0] = 0 }
+    local regMap = { [0] = 0 }
 
 -------------------------------------------------------------------------------
 -- Check if a particular module or modules have been loaded.
@@ -78,8 +78,8 @@ return function(private)
 -- @function regPopulate
 -- @param k Key
 -- @param v Value
--- @see private.getRegisterNumber
--- @see private.getRegisterName
+-- @see getRegisterNumber
+-- @see getRegisterName
 -- @local
     function private.regPopulate(k, v)
         if type(k) == "string" then
@@ -87,7 +87,7 @@ return function(private)
             if m ~= nil then
                 local r = string.lower(m)
                 regMap[r] = v
-                regUnmap[v] = r
+                regMap[v] = r
             end
         end
     end
@@ -114,7 +114,6 @@ return function(private)
 -- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        return private.convertValueToName(r, regUnmap)
+        return private.convertValueToName(r, regMap)
     end
-
 end

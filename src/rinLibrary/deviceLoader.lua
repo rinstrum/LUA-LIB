@@ -6,14 +6,6 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
--------------------------------------------------------------------------------
--- Library for K400 application support.
--- Provides wrappers for all device services
--- @module rinLibrary.K400
--- @author Darren Pearson
--- @author Merrick Heley
--- @copyright 2013 Rinstrum Pty Ltd
--------------------------------------------------------------------------------
 local dbg = require "rinLibrary.rinDebug"
 local lpeg = require "lpeg"
 

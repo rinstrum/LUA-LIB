@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
--- Basic test framework for the timer infrastructure
--- @module rinSystem.rinTimers
+-- Basic test framework for the timer infrastructure.
+-- These functions are NOT available inside the rinApp application framework.
+-- @module rinSystem.rinTimers.Test
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
