@@ -25,7 +25,7 @@ return function (device, modules)
     local depricated, dwarned = {}, {}
     local private = {   deviceType = device,
                         [device] = true,
-                        modules = {}
+                        modules = { utilities = true }
                     }
 
     -- Populate the utility functions
