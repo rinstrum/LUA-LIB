@@ -85,18 +85,47 @@ local RTC = {
     first = 'day', second = 'month', third = 'year'
 }
 
-local stringDateMap = {
-    dmy = TM_DDMMYY,     ddmmyy = TM_DDMMYY,
-    dmyy = TM_DDMMYYYY,  ddmmyyyy = TM_DDMMYYYY,
-    mdy = TM_MMDDYY,     mmddyy = TM_MMDDYY,
-    mdyy = TM_MMDDYYYY,  mmddyyyy = TM_MMDDYYYY,
-    ymd = TM_YYMMDD,     yymmdd = TM_YYMMDD,
-    yymd = TM_YYYYMMDD,  yyyymmdd = TM_YYYYMMDD
+local stringDateMap, stringDateUnmap = {}, {
+    [TM_DDMMYY] = 'dmy',
+    [TM_DDMMYYYY] = 'dmyy',
+    [TM_MMDDYY] = 'mdy',
+    [TM_MMDDYYYY] = 'mdyy',
+    [TM_YYMMDD] = 'ymd',
+    [TM_YYYYMMDD] = 'yymd'
 }
+
+for k,v in pairs(stringDateUnmap) do
+    local d = { v:sub(1, 1) }
+    for i = 2, #v do
+        table.insert(d, v:sub(i-1, i))
+    end
+    table.insert(d, v:sub(-1, -1))
+
+    stringDateMap[v] = k
+    stringDateMap[table.concat(d)] = k
+end
+
+-------------------------------------------------------------------------------
+-- Convert a string or numeric format into a numeric code
+-- @param f Date format
+-- @return Numeric date format code
+-- @local
+local function convertStringToFormat(f)
+    return private.convertNameToValue(f, stringDateMap, TM_DDMMYYYY, TM_DDMMYY, TM_YYYYMMDD)
+end
+
+-------------------------------------------------------------------------------
+-- Convert a string or numeric format into a numeric code
+-- @param f Date format
+-- @return Numeric date format code
+-- @local
+local function convertFormatToString(f)
+    return private.convertValueToName(f, stringDateUnmap, 'dmy')
+end
 
 -------------------------------------------------------------------------------
 -- Decode the numeric format field and set the appropriate ordering
--- @param fmt Date format enumerated type value
+-- @param fmt Date format (numeric)
 -- @local
 local function setDateFormat(fmt)
     if fmt == TM_DDMMYYYY or fmt == TM_DDMMYY then
@@ -110,28 +139,28 @@ end
 
 -------------------------------------------------------------------------------
 -- Read the instrument date format
--- @return Date format code
+-- @return Date format ('dmy', 'ymd', 'mdy', 'dmyy', 'yymd' or 'mdyy')
 -- @see sendDateFormat
 -- @usage
--- if device.readDateFormat() == device.TM_MMDDYY then
+-- if device.readDateFormat() == 'mdy' then
 --     -- American date format
 -- end
 function _M.readDateFormat()
     local fmt, err = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_TIMEFORMAT)
     local r = err and TM_DDMMYY or tonumber(fmt)
     setDateFormat(r)
-    return r
+    return convertFormatToString(r)
 end
 
 -------------------------------------------------------------------------------
 -- Set the instrument date format
--- @param f TM_MMDDYYYY or TM_DDMMYYYY
+-- @param f Date format ('dmy', 'ymd', 'mdy', 'dmyy', 'yymd' or 'mdyy')
 -- @see readDateFormat
 -- @usage
 -- -- Set to international date format
 -- device.sendDateFormat("ymd")
 function _M.sendDateFormat(f)
-    local fmt = private.convertNameToValue(f, stringDateMap, TM_DDMMYYYY, TM_DDMMYY, TM_YYYYMMDD)
+    local fmt = convertStringToFormat(f)
 
     _M.sendRegWait(_M.CMD_WRFINALDEC, REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)
@@ -151,7 +180,7 @@ function _M.RTCread(d)
 
   _M.readDateFormat()
 
-  local timestr, err = _M.sendRegWait(_M.CMD_RDLIT,REG_TIMECUR)
+  local timestr, err = _M.sendRegWait(_M.CMD_RDLIT, REG_TIMECUR)
 
   if err then
     timestr = '01/01/2000 00-00'
@@ -396,6 +425,7 @@ depricated.RTC = RTC
 -- Expose some internals for testing purposes
 if _TEST then
     _M.monthLength = monthLength
+    _M.setDateFormat = setDateFormat
     _M.rtc = RTC
     _M.RTCtick = private.RTCtick
 end

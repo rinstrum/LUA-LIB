@@ -30,8 +30,8 @@ return function (private)
         else
             r = default
         end
-        if l ~= nil and r < l then  r = default end
-        if u ~= nil and r > u then  r = default end
+        if l ~= nil and r < l then r = default end
+        if u ~= nil and r > u then r = default end
         return r
     end
 
