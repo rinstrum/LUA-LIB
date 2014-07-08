@@ -56,7 +56,7 @@ local varString, tableString
 -------------------------------------------------------------------------------
 -- Determine the debug level either numeric or textual
 -- @param level Level of debug to check
--- @return the numeric coded level corresponding to the specicied level
+-- @return the numeric coded level corresponding to the specified level
 -- @local
 local function checkLevel(level)
     if type(level) == 'string' then
