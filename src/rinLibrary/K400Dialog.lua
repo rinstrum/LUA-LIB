@@ -169,7 +169,7 @@ function _M.getKey(keyGroup)
 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
--- @return true of editing false otherwise
+-- @return true if editing false otherwise
 -- @usage
 -- if not device.isEditing() then
 --     device.displayMessage('idle')
@@ -257,7 +257,7 @@ function _M.setEditKeyTimeout(n)
 end
 
 -----------------------------------------------------------------------------------------------
--- Simulate a blinking cursor but altering the string periodically.
+-- Simulate a blinking cursor by altering the string periodically.
 -- @local
 local function blinkCursor()
 --  used in sEdit() function below
