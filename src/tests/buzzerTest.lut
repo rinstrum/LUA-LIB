@@ -30,7 +30,7 @@ describe("buzzer #buzz", function ()
 
     -- These tests are digging deep into the non-exposed internals
     it("length", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         local m = makeModule()
 
         assert.is_nil(m.getLastBuzzLen())
@@ -56,7 +56,7 @@ describe("buzzer #buzz", function ()
     end)
 
     it("buzz", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         local m = makeModule()
 
         z.checkSendReg(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
