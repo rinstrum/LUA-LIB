@@ -198,7 +198,7 @@ end
 -- local msg = require "rinLibrary.rinMessage"
 --
 -- print('wrappered message without crc:', msg.encapsulateMsg('hello'))
--- print('wrappered message with crc:', msg.encapsulateMsg('goodbye'))
+-- print('wrappered message with crc:', msg.encapsulateMsg('goodbye', 'crc'))
 function _M.encapsulateMsg(msg, crc)
     if crc == 'crc' then
         return table.concat({'\01', msg, str.format("%04X", ccitt(msg)), '\04'})
@@ -219,7 +219,7 @@ end
 -- @usage
 -- local msg = require "rinLibrary.rinMessage"
 --
--- print('message is:', msg.buildMsg(0x101, 0x3, 0x21, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
+-- print('message is:', msg.buildMsg(0x01, 0x12, 0x0090, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
 function _M.buildMsg(addr, cmd, reg, data, reply)
     local addr = addr or _M.ADDR_BROADCAST
     local cmd = cmd or _M.CMD_RDFINALHEX
@@ -312,7 +312,7 @@ end
 -- -- Insert an error into the system for processing by the error handler
 -- msg = require "rinLibrary.rinMessage"
 --
--- msg.handleError(0x0001, 0x10, 0x22, 'hello', 'fatal error')
+-- msg.handleError(0x01, 0x10, 0x0022, 'hello', 'fatal error')
 function _M.handleError(addr, cmd, reg, data, e)
     if errHandler ~= nil then
         errHandler(addr, cmd, reg, data, e)
