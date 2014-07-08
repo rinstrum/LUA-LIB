@@ -207,24 +207,14 @@ end
 
 -- Screen Attributes
 --@table attr
---@field BGattr  Background colours
---@field BGBlack
---@field BGRed
---@field BGGreen
---@field BGYellow
---@field BGBlue
---@field BGMagenta
---@field BGCyan
---@field BGWhite
---@field FGattr Foreground colours
---@field FGWhite
---@field FGRed
---@field FGGreen
---@field FGYellow
---@field FGBlue
---@field FGMagenta
---@field FGCyan
---@field FGWhite
+--@field Black
+--@field Blue
+--@field Cyan
+--@field Green
+--@field Magenta
+--@field Red
+--@field White
+--@field Yellow
 
 _M.BGBlack = '40'
 _M.BGRed = '41'
