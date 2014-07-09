@@ -5,9 +5,6 @@
 -- 
 -------------------------------------------------------------------------------
 
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
-
 local dbg = require "rinLibrary.rinDebug"
 
 -- set rinDebug to show all messages with date/time stamping

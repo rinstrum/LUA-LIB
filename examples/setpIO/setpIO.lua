@@ -5,9 +5,7 @@
 --
 -- Examples of how to use various IO services    
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
--------------------------------------------------------------------------------
+
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = requre 'rinSystem.rinTimers.Pack'
 
@@ -122,9 +120,9 @@ local function handleRTC(status, active)
       end    
       chimePos = 1   
       chimeCounter = chimeTimes[chimePos]
-      rinApp.dbg.info('Chimes : ',chimeTimes, chimePos, chimeCounter)      
+      dbg.info('Chimes : ',chimeTimes, chimePos, chimeCounter)      
    end   
-   rinApp.dbg.info('Clock : ',dwi.RTCtostring())
+   dbg.info('Clock : ',dwi.RTCtostring())
 end
 dwi.setEStatusCallback(dwi.ESTAT_RTC, handleRTC)
 -------------------------------------------------------------------------------
@@ -156,7 +154,7 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event 
 local function F1Pressed(key, state)
-    rinApp.dbg.info('curIO: ',dwi.getCurIOStr())   
+    dbg.info('curIO: ',dwi.getCurIOStr())   
     dwi.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
     dwi.writeReg('usernum1', 1)  -- trigger pulses output on setpoint 4
     dwi.writeReg('usernum1', 0)

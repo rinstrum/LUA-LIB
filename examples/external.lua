@@ -1,14 +1,9 @@
 -------------------------------------------------------------------------------
--- myApp
+-- external
 -- 
--- Application template
---    
--- Copy this file to your project directory and insert the specific code of 
--- your application
+-- Example of how to set up sockets for remote connections to this device
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
--------------------------------------------------------------------------------
+
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
 local sockets = require 'rinSystem.rinSockets.Pack'

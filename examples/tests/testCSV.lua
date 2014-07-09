@@ -4,8 +4,6 @@
 -- Show capabilities of the rinCSV library
 -- 
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
 
 local csv = require "rinLibrary.rinCSV"
 

@@ -1,9 +1,8 @@
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
--------------------------------------------------------------------------------
+
 local rinApp = require "rinApp"     --  load in the application framework
 local sockets = requre 'rinSystem.rinSockets.Pack'
+local dbg = require 'rinLibrary.rinDebug'
 
 require "struct"
 require "pb"
@@ -84,13 +83,13 @@ end
 -- module and set any required timouts
 local function socketBidirectionalAccept(sock, ip, port)
 	if bidirectionalSocket ~= nil then
-        rinApp.dbg.info('second bidirectional connection from', ip, port)
+        dbg.info('second bidirectional connection from', ip, port)
     else
 	    bidirectionalSocket = sock
 
 	    sockets.addSocket(sock, bidirectionalFromExternal)
         sockets.setSocketTimeout(sock, 0.010)
-        rinApp.dbg.info('bidirectional connection from', ip, port)
+        dbg.info('bidirectional connection from', ip, port)
     end
 end
 

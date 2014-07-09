@@ -6,10 +6,7 @@
 -- Configures a rinApp application, displays 'Hello World' on screen and waits
 -- for a key press before exit
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
 
--------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
 --=============================================================================

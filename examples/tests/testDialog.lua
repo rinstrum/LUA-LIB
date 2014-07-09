@@ -4,9 +4,6 @@
 -- Example of how to use various library dialog functions
 -------------------------------------------------------------------------------
 
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path
-
 local rinApp = require "rinApp"
 local dwi = rinApp.addK400("K401")
 local dbg = require "rinLibrary.rinDebug"
@@ -50,7 +47,7 @@ dbg.info('',dwi.editReg(0x1121,true))
 -- Key Handler for F1
 -------------------------------------------------------------------------------
 local function F1Pressed(key, state)
-    dwi.dbg.info('','F1 Pressed')
+    dbg.info('','F1 Pressed')
     if (dwi.askOK('OK?','CONT') == dwi.KEY_OK) then
         dwi.buzz(3)
     end

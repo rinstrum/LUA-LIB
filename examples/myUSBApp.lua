@@ -6,14 +6,13 @@
 -- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path
--------------------------------------------------------------------------------
+
 local dbg = require 'rinLibrary.rinDebug'
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
 local usb = require "rinLibrary.rinUSB"
 local usbKBD = require "rinLibrary.rinUSBKBD"
+
 usbKBD.link(rinApp)
 
 --=============================================================================

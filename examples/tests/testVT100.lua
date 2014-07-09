@@ -1,6 +1,3 @@
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
-
 local VT100 = require "rinLibrary.rinVT100"
   
 VT100.set(VT100.clrAttr()..VT100.clrScreen()) 

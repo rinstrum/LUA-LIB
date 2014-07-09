@@ -6,10 +6,7 @@
 -- Displays 'hello' to two instruments and closes when a button is pressed on
 -- a certain instrument.
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path 
 
--------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 
 --=============================================================================

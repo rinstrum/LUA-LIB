@@ -6,9 +6,7 @@
 -- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
--- Include the src directory
-package.path = "/home/src/?.lua;" .. package.path
--------------------------------------------------------------------------------
+
 local rinApp = require "rinApp"     --  load in the application framework
 local dbg = require 'rinLibrary.rinDebug'
 
@@ -29,7 +27,7 @@ dwi.loadRIS("printCopy.RIS")               -- load default instrument settings
 printCopy = {}  -- table to hold print lines of text
 
 function printHandler(s)
-   dwi.dbg.print('SER3B:', s)
+   dbg.print('SER3B:', s)
    dwi.printCustomTransmit(s, 'ser1a')
    table.insert(printCopy,s)
 end
