@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Framework for interfacing with the L401 for advanced applications
+-- Framework for interfacing with the K400 for advanced applications
 -- @module rinSystem
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
@@ -55,7 +55,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Close down everything read for a restart at some later point.
--- Calling this yourself is likely to cause portions of the runApp application
+-- Calling this yourself is likely to cause portions of the rinApp application
 -- framework to cease correctly functioning.
 -- @usage
 -- local system = require 'rinSystem.Pack'
