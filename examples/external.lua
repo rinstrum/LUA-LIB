@@ -1,7 +1,8 @@
 -------------------------------------------------------------------------------
 -- external
--- 
+--
 -- Example of how to set up sockets for remote connections to this device
+-- To see things operating, telnet to port 1111 or 1112.
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
@@ -27,7 +28,7 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================
--- Create a new socket on port 2224 that allows bidirection communications
+-- Create a new socket on port 1111 that allows bidirection communications
 -- with an extenal device
 --=============================================================================
 
@@ -93,10 +94,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Create the server socket
-sockets.createServerSocket(2224, socketBidirectionalAccept)
+sockets.createServerSocket(1111, socketBidirectionalAccept)
 
 --=============================================================================
--- Create a new socket on port 2225 that allows unidirection communications
+-- Create a new socket on port 1112 that allows unidirection communications
 -- to an extenal device
 --=============================================================================
 
@@ -154,7 +155,7 @@ end
 -------------------------------------------------------------------------------
 -- Create the server socket and timer
 timers.addTimer(1.324, 0.3, unidirectionalTimedMessages)
-sockets.createServerSocket(2225, socketUnidirectionalAccept)
+sockets.createServerSocket(1112, socketUnidirectionalAccept)
 
 --=============================================================================
 -- Main Application Loop
