@@ -577,7 +577,7 @@ function _M.editReg(register, prompt)
     if prompt then
         _M.restoreBot()
     end
-    return _M.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
+    return private.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
 end
 
 -------------------------------------------------------------------------------
