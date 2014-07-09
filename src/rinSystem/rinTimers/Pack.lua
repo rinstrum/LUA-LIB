@@ -84,8 +84,8 @@ local function pop()
 end
 
 ------------------------------------------------------------------------------
--- Utility routine to determine is a timer is still active
--- @param timer The timer being investigates
+-- Utility routine to determine if a timer is still active
+-- @param timer The timer being investigated
 -- @return true iff the timer is still active
 -- @local
 local function active(timer)
@@ -117,7 +117,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Add a timer to the timer list
--- @param time Time between timer events in seconds, 0 means no repeatition
+-- @param time Time between timer events in seconds, 0 means no repetition
 -- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
@@ -143,7 +143,7 @@ end
 -- due to delays etc.  It is still possible for timing events to be missed
 -- or skipped but they won't drift.  Unless timing is critical, you won't
 -- need to use this flavour.
--- @param time Time between timer events in seconds, 0 means no repeatition
+-- @param time Time between timer events in seconds, 0 means no repetition
 -- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
 -- @param ... Function variables
@@ -259,7 +259,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Attempt to run any timers that have expired at this moment.
--- Events that fall due dunig the processing of the current events will not
+-- Events that fall due during the processing of the current events will not
 -- be triggered.  Rather they will be processed on the next call.
 -- The rinApp application framework takes care of calling this for you.
 -- @see delayUntilNext
