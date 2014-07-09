@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
--- Functions to setu and use a USB keyboard
+-- Functions to setup and use a USB keyboard
 -- @module rinLibrary.rinUSBKBD
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd
