@@ -49,7 +49,6 @@ _M.userio = require "IOSocket.Pack"
 
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
-_M.config.level = 'DEBUG'
 dbg.configureDebug(_M.config)
 
 usb.depricatedUSBhandlers(_M)
