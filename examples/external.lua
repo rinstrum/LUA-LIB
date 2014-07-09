@@ -12,6 +12,7 @@ package.path = "/home/src/?.lua;" .. package.path
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
 local sockets = require 'rinSystem.rinSockets.Pack'
+local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -85,13 +86,13 @@ end
 -- module and set any required timouts
 local function socketBidirectionalAccept(sock, ip, port)
 	if bidirectionalSocket ~= nil then
-        rinApp.dbg.info('second bidirectional connection from', ip, port)
+        dbg.info('second bidirectional connection from', ip, port)
     else
 	    bidirectionalSocket = sock
 
 	    sockets.addSocket(sock, bidirectionalFromExternal)
         sockets.setSocketTimeout(sock, 0.010)
-        rinApp.dbg.info('bidirectional connection from', ip, port)
+        dbg.info('bidirectional connection from', ip, port)
     end
 end
 
@@ -146,7 +147,7 @@ local function socketUnidirectionalAccept(sock, ip, port)
     sockets.addSocketSet("uni", sock, unidirectionFilter)
 
 	-- Finally, log the fact that we've got a new connection
-    rinApp.dbg.info('unidirectional connection from', ip, port)
+    dbg.info('unidirectional connection from', ip, port)
 end
 
 -------------------------------------------------------------------------------

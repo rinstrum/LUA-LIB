@@ -10,6 +10,7 @@
 package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
+local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -38,7 +39,7 @@ dwi.setSerBCallback(printHandler)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event
 local function F3Pressed(key, state)
-   rinApp.dbg.info('Copy Printed')
+   dbg.info('Copy Printed')
    if #printCopy > 0 then
        dwi.printCustomTransmit([[--------------------------\C1]], 'ser1a')
        for k,v in ipairs(printCopy) do

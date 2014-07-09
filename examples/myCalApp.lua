@@ -11,6 +11,7 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
+local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -118,15 +119,15 @@ local function mainLoop()
           if sel == 'ZERO' then
               ret, msg = dwi.calibrateZero()
               if ret == 0 then
-                  rinApp.dbg.info('Zero MVV: ',dwi.readZeroMVV())
+                  dbg.info('Zero MVV: ',dwi.readZeroMVV())
               end    
               prompt(msg)  
               
           elseif sel == 'SPAN' then
               ret, msg = dwi.calibrateSpan(dwi.editReg(dwi.REG_CALIBWGT)) 
               if ret == 0 then
-                  rinApp.dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
-                  rinApp.dbg.info('Span MVV: ',dwi.readSpanMVV())
+                  dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
+                  dbg.info('Span MVV: ',dwi.readSpanMVV())
               end
               prompt(msg)
           
@@ -145,7 +146,7 @@ local function mainLoop()
               if (pt) then
                   ret, msg = dwi.calibrateLin(pt,dwi.editReg(dwi.REG_CALIBWGT))   
                   if ret == 0 then  
-                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                      dbg.info('Linearisation Calibration: ',dwi.readLinCal())
                   end
                   prompt(msg)
               end    
@@ -154,7 +155,7 @@ local function mainLoop()
               if (pt) then
                  ret, msg = dwi.clearLin(pt)   
                  if ret == 0 then  
-                      rinApp.dbg.info('Linearisation Calibration: ',dwi.readLinCal())
+                      dbg.info('Linearisation Calibration: ',dwi.readLinCal())
                  end
                  prompt(msg)
               end   

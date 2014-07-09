@@ -9,6 +9,7 @@
 -- Include the src directory
 package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
+local dbg = require 'rinLibrary.rinDebug'
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
 local usb = require "rinLibrary.rinUSB"
@@ -68,7 +69,7 @@ dwi.setIOCallback(1, handleIO1)
 -- Callback for USB registration
 local function usbRegisterHandler(ev)
     for k,v in pairs(ev) do
-        rinApp.dbg.info(k,v[2])
+        dbg.info(k,v[2])
     end
 end
 usb.setUSBRegisterCallback(usbRegisterHandler)
@@ -77,7 +78,7 @@ usb.setUSBRegisterCallback(usbRegisterHandler)
 -------------------------------------------------------------------------------
 -- Callback for general USB device events
 local function usbEventHandler(ev)
-    rinApp.dbg.debug(ev)
+    dbg.debug(ev)
 end
 usb.setUSBEventCallback(usbEventHandler)
 -------------------------------------------------------------------------------
@@ -87,7 +88,7 @@ usb.setUSBEventCallback(usbEventHandler)
 barcodeKeys = {}
 barcode = nil
 local function kbdHandler(key)
-    rinApp.dbg.info('Key is :', key)
+    dbg.info('Key is :', key)
     if key == '\n' then
         barcode = table.concat(barcodeKeys)
     else

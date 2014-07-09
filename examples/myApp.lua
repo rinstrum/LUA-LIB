@@ -11,6 +11,7 @@ package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers.Pack'
+local dbg = require "rinLibrary.rinDebug"
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -64,7 +65,7 @@ dwi.setIOCallback(1, handleIO1)
 -------------------------------------------------------------------------------
 
 local function handleIO(data)
-   rinApp.dbg.info(' IO: ', string.format('%08X',data))
+   dbg.info(' IO: ', string.format('%08X',data))
 end
 dwi.setAllIOCallback(handleIO)
 
@@ -86,7 +87,7 @@ dwi.setSETPCallback(1, handleSETP1)
 -- Callback to capture changes to instrument status  
 local function handleSETP(data)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
-   rinApp.dbg.info('SETP: ',string.format('%04X',data))   
+   dbg.info('SETP: ',string.format('%04X',data))   
 end
 dwi.setAllSETPCallback(handleSETP)
 -- set callback to capture changes on IO1
