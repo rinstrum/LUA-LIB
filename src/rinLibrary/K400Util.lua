@@ -159,7 +159,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the current number of decimal places in the specified display mode
--- @parqam display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @param display The display mode: 'primary', 'secondary' or 'pieces'.
 -- @return The number of decimal places.
 -- @usage
 -- print(device.getDispModeDP('primary')..' decimal places in the primary display')

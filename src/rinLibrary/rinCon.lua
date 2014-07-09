@@ -143,8 +143,6 @@ end
 -- Sends a raw message to the display.  This message should be a properly
 -- and correctly formatted message.
 -- @param raw string to send
--- @see encapsulateMsg
--- @see buildMsg
 -- @see send
 -- @usage
 -- local msg = require 'rinLibrary.rinMessage'
@@ -162,7 +160,6 @@ end
 -- must be correctly formatted for the display device.
 -- @param msg message string to send
 -- @param crc if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
--- @see buildMsg
 -- @usage
 -- stream.sendMsg(message, crc)
 function _M.sendMsg(msg, crc)
