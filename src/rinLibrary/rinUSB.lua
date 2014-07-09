@@ -128,8 +128,8 @@ function _M.getUSBKBDCallback()
 end
 
 -------------------------------------------------------------------------------
--- Callback to detect events happing for USB devices and to further dispatch
--- there as required.
+-- Callback to detect events happening for USB devices and to further dispatch
+-- them as required.
 -- @param sock File descriptor the USB device is communicating with.
 -- @local
 local function eventCallback(sock)
@@ -246,7 +246,7 @@ function _M.initUSB()
 end
 
 -------------------------------------------------------------------------------
--- Add depricated wrapper routines to the given table/object.
+-- Add deprecated wrapper routines to the given table/object.
 -- This routing is called automatically by the rinApp framework.
 -- @param app The object to add the wrapper routines to
 -- @usage
