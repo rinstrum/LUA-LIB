@@ -10,7 +10,7 @@
 package.path = "/home/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = requre 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers.Pack'
 local usb = require "rinLibrary.rinUSB"
 local usbKBD = require "rinLibrary.rinUSBKBD"
 usbKBD.link(rinApp)

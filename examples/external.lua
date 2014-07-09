@@ -10,8 +10,8 @@
 package.path = "/home/src/?.lua;" .. package.path 
 -------------------------------------------------------------------------------
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = requre 'rinSystem.rinTimers.Pack'
-local sockets = requre 'rinSystem.rinSockets.Pack'
+local timers = require 'rinSystem.rinTimers.Pack'
+local sockets = require 'rinSystem.rinSockets.Pack'
 
 --=============================================================================
 -- Connect to the instruments you want to control
