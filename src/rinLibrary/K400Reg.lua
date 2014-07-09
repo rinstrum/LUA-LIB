@@ -241,7 +241,7 @@ end
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @usage
--- print('serial number is', device.readReg(device.REG_SERIALNO))
+-- print('serial number is', device.readReg('SerialNo'))
 function _M.readReg(reg)
     local data, err
 
@@ -259,7 +259,7 @@ end
 -- @param reg REG_  register
 -- @param data to send
 -- @usage
--- device.writeReg(device.REG_USERNUM1, 0)
+-- device.writeReg('usernum1', 0)
 function _M.writeReg(reg, data)
     _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
 end
@@ -269,7 +269,7 @@ end
 -- @param reg REG_  register
 -- @param data to send
 -- @usage
--- device.exReg(device.REG_FLUSH_KEYS, 0) -- flush pending key presses
+-- device.exReg('flush_keys', 0) -- flush pending key presses
 function _M.exReg(reg, data)
     _M.sendRegWait(_M.CMD_EX, reg, data)
 end

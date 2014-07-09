@@ -16,7 +16,7 @@ local function approximately(state, args)
     assert(args.n >= 3, s("assertion.internal.argtolittle", { "approximately", 3, tostring(argcnt) }))
     local target = tonumber(args[1])
     local value = tonumber(args[2])
-    local fuzz = tonumber(args[3])
+    local fuzz = math.abs(tonumber(args[3]))
     assert(target ~= nil, s("assertion.internal.badargtype", { "approximately", "number", type(args[1]) }))
     assert(value ~= nil, s("assertion.internal.badargtype", { "approximately", "number", type(args[2]) }))
     assert(fuzz ~= nil, s("assertion.internal.badargtype", { "approximately", "number", type(args[3]) }))
@@ -36,7 +36,7 @@ assert:register("assertion", "approximately", approximately, "assertion.approxim
 -- @local
 local function roughly(state, args)
     assert(args.n >= 3, s("assertion.internal.argtolittle", { "roughly", 3, tostring(argcnt) }))
-    local fuzz = tonumber(args[3])
+    local fuzz = math.abs(tonumber(args[3]))
     assert(fuzz ~= nil, s("assertion.internal.badargtype", { "roughly", "number", type(args[3]) }))
 
     for i = 1, #args[1] do

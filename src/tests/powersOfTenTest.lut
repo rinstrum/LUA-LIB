@@ -5,6 +5,7 @@
 -------------------------------------------------------------------------------
 
 describe("power of ten test #pow10", function ()
+    package.loaded['rinLibrary.powersOfTen'] = nil
     local p10 = require "rinLibrary.powersOfTen"
 
     it("logarithmic population", function()

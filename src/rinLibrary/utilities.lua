@@ -5,6 +5,8 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local dbg = require "rinLibrary.rinDebug"
+
 local lpeg = require "lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
@@ -103,7 +105,12 @@ return function(private)
 -- print(private.getRegisterNumber('gross')
 -- @local
     function private.getRegisterNumber(r)
-        return private.convertNameToValue(r, regMap)
+        local n = private.convertNameToValue(r, regMap)
+        if n == nil then
+            dbg.error('rinLibrary: ', 'bad register '..tostring(r))
+            a[nil] = nil
+        end
+        return n
     end
 
 -------------------------------------------------------------------------------
@@ -114,6 +121,11 @@ return function(private)
 -- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        return private.convertValueToName(r, regMap)
+        local n = private.convertValueToName(r, regMap)
+        if n == nil then
+            dbg.warn('rinLibrary: ', 'unknown register '..tostring(r))
+            a[nil] = nil
+        end
+        return n
     end
 end
