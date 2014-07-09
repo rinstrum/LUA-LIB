@@ -145,5 +145,6 @@ describe("K400Reg #register", function()
     end)
 
     it("exReg", function()
+        pending("unimplemented test case")
     end)
 end)
