@@ -30,7 +30,7 @@ describe("K400Reg #register", function()
         assert.equal('grossnet', p.getRegisterName(m.REG_GROSSNET))
     end)
 
-    it("registers", function()
+    describe("registers", function()
         local m, p = makeModule()
         for r, v in pairs({
             absmvv                  = 0x0023,
@@ -82,9 +82,11 @@ describe("K400Reg #register", function()
             usernum_name4           = 0x0319,
             usernum_name5           = 0x031A
         }) do
-            assert.equal(v, m['REG_' .. string.upper(r)])   -- depricated way
-            assert.equal(v, p.getRegisterNumber(r))
-            assert.equal(r, p.getRegisterName(v))
+            it('test '..r, function()
+                assert.equal(v, m['REG_' .. string.upper(r)])   -- depricated way
+                assert.equal(v, p.getRegisterNumber(r))
+                assert.equal(r, p.getRegisterName(v))
+            end)
         end
     end)
 
