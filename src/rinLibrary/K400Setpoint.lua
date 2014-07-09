@@ -124,7 +124,7 @@ local lastIOEnable = nil
 local NUM_SETP = 16
 
 -------------------------------------------------------------------------------
--- write the bit mask of the IOs, bits must first be enabled for comms control
+-- Write the bit mask of the IOs, bits must first be enabled for comms control.
 -- @param 32 bit mask of IOs
 -- @see setOutputEnable
 -- @usage
@@ -140,7 +140,7 @@ local function setOutputs(outp)
 end
 
 -------------------------------------------------------------------------------
--- enable IOs for comms control
+-- Enable IOs for comms control.
 -- @param 32 bit mask of IOs
 -- @see setOutputs
 -- @usage
@@ -156,7 +156,7 @@ local function setOutputEnable(en)
 end
 
 -------------------------------------------------------------------------------
--- Turns IO Output on
+-- Turns IO Output on.
 -- @param ... list of IO to turn on 1..32
 -- @see enableOutput
 -- @usage
@@ -177,7 +177,7 @@ function _M.turnOn(...)
 end
 
 -------------------------------------------------------------------------------
--- Turns IO Output off
+-- Turns IO Output off.
 -- @param ... list of IO to turn off 1..32
 -- @see enableOutput
 -- @usage
@@ -198,7 +198,7 @@ function _M.turnOff(...)
 end
 
 -------------------------------------------------------------------------------
--- Turns IO Output on
+-- Turns IO Output on for a period of time.
 -- @param IO is output 1..32
 -- @param t is time in seconds
 -- @see enableOutput
@@ -221,15 +221,15 @@ function _M.turnOnTimed(IO, t)
 end
 
 -------------------------------------------------------------------------------
--- Sets IO Output under LUA control
+-- Sets IO Output under LUA control.
 -- @param ... list of IO to enable (input 1..32)
 -- @see releaseOutput
 -- @usage
--- dwi.enableOutput(1,2,3,4)
--- dwi.turnOn(1)
--- dwi.turnOff(2)
--- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
--- dwi.releaseOutput(1,2,3,4)
+-- device.enableOutput(1,2,3,4)
+-- device.turnOn(1)
+-- device.turnOff(2)
+-- device.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
+-- device.releaseOutput(1,2,3,4)
 
 function _M.enableOutput(...)
     local curIOEnable = lastIOEnable or 0
@@ -243,15 +243,15 @@ function _M.enableOutput(...)
 end
 
 -------------------------------------------------------------------------------
--- Sets IO Output under instrument control
+-- Sets IO Output under instrument control.
 -- @param ... list of IO to release to the instrument(input 1..32)
 -- @see enableOutput
 -- @usage
--- dwi.enableOutput(1,2,3,4)
--- dwi.turnOn(1)
--- dwi.turnOff(2)
--- dwi.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
--- dwi.releaseOutput(1,2,3,4)
+-- device.enableOutput(1, 2, 3, 4)
+-- device.turnOn(1)
+-- device.turnOff(2)
+-- device.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
+-- device.releaseOutput(1, 2, 3, 4)
 function _M.releaseOutput(...)
     local curIOEnable = lastIOEnable or 0
 
@@ -265,7 +265,7 @@ function _M.releaseOutput(...)
 end
 
 --------------------------------------------------------------------------------
--- returns actual register address for a particular setpoint parameter
+-- Returns actual register address for a particular setpoint parameter.
 -- @param setp is setpoint 1..16
 -- @param register is REG_SETP_*
 -- @return address of this register for setpoint setp
@@ -277,23 +277,27 @@ function _M.setpRegAddress(setp, register)
 
     if (setp > NUM_SETP) or (setp < 1) then
         dbg.error('Setpoint Invalid: ', setp)
-        return(0)
+        return 0
     elseif reg == REG_SETP_TARGET then
-        return (reg+setp-1)
+        return reg+setp-1
     else
-        return (reg+((setp-1)*REG_SETP_REPEAT))
+        return reg+((setp-1)*REG_SETP_REPEAT)
     end
 end
 
 --------------------------------------------------------------------------------
--- Private function
+-- Write to a set point register.
+-- @param setp Setpoint 1 .. 16
+-- @param reg Register (REG_SETP_*)
+-- @param v Value to write
+-- @local
 local function setpParam(setp, reg, v)
     local r = private.getRegisterNumber(reg)
     _M.sendRegWait(_M.CMD_WRFINALDEC, _M.setpRegAddress(setp, r), v)
 end
 
 -------------------------------------------------------------------------------
--- Set the number of enabled Setpoints
+-- Set the number of enabled Setpoints.
 -- this disables all setpoints above the set number
 -- @param n is the number of setpoints 0..16
 -- @usage
@@ -307,7 +311,7 @@ function _M.setNumSetp(n)
 end
 
 -------------------------------------------------------------------------------
--- Set Target for setpoint
+-- Set Target for setpoint.
 -- @param setp Setpoint 1..16
 -- @param target Target value
 -- @usage
@@ -318,7 +322,7 @@ function _M.setpTarget(setp,target)
 end
 
 -------------------------------------------------------------------------------
--- Set which Output the setpoint controls
+-- Set which Output the setpoint controls.
 -- @param setp is setpoint 1..16
 -- @param IO is output 1..32, 0 for none
 -- @usage
@@ -345,7 +349,7 @@ end
 -- @field BUZZER setpoint is active when the buzzer is beeping
 
 -------------------------------------------------------------------------------
--- Set the TYPE of the setpoint controls
+-- Set the TYPE of the setpoint controls.
 -- @param setp is setpoint 1..16
 -- @param sType is setpoint type
 -- @usage
@@ -357,9 +361,9 @@ function _M.setpType(setp, sType)
 end
 
 -------------------------------------------------------------------------------
--- Set the Logic for the setpoint controls
--- high means the output will be on when the setpoint is active,
--- low means the output will be on when the setpoint is inactive
+-- Set the Logic for the setpoint controls.
+-- High means the output will be on when the setpoint is active and
+-- low means the output will be on when the setpoint is inactive.
 -- @param setp is setpount 1..16
 -- @param lType is setpoint logic type "high" or "low"
 -- @usage
@@ -378,7 +382,7 @@ end
 -- @field FLASH flash the display
 
 -------------------------------------------------------------------------------
--- Set the Alarm for the setpoint
+-- Set the Alarm for the setpoint.
 -- The alarm can beep once a second, twice a second or flash the display when
 -- the setpoint is active
 -- @param setp is setpoint 1..16
@@ -392,7 +396,7 @@ function _M.setpAlarm(setp, aType)
 end
 
 -------------------------------------------------------------------------------
--- Set the Name of the setpoint
+-- Set the Name of the setpoint.
 -- this name will be displayed when editing targets via the keys
 -- @param setp is setpoint 1..16
 -- @param v is setpoint name (8 character string)
@@ -413,8 +417,9 @@ end
 -- @field ALT_DISP setpoint uses the displayed weight in secondary units
 -- @field PIECE setpoint uses the peice count value
 -- @field REG setpoint uses the value from the supplied register
+
 -------------------------------------------------------------------------------
--- Set the data source of the setpoint controls
+-- Set the data source of the setpoint controls.
 -- @param setp is setpoint 1..16
 -- @param sType is setpoint source type (string)
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
@@ -422,6 +427,7 @@ end
 -- @usage
 -- -- set setpoint 1 to use the displayed weight
 -- device.setpSource(1, 'disp')
+--
 -- -- set setpoint 2 to use the total weight
 -- device.setpSource(2, 'reg', device.REG_GRANDTOTAL)
 function _M.setpSource(setp, sType, reg)
@@ -434,7 +440,7 @@ function _M.setpSource(setp, sType, reg)
 end
 
 -------------------------------------------------------------------------------
--- Set the Hysteresis for of the setpoint controls
+-- Set the Hysteresis for of the setpoint controls.
 -- @param setp is setpoint 1..16
 -- @param v is setpoint hysteresis
 -- @usage

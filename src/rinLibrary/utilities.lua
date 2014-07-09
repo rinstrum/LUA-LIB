@@ -85,7 +85,7 @@ return function(private)
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
-                local r = string.lower(m)
+                local r = lower(m)
                 regMap[r] = v
                 regMap[v] = r
             end

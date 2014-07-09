@@ -87,7 +87,7 @@ describe("RTC #rtc", function ()
     end
 
     describe("set date #setdate", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         for k, v in pairs({
                         { 2000, 12, 5,  nil, 12, 5 },   { 2020, 2, 29,  2020, 2, 29 },
                         { 2200, 15, 1,  nil, nil, 1 },  { 2015, 2, 28,  2015, 2, 28 }
@@ -104,7 +104,7 @@ describe("RTC #rtc", function ()
     end)
 
     describe("set time #settime", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         for k, v in pairs({
                         { 3, 30, 2,     3, 30, 2},  { 25, 66, 23,   nil, nil, 23 },
                         { 7, 23, 66,    7, 23, nil }
@@ -122,7 +122,7 @@ describe("RTC #rtc", function ()
     end)
 
     describe("set all #settimedate", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         for k, v in pairs({
                     { 2038, 1, 19, 3, 14, 8 },
                     { 2020, 5, 22, 12, 6, 14 }
@@ -141,7 +141,7 @@ describe("RTC #rtc", function ()
     end)
 
     it("tick", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         local m = makeModule()
         local yr, mo, da, ho, mi, se = 2050, 3, 6, 22, 59, 59
         local results = makeResults(yr, mo, da, ho, mi, se)
@@ -154,7 +154,7 @@ describe("RTC #rtc", function ()
     end)
 
     it("format", function()
-        local z = require "rinLibrary.tests.messages"
+        local z = require "tests.messages"
         local m = makeModule()
         local yr, mo, da, ho, mi, se = 2022, 1, 2, 3, 4, 5
         local results = makeResults(yr, mo, da, ho, mi, se)

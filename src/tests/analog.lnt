@@ -53,7 +53,7 @@ describe("Analog #analog", function ()
         local count = 0
         app.setMainLoop(function()
             check(0.0, 2, 10)
-            check(2.5, 10000, 10)
+            check(2.5, 10000, 15)
 
             count = count + 1
             if count >= 2 then
