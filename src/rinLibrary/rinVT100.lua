@@ -116,7 +116,7 @@ end
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
--- VT100.set(VT100.clsScreen())
+-- VT100.set(VT100.clrScreen())
 function _M.clrScreen()
     return '\27[2J'
 end

@@ -17,7 +17,7 @@ local writers = {}
 local sockSet = {}
 
 -- Close down everything socket related
--- Calling this yourself is likely to cause portions of the runApp application
+-- Calling this yourself is likely to cause portions of the rinApp application
 -- framework to cease correctly functioning.
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets.Pack'
@@ -33,7 +33,7 @@ function _M.reset()
 end
 
 -------------------------------------------------------------------------------
--- Callback function that ignoes incoming data for a read only socket.
+-- Callback function that ignores incoming data for a read only socket.
 -- @param sock The socket to read all available data from
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets.Pack'
@@ -107,14 +107,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Create a server/listening socket.
--- Generatlly you'll use createServerSocket to do this for you.
+-- Generally you'll use createServerSocket to do this for you.
 -- @param sock The socket to listen on
 -- @param callback The callback that will be invoked when a new connection is established
 -- @see createServerSocket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets.Pack'
 --
--- sockets.listenSocket(mySocket, function(client, ip, port) print('attmpet from', ip, port) end)
+-- sockets.listenSocket(mySocket, function(client, ip, port) print('attempt from', ip, port) end)
 function _M.listenSocket(sock, callback)
 	_M.addSocket(sock, function (s)
     					   -- s and sock are identical here
@@ -357,7 +357,7 @@ end
 -- @param name The name of the socket set
 -- @param sock The socket to add
 -- @param callback The filter callback.  Pass nil for complete filtering.
--- @param silent If true, surpresses debug output for message on this socket
+-- @param silent If true, suppresses debug output for message on this socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets.Pack'
 --
@@ -371,7 +371,7 @@ end
 --     return msg
 -- end
 --
--- sockets.addSocketSet('mysey', mySocket, cb)
+-- sockets.addSocketSet('myset', mySocket, cb)
 function _M.addSocketSet(name, sock, callback, silent)
 	if name == nil or sock == nil then return end
 	if sockSet[name] == nil then
@@ -387,7 +387,7 @@ end
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets.Pack'
 --
--- sockets.removeSocketSet('mysey', mySocket)
+-- sockets.removeSocketSet('myset', mySocket)
 function _M.removeSocketSet(name, sock)
 	if name == nil or sock == nil or sockSet[name] == nil then return end
 	sockSet[name][sock] = nil
