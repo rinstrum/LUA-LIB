@@ -297,7 +297,7 @@ depricated.REG_LCDMODE              = REG_LCDMODE
 depricated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
 depricated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
 
-depricated.getRegDP = getRegDP
+depricated.getRegDP = private.getRegDP
 depricated.readSettings = readSettings
 depricated.saveSettings = private.saveSettings
 depricated.system = system
