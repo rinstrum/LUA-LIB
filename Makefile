@@ -38,6 +38,11 @@ test:
 net:
 	busted -p 'lnt$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) .
 
+pdf: all
+	htmldoc -f rinApp.pdf --webpage --size universal --no-title --no-toc \
+		--numbered --links --format pdf11 --book --color \
+		`find opkg/usr/local/www/html/libdocs -type f -name '*.html'`
+
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
