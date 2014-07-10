@@ -1,6 +1,5 @@
 -------------------------------------------------------------------------------
 -- Register unit test.
--- These functions are NOT available inside the rinApp application framework.
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -93,17 +92,16 @@ describe("K400Reg #register", function()
     it("literalToFloat", function()
         local m, p = makeModule()
         local tests = {
-            {   '1234',     1234    },
-            {   '- 123.4',  -123.4  },
-            {   '+ 543.21', 543.21  },
-            {   '0',        0       },
-            {   '.1',       .1      },
+            {   d = '1234',     r = 1234    },
+            {   d = '- 123.4',  r = -123.4  },
+            {   d = '+ 543.21', r = 543.21  },
+            {   d = '0',        r = 0       },
+            {   d = '.1',       r = .1      },
         }
         for i = 1, #tests do
             it("test "..i, function()
                 local t = tests[i]
-                local data, result = t[1], t[2]
-                assert.approximately(result, p.literalToFloat(data), result * 1e-14)
+                assert.approximately(t.r, p.literalToFloat(t.d), t.r * 1e-14)
             end)
         end
     end)
@@ -112,41 +110,20 @@ describe("K400Reg #register", function()
         local m, p = makeModule()
         m.getDispModeDP = function(x) return 3 end
         local tests = {
-            {   '1234',     4.66,           nil },
-            {   'ff001234', -16772.556,     nil },
-            {   'ffffffff', -.0001,         4   },
-            {   '80000000', -21474836.48,   2   },
-            {   '7fffffff', 214748364.7,    1   },
-            {   '0',        0,              0   },
-            {   '1',        1,              0   },
-            {   '100',      2560,           -1  }
+            {   d = '1234',     r = 4.66                     },
+            {   d = 'ff001234', r = -16772.556               },
+            {   d = 'ffffffff', r = -.0001,         dp = 4   },
+            {   d = '80000000', r = -21474836.48,   dp = 2   },
+            {   d = '7fffffff', r = 214748364.7,    dp = 1   },
+            {   d = '0',        r = 0,              dp = 0   },
+            {   d = '1',        r = 1,              dp = 0   },
+            {   d = '100',      r = 2560,           dp = -1  }
         }
         for i = 1, #tests do
             it("test "..i, function()
                 local t = tests[i]
-                local data, result, dp = t[1], t[2], t[3]
-                assert.approximately(result, p.toFloat(data, dp), result * 1e-12)
+                assert.approximately(t.r, p.toFloat(t.d, t.dp), t.r * 1e-12)
             end)
         end
-    end)
-
-    it("sendReg", function()
-        pending("unimplemented test case")
-    end)
-
-    it("sendRegWait", function()
-        pending("unimplemented test case")
-    end)
-
-    it("readReg", function()
-        pending("unimplemented test case")
-    end)
-
-    it("writeReg", function()
-        pending("unimplemented test case")
-    end)
-
-    it("exReg", function()
-        pending("unimplemented test case")
     end)
 end)

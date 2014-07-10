@@ -71,9 +71,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
 
     if mode == 'lua' then
-        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE,2)
+        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE, 2)
     else
-        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE,1)
+        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE, 1)
     end
 end
 

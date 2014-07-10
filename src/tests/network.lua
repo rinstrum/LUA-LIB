@@ -40,7 +40,7 @@ _M.username = 'root'
 _M.password = 'root'
 
 -------------------------------------------------------------------------------
--- Open connections to two K400 units.
+-- Open connections to both K400 units.
 -- @param upper The address of the upper unit (default upperIPaddress)
 -- @param lower The address of the lower unit (default lowerIPaddress)
 -- @return Application reference

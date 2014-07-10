@@ -1,0 +1,144 @@
+-------------------------------------------------------------------------------
+-- Register network test.
+-- @author Pauli
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+
+local regs = require "tests.registers"
+
+describe("K400Reg #register", function()
+    local net = require "tests.network"
+    local timers = require 'rinSystem.rinTimers.Pack'
+    local app, upper, lower
+
+    setup(function()
+        app, upper, lower = net.openAsync()
+    end)
+
+    teardown(function()
+        net.closeAsync(app)
+    end)
+
+    describe("read and write numeric", function()
+        local reg = 'usernum1'
+
+        local function check(a, b, done)
+            lower.delay(0.15)
+
+            local r, err = upper.readReg(reg)
+            assert.is_nil(err)
+            assert.equal(a, r)
+
+            r, err = lower.readReg(reg)
+            assert.is_nil(err)
+            assert.equal(b, r)
+
+            done()
+        end
+
+        it("firsts", function(done)
+            timers.addEvent(async(function()
+                upper.sendReg(upper.CMD_WRFINALDEC, reg, 3, 'crc')
+                lower.sendRegWait(lower.CMD_WRFINALDEC, reg, 2)
+                upper.flush()
+                check(3, 2, done)
+            end))
+        end)
+
+        it("seconds", function(done)
+            timers.addEvent(async(function()
+                lower.sendReg(lower.CMD_WRFINALDEC, reg, 13)
+                upper.sendRegWait(upper.CMD_WRFINALDEC, reg, 11, 0, 'crc')
+                lower.flush()
+                check(11, 13, done)
+            end))
+        end)
+
+        it("thirds", function(done)
+            timers.addEvent(async(function()
+                upper.writeReg(reg, 5)
+                lower.writeReg(reg, 7)
+                check(5, 7, done)
+            end))
+        end)
+    end)
+
+    describe("read and write string", function()
+        local reg = 'userid1'
+
+        local function check(a, b, done)
+            upper.delay(0.15)
+
+            local d, e = upper.sendRegWait(upper.CMD_RDLIT, reg)
+            assert.is_nil(e)
+            assert.equal(a, d)
+
+            d, e = lower.sendRegWait(lower.CMD_RDLIT, reg)
+            assert.is_nil(e)
+            assert.equal(b, d)
+
+            done()
+        end
+
+        it("initials", function(done)
+            timers.addEvent(async(function()
+                upper.sendReg(upper.CMD_WRFINALDEC, reg, 'hello', 'crc')
+                lower.sendRegWait(lower.CMD_WRFINALDEC, reg, 'fnord', 0, 'crc')
+                upper.flush()
+                check('hello', 'fnord', done)
+            end))
+        end)
+
+        it("middles", function(done)
+            timers.addEvent(async(function()
+                lower.sendReg(lower.CMD_WRFINALDEC, reg, 'bogus')
+                upper.sendRegWait(upper.CMD_WRFINALDEC, reg, 'fake')
+                lower.flush()
+                check('fake', 'bogus', done)
+            end))
+        end)
+
+        it("finals", function(done)
+            timers.addEvent(async(function()
+                lower.writeReg(reg, '')
+                upper.writeReg(reg, 'bye')
+                check('bye', '', done)
+            end))
+        end)
+    end)
+
+    it("execute", function()
+        local xreg = 'select_product_rename'
+        local rreg = 'select_product_name'
+
+        local function check(a, b, done)
+            upper.delay(0.15)
+
+            local d, e = upper.sendRegWait(upper.CMD_RDLIT, rreg)
+            assert.is_nil(e)
+            assert.equal(a, d)
+
+            d, e = lower.sendRegWait(lower.CMD_RDLIT, rreg)
+            assert.is_nil(e)
+            assert.equal(b, d)
+
+            done()
+        end
+
+        it("product", function(done)
+            timers.addEvent(async(function()
+                upper.exReg(xreg, 'aprod')
+                lower.exReg(xreg, 'proda')
+                check('aprod', 'proda', done)
+            end))
+        end)
+
+        it("wedge", function(done)
+            timers.addEvent(async(function()
+                upper.exReg(xreg, 'widget')
+                lower.exReg(xreg, 'boxen')
+                check('widget', 'boxen', done)
+            end))
+        end)
+    end)
+end)
