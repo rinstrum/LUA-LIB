@@ -177,7 +177,7 @@ end
 -- Write a message to a socket
 -- @param sock Socket to write to
 -- @param msg Data to write
--- @return Length of the send queue
+-- @return Number of packets in the send queue
 -- @see addSocket
 -- @see readSocket
 -- @usage
@@ -196,7 +196,7 @@ function _M.writeSocket(sock, msg)
     queue.finish = queue.finish + 1
 	queue[queue.finish] = msg
     writers[sock] = queue
-    return queue.finish
+    return queue.finish - queue.start + 1
 end
 
 -------------------------------------------------------------------------------
