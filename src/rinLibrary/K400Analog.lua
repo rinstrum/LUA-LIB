@@ -57,12 +57,7 @@ end
 function _M.setAnalogType(oType)
     local prev = curAnalogType
 
-    local typ = private.convertNameToValue(oType, analogTypes, VOLT)
-    if typ == CUR then
-        curAnalogType = CUR
-    else
-        curAnalogType = VOLT
-    end
+    curAnalogType = private.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
 
     if curAnalogType ~= prev then
         _M.sendRegWait(_M.CMD_WRFINALDEC,
