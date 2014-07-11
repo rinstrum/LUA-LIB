@@ -76,20 +76,34 @@ return function(private)
     end
 
 -------------------------------------------------------------------------------
+-- Add an entry to the register mapping table
+-- @function addRegister
+-- @param k Key
+-- @param v Value
+-- @see getRegisterNumber
+-- @see getRegisterName
+-- @see regPopulate
+-- @local
+    function private.addRegister(reg, num)
+        local r = lower(reg)
+        regMap[r] = num
+        regMap[num] = r
+    end
+
+-------------------------------------------------------------------------------
 -- Add an entry to the register mapping table if it is of the correct form
 -- @function regPopulate
 -- @param k Key
 -- @param v Value
 -- @see getRegisterNumber
 -- @see getRegisterName
+-- @see addRegister
 -- @local
     function private.regPopulate(k, v)
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
-                local r = lower(m)
-                regMap[r] = v
-                regMap[v] = r
+                private.addRegister(m, v)
             end
         end
     end
