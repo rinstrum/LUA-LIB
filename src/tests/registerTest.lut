@@ -82,7 +82,7 @@ describe("K400Reg #register", function()
             usernum_name5           = 0x031A
         }) do
             it('test '..r, function()
-                assert.equal(v, m['REG_' .. string.upper(r)])   -- depricated way
+                assert.equal(v, m['REG_' .. string.upper(r)])   -- deprecated way
                 assert.equal(v, p.getRegisterNumber(r))
                 assert.equal(r, p.getRegisterName(v))
             end)

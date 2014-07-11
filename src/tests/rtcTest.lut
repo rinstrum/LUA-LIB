@@ -28,7 +28,7 @@ describe("RTC #rtc", function ()
         return m, p, d
     end
 
-    describe("depricated registers", function()
+    describe("deprecated registers", function()
         local _, _, d = makeModule()
             for k, v in pairs(dregs) do
             it("test "..k, function()

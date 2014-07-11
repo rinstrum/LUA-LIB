@@ -28,7 +28,7 @@ local portMap = setmetatable({
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 local curPrintPort = nil
 
@@ -87,13 +87,13 @@ function _M.reqCustomTransmit(tokenStr)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.PRINT_SER1A = PRINT_SER1A
-depricated.PRINT_SER1B = PRINT_SER1B
-depricated.PRINT_SER2A = PRINT_SER2A
-depricated.PRINT_SER2B = PRINT_SER2B
+-- Fill in all the deprecated fields
+deprecated.PRINT_SER1A = PRINT_SER1A
+deprecated.PRINT_SER1B = PRINT_SER1B
+deprecated.PRINT_SER2A = PRINT_SER2A
+deprecated.PRINT_SER2B = PRINT_SER2B
 
-depricated.expandCustomTransmit = expandCustomTransmit
+deprecated.expandCustomTransmit = expandCustomTransmit
 
 end
 

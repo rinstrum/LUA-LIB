@@ -16,7 +16,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
@@ -275,8 +275,8 @@ function _M.exReg(reg, data)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.literalToFloat = private.literalToFloat
-depricated.toFloat = private.toFloat
+-- Fill in all the deprecated fields
+deprecated.literalToFloat = private.literalToFloat
+deprecated.toFloat = private.toFloat
 
 end

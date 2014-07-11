@@ -11,7 +11,7 @@ local bit32 = require "bit"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 -------------------------------------------------------------------------------
 --- Analogue Output Control.
@@ -131,14 +131,14 @@ function _M.setAnalogCur(val)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.CUR = CUR
-depricated.VOLT = VOLT
-depricated.ANALOG_COMMS = ANALOG_COMMS
+-- Fill in all the deprecated fields
+deprecated.CUR = CUR
+deprecated.VOLT = VOLT
+deprecated.ANALOG_COMMS = ANALOG_COMMS
 
-depricated.REG_ANALOGUE_DATA = REG_ANALOGUE_DATA
-depricated.REG_ANALOGUE_TYPE = REG_ANALOGUE_TYPE
-depricated.REG_ANALOGUE_CLIP = REG_ANALOGUE_CLIP
-depricated.REG_ANALOGUE_SOURCE = REG_ANALOGUE_SOURCE
+deprecated.REG_ANALOGUE_DATA = REG_ANALOGUE_DATA
+deprecated.REG_ANALOGUE_TYPE = REG_ANALOGUE_TYPE
+deprecated.REG_ANALOGUE_CLIP = REG_ANALOGUE_CLIP
+deprecated.REG_ANALOGUE_SOURCE = REG_ANALOGUE_SOURCE
 
 end

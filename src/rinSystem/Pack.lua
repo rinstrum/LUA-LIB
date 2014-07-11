@@ -14,7 +14,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 local pairs = pairs
 
-local depricatedFields, warned = {
+local deprecatedFields, warned = {
     timers = timers,
     sockets = sockets
 }, {}
@@ -69,18 +69,18 @@ end
 setmetatable(_M, {
     __index =
         function(t, k)
-            if depricatedFields[k] ~= nil then
+            if deprecatedFields[k] ~= nil then
                 if not warned[k] then
-                    dbg.warn('rinSystem:', 'attempt to access depricated field: '..k)
+                    dbg.warn('rinSystem:', 'attempt to access deprecated field: '..k)
                     warned[k] = true
                 end
-                return depricatedFields[k]
+                return deprecatedFields[k]
             end
             return nil
         end,
     __newindex = function(t, k, v)
-            if depricatedFields[k] ~= nil then
-                dbg.error("rinSystem:", 'attempt to overwrite depricated field: '..k)
+            if deprecatedFields[k] ~= nil then
+                dbg.error("rinSystem:", 'attempt to overwrite deprecated field: '..k)
             else
                 rawset(t, k, v)
             end

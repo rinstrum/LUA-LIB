@@ -22,7 +22,7 @@ local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
 local dbg = require "rinLibrary.rinDebug"
 
-local depricatedFields, warned = {
+local deprecatedFields, warned = {
     system = system,
     dbg = dbg
 }, {}
@@ -51,7 +51,7 @@ _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 dbg.configureDebug(_M.config)
 
-usb.depricatedUSBhandlers(_M)
+usb.deprecatedUSBhandlers(_M)
 
 local userTerminalCallback = nil
 local bidirectionalSocket = nil
@@ -363,19 +363,19 @@ dbg.info('','------   Application Started %LATEST% -----')
 setmetatable(_M, {
     __index =
         function(t, k)
-            if depricatedFields[k] ~= nil then
+            if deprecatedFields[k] ~= nil then
                 if not warned[k] then
-                    dbg.warn('rinApp:', 'attempt to access depricated field: '..k)
+                    dbg.warn('rinApp:', 'attempt to access deprecated field: '..k)
                     warned[k] = true
                 end
-                return depricatedFields[k]
+                return deprecatedFields[k]
             end
             return nil
         end,
 
     __newindex = function(t, k, v)
-            if depricatedFields[k] ~= nil then
-                dbg.error("rinApp:", 'attempt to overwrite depricated field: '..k)
+            if deprecatedFields[k] ~= nil then
+                dbg.error("rinApp:", 'attempt to overwrite deprecated field: '..k)
             else
                 rawset(t, k, v)
             end

@@ -14,7 +14,7 @@ local table = table
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 -------------------------------------------------------------------------------
 -- Commands

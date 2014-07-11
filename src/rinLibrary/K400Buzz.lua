@@ -14,7 +14,7 @@ local min, max = math.min, math.max
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
     local REG_BUZZ_LEN =  0x0327
     local REG_BUZZ_NUM =  0x0328
 
@@ -73,10 +73,10 @@ return function (_M, private, depricated)
     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-    depricated.REG_BUZZ_LEN = REG_BUZZ_LEN
-    depricated.REG_BUZZ_NUM = REG_BUZZ_NUM
-    depricated.BUZZ_SHORT = BUZZ_SHORT
-    depricated.BUZZ_MEDIUM = BUZZ_MEDIUM
-    depricated.BUZZ_LONG = BUZZ_LONG
+-- Fill in all the deprecated fields
+    deprecated.REG_BUZZ_LEN = REG_BUZZ_LEN
+    deprecated.REG_BUZZ_NUM = REG_BUZZ_NUM
+    deprecated.BUZZ_SHORT = BUZZ_SHORT
+    deprecated.BUZZ_MEDIUM = BUZZ_MEDIUM
+    deprecated.BUZZ_LONG = BUZZ_LONG
 end

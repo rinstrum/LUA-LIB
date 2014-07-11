@@ -134,7 +134,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 --LCD display registers
 local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
@@ -745,71 +745,71 @@ function _M.restoreLcd()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
-depricated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
-depricated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
-depricated.REG_DISP_TOP_RIGHT           = REG_DISP_TOP_RIGHT
-depricated.REG_DISP_TOP_ANNUN           = REG_DISP_TOP_ANNUN
-depricated.REG_DISP_TOP_UNITS           = REG_DISP_TOP_UNITS
-depricated.REG_DISP_BOTTOM_ANNUN        = REG_DISP_BOTTOM_ANNUN
-depricated.REG_DISP_BOTTOM_UNITS        = REG_DISP_BOTTOM_UNITS
-depricated.REG_DISP_AUTO_TOP_ANNUN      = REG_DISP_AUTO_TOP_ANNUN
-depricated.REG_DISP_AUTO_TOP_LEFT       = REG_DISP_AUTO_TOP_LEFT
-depricated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
+-- Fill in all the deprecated fields
+deprecated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
+deprecated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
+deprecated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
+deprecated.REG_DISP_TOP_RIGHT           = REG_DISP_TOP_RIGHT
+deprecated.REG_DISP_TOP_ANNUN           = REG_DISP_TOP_ANNUN
+deprecated.REG_DISP_TOP_UNITS           = REG_DISP_TOP_UNITS
+deprecated.REG_DISP_BOTTOM_ANNUN        = REG_DISP_BOTTOM_ANNUN
+deprecated.REG_DISP_BOTTOM_UNITS        = REG_DISP_BOTTOM_UNITS
+deprecated.REG_DISP_AUTO_TOP_ANNUN      = REG_DISP_AUTO_TOP_ANNUN
+deprecated.REG_DISP_AUTO_TOP_LEFT       = REG_DISP_AUTO_TOP_LEFT
+deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
 
-depricated.setAutoTopAnnun              = _M.writeAutoTopAnnun
-depricated.setAutoTopLeft               = _M.writeAutoTopLeft
-depricated.writeBotAnnuns               =  writeBotAnnuns           
-depricated.writeTopAnnuns               = writeTopAnnuns
-depricated.setAutoBotLeft               = _M.writeAutoBotLeft
+deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
+deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
+deprecated.writeBotAnnuns               =  writeBotAnnuns           
+deprecated.writeTopAnnuns               = writeTopAnnuns
+deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
 
-depricated.BATTERY                      = BATTERY
-depricated.CLOCK                        = CLOCK
-depricated.BAT_LO                       = BAT_LO
-depricated.BAT_MIDL                     = BAT_MIDL
-depricated.BAT_MIDH                     = BAT_MIDH
-depricated.BAT_HI                       = BAT_HI
-depricated.BAT_FULL                     = BAT_FULL
-depricated.WAIT                         = WAIT
-depricated.WAIT45                       = WAIT45
-depricated.WAIT90                       = WAIT90
-depricated.WAIT135                      = WAIT135
-depricated.WAITALL                      = WAITALL
-depricated.SIGMA                        = SIGMA
-depricated.BALANCE                      = BALANCE
-depricated.COZ                          = COZ
-depricated.HOLD                         = HOLD
-depricated.MOTION                       = MOTION
-depricated.NET                          = NET
-depricated.RANGE                        = RANGE
-depricated.ZERO                         = ZERO
-depricated.BAL_SEGA                     = BAL_SEGA
-depricated.BAL_SEGB                     = BAL_SEGB
-depricated.BAL_SEGC                     = BAL_SEGC
-depricated.BAL_SEGD                     = BAL_SEGD
-depricated.BAL_SEGE                     = BAL_SEGE
-depricated.BAL_SEGF                     = BAL_SEGF
-depricated.BAL_SEGG                     = BAL_SEGG
-depricated.RANGE_SEGADG                 = RANGE_SEGADG
-depricated.RANGE_SEGC                   = RANGE_SEGC
-depricated.RANGE_SEGE                   = RANGE_SEGE
-depricated.UNITS_NONE                   = UNITS_NONE
-depricated.UNITS_KG                     = UNITS_KG
-depricated.UNITS_LB                     = UNITS_LB
-depricated.UNITS_T                      = UNITS_T
-depricated.UNITS_G                      = UNITS_G
-depricated.UNITS_OZ                     = UNITS_OZ
-depricated.UNITS_N                      = UNITS_N
-depricated.UNITS_ARROW_L                = UNITS_ARROW_L
-depricated.UNITS_P                      = UNITS_P
-depricated.UNITS_L                      = UNITS_L
-depricated.UNITS_ARROW_H                = UNITS_ARROW_H
-depricated.UNITS_OTHER_PER_H            = UNITS_OTHER_PER_H
-depricated.UNITS_OTHER_PER_M            = UNITS_OTHER_PER_M
-depricated.UNITS_OTHER_PER_S            = UNITS_OTHER_PER_S
-depricated.UNITS_OTHER_PC               = UNITS_OTHER_PC
-depricated.UNITS_OTHER_TOT              = UNITS_OTHER_TOT
+deprecated.BATTERY                      = BATTERY
+deprecated.CLOCK                        = CLOCK
+deprecated.BAT_LO                       = BAT_LO
+deprecated.BAT_MIDL                     = BAT_MIDL
+deprecated.BAT_MIDH                     = BAT_MIDH
+deprecated.BAT_HI                       = BAT_HI
+deprecated.BAT_FULL                     = BAT_FULL
+deprecated.WAIT                         = WAIT
+deprecated.WAIT45                       = WAIT45
+deprecated.WAIT90                       = WAIT90
+deprecated.WAIT135                      = WAIT135
+deprecated.WAITALL                      = WAITALL
+deprecated.SIGMA                        = SIGMA
+deprecated.BALANCE                      = BALANCE
+deprecated.COZ                          = COZ
+deprecated.HOLD                         = HOLD
+deprecated.MOTION                       = MOTION
+deprecated.NET                          = NET
+deprecated.RANGE                        = RANGE
+deprecated.ZERO                         = ZERO
+deprecated.BAL_SEGA                     = BAL_SEGA
+deprecated.BAL_SEGB                     = BAL_SEGB
+deprecated.BAL_SEGC                     = BAL_SEGC
+deprecated.BAL_SEGD                     = BAL_SEGD
+deprecated.BAL_SEGE                     = BAL_SEGE
+deprecated.BAL_SEGF                     = BAL_SEGF
+deprecated.BAL_SEGG                     = BAL_SEGG
+deprecated.RANGE_SEGADG                 = RANGE_SEGADG
+deprecated.RANGE_SEGC                   = RANGE_SEGC
+deprecated.RANGE_SEGE                   = RANGE_SEGE
+deprecated.UNITS_NONE                   = UNITS_NONE
+deprecated.UNITS_KG                     = UNITS_KG
+deprecated.UNITS_LB                     = UNITS_LB
+deprecated.UNITS_T                      = UNITS_T
+deprecated.UNITS_G                      = UNITS_G
+deprecated.UNITS_OZ                     = UNITS_OZ
+deprecated.UNITS_N                      = UNITS_N
+deprecated.UNITS_ARROW_L                = UNITS_ARROW_L
+deprecated.UNITS_P                      = UNITS_P
+deprecated.UNITS_L                      = UNITS_L
+deprecated.UNITS_ARROW_H                = UNITS_ARROW_H
+deprecated.UNITS_OTHER_PER_H            = UNITS_OTHER_PER_H
+deprecated.UNITS_OTHER_PER_M            = UNITS_OTHER_PER_M
+deprecated.UNITS_OTHER_PER_S            = UNITS_OTHER_PER_S
+deprecated.UNITS_OTHER_PC               = UNITS_OTHER_PC
+deprecated.UNITS_OTHER_TOT              = UNITS_OTHER_TOT
 
 end
 

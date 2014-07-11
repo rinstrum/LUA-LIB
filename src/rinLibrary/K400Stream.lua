@@ -16,7 +16,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 --  Stream Register Definitions
 local REG_STREAMDATA    = 0x0040
@@ -405,29 +405,29 @@ function _M.init()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_STREAMDATA    = REG_STREAMDATA
-depricated.REG_STREAMMODE    = REG_STREAMMODE
-depricated.REG_STREAMREG1    = REG_STREAMREG1
-depricated.REG_STREAMREG2    = REG_STREAMREG2
-depricated.REG_STREAMREG3    = REG_STREAMREG3
-depricated.REG_STREAMREG4    = REG_STREAMREG4
-depricated.REG_STREAMREG5    = REG_STREAMREG5
-depricated.REG_LUALIB        = REG_LUALIB
-depricated.REG_LUAUSER       = REG_LUAUSER
+-- Fill in all the deprecated fields
+deprecated.REG_STREAMDATA    = REG_STREAMDATA
+deprecated.REG_STREAMMODE    = REG_STREAMMODE
+deprecated.REG_STREAMREG1    = REG_STREAMREG1
+deprecated.REG_STREAMREG2    = REG_STREAMREG2
+deprecated.REG_STREAMREG3    = REG_STREAMREG3
+deprecated.REG_STREAMREG4    = REG_STREAMREG4
+deprecated.REG_STREAMREG5    = REG_STREAMREG5
+deprecated.REG_LUALIB        = REG_LUALIB
+deprecated.REG_LUAUSER       = REG_LUAUSER
 
-depricated.STM_START         = STM_START
-depricated.STM_STOP          = STM_STOP
+deprecated.STM_START         = STM_START
+deprecated.STM_STOP          = STM_STOP
 
-depricated.STM_FREQ_MANUAL   = STM_FREQ_MANUAL
-depricated.STM_FREQ_AUTO     = STM_FREQ_AUTO
-depricated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
-depricated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
-depricated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
-depricated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
+deprecated.STM_FREQ_MANUAL   = STM_FREQ_MANUAL
+deprecated.STM_FREQ_AUTO     = STM_FREQ_AUTO
+deprecated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
+deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
+deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
+deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
 
-depricated.addStreamLib      = private.addStreamLib
-depricated.removeStreamLib   = private.removeStreamLib
-depricated.setStreamFreqLib  = private.setStreamFreqLib
+deprecated.addStreamLib      = private.addStreamLib
+deprecated.removeStreamLib   = private.removeStreamLib
+deprecated.setStreamFreqLib  = private.setStreamFreqLib
 
 end

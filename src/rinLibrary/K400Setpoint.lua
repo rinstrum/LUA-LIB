@@ -13,7 +13,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 private.REG_IO_STATUS     = 0x0051
 local REG_IO_ENABLE       = 0x0054
@@ -461,53 +461,53 @@ function _M.setPointCount()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_IO_STATUS            = private.REG_IO_STATUS
-depricated.REG_IO_ENABLE            = REG_IO_ENABLE
-depricated.REG_SETP_NUM             = REG_SETP_NUM
-depricated.REG_SETP_REPEAT          = REG_SETP_REPEAT
-depricated.REG_SETP_TYPE            = REG_SETP_TYPE
-depricated.REG_SETP_OUTPUT          = REG_SETP_OUTPUT
-depricated.REG_SETP_LOGIC           = REG_SETP_LOGIC
-depricated.REG_SETP_ALARM           = REG_SETP_ALARM
-depricated.REG_SETP_NAME            = REG_SETP_NAME
-depricated.REG_SETP_SOURCE          = REG_SETP_SOURCE
-depricated.REG_SETP_HYS             = REG_SETP_HYS
-depricated.REG_SETP_SOURCE_REG      = REG_SETP_SOURCE_REG
-depricated.REG_SETP_TARGET          = REG_SETP_TARGET
+-- Fill in all the deprecated fields
+deprecated.REG_IO_STATUS            = private.REG_IO_STATUS
+deprecated.REG_IO_ENABLE            = REG_IO_ENABLE
+deprecated.REG_SETP_NUM             = REG_SETP_NUM
+deprecated.REG_SETP_REPEAT          = REG_SETP_REPEAT
+deprecated.REG_SETP_TYPE            = REG_SETP_TYPE
+deprecated.REG_SETP_OUTPUT          = REG_SETP_OUTPUT
+deprecated.REG_SETP_LOGIC           = REG_SETP_LOGIC
+deprecated.REG_SETP_ALARM           = REG_SETP_ALARM
+deprecated.REG_SETP_NAME            = REG_SETP_NAME
+deprecated.REG_SETP_SOURCE          = REG_SETP_SOURCE
+deprecated.REG_SETP_HYS             = REG_SETP_HYS
+deprecated.REG_SETP_SOURCE_REG      = REG_SETP_SOURCE_REG
+deprecated.REG_SETP_TARGET          = REG_SETP_TARGET
 
-depricated.NUM_SETP                 = NUM_SETP
+deprecated.NUM_SETP                 = NUM_SETP
 
-depricated.LOGIC_HIGH               = LOGIC_HIGH
-depricated.LOGIC_LOW                = LOGIC_LOW
+deprecated.LOGIC_HIGH               = LOGIC_HIGH
+deprecated.LOGIC_LOW                = LOGIC_LOW
 
-depricated.ALARM_NONE               = ALARM_NONE
-depricated.ALARM_SINGLE             = ALARM_SINGLE
-depricated.ALARM_DOUBLE             = ALARM_DOUBLE
-depricated.ALARM_FLASH              = ALARM_FLASH
+deprecated.ALARM_NONE               = ALARM_NONE
+deprecated.ALARM_SINGLE             = ALARM_SINGLE
+deprecated.ALARM_DOUBLE             = ALARM_DOUBLE
+deprecated.ALARM_FLASH              = ALARM_FLASH
 
-depricated.SOURCE_GROSS             = SOURCE_GROSS
-depricated.SOURCE_NET               = SOURCE_NET
-depricated.SOURCE_DISP              = SOURCE_DISP
-depricated.SOURCE_ALT_GROSS         = SOURCE_ALT_GROSS
-depricated.SOURCE_ALT_NET           = SOURCE_ALT_NET
-depricated.SOURCE_ALT_DISP          = SOURCE_ALT_DISP
-depricated.SOURCE_PIECE             = SOURCE_PIECE
-depricated.SOURCE_REG               = SOURCE_REG
+deprecated.SOURCE_GROSS             = SOURCE_GROSS
+deprecated.SOURCE_NET               = SOURCE_NET
+deprecated.SOURCE_DISP              = SOURCE_DISP
+deprecated.SOURCE_ALT_GROSS         = SOURCE_ALT_GROSS
+deprecated.SOURCE_ALT_NET           = SOURCE_ALT_NET
+deprecated.SOURCE_ALT_DISP          = SOURCE_ALT_DISP
+deprecated.SOURCE_PIECE             = SOURCE_PIECE
+deprecated.SOURCE_REG               = SOURCE_REG
 
-depricated.TYPE_OFF                 = TYPE_OFF
-depricated.TYPE_ON                  = TYPE_ON
-depricated.TYPE_OVER                = TYPE_OVER
-depricated.TYPE_UNDER               = TYPE_UNDER
-depricated.TYPE_COZ                 = TYPE_COZ
-depricated.TYPE_ZERO                = TYPE_ZERO
-depricated.TYPE_NET                 = TYPE_NET
-depricated.TYPE_MOTION              = TYPE_MOTION
-depricated.TYPE_ERROR               = TYPE_ERROR
-depricated.TYPE_LGC_AND             = TYPE_LGC_AND
-depricated.TYPE_LGC_OR              = TYPE_LGC_OR
-depricated.TYPE_LGC_XOR             = TYPE_LGC_XOR
-depricated.TYPE_BUZZER              = TYPE_BUZZER
+deprecated.TYPE_OFF                 = TYPE_OFF
+deprecated.TYPE_ON                  = TYPE_ON
+deprecated.TYPE_OVER                = TYPE_OVER
+deprecated.TYPE_UNDER               = TYPE_UNDER
+deprecated.TYPE_COZ                 = TYPE_COZ
+deprecated.TYPE_ZERO                = TYPE_ZERO
+deprecated.TYPE_NET                 = TYPE_NET
+deprecated.TYPE_MOTION              = TYPE_MOTION
+deprecated.TYPE_ERROR               = TYPE_ERROR
+deprecated.TYPE_LGC_AND             = TYPE_LGC_AND
+deprecated.TYPE_LGC_OR              = TYPE_LGC_OR
+deprecated.TYPE_LGC_XOR             = TYPE_LGC_XOR
+deprecated.TYPE_BUZZER              = TYPE_BUZZER
 
 end
 

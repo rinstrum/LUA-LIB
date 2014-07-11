@@ -19,7 +19,7 @@ local type = type
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 _M.socketA = nil   -- must be set to a connected socket for the module to work
 _M.socketB = nil   -- must be set to a connected socket for the module to work
@@ -357,7 +357,7 @@ function _M.socketDebugAcceptCallback(sock, ip, port)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.dbg = dbg
+-- Fill in all the deprecated fields
+deprecated.dbg = dbg
 
 end

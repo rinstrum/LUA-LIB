@@ -14,7 +14,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 -------------------------------------------------------------------------------
 --- Keypad Control.
@@ -380,10 +380,10 @@ function _M.sendIOKey(io,status)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_GET_KEY          = REG_GET_KEY
-depricated.REG_FLUSH_KEYS       = REG_FLUSH_KEYS
-depricated.REG_APP_DO_KEYS      = REG_APP_DO_KEYS
-depricated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
+-- Fill in all the deprecated fields
+deprecated.REG_GET_KEY          = REG_GET_KEY
+deprecated.REG_FLUSH_KEYS       = REG_FLUSH_KEYS
+deprecated.REG_APP_DO_KEYS      = REG_APP_DO_KEYS
+deprecated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
 
 end

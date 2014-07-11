@@ -19,7 +19,7 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 local REG_LCDMODE          = 0x000D
 
@@ -292,21 +292,21 @@ function _M.loadRIS(filename)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_LCDMODE              = REG_LCDMODE
-depricated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
-depricated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
+-- Fill in all the deprecated fields
+deprecated.REG_LCDMODE              = REG_LCDMODE
+deprecated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
+deprecated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
 
-depricated.getRegDP = private.getRegDP
-depricated.readSettings = readSettings
-depricated.saveSettings = private.saveSettings
-depricated.system = system
-depricated.settings = settings
-depricated.units = units
-depricated.countby = countby
+deprecated.getRegDP = private.getRegDP
+deprecated.readSettings = readSettings
+deprecated.saveSettings = private.saveSettings
+deprecated.system = system
+deprecated.settings = settings
+deprecated.units = units
+deprecated.countby = countby
 
-depricated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
-depricated.DISPMODE_PIECES       = DISPMODE_PIECES
-depricated.DISPMODE_SECONDARY    = DISPMODE_SECONDARY
+deprecated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
+deprecated.DISPMODE_PIECES       = DISPMODE_PIECES
+deprecated.DISPMODE_SECONDARY    = DISPMODE_SECONDARY
 
 end

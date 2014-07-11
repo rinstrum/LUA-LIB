@@ -20,7 +20,7 @@ local system = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 local dialogRunning = 0
 local getKeyPressed = 0

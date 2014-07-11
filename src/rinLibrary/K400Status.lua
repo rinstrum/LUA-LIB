@@ -53,7 +53,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 --- Status Bits for REG_SYSSTATUS.
 --@table sysstatus
@@ -752,11 +752,11 @@ function _M.endSETPStatus()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_LUA_STATUS   = REG_LUA_STATUS
-depricated.REG_LUA_ESTAT    = REG_LUA_ESTAT
-depricated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
-depricated.REG_SETPSTATUS   = REG_SETPSTATUS
-depricated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
+-- Fill in all the deprecated fields
+deprecated.REG_LUA_STATUS   = REG_LUA_STATUS
+deprecated.REG_LUA_ESTAT    = REG_LUA_ESTAT
+deprecated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
+deprecated.REG_SETPSTATUS   = REG_SETPSTATUS
+deprecated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
 
 end

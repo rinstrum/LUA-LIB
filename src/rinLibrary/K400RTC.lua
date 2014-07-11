@@ -29,7 +29,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
-return function (_M, private, depricated)
+return function (_M, private, deprecated)
 
 -------------------------------------------------------------------------------
 
@@ -399,26 +399,26 @@ function _M.RTCgetDateFormat()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the depricated fields
-depricated.REG_TIMECUR      = REG_TIMECUR
-depricated.REG_TIMEFORMAT   = REG_TIMEFORMAT
-depricated.REG_TIMEDAY      = REG_TIMEDAY
-depricated.REG_TIMEMON      = REG_TIMEMON
-depricated.REG_TIMEYEAR     = REG_TIMEYEAR
-depricated.REG_TIMEHOUR     = REG_TIMEHOUR
-depricated.REG_TIMEMIN      = REG_TIMEMIN
-depricated.REG_TIMESEC      = REG_TIMESEC
-depricated.REG_MSEC1000     = REG_MSEC1000 
-depricated.REG_MSEC         = REG_MSEC   
-depricated.REG_MSECLAST     = REG_MSECLAST
-depricated.TM_DDMMYY        = TM_DDMMYY
-depricated.TM_DDMMYYYY      = TM_DDMMYYYY
-depricated.TM_MMDDYY        = TM_MMDDYY
-depricated.TM_MMDDYYYY      = TM_MMDDYYYY
-depricated.TM_YYMMDD        = TM_YYMMDD
-depricated.TM_YYYYMMDD      = TM_YYYYMMDD
+-- Fill in all the deprecated fields
+deprecated.REG_TIMECUR      = REG_TIMECUR
+deprecated.REG_TIMEFORMAT   = REG_TIMEFORMAT
+deprecated.REG_TIMEDAY      = REG_TIMEDAY
+deprecated.REG_TIMEMON      = REG_TIMEMON
+deprecated.REG_TIMEYEAR     = REG_TIMEYEAR
+deprecated.REG_TIMEHOUR     = REG_TIMEHOUR
+deprecated.REG_TIMEMIN      = REG_TIMEMIN
+deprecated.REG_TIMESEC      = REG_TIMESEC
+deprecated.REG_MSEC1000     = REG_MSEC1000 
+deprecated.REG_MSEC         = REG_MSEC   
+deprecated.REG_MSECLAST     = REG_MSECLAST
+deprecated.TM_DDMMYY        = TM_DDMMYY
+deprecated.TM_DDMMYYYY      = TM_DDMMYYYY
+deprecated.TM_MMDDYY        = TM_MMDDYY
+deprecated.TM_MMDDYYYY      = TM_MMDDYYYY
+deprecated.TM_YYMMDD        = TM_YYMMDD
+deprecated.TM_YYYYMMDD      = TM_YYYYMMDD
 
-depricated.RTC = RTC
+deprecated.RTC = RTC
 
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

@@ -252,16 +252,16 @@ end
 -- @usage
 -- local usb = require 'rinUSB'
 -- local t = {}
--- usb.depricatedUSBhandlers(t)
+-- usb.deprecatedUSBhandlers(t)
 -- t.initUSB() -- call the usb.initUSB() function.
-function _M.depricatedUSBhandlers(app)
+function _M.deprecatedUSBhandlers(app)
     for k, v in pairs(_M) do
-        if type(k) == "string" and type(v) == "function" and "depricatedUSBhandlers" ~= k then
-            local depricatedWarned = false
+        if type(k) == "string" and type(v) == "function" and "deprecatedUSBhandlers" ~= k then
+            local deprecatedWarned = false
             app[k] =    function(...)
-                            if not depricatedWarned then
+                            if not deprecatedWarned then
                                 dbg.warn('USB deprecated function ', k..' use rinLibrary.rinUSB')
-                                depricatedWarned = true
+                                deprecatedWarned = true
                             end
                             return v(...)
                         end
