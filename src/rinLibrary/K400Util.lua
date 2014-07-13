@@ -21,6 +21,8 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
+local REG_SAVESETTING = 0x0010
+
 local REG_LCDMODE          = 0x000D
 
 local REG_COMMS_START = 0x0309
@@ -143,7 +145,7 @@ end
 -- @function saveSettings
 -- @local
 function private.saveSettings()
-    _M.sendRegWait(_M.CMD_EX, private.REG_SAVESETTING)
+    _M.sendRegWait(_M.CMD_EX, REG_SAVESETTING)
 end
 
 -------------------------------------------------------------------------------

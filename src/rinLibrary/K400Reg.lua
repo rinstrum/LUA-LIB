@@ -20,7 +20,6 @@ return function (_M, private, deprecated)
 
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
-private.REG_SAVESETTING = 0x0010
 
 --- System Registers.
 --@table sysRegisters
