@@ -18,6 +18,24 @@ local xeq = os.execute
 
 local dbg = require "rinLibrary.rinDebug"
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- LPEG pattern for parsing a CSV file
+local lpeg = require 'lpeg'
+local C, Cs, Ct, P, S = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.S
+
+local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +
+                    C((1 - S',\r\n"')^0)
+local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
+
+-------------------------------------------------------------------------------
+-- Takes an escaped CSV string and returns a line (1d array)
+-- @param s CSV string
+-- @return table (1d array)
+-- @local
+function fromCSV(s)
+    return record:match(s)
+end
+
 -------------------------------------------------------------------------------
 -- Function to check if a table is a CSV table
 -- @param t Table
@@ -91,48 +109,6 @@ local function padCSV(t, w)
     s[1] = ''
 
     return table.concat(s)
-end
-
--------------------------------------------------------------------------------
--- Takes an escaped CSV string and returns a line (1d array)
--- @param s CSV string
--- @return table (1d array)
--- @local
-local function fromCSV(s)
-    if s == nil then return nil end
-
-    if #s > 0 and string.sub(s,-1,-1) == '\r' then
-       s = string.sub(s,1,-2)  -- remove \r if present
-    end
-    if s == '' then return nil end
-
-    s = s .. ','
-    local t = {}
-
-    local fieldstart = 1
-    repeat
-        if string.find(s, '^"', fieldstart) then
-            local a, c
-            local i = fieldstart
-            repeat
-                a,i,c = string.find(s, '"("?)', i+1)
-            until c ~= '"'
-
-            if not i then
-                error ('Unmatched quote')
-            end
-
-            local f = string.sub(s,fieldstart+1, i-1)
-            table.insert(t, (string.gsub(f,'""','"')))
-            fieldstart = string.find(s,',',i)+1
-        else
-            local nexti = string.find(s, ',', fieldstart)
-            table.insert(t, string.sub(s,fieldstart, nexti-1))
-            fieldstart = nexti + 1
-        end
-    until fieldstart > string.len(s)
-
-    return (t)
 end
 
 -------------------------------------------------------------------------------
@@ -289,7 +265,7 @@ end
 -- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
- function _M.loadCSV(t)
+function _M.loadCSV(t)
 
     local f = io.open(t.fname,"r")
     local res = nil
@@ -318,7 +294,7 @@ end
                 -- Clear the current table and read in the existing data
                 t.data = {}
                 for s in f:lines() do
-                    table.insert(t.data,fromCSV(s))
+                    table.insert(t.data, fromCSV(s))
                 end
                 f:close()
                 res = "load"
@@ -488,20 +464,20 @@ end
 -- print('3.14159 is in the third column in row '..row)
 -- print('That row is: ' .. csv.tostringLine(data))
 function _M.getLineCSV(t, val, col)
-   local line = {}
-   local col = col or 1
-   local row = 0
-   for k,v in ipairs(t.data) do
-     if string.lower(tostring(v[col])) == string.lower(tostring(val)) then
-        line = v
-        row = k
-     end
-   end
-   if row == 0 then
-      return nil, line
-   else
-      return row, line
-   end
+    local line = {}
+    local col = col or 1
+    local row = 0
+    for k,v in ipairs(t.data) do
+        if string.lower(tostring(v[col])) == string.lower(tostring(val)) then
+            line = v
+            row = k
+        end
+    end
+    if row == 0 then
+        return nil, line
+    else
+        return row, line
+    end
 end
 
 -------------------------------------------------------------------------------

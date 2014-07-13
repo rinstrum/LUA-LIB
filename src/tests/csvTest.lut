@@ -74,9 +74,8 @@ describe("CSV tests #csv", function()
             { val = '"  ""","  ,","  """, xy',  res = { '  "', '  ,', '  "', " xy" } },
             { val = '""""""""""',               res = { '""""' } },
             { val = "a,b,c\r",                  res = { "a", "b", "c" } },
-            { val = '',                         res = nil },
-            { val = '\r',                       res = nil },
-            { val = nil,                        res = nil }
+            { val = '',                         res = { '' } },
+            { val = '\r',                       res = { '' } }
         }
 
         for i = 1, #fromCsvTests do
