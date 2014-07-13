@@ -713,7 +713,7 @@ function _M.setupStatus()
     curStatus = 0
     statID  = private.addStreamLib(REG_LUA_STATUS, statusCallback,  'change')
     eStatID = private.addStreamLib(REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = private.addStreamLib(private.REG_IO_STATUS,  IOCallback,      'change')
+    IOID    = private.addStreamLib('io_status',  IOCallback,      'change')
     SETPID  = private.addStreamLib(REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
     _M.setEStatusMainCallback(_M.ESTAT_RTC,  handleRTC)

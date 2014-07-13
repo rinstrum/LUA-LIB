@@ -15,7 +15,7 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-private.REG_IO_STATUS     = 0x0051
+private.addRegister('io_status', 0x0051)
 local REG_IO_ENABLE       = 0x0054
 
 local REG_SETP_NUM        = 0xA400
@@ -134,7 +134,7 @@ local NUM_SETP = 16
 -- @local
 local function setOutputs(outp)
     if outp ~= lastOutputs then
-        _M.sendReg(_M.CMD_WRFINALDEC, private.REG_IO_STATUS, outp)
+        _M.sendReg(_M.CMD_WRFINALDEC, 'io_status', outp)
         lastOutputs = outp
     end
 end
@@ -462,7 +462,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-deprecated.REG_IO_STATUS            = private.REG_IO_STATUS
+deprecated.REG_IO_STATUS            = private.getRegisterNumber('io_status')
 deprecated.REG_IO_ENABLE            = REG_IO_ENABLE
 deprecated.REG_SETP_NUM             = REG_SETP_NUM
 deprecated.REG_SETP_REPEAT          = REG_SETP_REPEAT
