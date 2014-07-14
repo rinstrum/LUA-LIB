@@ -23,38 +23,38 @@ _M.REG_LCD              = 0x0009
 
 --- Instrument Reading Registers.
 --@table rdgRegisters
--- @field REG_ADCSAMPLE   Sample number of current reading
--- @field REG_SYSSTATUS   System Status Bits
--- @field REG_SYSERR      System Error Bits
--- @field REG_ABSMVV      Absolute mV/V reading (10,000 = 1mV/V)
--- @field REG_GROSSNET    Gross or Net reading depending on operating mode
--- @field REG_GROSS       Gross weight
--- @field REG_NET         Net Weight
--- @field REG_TARE        Tare Weight
--- @field REG_PEAKHOLD    Peak Hold Weight
--- @field REG_MANHOLD     Manually Held weight
--- @field REG_GRANDTOTAL  Accumulated total
--- @field REG_ALTGROSS    Gross weight in secondary units
--- @field REG_RAWADC      Raw ADC reading (2,560,000 = 1.0 mV/V)
--- @field REG_ALTNET      Net weight in secondary units
--- @field REG_FULLSCALE   Fullscale weight
+-- @field adcsample   Sample number of current reading
+-- @field sysstatus   System Status Bits
+-- @field syserr      System Error Bits
+-- @field absmvv      Absolute mV/V reading (10,000 = 1mV/V)
+-- @field grossnet    Gross or Net reading depending on operating mode
+-- @field gross       Gross weight
+-- @field net         Net Weight
+-- @field tare        Tare Weight
+-- @field peakhold    Peak Hold Weight
+-- @field manhold     Manually Held weight
+-- @field grandtotal  Accumulated total
+-- @field altgross    Gross weight in secondary units
+-- @field rawadc      Raw ADC reading (2,560,000 = 1.0 mV/V)
+-- @field altnet      Net weight in secondary units
+-- @field fullscale   Fullscale weight
 
-_M.REG_ADCSAMPLE        = 0x0020
-_M.REG_SYSSTATUS        = 0x0021
-_M.REG_SYSERR           = 0x0022
-_M.REG_ABSMVV           = 0x0023
+private.addRegister('adcsample',    0x0020)
+private.addRegister('sysstatus',    0x0021)
+private.addRegister('syserr',       0x0022)
+private.addRegister('absmvv',       0x0023)
 
-_M.REG_GROSSNET         = 0x0025
-_M.REG_GROSS            = 0x0026
-_M.REG_NET              = 0x0027
-_M.REG_TARE             = 0x0028
-_M.REG_PEAKHOLD         = 0x0029
-_M.REG_MANHOLD          = 0x002A
-_M.REG_GRANDTOTAL       = 0x002B
-_M.REG_ALTGROSS         = 0x002C
-_M.REG_RAWADC           = 0x002D
-_M.REG_ALTNET           = 0x002E
-_M.REG_FULLSCALE        = 0x002F
+private.addRegister('grossnet',     0x0025)
+private.addRegister('gross',        0x0026)
+private.addRegister('net',          0x0027)
+private.addRegister('tare',         0x0028)
+private.addRegister('peakhold',     0x0029)
+private.addRegister('manhold',      0x002A)
+private.addRegister('grandtotal',   0x002B)
+private.addRegister('altgross',     0x002C)
+private.addRegister('rawadc',       0x002D)
+private.addRegister('altnet',       0x002E)
+private.addRegister('fullscale',    0x002F)
 
 --- Instrument User Variables.
 --@table usrRegisters
@@ -266,6 +266,13 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
+for _, v in ipairs({
+            'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
+            'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
+            'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare'
+        }) do
+    deprecated['REG_'..string.upper(v)] = private.getRegisterNumber(v)
+end
 deprecated.literalToFloat = private.literalToFloat
 deprecated.toFloat = private.toFloat
 
