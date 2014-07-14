@@ -193,7 +193,7 @@ end
 -- Called to load settings
 -- @local
 local function readSettings()
-    settings.fullscale = private.getRegDP(_M.REG_FULLSCALE)
+    settings.fullscale = private.getRegDP('fullscale')
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
             local data, err = _M.sendRegWait('rdfinalhex', settings.dispmode[mode].reg)
