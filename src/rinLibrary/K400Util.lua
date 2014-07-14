@@ -278,9 +278,9 @@ end
 -- @return floating point value suitable for a WRFINALDEC
 -- @usage
 -- local curWeight = 0
--- device.addStream(dwi.REG_GROSSNET, function(data, err) curWeight = data end, 'change')
+-- device.addStream('grossnet', function(data, err) curWeight = data end, 'change')
 -- ...
--- device.writeReg(device.REG_USERNUM3, device.toPrimary(curWeight))
+-- device.writeReg('usernum3', device.toPrimary(curWeight))
 function _M.toPrimary(v, dp)
     local dp = dp or settings.dispmode[settings.curDispMode].dp  -- use instrument dp if not specified otherwise
 
