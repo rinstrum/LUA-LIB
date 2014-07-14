@@ -236,7 +236,7 @@ local function keyCallback(data, err)
      end
 
     if not handled then
-        _M.sendReg(_M.CMD_WRFINALDEC, REG_APP_DO_KEYS, data)
+        _M.sendReg('wrfinaldec', REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
         private.bumpIdleTimer()
@@ -248,7 +248,7 @@ end
 -- @usage
 -- device.flushKeys()
 function _M.flushKeys()
-    _M.sendRegWait(_M.CMD_EX, REG_FLUSH_KEYS, 0)
+    _M.sendRegWait('ex', REG_FLUSH_KEYS, 0)
 end
 
 -------------------------------------------------------------------------------
@@ -264,7 +264,7 @@ end
 -- framework takes care of this.
 function _M.setupKeys()
     _M.flushKeys()
-    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 1)
+    _M.sendRegWait('wrfinalhex', REG_APP_KEY_HANDLER, 1)
     keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
 end
 
@@ -285,7 +285,7 @@ function _M.endKeys(flush)
         _M.flushKeys()
     end
 
-    _M.sendRegWait(_M.CMD_WRFINALHEX, REG_APP_KEY_HANDLER, 0)
+    _M.sendRegWait('wrfinalhex', REG_APP_KEY_HANDLER, 0)
 
     _M.removeStream(keyID)
 end
@@ -358,7 +358,7 @@ function _M.sendKey(key,status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendRegWait(_M.CMD_WRFINALDEC,REG_APP_DO_KEYS, data)
+        _M.sendRegWait('wrfinaldec', REG_APP_DO_KEYS, data)
     end
 end
 
@@ -375,7 +375,7 @@ function _M.sendIOKey(io,status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendRegWait(_M.CMD_WRFINALDEC,REG_APP_DO_KEYS, data)
+        _M.sendRegWait('wrfinaldec',REG_APP_DO_KEYS, data)
     end
 end
 

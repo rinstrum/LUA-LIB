@@ -146,7 +146,7 @@ end
 --     -- American date format
 -- end
 function _M.readDateFormat()
-    local fmt, err = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_TIMEFORMAT)
+    local fmt, err = _M.sendRegWait('rdfinaldec', REG_TIMEFORMAT)
     local r = err and TM_DDMMYY or tonumber(fmt)
     setDateFormat(r)
     return convertFormatToString(r)
@@ -162,7 +162,7 @@ end
 function _M.sendDateFormat(f)
     local fmt = convertStringToFormat(f)
 
-    _M.sendRegWait(_M.CMD_WRFINALDEC, REG_TIMEFORMAT, fmt)
+    _M.sendRegWait('wrfinaldec', REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)
 end
 
@@ -180,7 +180,7 @@ function _M.RTCread(d)
 
   _M.readDateFormat()
 
-  local timestr, err = _M.sendRegWait(_M.CMD_RDLIT, REG_TIMECUR)
+  local timestr, err = _M.sendRegWait('rdlit', REG_TIMECUR)
 
   if err then
     timestr = '01/01/2000 00-00'

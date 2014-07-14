@@ -73,9 +73,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
 
     if mode == 'lua' then
-        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE, 2)
+        _M.sendRegWait('ex', REG_LCDMODE, 2)
     else
-        _M.sendRegWait(_M.CMD_EX, REG_LCDMODE, 1)
+        _M.sendRegWait('ex', REG_LCDMODE, 1)
     end
 end
 
@@ -123,7 +123,7 @@ end
 -- @param reg  register to read
 -- @return register value number and dp position
 function private.getRegDP(reg)
-    local data, err = _M.sendRegWait(_M.CMD_RDLIT,reg)
+    local data, err = _M.sendRegWait('rdlit',reg)
     if err then
         dbg.error('getDP: ', reg, err)
         return nil, nil
@@ -145,7 +145,7 @@ end
 -- @function saveSettings
 -- @local
 function private.saveSettings()
-    _M.sendRegWait(_M.CMD_EX, REG_SAVESETTING)
+    _M.sendRegWait('ex', REG_SAVESETTING)
 end
 
 -------------------------------------------------------------------------------
@@ -194,7 +194,7 @@ local function readSettings()
     settings.fullscale = private.getRegDP(_M.REG_FULLSCALE)
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
-            local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX, settings.dispmode[mode].reg)
+            local data, err = _M.sendRegWait('rdfinalhex', settings.dispmode[mode].reg)
             if data and not err then
                 data = tonumber(data, 16)
                 if data ~= nil then
@@ -222,17 +222,17 @@ end
 -- @usage
 -- device.configure('K401')
 function _M.configure(model)
-    local s, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SOFTMODEL)
+    local s, err = _M.sendRegWait('rdlit', _M.REG_SOFTMODEL)
     if not err then
         instrumentModel = s
-        instrumentSerialNumber, err = _M.sendRegWait(_M.CMD_RDLIT,_M.REG_SERIALNO)
+        instrumentSerialNumber, err = _M.sendRegWait('rdlit', _M.REG_SERIALNO)
     end
 
     dbg.info(instrumentModel, instrumentSerialNumber)
 
     readSettings()
 
-    _M.sendRegWait(_M.CMD_EX, REG_COMMS_START)  -- clear start message
+    _M.sendRegWait('ex', REG_COMMS_START)  -- clear start message
 
     if err then
         instrumentModel = ''

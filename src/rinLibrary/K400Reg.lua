@@ -244,7 +244,7 @@ end
 function _M.readReg(reg)
     local data, err
 
-    data, err = _M.sendRegWait(_M.CMD_RDLIT, reg)
+    data, err = _M.sendRegWait('rdlit', reg)
     if err then
         dbg.debug('Read Error', err)
         return nil, err
@@ -260,7 +260,7 @@ end
 -- @usage
 -- device.writeReg('usernum1', 0)
 function _M.writeReg(reg, data)
-    _M.sendRegWait(_M.CMD_WRFINALDEC, reg, data)
+    _M.sendRegWait('wrfinaldec', reg, data)
 end
 
 -------------------------------------------------------------------------------
@@ -270,7 +270,7 @@ end
 -- @usage
 -- device.exReg('flush_keys', 0) -- flush pending key presses
 function _M.exReg(reg, data)
-    _M.sendRegWait(_M.CMD_EX, reg, data)
+    _M.sendRegWait('ex', reg, data)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

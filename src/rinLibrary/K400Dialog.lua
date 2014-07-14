@@ -557,13 +557,13 @@ function _M.editReg(register, prompt)
         if type(prompt) == 'string' then
             _M.writeBotRight(prompt)
         else
-            _M.writeBotRight(_M.sendRegWait(_M.CMD_RDNAME,reg))
+            _M.writeBotRight(_M.sendRegWait('rdname', reg))
         end
     end
-    _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_EDIT_REG,reg)
+    _M.sendRegWait('wrfinaldec', _M.REG_EDIT_REG,reg)
     _M.startDialog()
     while true do
-        local data,err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_EDIT_REG)
+        local data,err = _M.sendRegWait('rdfinalhex', _M.REG_EDIT_REG)
 
         if err or (data and tonumber(data,16) ~= reg) then
             break
@@ -577,7 +577,7 @@ function _M.editReg(register, prompt)
     if prompt then
         _M.restoreBot()
     end
-    return private.literalToFloat(_M.sendRegWait(_M.CMD_RDLIT,reg))
+    return private.literalToFloat(_M.sendRegWait('rdlit', reg))
 end
 
 -------------------------------------------------------------------------------

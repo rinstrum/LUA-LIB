@@ -41,23 +41,44 @@ _M.ADDR_BROADCAST       = 0x00
 -- @field CMD_EX           Execute with data as execute parameter
 
 -- Commands
-_M.CMD_RDTYPE           = 0x01
-_M.CMD_RDRANGEMIN       = 0x02
-_M.CMD_RDRANGEMAX       = 0x03
-_M.CMD_RDRAW            = 0x04
+local CMD_RDTYPE           = 0x01
+local CMD_RDRANGEMIN       = 0x02
+local CMD_RDRANGEMAX       = 0x03
+local CMD_RDRAW            = 0x04
 
-_M.CMD_RDLIT            = 0x05
-_M.CMD_WRRAW            = 0x06
-_M.CMD_RDDEFAULT        = 0x07
-_M.CMD_RDNAME           = 0x09
-_M.CMD_RDITEM           = 0x0D
-_M.CMD_RDPERMISSION     = 0x0F
+local CMD_RDLIT            = 0x05
+local CMD_WRRAW            = 0x06
+local CMD_RDDEFAULT        = 0x07
+local CMD_RDNAME           = 0x09
+local CMD_RDITEM           = 0x0D
+local CMD_RDPERMISSION     = 0x0F
 
-_M.CMD_RDFINALHEX       = 0x11
-_M.CMD_RDFINALDEC       = 0x16
-_M.CMD_WRFINALHEX       = 0x12
-_M.CMD_WRFINALDEC       = 0x17
-_M.CMD_EX               = 0x10
+local CMD_RDFINALHEX       = 0x11
+local CMD_RDFINALDEC       = 0x16
+local CMD_WRFINALHEX       = 0x12
+local CMD_WRFINALDEC       = 0x17
+local CMD_EX               = 0x10
+
+local commandUnmap, commandMap = {}, {
+    rdtype          = CMD_RDTYPE,
+    rdrangemin      = CMD_RDRANGEMIN,
+    rdrangemax      = CMD_RDRANGEMAX,
+    rdraw           = CMD_RDRAW,
+    rdlit           = CMD_RDLIT,
+    wrraw           = CMD_WRRAW,
+    rddefault       = CMD_RDDEFAULT,
+    rdname          = CMD_RDNAME,
+    rditem          = CMD_RDITEM,
+    rdpermission    = CMD_RDPERMISSION,
+    rdfinalhex      = CMD_RDFINALHEX,
+    rdfinaldec      = CMD_RDFINALDEC,
+    wrfinalhex      = CMD_WRFINALHEX,
+    wrfinaldec      = CMD_WRFINALDEC,
+    ex              = CMD_EX
+}
+for k, v in pairs(commandMap) do
+    commandUnmap[v] = k
+end
 
 -- Register Types
 _M.TYP_CHAR             = 0x00
@@ -138,6 +159,21 @@ local function datacrc(s)
     data = string.sub(s, 1, -5)
 end
 
+-------------------------------------------------------------------------------
+-- Extract the command number and convert to a command name
+-- You should not need to call this directly.  The rinLibrary takes care of this.
+-- @param s Command number as a string or a number
+-- @return The command name
+-- @local
+local function getcmd(s)
+    cmd = tonum(s, 16)
+    if commandUnmap[cmd] ~= nil then
+        cmd = commandUnmap[cmd]
+    else
+        dbg.warn('rinMessage:', 'unknown command number '..cmd)
+    end
+end
+
 local msgpat = P({
               (V"crc" + V"rns" + 1) * (P(1)^0   / function(s) excess = s end),
     crc     = P"\1" * (V"msgcrc" / function(s) delim="CRC"; tocrc = string.sub(s, 1, -5) end) * P"\4",
@@ -146,7 +182,7 @@ local msgpat = P({
     msgrns  = V"header" * ((P(1)-S"\r\n;")^0    / function(s) data = s            end),
     header  = V"addr" * V"cmd" * V"reg" * V"hd"^0 * P':',
     addr    = V"hd2"                            / function(s) addr = tonum(s, 16) end,
-    cmd     = V"hd2"                            / function(s) cmd  = tonum(s, 16) end,
+    cmd     = V"hd2"                            / getcmd,
     reg     = V"hd4"                            / function(s) reg  = tonum(s, 16) end,
     hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
 })
@@ -222,15 +258,19 @@ end
 -- print('message is:', msg.buildMsg(0x01, 0x12, 0x0090, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
 function _M.buildMsg(addr, cmd, reg, data, reply)
     local addr = addr or _M.ADDR_BROADCAST
-    local cmd = cmd or _M.CMD_RDFINALHEX
+    local cmd = cmd or CMD_RDFINALHEX
     local data = data or ""
     local reply = reply or 'reply'
+
+    if type(cmd) == 'string' then
+        cmd = commandMap[string.lower(cmd)]
+    end
 
     if reply == 'reply' then
         addr = bit32.bor(addr, _M.ADDR_REPLY)
     end
 
-    if cmd == _M.CMD_WRFINALHEX or cmd == _M.CMD_EX then
+    if cmd == CMD_WRFINALHEX or cmd == CMD_EX then
         if type(data) == 'number' then
             data = str.format("%X", data)
         end
@@ -335,7 +375,7 @@ function _M.copyRelocatedFields(t)
     -- No precompilation of the pattern here, this function is only called
     -- at startup.  It is also usually called but once and at most only a small
     -- number of times.
-    local pat = ((P"ADDR" + P"CMD" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1) * -1
+    local pat = ((P"ADDR" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1) * -1
 
     for k, v in pairs(_M) do
         if type(k) == "string" and pat:match(k) then

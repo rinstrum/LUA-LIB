@@ -234,7 +234,7 @@ local function slideTopLeft()
     if slideTopLeftPos > #slideTopLeftWords then
        slideTopLeftPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_LEFT,
+    _M.sendReg('wrfinalhex', REG_DISP_TOP_LEFT,
          string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
 end
 
@@ -257,7 +257,7 @@ function _M.writeTopLeft(s,t)
             slideTopLeftWords = splitWords(s,6)
             slideTopLeftPos = 1
             timers.removeTimer(slideTopLeftTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_LEFT,
+            _M.sendReg('wrfinalhex', REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
                 slideTopLeftTimer = timers.addTimer(t, t, slideTopLeft)
@@ -275,7 +275,7 @@ end
 -- device.writeTopRight('ABCD')
 function _M.writeTopRight(s)
     if s and s ~= curTopRight then
-        _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_TOP_RIGHT, s)
+        _M.sendReg('wrfinalhex', REG_DISP_TOP_RIGHT, s)
         curTopRight = s
     end
 end
@@ -288,7 +288,7 @@ local function slideBotLeft()
     if slideBotLeftPos > #slideBotLeftWords then
        slideBotLeftPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_LEFT,
+    _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_LEFT,
          string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
 end
 
@@ -312,7 +312,7 @@ function _M.writeBotLeft(s, t)
             slideBotLeftWords = splitWords(s,9)
             slideBotLeftPos = 1
             timers.removeTimer(slideBotLeftTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_LEFT,
+            _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_LEFT,
                  string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
             if #slideBotLeftWords > 1 then
                 slideBotLeftTimer = timers.addTimer(t, t, slideBotLeft)
@@ -331,7 +331,7 @@ local function slideBotRight()
     if slideBotRightPos > #slideBotRightWords then
        slideBotRightPos = 1
     end
-    _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_RIGHT,
+    _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_RIGHT,
          string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
 end
 
@@ -354,7 +354,7 @@ function _M.writeBotRight(s, t)
             slideBotRightWords = splitWords(s,8)
             slideBotRightPos = 1
             timers.removeTimer(slideBotRightTimer)
-            _M.sendReg(_M.CMD_WRFINALHEX, REG_DISP_BOTTOM_RIGHT,
+            _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_RIGHT,
                  string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
             if #slideBotRightWords > 1 then
                 slideBotRightTimer = timers.addTimer(t, t, slideBotRight)
@@ -369,7 +369,7 @@ end
 -- @param s Bit mask for the annunciators
 -- @local
 local function writeBotAnnuns(s)
-    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_BOTTOM_ANNUN, s, "noReply")
+    _M.send(nil, 'wrfinalhex', REG_DISP_BOTTOM_ANNUN, s, "noReply")
 end
 
 -----------------------------------------------------------------------------
@@ -377,7 +377,7 @@ end
 -- @param s Bit mask for the annunciators
 -- @local
 local function writeTopAnnuns(s)
-    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_TOP_ANNUN, s, "noReply")
+    _M.send(nil, 'wrfinalhex', REG_DISP_TOP_ANNUN, s, "noReply")
 end
 
 -----------------------------------------------------------------------------
@@ -388,7 +388,7 @@ end
 -- device.writeAutoTopAnnun(0)
 function _M.writeAutoTopAnnun(reg)
     local r = private.getRegisterNumber(reg)
-    _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_TOP_ANNUN, r, "noReply")
+    _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_TOP_ANNUN, r, "noReply")
 end
 
 
@@ -404,7 +404,7 @@ function _M.writeAutoTopLeft(register)
     if reg ~= curAutoTopLeft then
         timers.removeTimer(slideTopLeftTimer)
         curTopLeft = nil
-        _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
+        _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
         saveAutoTopLeft = curAutoTopLeft
         curAutoTopLeft = reg
     end
@@ -419,7 +419,7 @@ end
 -- ...
 -- device.writeAutoTopLeft(old)
 function _M.readAutoTopLeft()
-    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_DISP_AUTO_TOP_LEFT)
+    local reg = _M.sendRegWait('rdfinaldec', REG_DISP_AUTO_TOP_LEFT)
     reg = tonumber(reg)
     curAutoTopLeft = reg
     return private.getRegisterName(reg)
@@ -437,7 +437,7 @@ function _M.writeAutoBotLeft(register)
     if reg ~= curAutoBotLeft then
         timers.removeTimer(slideBotLeftTimer)
         curBotLeft = nil
-        _M.send(nil, _M.CMD_WRFINALHEX, REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
+        _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
         saveAutoBotLeft = curAutoBotLeft
         curAutoBotLeft = reg
     end
@@ -452,7 +452,7 @@ end
 -- ...
 -- device.writeAutoBotLeft(old)
 function _M.readAutoBotLeft()
-    local reg = _M.sendRegWait(_M.CMD_RDFINALDEC, REG_DISP_AUTO_BOTTOM_LEFT)
+    local reg = _M.sendRegWait('rdfinaldec', REG_DISP_AUTO_BOTTOM_LEFT)
     reg = tonumber(reg)
     curAutoBotLeft = reg
     return private.getRegisterName(reg)

@@ -44,7 +44,7 @@ local analogSourceMap = {   comms = ANALOG_COMMS    }
 -- device.setAnalogSource('comms')
 function _M.setAnalogSource(source)
     local src = private.convertNameToValue(source, analogSourceMap)
-    _M.sendRegWait(_M.CMD_WRFINALDEC, REG_ANALOGUE_SOURCE, src)
+    _M.sendRegWait('wrfinaldec', REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
 
@@ -60,7 +60,7 @@ function _M.setAnalogType(oType)
     curAnalogType = private.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
 
     if curAnalogType ~= prev then
-        _M.sendRegWait(_M.CMD_WRFINALDEC,
+        _M.sendRegWait('wrfinaldec',
                 REG_ANALOGUE_TYPE,
                 curAnalogType)
     end
@@ -77,7 +77,7 @@ end
 function _M.setAnalogClip(c)
     if c == true then c = 1 elseif c == false then c = 0 end
 
-    _M.send(nil, _M.CMD_WRFINALDEC, REG_ANALOGUE_CLIP, c, 'noReply')
+    _M.send(nil, 'wrfinaldec', REG_ANALOGUE_CLIP, c, 'noReply')
 end
 
 -------------------------------------------------------------------------------
@@ -87,7 +87,7 @@ end
 -- device.setAnalogRaw(25000)   -- mid scale
 function _M.setAnalogRaw(raw)
     if lastAnalogue ~= raw then
-        _M.sendReg(_M.CMD_WRFINALDEC, REG_ANALOGUE_DATA, raw)
+        _M.sendReg('wrfinaldec', REG_ANALOGUE_DATA, raw)
         lastAnalogue = raw
     end
 end

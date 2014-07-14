@@ -151,7 +151,7 @@ function _M.addStream(streamReg, callback, onChange)
     end
 
     _, availRegistersUser[availReg].dp = private.getRegDP(reg)
-    local typ = tonumber(_M.sendRegWait(_M.CMD_RDTYPE,reg), 16)
+    local typ = tonumber(_M.sendRegWait('rdtype', reg), 16)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
     availRegistersUser[availReg].onChange = onChange
@@ -159,13 +159,13 @@ function _M.addStream(streamReg, callback, onChange)
     availRegistersUser[availReg].typ = typ
     streamRegistersUser[reg] = availReg
 
-    _M.sendReg(_M.CMD_WRFINALHEX,
+    _M.sendReg('wrfinalhex',
                 bit32.bor(REG_LUAUSER,REG_STREAMMODE),
                 frequencyTable[freqUser])
-    _M.sendReg(_M.CMD_WRFINALDEC,
+    _M.sendReg('wrfinaldec',
                 bit32.bor(REG_LUAUSER, availReg),
                 reg)
-    _M.sendReg(_M.CMD_EX,
+    _M.sendReg('ex',
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
                 STM_START)
 
@@ -184,7 +184,7 @@ function _M.removeStream(streamReg)
 
      if availReg == nil then return end   -- stream already removed
 
-    _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(REG_LUAUSER,availReg), 0)
+    _M.sendRegWait('wrfinaldec', bit32.bor(REG_LUAUSER,availReg), 0)
     _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
 
     availRegistersUser[availReg].reg = 0
@@ -283,13 +283,13 @@ function private.addStreamLib(streamReg, callback, onChange)
 
     streamRegistersLib[reg] = availReg
 
-    _M.sendReg(_M.CMD_WRFINALHEX,
+    _M.sendReg('wrfinalhex',
                 bit32.bor(REG_LUALIB, REG_STREAMMODE),
                 frequencyTable[freqLib])
-    _M.sendReg(_M.CMD_WRFINALDEC,
+    _M.sendReg('wrfinaldec',
                 bit32.bor(REG_LUALIB, availReg),
                 reg)
-    _M.sendReg(_M.CMD_EX,
+    _M.sendReg('ex',
                 bit32.bor(REG_LUALIB, REG_STREAMDATA),
                 STM_START)
 
@@ -307,7 +307,7 @@ function private.removeStreamLib(streamReg)
 
      if availReg == nil then return end   -- stream already removed
 
-    _M.sendRegWait(_M.CMD_WRFINALDEC,bit32.bor(REG_LUALIB,availReg),0)
+    _M.sendRegWait('wrfinaldec', bit32.bor(REG_LUALIB, availReg), 0)
     _M.unbindRegister(bit32.bor(REG_LUALIB, availReg))
 
     availRegistersLib[availReg].reg = 0
@@ -320,19 +320,19 @@ end
 -- @usage
 -- device.streamCleanup()
 function _M.streamCleanup()
-    _M.sendRegWait(_M.CMD_EX,
+    _M.sendRegWait('ex',
                 bit32.bor(REG_LUAUSER, REG_STREAMDATA),
                 STM_STOP)  -- stop streaming first
-    _M.sendRegWait(_M.CMD_EX,
+    _M.sendRegWait('ex',
                 bit32.bor(REG_LUALIB, REG_STREAMDATA),
                 STM_STOP)  -- stop streaming first
 
     for k,v in pairs(availRegistersUser) do
-        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(REG_LUAUSER, k), 0)
+        _M.sendRegWait('wrfinaldec', bit32.bor(REG_LUAUSER, k), 0)
         v.reg = 0
     end
     for k,v in pairs(availRegistersLib) do
-        _M.sendRegWait(_M.CMD_WRFINALDEC, bit32.bor(REG_LUALIB, k), 0)
+        _M.sendRegWait('wrfinaldec', bit32.bor(REG_LUALIB, k), 0)
         v.reg = 0
     end
 
@@ -384,11 +384,11 @@ function _M.renewStreamData()
 
 
     if streamUser then
-        _M.send(nil,_M.CMD_RDFINALHEX,
+        _M.send(nil, 'rdfinalhex',
                     bit32.bor(REG_LUAUSER, REG_STREAMDATA),
                     '', 'reply')
     end
-    _M.send(nil,_M.CMD_RDFINALHEX,
+    _M.send(nil, 'rdfinalhex',
                 bit32.bor(REG_LUALIB, REG_STREAMDATA),
                 '', 'reply')
 end

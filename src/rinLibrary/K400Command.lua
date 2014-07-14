@@ -92,7 +92,7 @@ _M.cmdString[11] = 'HI RES'
 -- @usage
 -- device.zero()
 function _M.zero()
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_ZERO,nil,15.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_ADC_ZERO, nil, 15.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -108,7 +108,7 @@ end
 -- device.tare()
 function _M.tare()
 
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_TARE,nil,15.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_ADC_TARE, nil, 15.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -125,7 +125,7 @@ end
 -- device.presetTare(0)
 function _M.presetTare(pt)
     local pt = pt or 0
-    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_PT,pt,5.0)
+    local msg, err =  _M.sendRegWait('ex', _M.REG_ADC_PT, pt, 5.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -140,7 +140,7 @@ end
 -- @usage
 -- device.gross()
 function _M.gross()
-    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_GROSS,1.0)
+    local msg, err =  _M.sendRegWait('ex', _M.REG_ADC_GROSS_NET, _M.ADCGN_GROSS, 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -155,7 +155,7 @@ end
 -- @usage
 -- device.net()
 function _M.net()
-    local msg, err =  _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_NET,1.0)
+    local msg, err =  _M.sendRegWait('ex', _M.REG_ADC_GROSS_NET, _M.ADCGN_NET, 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -170,7 +170,7 @@ end
 -- @usage
 -- device.grossNetToggle()
 function _M.grossNetToggle()
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_ADC_GROSS_NET,_M.ADCGN_TOGGLE,1.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_ADC_GROSS_NET, _M.ADCGN_TOGGLE, 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -219,7 +219,7 @@ function _M.checkPasscode(pc, code, tries)
     local count = 1
     _M.startDialog()
     while _M.dialogRunning() and _M.app.running do
-       local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
+       local msg, err = _M.sendRegWait('rdfinalhex', pcode, nil, 1.0)
        if not msg then
           if  count > tries then
                 msg.setErrHandler(f)
@@ -243,7 +243,7 @@ function _M.checkPasscode(pc, code, tries)
                 return false
              end 
           end              
-          msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(pass,0),1.0) 
+          msg, err = _M.sendRegWait('wrfinalhex', pcode, _M.toPrimary(pass, 0), 1.0) 
           count = count + 1 
        else
           break
@@ -266,10 +266,10 @@ function _M.lockPasscode(pc)
     local pcodeData = passcodes[pc].pcodeData
  
     local f = msg.removeErrHandler()
-    local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
+    local msg, err = _M.sendRegWait('rdfinalhex', pcodeData, nil, 1.0)
     if msg then
        msg = bit32.bxor(tonumber(msg,16),0xFF)  
-       msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(msg,0),1.0) 
+       msg, err = _M.sendRegWait('wrfinalhex', pcode, _M.toPrimary(msg, 0), 1.0) 
     end    
     msg.setErrHandler(f)
 end
@@ -296,7 +296,7 @@ function _M.changePasscode(pc, oldCode, newCode)
              end
              newCode = pass
         end             
-        local msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcodeData,_M.toPrimary(newCode,0),1.0)
+        local msg, err = _M.sendRegWait('wrfinalhex', pcodeData, _M.toPrimary(newCode, 0), 1.0)
         if not msg then
            return false
         else
@@ -318,12 +318,12 @@ end
 -- print(msg)
 function _M.calibrateZero()
     
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBZERO,nil,1.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_CALIBZERO, nil, 1.0)
     if not msg then
         return msg, err
     end    
     while true do 
-       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       msg, err = _M.sendRegWait('rdfinalhex', _M.REG_SYSSTATUS, nil, 1.0)
        if msg then
            msg = tonumber(msg,16)
            if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
@@ -353,18 +353,18 @@ function _M.calibrateSpan(span)
     if type(span) == 'string' then
        span = tonumber(span)
     end   
-    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(span),1.0)
+    local msg, err = _M.sendRegWait('wrfinaldec', _M.REG_CALIBWGT, _M.toPrimary(span), 1.0)
     if not msg then
         return msg, err
     end
     
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBSPAN,nil,1.0)
+    msg, err = _M.sendRegWait('ex', _M.REG_CALIBSPAN, nil, 1.0)
     if not msg then
         return msg, err
     end    
 
     while true do 
-       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       msg, err = _M.sendRegWait('rdfinalhex', _M.REG_SYSSTATUS, nil, 1.0)
        if msg then
            msg = tonumber(msg,16)
            if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
@@ -390,7 +390,7 @@ function _M.calibrateZeroMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
     end
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRZERO,_M.toPrimary(MVV,4),1.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_CALIBDIRZERO, _M.toPrimary(MVV, 4), 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -411,7 +411,7 @@ function _M.calibrateSpanMVV(MVV)
     if type(MVV) == 'string' then
        MVV = tonumber(MVV)
     end
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBDIRSPAN,_M.toPrimary(MVV,4),1.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_CALIBDIRSPAN, _M.toPrimary(MVV, 4), 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
@@ -438,7 +438,7 @@ _M.NUM_LINPTS   = 10
 -- end
 -- print(msg)
 function _M.readZeroMVV()
-    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_ZEROMVV)
+    local data, err = _M.sendRegWait('rdfinalhex', _M.REG_ZEROMVV)
     if data then
         data = private.toFloat(data,4)
         return data, nil
@@ -459,7 +459,7 @@ end
 -- end
 -- print(msg)
 function _M.readSpanMVV()
-    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANMVV)
+    local data, err = _M.sendRegWait('rdfinalhex', _M.REG_SPANMVV)
     if data then
         data = private.toFloat(data,4)
         return data, nil
@@ -480,7 +480,7 @@ end
 -- end
 -- print(msg)
 function _M.readSpanWeight()
-    local data, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SPANWGT)
+    local data, err = _M.sendRegWait('rdfinalhex', _M.REG_SPANWGT)
     if data then
         data = private.toFloat(data)
         return data, nil
@@ -505,14 +505,14 @@ function _M.readLinCal()
     local t = {}
     for i = 1,_M.NUM_LINPTS do
         table.insert(t,{})
-        local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINPC,i-1,1.0)
+        local msg, err = _M.sendRegWait('ex', _M.REG_LINPC, i-1, 1.0)
         if not msg then
             return msg, err
         else
             t[i].pc = private.toFloat(msg,0)      
         end    
         
-        msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_LINWGT,i-1,1.0)
+        msg, err = _M.sendRegWait('ex', _M.REG_LINWGT, i-1, 1.0)
         if not msg then
             return msg, err
         else
@@ -545,18 +545,18 @@ function _M.calibrateLin(pt, val)
     if type(val) == 'string' then
        val = tonumber(val)
     end   
-    local msg, err = _M.sendRegWait(_M.CMD_WRFINALDEC,_M.REG_CALIBWGT,_M.toPrimary(val),1.0)
+    local msg, err = _M.sendRegWait('wrfinaldec', _M.REG_CALIBWGT, _M.toPrimary(val), 1.0)
     if not msg then
         return msg, err
     end
     
-    msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CALIBLIN,pt-1,1.0)
+    msg, err = _M.sendRegWait('ex', _M.REG_CALIBLIN, pt-1, 1.0)
     if not msg then
         return msg, err
     end    
 
     while true do 
-       msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,_M.REG_SYSSTATUS,nil,1.0)
+       msg, err = _M.sendRegWait('rdfinalhex', _M.REG_SYSSTATUS, nil, 1.0)
        if msg then
            msg = tonumber(msg,16)
            if bit32.band(msg,_M.SYS_CALINPROG) == 0 then
@@ -589,7 +589,7 @@ function _M.clearLin(pt)
         return nil, 'Linearisation point out of range'
     end
     
-    local msg, err = _M.sendRegWait(_M.CMD_EX,_M.REG_CLRLIN,pt-1,1.0)
+    local msg, err = _M.sendRegWait('ex', _M.REG_CLRLIN, pt-1, 1.0)
     if msg then
         msg = tonumber(msg)
         return msg, _M.cmdString[msg]
