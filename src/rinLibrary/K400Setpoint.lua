@@ -16,30 +16,30 @@ local dbg = require "rinLibrary.rinDebug"
 return function (_M, private, deprecated)
 
 private.addRegister('io_status', 0x0051)
-local REG_IO_ENABLE       = 0x0054
+local REG_IO_ENABLE         = 0x0054
 
-local REG_SETP_NUM        = 0xA400
+local REG_SETP_NUM          = 0xA400
 
 -- add Repeat to each registers below for each setpoint 0..15
-local REG_SETP_REPEAT     = 0x0020
-local REG_SETP_TYPE       = 0xA401
-local REG_SETP_OUTPUT     = 0xA402
-local REG_SETP_LOGIC      = 0xA403
-local REG_SETP_ALARM      = 0xA404
-local REG_SETP_NAME       = 0xA40E
-local REG_SETP_SOURCE     = 0xA406
-local REG_SETP_HYS        = 0xA409
-local REG_SETP_SOURCE_REG = 0xA40A
+local REG_SETP_REPEAT       = 0x0020
+local REG_SETP_TYPE         = 0xA401
+local REG_SETP_OUTPUT       = 0xA402
+local REG_SETP_LOGIC        = 0xA403
+local REG_SETP_ALARM        = 0xA404
+local REG_SETP_NAME         = 0xA40E
+local REG_SETP_SOURCE       = 0xA406
+local REG_SETP_HYS          = 0xA409
+local REG_SETP_SOURCE_REG   = 0xA40A
 
 -- There are no wrapper functions for these five yet.
-_M.REG_SETP_TIMING        = 0xA410
-_M.REG_SETP_RESET         = 0xA411
-_M.REG_SETP_PULSE_NUM     = 0xA412
-_M.REG_SETP_TIMING_DELAY  = 0xA40C
-_M.REG_SETP_TIMING_ON     = 0xA40D
+local REG_SETP_TIMING       = 0xA410
+local REG_SETP_RESET        = 0xA411
+local REG_SETP_PULSE_NUM    = 0xA412
+local REG_SETP_TIMING_DELAY = 0xA40C
+local REG_SETP_TIMING_ON    = 0xA40D
 
 -- targets are stored in the product database rather than the setpoint one
-local REG_SETP_TARGET     = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
+local REG_SETP_TARGET       = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
 local LOGIC_HIGH = 0
 local LOGIC_LOW  = 1
@@ -482,6 +482,11 @@ deprecated.REG_SETP_SOURCE          = REG_SETP_SOURCE
 deprecated.REG_SETP_HYS             = REG_SETP_HYS
 deprecated.REG_SETP_SOURCE_REG      = REG_SETP_SOURCE_REG
 deprecated.REG_SETP_TARGET          = REG_SETP_TARGET
+deprecated.REG_SETP_TIMING          = REG_SETP_TIMING
+deprecated.REG_SETP_RESET           = REG_SETP_RESET
+deprecated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
+deprecated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
+deprecated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
 
 deprecated.NUM_SETP                 = NUM_SETP
 

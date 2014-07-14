@@ -735,7 +735,7 @@ end
 -- device.restoreLcd()
 function _M.restoreLcd()
     _M.writeAutoTopAnnun(0)
-    _M.writeAutoTopLeft(_M.REG_GROSSNET)
+    _M.writeAutoTopLeft('grossnet')
     _M.writeAutoBotLeft(0)
     _M.writeTopRight('')
     _M.writeBotLeft('')

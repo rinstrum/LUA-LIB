@@ -21,11 +21,12 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-local REG_SAVESETTING = 0x0010
-
-local REG_LCDMODE          = 0x000D
-
-local REG_COMMS_START = 0x0309
+local REG_SAVESETTING       = 0x0010
+local REG_LCDMODE           = 0x000D
+local REG_COMMS_START       = 0x0309
+local REG_SOFTMODEL         = 0x0003
+local REG_SOFTVER           = 0x0004
+private.REG_SERIALNO        = 0x0005
 
 local REG_PRIMARY_DISPMODE   = 0x0306
 local REG_SECONDARY_DISPMODE = 0x0307
@@ -57,6 +58,7 @@ local settings = {
 
 local instrumentModel = ''
 local instrumentSerialNumber = nil
+local instrumentSoftwareVersion = nil
 
 -------------------------------------------------------------------------------
 -- Called to setup LCD control.
@@ -222,10 +224,10 @@ end
 -- @usage
 -- device.configure('K401')
 function _M.configure(model)
-    local s, err = _M.sendRegWait('rdlit', _M.REG_SOFTMODEL)
+    local s, err = _M.sendRegWait('rdlit', REG_SOFTMODEL)
     if not err then
         instrumentModel = s
-        instrumentSerialNumber, err = _M.sendRegWait('rdlit', _M.REG_SERIALNO)
+        instrumentSerialNumber, err = _M.sendRegWait('rdlit', private.REG_SERIALNO)
     end
 
     dbg.info(instrumentModel, instrumentSerialNumber)
@@ -242,6 +244,30 @@ function _M.configure(model)
     else
         return nil
     end
+end
+
+-------------------------------------------------------------------------------
+-- Query the instrument's model number, e.g. "K401"
+-- @return Unit model number
+function _M.getModel()
+    return instrumentModel
+end
+
+-------------------------------------------------------------------------------
+-- Query the instrument's serial number
+-- @return Unit serial number
+function _M.getSerialNumber()
+    return instrumentSerialNumber
+end
+
+-------------------------------------------------------------------------------
+-- Query the instrument's software version, e.g. "V1.00"
+-- @return Unit software version
+function _M.getVersion()
+    if instrumentSoftwareVersion == nil then
+        instrumentSoftwareVersion = _M.sendRegWait('rdlit', REG_SOFTVER)
+    end
+    return instrumentSoftwareVersion
 end
 
 -------------------------------------------------------------------------------
@@ -298,6 +324,9 @@ end
 deprecated.REG_LCDMODE              = REG_LCDMODE
 deprecated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
 deprecated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
+deprecated.REG_SOFTMODEL            = REG_SOFTMODEL
+deprecated.REG_SOFTVER              = REG_SOFTVER
+deprecated.REG_SERIALNO             = private.REG_SERIALNO
 
 deprecated.getRegDP = private.getRegDP
 deprecated.readSettings = readSettings

@@ -19,7 +19,7 @@ describe("K400Reg #register", function()
 
     it("getRegisterNumber", function()
         local m, p = makeModule()
-        assert.equal(m.REG_SERIALNO, p.getRegisterNumber('serialno'))
+        assert.equal(m.REG_KEYBUFFER, p.getRegisterNumber('KeyBuffer'))
         assert.equal(m.REG_SYSSTATUS, p.getRegisterNumber(m.REG_SYSSTATUS))
     end)
 
@@ -54,9 +54,6 @@ describe("K400Reg #register", function()
             select_product_name     = 0xB010,
             select_product_no       = 0xB00F,
             select_product_rename   = 0xB012,
-            serialno                = 0x0005,
-            softmodel               = 0x0003,
-            softver                 = 0x0004,
             syserr                  = 0x0022,
             sysstatus               = 0x0021,
             tare                    = 0x0028,

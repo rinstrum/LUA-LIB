@@ -21,15 +21,6 @@ return function (_M, private, deprecated)
 _M.REG_KEYBUFFER        = 0x0008
 _M.REG_LCD              = 0x0009
 
---- System Registers.
---@table sysRegisters
--- @field REG_SOFTMODEL Software model eg. "K401"
--- @field REG_SOFTVER Software Version eg "V1.00"
--- @field REG_SERIALNO Serial Number
-_M.REG_SOFTMODEL        = 0x0003
-_M.REG_SOFTVER          = 0x0004
-_M.REG_SERIALNO         = 0x0005
-
 --- Instrument Reading Registers.
 --@table rdgRegisters
 -- @field REG_ADCSAMPLE   Sample number of current reading

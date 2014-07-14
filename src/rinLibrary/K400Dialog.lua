@@ -22,6 +22,8 @@ local system = require 'rinSystem.Pack'
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
+local REG_EDIT_REG = 0x0320
+
 local dialogRunning = 0
 local getKeyPressed = 0
 local getKeyState = ''
@@ -539,8 +541,6 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     return tonumber(editVal), ok
 end
 
-_M.REG_EDIT_REG = 0x0320
-
 -------------------------------------------------------------------------------
 -- Called to edit value of specified register
 -- @param register is the address of the register to edit
@@ -560,10 +560,10 @@ function _M.editReg(register, prompt)
             _M.writeBotRight(_M.sendRegWait('rdname', reg))
         end
     end
-    _M.sendRegWait('wrfinaldec', _M.REG_EDIT_REG,reg)
+    _M.sendRegWait('wrfinaldec', REG_EDIT_REG, reg)
     _M.startDialog()
     while true do
-        local data,err = _M.sendRegWait('rdfinalhex', _M.REG_EDIT_REG)
+        local data,err = _M.sendRegWait('rdfinalhex', REG_EDIT_REG)
 
         if err or (data and tonumber(data,16) ~= reg) then
             break
@@ -724,6 +724,10 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
 
     return sel
 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Fill in all the deprecated fields
+deprecated.REG_EDIT_REG = REG_EDIT_REG
 
 end
 

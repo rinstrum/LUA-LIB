@@ -129,10 +129,11 @@ end
 -- device.flush()
 function _M.flush()
     if not queueClearing then
+        local REG_SERIALNO = 0x0005
         -- There is a queue of messages building up.  Send a mostly harmless
         -- ping to the display and away its response.  This flushes the queue.
         queueClearing = true
-        _M.readReg(_M.REG_SERIALNO)
+        _M.readReg(private.REG_SERIALNO)
         queueClearing = false
     end
 end
