@@ -701,7 +701,7 @@ end
 -- device.writeNetStatus('both')
 function _M.writeNetStatus(status)
     local s = private.convertNameToValue(status, netStatusMap, 0)
-    _M.sendRegWait('wrfinalhex', _M.REG_LUA_STAT_NET, s or 0)
+    _M.sendRegWait('wrfinalhex', REG_LUA_STAT_NET, s or 0)
 end
 
 -------------------------------------------------------------------------------
