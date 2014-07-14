@@ -29,12 +29,14 @@ describe("buzzer #buzz", function ()
     end)
 
     -- These tests are digging deep into the non-exposed internals
-    it("length", function()
+    describe("length", function()
         local z = require "tests.messages"
         local m = makeModule()
 
-        assert.is_nil(m.getLastBuzzLen())
-        z.checkSendReg(m, {{ r=regLen, short }}, m.setBuzzLen)
+        it("initial", function()
+            assert.is_nil(m.getLastBuzzLen())
+            z.checkSendReg('wrfinalhex', m, {{ r=regLen, short }}, m.setBuzzLen)
+        end)
 
         local cases = {
             { long,      long },
@@ -46,12 +48,14 @@ describe("buzzer #buzz", function ()
             { 'medium',  medium },
             { long + 1,  short },
         }
-        for _, p in pairs(cases) do
-            local i, val = p[1], p[2]
+        for n = 1, #cases do
+            it("test "..n, function()
+                local i, val = cases[n][1], cases[n][2]
 
-            z.checkSendReg(m, {{ r=regLen, val }}, m.setBuzzLen, i)
-            assert.is_equal(val, m.getLastBuzzLen())
-            z.checkNoSendReg(m, m.setBuzzLen, i)
+                z.checkSendReg('wrfinalhex', m, {{ r=regLen, val }}, m.setBuzzLen, i)
+                assert.is_equal(val, m.getLastBuzzLen())
+                z.checkNoSendReg(m, m.setBuzzLen, i)
+            end)
         end
     end)
 
@@ -59,11 +63,11 @@ describe("buzzer #buzz", function ()
         local z = require "tests.messages"
         local m = makeModule()
 
-        z.checkSendReg(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
-        z.checkSendReg(m, {{ r=regNum, 1 }},                            m.buzz, 1)
-        z.checkSendReg(m, {{ r=regNum, 4 }},                            m.buzz, 5)
-        z.checkSendReg(m, {{ r=regLen, long },    { r=regLen, long}},   m.buzz, 3, 'long')
-        z.checkSendReg(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz, 1, 'short')
-        z.checkSendReg(m, {{ r=regLen, medium },  { r=regLen, medium }},m.buzz, 3, 'medium')
+        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
+        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 }},                            m.buzz, 1)
+        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 4 }},                            m.buzz, 5)
+        z.checkSendReg('wrfinalhex', m, {{ r=regLen, long },    { r=regLen, long}},   m.buzz, 3, 'long')
+        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz, 1, 'short')
+        z.checkSendReg('wrfinalhex', m, {{ r=regLen, medium },  { r=regLen, medium }},m.buzz, 3, 'medium')
     end)
 end)

@@ -21,11 +21,8 @@ _M = {}
 -- .r element is the register to check and the [1], [2], ... are the
 -- expected arguments.
 local function check(func, cmd, ret, m, regs, f, ...)
-    local old, wr = {}, {}
-    local names = { 'CMD_WRFINALHEX', 'CMD_WRFINALDEC',
-                    'CMD_RDFINALHEX', 'CMD_RDFINALDEC',
-                    func
-                  }
+    local old, wr, oldfunc = {}, {}, nil
+    local names = { func }
 
     for _,v in ipairs(names) do
         old[v], m[v] = m[v], wr
@@ -35,7 +32,7 @@ local function check(func, cmd, ret, m, regs, f, ...)
     f(...)
     for _, res in pairs(regs) do
         if cmd then
-            assert.spy(m[func]).was.called_with(wr, res.r, unpack(res))
+            assert.spy(m[func]).was.called_with(cmd, res.r, unpack(res))
         else
             assert.spy(m[func]).was.called_with(res.r, unpack(res))
         end
@@ -57,13 +54,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Various routines to verify that different kinds of message were sent or not
-function _M.checkSendReg(...) check('sendReg', true, nil, ...) end
+function _M.checkSendReg(cmd, ...) check('sendReg', cmd, nil, ...) end
 function _M.checkNoSendReg(...) checkNo('sendReg', ...) end
 
-function _M.checkSendRegWait(...) check('sendRegWait', true, ...) end
+function _M.checkSendRegWait(cmd, ...) check('sendRegWait', cmd, true, ...) end
 function _M.checkNoSendRegWait(...) checkNo('sendRegWait', ...) end
 
-function _M.checkWriteReg(...) check('writeReg', false, nil, ...) end
+function _M.checkWriteReg(...) check('writeReg', nil, nil, ...) end
 function _M.checkNoWriteReg(...) checkNo('writeReg', ...) end
 
 return _M
