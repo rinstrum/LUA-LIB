@@ -13,6 +13,7 @@ local pairs = pairs
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local msg = require 'rinLibrary.rinMessage'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -61,31 +62,31 @@ local availRegistersUser = {
                                               onChange = 'change',
                                               lastData = '',
                                               dp = 0,
-                                              typ = _M.TYP_LONG},
+                                              typ = msg.TYP_LONG},
                         [REG_STREAMREG2]= {reg = 0,
                                               callback = nil,
                                               onChange = 'change',
                                               lastData = '',
                                               dp = 0,
-                                              typ = _M.TYP_LONG},
+                                              typ = msg.TYP_LONG},
                         [REG_STREAMREG3]= {reg = 0,
                                               callback = nil,
                                               onChange = 'change',
                                               lastData = '',
                                               dp = 0,
-                                              typ = _M.TYP_LONG},
+                                              typ = msg.TYP_LONG},
                         [REG_STREAMREG4]= {reg = 0,
                                               callback = nil,
                                               onChange = 'change',
                                               lastData = '',
                                               dp = 0,
-                                              typ = _M.TYP_LONG},
+                                              typ = msg.TYP_LONG},
                         [REG_STREAMREG5]= {reg = 0,
                                               callback = nil,
                                               onChange = 'change',
                                               lastData = '',
                                               dp = 0,
-                                              typ = _M.TYP_LONG}
+                                              typ = msg.TYP_LONG}
                     }
 local streamRegistersUser = {}
 
@@ -111,7 +112,7 @@ local function streamCallback(data, err)
             if substr and substr ~= "" then
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
-                     if v.typ == _M.TYP_WEIGHT and _M.isHiRes() then
+                     if v.typ == msg.TYP_WEIGHT and _M.isHiRes() then
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
                      else
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
