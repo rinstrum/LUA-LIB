@@ -7,6 +7,53 @@
 local regs = require "tests.registers"
 
 describe("K400Reg #register", function()
+    local registers = {
+        absmvv                  = 0x0023,
+        active_product_name     = 0xB006,
+        active_product_no       = 0xB000,
+        adcsample               = 0x0020,
+        altgross                = 0x002C,
+        altnet                  = 0x002E,
+        clr_all_totals          = 0xB002,
+        clr_docket_totals       = 0xB004,
+        fullscale               = 0x002F,
+        grandtotal              = 0x002B,
+        gross                   = 0x0026,
+        grossnet                = 0x0025,
+        keybuffer               = 0x0008,
+        lcd                     = 0x0009,
+        manhold                 = 0x002A,
+        net                     = 0x0027,
+        peakhold                = 0x0029,
+        rawadc                  = 0x002D,
+        select_product_delete   = 0xB011,
+        select_product_name     = 0xB010,
+        select_product_no       = 0xB00F,
+        select_product_rename   = 0xB012,
+        syserr                  = 0x0022,
+        sysstatus               = 0x0021,
+        tare                    = 0x0028,
+        userid1                 = 0x0090,
+        userid2                 = 0x0092,
+        userid3                 = 0x0093,
+        userid4                 = 0x0094,
+        userid5                 = 0x0095,
+        userid_name1            = 0x0080,
+        userid_name2            = 0x0081,
+        userid_name3            = 0x0082,
+        userid_name4            = 0x0083,
+        userid_name5            = 0x0084,
+        usernum1                = 0x0310,
+        usernum2                = 0x0311,
+        usernum3                = 0x0312,
+        usernum4                = 0x0313,
+        usernum5                = 0x0314,
+        usernum_name1           = 0x0316,
+        usernum_name2           = 0x0317,
+        usernum_name3           = 0x0318,
+        usernum_name4           = 0x0319,
+        usernum_name5           = 0x031A
+    }
     local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(p)
@@ -19,65 +66,28 @@ describe("K400Reg #register", function()
 
     it("getRegisterNumber", function()
         local m, p = makeModule()
-        assert.equal(m.REG_KEYBUFFER, p.getRegisterNumber('KeyBuffer'))
-        assert.equal(m.REG_USERID2, p.getRegisterNumber(m.REG_USERID2))
+        assert.equal(registers.keybuffer, p.getRegisterNumber('KeyBuffer'))
+        assert.equal(registers.manhold, p.getRegisterNumber(registers.manhold))
     end)
 
     it("getRegisterName", function()
-        local m, p = makeModule()
+        local m, p, d = makeModule()
         assert.equal('grandtotal', p.getRegisterName('GrandTotal'))
-        assert.equal('userid1', p.getRegisterName(m.REG_USERID1))
+        assert.equal('userid1', p.getRegisterName(0x90))
+    end)
+
+    describe("deprecated", function()
+        local _, _, d = makeModule()
+        for k, v in pairs(registers) do
+            it("register"..k, function()
+                assert.equal(v, d['REG_'..string.upper(k)])
+            end)
+        end
     end)
 
     describe("registers", function()
         local m, p = makeModule()
-        for r, v in pairs({
-            absmvv                  = 0x0023,
-            active_product_name     = 0xB006,
-            active_product_no       = 0xB000,
-            adcsample               = 0x0020,
-            altgross                = 0x002C,
-            altnet                  = 0x002E,
-            clr_all_totals          = 0xB002,
-            clr_docket_totals       = 0xB004,
-            fullscale               = 0x002F,
-            grandtotal              = 0x002B,
-            gross                   = 0x0026,
-            grossnet                = 0x0025,
-            keybuffer               = 0x0008,
-            lcd                     = 0x0009,
-            manhold                 = 0x002A,
-            net                     = 0x0027,
-            peakhold                = 0x0029,
-            rawadc                  = 0x002D,
-            select_product_delete   = 0xB011,
-            select_product_name     = 0xB010,
-            select_product_no       = 0xB00F,
-            select_product_rename   = 0xB012,
-            syserr                  = 0x0022,
-            sysstatus               = 0x0021,
-            tare                    = 0x0028,
-            userid1                 = 0x0090,
-            userid2                 = 0x0092,
-            userid3                 = 0x0093,
-            userid4                 = 0x0094,
-            userid5                 = 0x0095,
-            userid_name1            = 0x0080,
-            userid_name2            = 0x0081,
-            userid_name3            = 0x0082,
-            userid_name4            = 0x0083,
-            userid_name5            = 0x0084,
-            usernum1                = 0x0310,
-            usernum2                = 0x0311,
-            usernum3                = 0x0312,
-            usernum4                = 0x0313,
-            usernum5                = 0x0314,
-            usernum_name1           = 0x0316,
-            usernum_name2           = 0x0317,
-            usernum_name3           = 0x0318,
-            usernum_name4           = 0x0319,
-            usernum_name5           = 0x031A
-        }) do
+        for r, v in pairs(registers) do
             it('test '..r, function()
                 assert.equal(v, p.getRegisterNumber(r))
                 assert.equal(r, p.getRegisterName(v))

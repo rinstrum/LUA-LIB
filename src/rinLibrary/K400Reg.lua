@@ -18,8 +18,8 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-_M.REG_KEYBUFFER        = 0x0008
-_M.REG_LCD              = 0x0009
+private.addRegister('KEYBUFFER',    0x0008)
+private.addRegister('LCD',          0x0009)
 
 --- Instrument Reading Registers.
 --@table rdgRegisters
@@ -58,78 +58,78 @@ private.addRegister('fullscale',    0x002F)
 
 --- Instrument User Variables.
 --@table usrRegisters
--- @field REG_USERID_NAME1    Names of 5 User ID strings
--- @field REG_USERID_NAME2
--- @field REG_USERID_NAME3
--- @field REG_USERID_NAME4
--- @field REG_USERID_NAME5
--- @field REG_USERNUM_NAME1   Names of 5 User ID numbers
--- @field REG_USERNUM_NAME2
--- @field REG_USERNUM_NAME3
--- @field REG_USERNUM_NAME4
--- @field REG_USERNUM_NAME5
--- @field REG_USERID1         Data for 5 User ID strings
--- @field REG_USERID2
--- @field REG_USERID3
--- @field REG_USERID4
--- @field REG_USERID5
--- @field REG_USERNUM1        Data for 5 User ID numbers
--- @field REG_USERNUM2        the first 3 are integers
--- @field REG_USERNUM3        the last 2 are weight values
--- @field REG_USERNUM4
--- @field REG_USERNUM5
+-- @field userid_name1    Names of 5 User ID strings
+-- @field userid_name2
+-- @field userid_name3
+-- @field userid_name4
+-- @field userid_name5
+-- @field usernum_name1   Names of 5 User ID numbers
+-- @field usernum_name2
+-- @field usernum_name3
+-- @field usernum_name4
+-- @field usernum_name5
+-- @field userid1         Data for 5 User ID strings
+-- @field userid2
+-- @field userid3
+-- @field userid4
+-- @field userid5
+-- @field usernum1        Data for 5 User ID numbers
+-- @field usernum2        the first 3 are integers
+-- @field usernum3        the last 2 are weight values
+-- @field usernum4
+-- @field usernum5
 
 -- USER VARIABLES
-_M.REG_USERID_NAME1     = 0x0080
-_M.REG_USERID_NAME2     = 0x0081
-_M.REG_USERID_NAME3     = 0x0082
-_M.REG_USERID_NAME4     = 0x0083
-_M.REG_USERID_NAME5     = 0x0084
-_M.REG_USERNUM_NAME1    = 0x0316
-_M.REG_USERNUM_NAME2    = 0x0317
-_M.REG_USERNUM_NAME3    = 0x0318
-_M.REG_USERNUM_NAME4    = 0x0319
-_M.REG_USERNUM_NAME5    = 0x031A
+private.addRegister('userid_name1',     0x0080)
+private.addRegister('userid_name2',     0x0081)
+private.addRegister('userid_name3',     0x0082)
+private.addRegister('userid_name4',     0x0083)
+private.addRegister('userid_name5',     0x0084)
+private.addRegister('usernum_name1',    0x0316)
+private.addRegister('usernum_name2',    0x0317)
+private.addRegister('usernum_name3',    0x0318)
+private.addRegister('usernum_name4',    0x0319)
+private.addRegister('usernum_name5',    0x031A)
 
-_M.REG_USERID1          = 0x0090
-_M.REG_USERID2          = 0x0092
-_M.REG_USERID3          = 0x0093
-_M.REG_USERID4          = 0x0094
-_M.REG_USERID5          = 0x0095
-_M.REG_USERNUM1         = 0x0310
-_M.REG_USERNUM2         = 0x0311
-_M.REG_USERNUM3         = 0x0312
-_M.REG_USERNUM4         = 0x0313
-_M.REG_USERNUM5         = 0x0314
+private.addRegister('userid1',          0x0090)
+private.addRegister('userid2',          0x0092)
+private.addRegister('userid3',          0x0093)
+private.addRegister('userid4',          0x0094)
+private.addRegister('userid5',          0x0095)
+private.addRegister('usernum1',         0x0310)
+private.addRegister('usernum2',         0x0311)
+private.addRegister('usernum3',         0x0312)
+private.addRegister('usernum4',         0x0313)
+private.addRegister('usernum5',         0x0314)
 
 --- Product Registers.
 --@table productRegisters
--- @field REG_ACTIVE_PRODUCT_NO    Read the Active Product Number, Write to set the active product by number
--- @field REG_ACTIVE_PRODUCT_NAME  Read the Active Product Name, Write to set Active Product by name
--- @field REG_CLR_ALL_TOTALS       Clears all product totals (EXECUTE)
--- @field REG_CLR_DOCKET_TOTALS    Clears all docket sub-totals (EXECUTE)
--- @field REG_SELECT_PRODUCT_NO    Read the Selected Product Number, Write to set the Selected product by number
--- @field REG_SELECT_PRODUCT_NAME  Read the Selected Product Name, Write to set the Selected product by Name
--- @field REG_SELECT_PRODUCT_DELETE Delete Selected Product, totals must be 0 (EXECUTE)
--- @field REG_SELECT_PRODUCT_RENAME Execute with a string as an argument to change name of selected product (EXECUTE)
+-- @field active_product_no     Read the Active Product Number, Write to set the active product by number
+-- @field active_product_name   Read the Active Product Name, Write to set Active Product by name
+-- @field clr_all_totals        Clears all product totals (EXECUTE)
+-- @field clr_docket_totals     Clears all docket sub-totals (EXECUTE)
+-- @field select_product_no     Read the Selected Product Number, Write to set the Selected product by number
+-- @field select_product_name   Read the Selected Product Name, Write to set the Selected product by Name
+-- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
+-- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
 
-_M.REG_ACTIVE_PRODUCT_NO        = 0xB000
-_M.REG_ACTIVE_PRODUCT_NAME      = 0xB006
-_M.REG_CLR_ALL_TOTALS           = 0xB002
-_M.REG_CLR_DOCKET_TOTALS        = 0xB004
-_M.REG_SELECT_PRODUCT_NO        = 0xB00F
-_M.REG_SELECT_PRODUCT_NAME      = 0xB010
-_M.REG_SELECT_PRODUCT_DELETE    = 0xB011
-_M.REG_SELECT_PRODUCT_RENAME    = 0xB012
+private.addRegister('active_product_no',        0xB000)
+private.addRegister('active_product_name',      0xB006)
+private.addRegister('clr_all_totals',           0xB002)
+private.addRegister('clr_docket_totals',        0xB004)
+private.addRegister('select_product_no',        0xB00F)
+private.addRegister('select_product_name',      0xB010)
+private.addRegister('select_product_delete',    0xB011)
+private.addRegister('select_product_rename',    0xB012)
 
 --- Main Instrument Commands.
 --@table rinCMD
--- @field CMD_RDLIT        Read literal data
--- @field CMD_RDFINALHEX   Read data in hexadecimal format
--- @field CMD_RDFINALDEC   Read data in decimal format
--- @field CMD_WRFINALHEX   Write data in hexadecimal format
--- @field CMD_WRFINALDEC   Write data in decimal format
--- @field CMD_EX           Execute with data as execute parameter
+-- @field rdlit        Read literal data
+-- @field rdfinalhex   Read data in hexadecimal format
+-- @field rdfinaldec   Read data in decimal format
+-- @field wrfinalhex   Write data in hexadecimal format
+-- @field wrfinaldec   Write data in decimal format
+-- @field ex           Execute with data as execute parameter
 
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
@@ -267,9 +267,23 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 for _, v in ipairs({
+            'keybuffer', 'lcd',
+
             'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
             'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
-            'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare'
+            'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
+
+            'userid1', 'userid2', 'userid3', 'userid4', 'userid5',
+            'userid_name1', 'userid_name2', 'userid_name3',
+            'userid_name4', 'userid_name5',
+            'usernum1', 'usernum2', 'usernum3', 'usernum4', 'usernum5',
+            'usernum_name1', 'usernum_name2', 'usernum_name3',
+            'usernum_name4', 'usernum_name5',
+
+            'active_product_name', 'active_product_no', 'clr_all_totals',
+            'clr_docket_totals', 'select_product_delete',
+            'select_product_name', 'select_product_no',
+            'select_product_rename'
         }) do
     deprecated['REG_'..string.upper(v)] = private.getRegisterNumber(v)
 end
