@@ -61,10 +61,17 @@ local alarmTypeMap = {
     flash = ALARM_FLASH
 }
 
-_M.TIMING_LEVEL = 0
-_M.TIMING_EDGE  = 1
-_M.TIMING_PULSE = 2
-_M.TIMING_LATCH = 3
+local TIMING_LEVEL = 0
+local TIMING_EDGE  = 1
+local TIMING_PULSE = 2
+local TIMING_LATCH = 3
+
+local timingMap = {
+    level = TIMING_LEVEL,
+    edge  = TIMING_EDGE,
+    pulse = TIMING_PULSE,
+    latch = TIMING_LATCH
+}
 
 local SOURCE_GROSS      = 0
 local SOURCE_NET        = 1
@@ -485,6 +492,11 @@ deprecated.ALARM_NONE               = ALARM_NONE
 deprecated.ALARM_SINGLE             = ALARM_SINGLE
 deprecated.ALARM_DOUBLE             = ALARM_DOUBLE
 deprecated.ALARM_FLASH              = ALARM_FLASH
+
+deprecated.TIMING_LEVEL             = TIMING_LEVEL
+deprecated.TIMING_EDGE              = TIMING_EDGE
+deprecated.TIMING_PULSE             = TIMING_PULSE
+deprecated.TIMING_LATCH             = TIMING_LATCH
 
 deprecated.SOURCE_GROSS             = SOURCE_GROSS
 deprecated.SOURCE_NET               = SOURCE_NET
