@@ -39,8 +39,6 @@ local SerBCallback  = nil
 local largeSerialBMessageWarning = false  -- Have we warned about an over sized message yet?
 local queueClearing = false
 
-rinMsg.copyRelocatedFields(_M)
-
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
 -- to the error handler.
@@ -168,14 +166,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Sends a structured message built up from individual parameters as follows
--- @param addr Indicator address (0x00 to 0x1F)
--- @param cmd Command (CMD_*)
+-- @param addr Indicator address (0x00 to 0x1F) of 'broadcast'.
+-- @param cmd Command
 -- @param reg Register
 -- @param data Data to be sent
--- @param reply 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
+-- @param reply 'reply' (default) if reply required, sent with no reply otherwise
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @usage
--- stream.send(device.ADDR_BROADCAST, device.CMD_RDLIT, 'grossnet', data, 'reply')
+-- stream.send('broadcast', device.CMD_RDLIT, 'grossnet', data, 'reply')
 function _M.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
     _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)

@@ -17,28 +17,29 @@ local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 local _M = {}
 
 -- Addresses control bits
-_M.ADDR_RESP            = 0x80
-_M.ADDR_ERR             = 0x40
-_M.ADDR_REPLY           = 0x20
-_M.ADDR_NOREPLY         = 0x00
-_M.ADDR_BROADCAST       = 0x00
+local ADDR_RESP            = 0x80
+local ADDR_ERR             = 0x40
+local ADDR_REPLY           = 0x20
+local ADDR_NOREPLY         = 0x00
+local ADDR_BROADCAST       = 0x00
+
 --- Instrument Commands.
 -- @table rinCMD
--- @field CMD_RDTYPE       Read Register Type
--- @field CMD_RDRANGEMIN   Read data range minimum
--- @field CMD_RDRANGEMAX   Read data range maximum
--- @field CMD_RDRAW        Read Raw data
--- @field CMD_RDLIT        Read literal data
--- @field CMD_WRRAW        Write Raw data
--- @field CMD_RDDEFAULT    Read default setting
--- @field CMD_RDNAME       Read Name
--- @field CMD_RDITEM       Read Item from item list
--- @field CMD_RDPERMISSION Read register permissions
--- @field CMD_RDFINALHEX   Read data in hexadecimal format
--- @field CMD_RDFINALDEC   Read data in decimal format
--- @field CMD_WRFINALHEX   Write data in hexadecimal format
--- @field CMD_WRFINALDEC   Write data in decimal format
--- @field CMD_EX           Execute with data as execute parameter
+-- @field rdtype       Read Register Type
+-- @field rdrangemin   Read data range minimum
+-- @field rdrangemax   Read data range maximum
+-- @field rdraw        Read Raw data
+-- @field rdlit        Read literal data
+-- @field wrraw        Write Raw data
+-- @field rddefault    Read default setting
+-- @field rdname       Read Name
+-- @field rditem       Read Item from item list
+-- @field rdpermission Read register permissions
+-- @field rdfinalhex   Read data in hexadecimal format
+-- @field rdfinaldec   Read data in decimal format
+-- @field wrfinalhex   Write data in hexadecimal format
+-- @field wrfinaldec   Write data in decimal format
+-- @field ex           Execute with data as execute parameter
 
 -- Commands
 local CMD_RDTYPE           = 0x01
@@ -110,7 +111,7 @@ _M.TYP_BITFIELD         = 0x0C
 --   [0x09] = "weight",
 --   [0x0A] = "blob",
 --   [0x0B] = "execute",
---   [0x0C] = "unknown",
+--   [0x0C] = "bit field",
 --   [0x0D] = "unknown",
 --   [0x0E] = "unknown",
 --   [0x0F] = "unknown",
@@ -217,7 +218,7 @@ function _M.processMsg(msg, err)
         return nil, nil, nil, nil, "bad crc", excess
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
-    elseif bit32.band(addr, _M.ADDR_ERR) == _M.ADDR_ERR then
+    elseif bit32.band(addr, ADDR_ERR) == ADDR_ERR then
         return addr % 32, cmd, reg, data, errStrings[tonum(data, 16)], excess
     end
     return addr % 32, cmd, reg, data, nil, excess
@@ -246,9 +247,9 @@ end
 -------------------------------------------------------------------------------
 -- Formats a structured message built up from individual parameters as follows
 -- You should not need to call this directly.  The rinLibrary takes care of this.
--- @param addr Indicator address (0x00 to 0x1F)
--- @param cmd Command (CMD_*)
--- @param reg Register (REG_*)
+-- @param addr Indicator address (0x00 to 0x1F) or 'broadcast'
+-- @param cmd Command (string)
+-- @param reg Register (numeric)
 -- @param data Data to be sent
 -- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
 -- @return The formatted message suitable for formatMsg
@@ -257,17 +258,21 @@ end
 --
 -- print('message is:', msg.buildMsg(0x01, 0x12, 0x0090, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
 function _M.buildMsg(addr, cmd, reg, data, reply)
-    local addr = addr or _M.ADDR_BROADCAST
-    local cmd = cmd or CMD_RDFINALHEX
     local data = data or ""
     local reply = reply or 'reply'
 
+    if type(addr) == 'string' and string.lower(addr) == 'broadcast' then
+        addr = ADDR_BROADCAST
+    else
+        addr = addr or ADDR_BROADCAST
+    end
+
     if type(cmd) == 'string' then
-        cmd = commandMap[string.lower(cmd)]
+        cmd = commandMap[string.lower(cmd)] or CMD_RDFINALHEX
     end
 
     if reply == 'reply' then
-        addr = bit32.bor(addr, _M.ADDR_REPLY)
+        addr = bit32.bor(addr, ADDR_REPLY)
     end
 
     if cmd == CMD_WRFINALHEX or cmd == CMD_EX then
@@ -356,31 +361,6 @@ end
 function _M.handleError(addr, cmd, reg, data, e)
     if errHandler ~= nil then
         errHandler(addr, cmd, reg, data, e)
-    end
-end
-
--------------------------------------------------------------------------------
--- Copy all relocated fields to a specified table.  This is for backwards
--- compatibility.
--- There is typically no need to call this function directly.  The rinLibrary
--- framework does this on your behalf.
--- @param t Table to add fields to
--- @usage
--- local msg = require "rinLibrary.rinMessage"
---
--- local t = {}
---
--- msg.copyRelocatedFields(t)
-function _M.copyRelocatedFields(t)
-    -- No precompilation of the pattern here, this function is only called
-    -- at startup.  It is also usually called but once and at most only a small
-    -- number of times.
-    local pat = ((P"ADDR" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1) * -1
-
-    for k, v in pairs(_M) do
-        if type(k) == "string" and pat:match(k) then
-            t[k] = v
-        end
     end
 end
 
