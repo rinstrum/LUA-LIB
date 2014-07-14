@@ -335,9 +335,7 @@ function _M.copyRelocatedFields(t)
     -- No precompilation of the pattern here, this function is only called
     -- at startup.  It is also usually called but once and at most only a small
     -- number of times.
-    local pvar = (P"ADDR" + P"CMD" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1
-    local pfnc = (P"set" + P"remove") * P"ErrHandler"
-    local pat  = (pvar + pfnc) * -1
+    local pat = ((P"ADDR" + P"CMD" + P"TYP" + P"ERR") * P"_" * R("AZ", "09")^1) * -1
 
     for k, v in pairs(_M) do
         if type(k) == "string" and pat:match(k) then

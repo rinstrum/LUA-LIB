@@ -11,6 +11,7 @@ local tostring = tostring
 local bit32 = require "bit"
 local type = type
 local table = table
+local msg = require 'rinLibrary.rinMessage'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -212,7 +213,7 @@ passcodes.oper.pcodeData = _M.REG_OPERPCODEDATA
 function _M.checkPasscode(pc, code, tries)
     local pc = pc or 'full'
     local pcode = passcodes[pc].pcode
-    local f = _M.removeErrHandler()
+    local f = msg.removeErrHandler()
     local pass = ''
     local tries = tries or 1
     local count = 1
@@ -221,7 +222,7 @@ function _M.checkPasscode(pc, code, tries)
        local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcode,nil,1.0)
        if not msg then
           if  count > tries then
-                _M.setErrHandler(f)
+                msg.setErrHandler(f)
                 _M.abortDialog()
                 return false
           end          
@@ -237,7 +238,7 @@ function _M.checkPasscode(pc, code, tries)
             local ok = false
             pass, ok = _M.edit('ENTER PCODE','','passcode')
             if not ok or not pass then
-                _M.setErrHandler(f)
+                msg.setErrHandler(f)
                 _M.abortDialog()
                 return false
              end 
@@ -249,7 +250,7 @@ function _M.checkPasscode(pc, code, tries)
        end   
     end    
     _M.abortDialog()
-    _M.setErrHandler(f)
+    msg.setErrHandler(f)
     return true
 end
 
@@ -264,13 +265,13 @@ function _M.lockPasscode(pc)
     local pcode = passcodes[pc].pcode
     local pcodeData = passcodes[pc].pcodeData
  
-    local f = _M.removeErrHandler()
+    local f = msg.removeErrHandler()
     local msg, err = _M.sendRegWait(_M.CMD_RDFINALHEX,pcodeData,nil,1.0)
     if msg then
        msg = bit32.bxor(tonumber(msg,16),0xFF)  
        msg, err = _M.sendRegWait(_M.CMD_WRFINALHEX,pcode,_M.toPrimary(msg,0),1.0) 
     end    
-    _M.setErrHandler(f)
+    msg.setErrHandler(f)
 end
 
 -------------------------------------------------------------------------------
