@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 -- myCalApp
--- 
+--
 -- Application template
---    
--- Copy this file to your project directory and insert the specific code of 
+--
+-- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
 
@@ -13,7 +13,7 @@ local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================
 -- Connect to the instruments you want to control
--- Define any Application variables you wish to use 
+-- Define any Application variables you wish to use
 --=============================================================================
 local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myCalApp.RIS")               -- load default instrument settings
@@ -25,7 +25,7 @@ local mode = 'idle'
 --=============================================================================
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event 
+-- Callback to handle F1 key event
 local function F1Pressed(key, state)
     mode = 'menu'
     return true    -- key handled here so don't send back to instrument for handling
@@ -33,7 +33,7 @@ end
 dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
--- Callback to handle F2 key event 
+-- Callback to handle F2 key event
 dwi.enableOutput(3)
 local function F2Pressed(key, state)
     dwi.turnOnTimed(3,5.0)
@@ -50,7 +50,7 @@ local function pwrCancelPressed(key, state)
     if state == 'long' then
       rinApp.running = false
       return true
-    end 
+    end
     return false
 end
 dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
@@ -77,9 +77,9 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 
 
 --=============================================================================
--- Initialisation 
+-- Initialisation
 --=============================================================================
---  This is a good place to put your initialisation code 
+--  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 -------------------------------------------------------------------------------
 dwi.setIdleCallback(dwi.abortDialog,30)
@@ -91,12 +91,12 @@ dwi.setIdleCallback(dwi.abortDialog,30)
 -- Main Application logic goes here
 local function prompt(msg)
        dwi.writeBotLeft(msg)
-       dwi.delay(1.5) 
+       dwi.delay(1.5)
 end
 
-local sel = 'ZERO' 
+local sel = 'ZERO'
 local function mainLoop()
-  
+
    if mode == 'idle' then
       dwi.writeTopLeft('CAL.APP')
       dwi.writeBotLeft('F1-MENU',1.5)
@@ -112,68 +112,68 @@ local function mainLoop()
           local pc = dwi.selectOption('ENTER PASSCODE',{'full','safe','oper'},'full',true)
           if pc then
                dwi.changePasscode(pc)
-          end          
+          end
       elseif dwi.checkPasscode('full',_,5) then
           if sel == 'ZERO' then
               ret, msg = dwi.calibrateZero()
               if ret == 0 then
                   dbg.info('Zero MVV: ',dwi.readZeroMVV())
-              end    
-              prompt(msg)  
-              
+              end
+              prompt(msg)
+
           elseif sel == 'SPAN' then
-              ret, msg = dwi.calibrateSpan(dwi.editReg(dwi.REG_CALIBWGT)) 
+              ret, msg = dwi.calibrateSpan(dwi.editReg('calibwgt'))
               if ret == 0 then
                   dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
                   dbg.info('Span MVV: ',dwi.readSpanMVV())
               end
               prompt(msg)
-          
+
           elseif sel == 'MVV SPAN' then
               MVV = dwi.edit('MVV SPAN','2.0','number')
-              ret, msg = dwi.calibrateSpanMVV(MVV)   
+              ret, msg = dwi.calibrateSpanMVV(MVV)
               prompt(msg)
-          
+
           elseif sel == 'MVV ZERO' then
               MVV = dwi.edit('MVV ZERO','0','number')
-              ret, msg = dwi.calibrateZeroMVV(MVV) 
+              ret, msg = dwi.calibrateZeroMVV(MVV)
               prompt(msg)
-          
+
           elseif sel == 'SET LIN' then
               pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
-                  ret, msg = dwi.calibrateLin(pt,dwi.editReg(dwi.REG_CALIBWGT))   
-                  if ret == 0 then  
+                  ret, msg = dwi.calibrateLin(pt,dwi.editReg('calibwgt'))
+                  if ret == 0 then
                       dbg.info('Linearisation Calibration: ',dwi.readLinCal())
                   end
                   prompt(msg)
-              end    
+              end
           elseif sel == 'CLR LIN' then
               pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
-                 ret, msg = dwi.clearLin(pt)   
-                 if ret == 0 then  
+                 ret, msg = dwi.clearLin(pt)
+                 if ret == 0 then
                       dbg.info('Linearisation Calibration: ',dwi.readLinCal())
                  end
                  prompt(msg)
-              end   
-          end          
+              end
+          end
         end
-    end 
+    end
 end
 
 --=============================================================================
--- Clean Up 
+-- Clean Up
 --=============================================================================
 -- Define anything for the Application to do when it exits
 -- cleanup() gets called by framework when the application finishes
 local function cleanup()
-     
+
 end
 
 --=============================================================================
--- run the application 
+-- run the application
 rinApp.setMainLoop(mainLoop)
 rinApp.setCleanup(cleanup)
-rinApp.run()                       
+rinApp.run()
 --=============================================================================
