@@ -20,13 +20,13 @@ describe("K400Reg #register", function()
     it("getRegisterNumber", function()
         local m, p = makeModule()
         assert.equal(m.REG_KEYBUFFER, p.getRegisterNumber('KeyBuffer'))
-        assert.equal(m.REG_SYSSTATUS, p.getRegisterNumber(m.REG_SYSSTATUS))
+        assert.equal(m.REG_USERID2, p.getRegisterNumber(m.REG_USERID2))
     end)
 
     it("getRegisterName", function()
         local m, p = makeModule()
         assert.equal('grandtotal', p.getRegisterName('GrandTotal'))
-        assert.equal('grossnet', p.getRegisterName(m.REG_GROSSNET))
+        assert.equal('userid1', p.getRegisterName(m.REG_USERID1))
     end)
 
     describe("registers", function()
@@ -79,7 +79,6 @@ describe("K400Reg #register", function()
             usernum_name5           = 0x031A
         }) do
             it('test '..r, function()
-                assert.equal(v, m['REG_' .. string.upper(r)])   -- deprecated way
                 assert.equal(v, p.getRegisterNumber(r))
                 assert.equal(r, p.getRegisterName(v))
             end)
