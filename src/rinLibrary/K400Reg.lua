@@ -227,7 +227,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to read register contents
--- @param reg REG_  register
+-- @param reg register to read
+-- @param timeout timeout in seconds (optional)
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @usage
@@ -235,7 +236,7 @@ end
 function _M.readReg(reg)
     local data, err
 
-    data, err = _M.sendRegWait('rdlit', reg)
+    data, err = _M.sendRegWait('rdlit', reg, nil, timeout)
     if err then
         dbg.debug('Read Error', err)
         return nil, err
@@ -258,10 +259,11 @@ end
 -- Called to run a register execute command with data as the execute parameter
 -- @param reg REG_  register
 -- @param data to send
+-- @param timeout Timeout in seconds (optional)
 -- @usage
 -- device.exReg('flush_keys', 0) -- flush pending key presses
-function _M.exReg(reg, data)
-    _M.sendRegWait('ex', reg, data)
+function _M.exReg(reg, data, timeout)
+    _M.sendRegWait('ex', reg, data, timeout)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
