@@ -1,6 +1,6 @@
 project="rinLIB"
 title="Rinstrum Lua Library API"
-format='markdown'
+format='markdown'   -- 'discount' is faster but isn't available on the device.
 readme= { 'src/topics' }
 
 output='index'
@@ -21,5 +21,7 @@ full_description=[[
 # rinLIB: API for programming the M4223 in Lua 
 
 Copyright (C) 2013-2014 Rinstrum.
+
+If you do not know where to begin, please start with the <a href="topics/overview.md.html">introduction</a>.
 
 ]]
