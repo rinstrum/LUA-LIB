@@ -22,7 +22,8 @@ local modules = {
     "K400Analog",
     "K400Setpoint",
     "K400Print",
-    "K400Command"
+    "K400Command",
+    "K400Passcode"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
