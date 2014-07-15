@@ -49,6 +49,13 @@ local logicMap = {
     low  = LOGIC_LOW
 }
 
+--- Setpoint Alarms Types.
+--@table Alarms
+-- @field none No alarm
+-- @field single Beep once per second
+-- @field double Beep twice per second
+-- @field flash Flash the display
+
 local ALARM_NONE   = 0
 local ALARM_SINGLE = 1
 local ALARM_DOUBLE = 2
@@ -73,6 +80,17 @@ local timingMap = {
     latch = TIMING_LATCH
 }
 
+--- Setpoint Source Types.
+--@table Source
+-- @field gross Setpoint uses the gross weight
+-- @field net Setpoint uses the net weight
+-- @field disp Setpoint uses the displayed weight
+-- @field alt_gross Setpoint uses the gross weight in secondary units
+-- @field alt_net Setpoint uses the net weight in secondary units
+-- @field alt_disp Setpoint uses the displayed weight in secondary units
+-- @field piece Setpoint uses the peice count value
+-- @field reg Setpoint uses the value from the supplied register
+
 local SOURCE_GROSS      = 0
 local SOURCE_NET        = 1
 local SOURCE_DISP       = 2
@@ -92,6 +110,22 @@ local sourceMap = {
     piece =     SOURCE_PIECE,
     reg =       SOURCE_REG
 }
+
+--- Setpoint Types.
+--@table Types
+-- @field off Setpoint is always inactive
+-- @field on Setpoint is always active
+-- @field over Setpoint is active when the source is over the target amount
+-- @field under Setpoint is active when the source is under the target amount
+-- @field coz Setpoint is active when the source is in the centre of zero
+-- @field zero Setpoint is active when the source is in the zero band
+-- @field net Setpoint is active when net weight is displayed
+-- @field motion Setpoint is active when the weight is unstable
+-- @field error Setpoint is active when there is an error
+-- @field logic_and A binary logic AND is performed on the source with the mask value
+-- @field logic_or A binary logic OR is performed on the source with the mask value
+-- @field logic_xor A binary logic XOR is performed on the source with the mask value
+-- @field buzzer Setpoint is active when the buzzer is beeping
 
 local TYPE_OFF      = 0
 local TYPE_ON       = 1
@@ -339,22 +373,6 @@ function _M.setpIO(setp, IO)
     setpParam(setp, REG_SETP_OUTPUT, IO)
 end
 
---- Setpoint Types.
---@table Types
--- @field OFF setpoint is always inactive
--- @field ON setpoint is always active
--- @field OVER setpoint is active when the source is over the target amount
--- @field UNDER setpoint is active when the source is under the target amount
--- @field COZ setpoint is active when the source is in the centre of zero
--- @field ZERO setpoint is active when the source is in the zero band
--- @field NET setpoint is active when net weight is displayed
--- @field MOTION setpoint is active when the weight is unstable
--- @field ERROR setpoint is active when there is an error
--- @field LOGIC_AND a binary logic AND is performed on the source with the mask value
--- @field LOGIC_OR a binary logic OR is performed on the source with the mask value
--- @field LOGIC_XOR a binary logic XOR is performed on the source with the mask value
--- @field BUZZER setpoint is active when the buzzer is beeping
-
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls.
 -- @param setp is setpoint 1..16
@@ -381,13 +399,6 @@ function _M.setpLogic(setp, lType)
     setpParam(setp, REG_SETP_LOGIC, v)
 end
 
---- Setpoint Alarms Types.
---@table Alarms
--- @field NONE no alarm
--- @field SINGLE beep once per second
--- @field DOUBLE beep twice per second
--- @field FLASH flash the display
-
 -------------------------------------------------------------------------------
 -- Set the Alarm for the setpoint.
 -- The alarm can beep once a second, twice a second or flash the display when
@@ -413,17 +424,6 @@ end
 function _M.setpName(setp, v)
     setpParam(setp, REG_SETP_NAME, v)
 end
-
---- Setpoint Source Types.
---@table Source
--- @field GROSS setpoint uses the gross weight
--- @field NET setpoint uses the net weight
--- @field DISP setpoint uses the displayed weight
--- @field ALT_GROSS setpoint uses the gross weight in secondary units
--- @field ALT_NET setpoint uses the net weight in secondary units
--- @field ALT_DISP setpoint uses the displayed weight in secondary units
--- @field PIECE setpoint uses the peice count value
--- @field REG setpoint uses the value from the supplied register
 
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls.

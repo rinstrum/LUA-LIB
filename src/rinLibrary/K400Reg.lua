@@ -23,21 +23,21 @@ private.addRegister('LCD',          0x0009)
 
 --- Instrument Reading Registers.
 --@table rdgRegisters
--- @field adcsample   Sample number of current reading
--- @field sysstatus   System Status Bits
--- @field syserr      System Error Bits
--- @field absmvv      Absolute mV/V reading (10,000 = 1mV/V)
--- @field grossnet    Gross or Net reading depending on operating mode
--- @field gross       Gross weight
--- @field net         Net Weight
--- @field tare        Tare Weight
--- @field peakhold    Peak Hold Weight
--- @field manhold     Manually Held weight
--- @field grandtotal  Accumulated total
--- @field altgross    Gross weight in secondary units
--- @field rawadc      Raw ADC reading (2,560,000 = 1.0 mV/V)
--- @field altnet      Net weight in secondary units
--- @field fullscale   Fullscale weight
+-- @field adcsample Sample number of current reading
+-- @field sysstatus System Status Bits
+-- @field syserr System Error Bits
+-- @field absmvv Absolute mV/V reading (10,000 = 1mV/V)
+-- @field grossnet Gross or Net reading depending on operating mode
+-- @field gross Gross weight
+-- @field net Net Weight
+-- @field tare Tare Weight
+-- @field peakhold Peak Hold Weight
+-- @field manhold Manually Held weight
+-- @field grandtotal Accumulated total
+-- @field altgross Gross weight in secondary units
+-- @field rawadc Raw ADC reading (2,560,000 = 1.0 mV/V)
+-- @field altnet Net weight in secondary units
+-- @field fullscale Fullscale weight
 
 private.addRegister('adcsample',    0x0020)
 private.addRegister('sysstatus',    0x0021)
@@ -58,24 +58,24 @@ private.addRegister('fullscale',    0x002F)
 
 --- Instrument User Variables.
 --@table usrRegisters
--- @field userid_name1    Names of 5 User ID strings
+-- @field userid_name1 Names of 5 User ID strings
 -- @field userid_name2
 -- @field userid_name3
 -- @field userid_name4
 -- @field userid_name5
--- @field usernum_name1   Names of 5 User ID numbers
+-- @field usernum_name1 Names of 5 User ID numbers
 -- @field usernum_name2
 -- @field usernum_name3
 -- @field usernum_name4
 -- @field usernum_name5
--- @field userid1         Data for 5 User ID strings
+-- @field userid1 Data for 5 User ID strings
 -- @field userid2
 -- @field userid3
 -- @field userid4
 -- @field userid5
--- @field usernum1        Data for 5 User ID numbers
--- @field usernum2        the first 3 are integers
--- @field usernum3        the last 2 are weight values
+-- @field usernum1 Data for 5 User ID numbers
+-- @field usernum2 the first 3 are integers
+-- @field usernum3 the last 2 are weight values
 -- @field usernum4
 -- @field usernum5
 
@@ -104,12 +104,12 @@ private.addRegister('usernum5',         0x0314)
 
 --- Product Registers.
 --@table productRegisters
--- @field active_product_no     Read the Active Product Number, Write to set the active product by number
--- @field active_product_name   Read the Active Product Name, Write to set Active Product by name
--- @field clr_all_totals        Clears all product totals (EXECUTE)
--- @field clr_docket_totals     Clears all docket sub-totals (EXECUTE)
--- @field select_product_no     Read the Selected Product Number, Write to set the Selected product by number
--- @field select_product_name   Read the Selected Product Name, Write to set the Selected product by Name
+-- @field active_product_no Read the Active Product Number, Write to set the active product by number
+-- @field active_product_name Read the Active Product Name, Write to set Active Product by name
+-- @field clr_all_totals Clears all product totals (EXECUTE)
+-- @field clr_docket_totals Clears all docket sub-totals (EXECUTE)
+-- @field select_product_no Read the Selected Product Number, Write to set the Selected product by number
+-- @field select_product_name Read the Selected Product Name, Write to set the Selected product by Name
 -- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
 -- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
 
@@ -124,17 +124,17 @@ private.addRegister('select_product_rename',    0xB012)
 
 --- Main Instrument Commands.
 --@table rinCMD
--- @field rdlit        Read literal data
--- @field rdfinalhex   Read data in hexadecimal format
--- @field rdfinaldec   Read data in decimal format
--- @field wrfinalhex   Write data in hexadecimal format
--- @field wrfinaldec   Write data in decimal format
--- @field ex           Execute with data as execute parameter
+-- @field rdlit Read literal data
+-- @field rdfinalhex Read data in hexadecimal format
+-- @field rdfinaldec Read data in decimal format
+-- @field wrfinalhex Write data in hexadecimal format
+-- @field wrfinaldec Write data in decimal format
+-- @field ex Execute with data as execute parameter
 
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
--- @param cmd CMD_  command
--- @param reg REG_  register
+-- @param cmd command
+-- @param reg register
 -- @param data to send
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @local
@@ -145,8 +145,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to send command and wait for response
--- @param cmd CMD_  command
--- @param reg REG_  register
+-- @param cmd command
+-- @param reg register
 -- @param data to send
 -- @param t timeout in sec
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
@@ -191,11 +191,11 @@ function _M.sendRegWait(cmd, reg, data, t, crc)
 end
 
 -------------------------------------------------------------------------------
--- processes the return string from CMD_RDLIT command
+-- processes the return string from rdlit command
 -- if data is a floating point number then the converted number is returned
 -- otherwise the original data string is returned
 -- @function literalToFloat
--- @param data returned from _CMD_RDLIT
+-- @param data returned from rdlit
 -- @return floating point number or data string
 -- @local
 function private.literalToFloat(data)
@@ -211,7 +211,7 @@ end
 -------------------------------------------------------------------------------
 -- called to convert hexadecimal return string to a floating point number
 -- @function toFloat
--- @param data returned from _CMD_RDFINALHEX or from stream
+-- @param data returned from _rdfinalhex or from stream
 -- @param dp decimal position (if nil then instrument dp used)
 -- @return floating point number
 -- @local
@@ -247,7 +247,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to write data to an instrument register
--- @param reg REG_  register
+-- @param reg register
 -- @param data to send
 -- @usage
 -- device.writeReg('usernum1', 0)
@@ -257,7 +257,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to run a register execute command with data as the execute parameter
--- @param reg REG_  register
+-- @param reg register
 -- @param data to send
 -- @param timeout Timeout in seconds (optional)
 -- @usage

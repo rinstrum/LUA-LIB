@@ -25,21 +25,21 @@ local ADDR_BROADCAST       = 0x00
 
 --- Instrument Commands.
 -- @table rinCMD
--- @field rdtype       Read Register Type
--- @field rdrangemin   Read data range minimum
--- @field rdrangemax   Read data range maximum
--- @field rdraw        Read Raw data
--- @field rdlit        Read literal data
--- @field wrraw        Write Raw data
--- @field rddefault    Read default setting
--- @field rdname       Read Name
--- @field rditem       Read Item from item list
+-- @field rdtype Read Register Type
+-- @field rdrangemin Read data range minimum
+-- @field rdrangemax Read data range maximum
+-- @field rdraw Read Raw data
+-- @field rdlit Read literal data
+-- @field wrraw Write Raw data
+-- @field rddefault Read default setting
+-- @field rdname Read Name
+-- @field rditem Read Item from item list
 -- @field rdpermission Read register permissions
--- @field rdfinalhex   Read data in hexadecimal format
--- @field rdfinaldec   Read data in decimal format
--- @field wrfinalhex   Write data in hexadecimal format
--- @field wrfinaldec   Write data in decimal format
--- @field ex           Execute with data as execute parameter
+-- @field rdfinalhex Read data in hexadecimal format
+-- @field rdfinaldec Read data in decimal format
+-- @field wrfinalhex Write data in hexadecimal format
+-- @field wrfinaldec Write data in decimal format
+-- @field ex Execute with data as execute parameter
 
 -- Commands
 local CMD_RDTYPE           = 0x01

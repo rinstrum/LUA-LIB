@@ -57,15 +57,15 @@ return function (_M, private, deprecated)
 
 --- Status Bits for REG_SYSSTATUS.
 --@table sysstatus
--- @field SYS_OVERLOAD         Scale overloaded
--- @field SYS_UNDERLOAD        Scale underload
--- @field SYS_ERR              Error active
--- @field SYS_SETUP            Instrument in setup mode
--- @field SYS_CALINPROG        Instrument calibration in progress
--- @field SYS_MOTION           Weight unstable
--- @field SYS_CENTREOFZERO     Centre of Zero (within 0.25 divisions of zero)
--- @field SYS_ZERO             Weight within zero band setting
--- @field SYS_NET              Instrument in Net mode
+-- @field SYS_OVERLOAD Scale overloaded
+-- @field SYS_UNDERLOAD Scale underload
+-- @field SYS_ERR Error active
+-- @field SYS_SETUP Instrument in setup mode
+-- @field SYS_CALINPROG Instrument calibration in progress
+-- @field SYS_MOTION Weight unstable
+-- @field SYS_CENTREOFZERO Centre of Zero (within 0.25 divisions of zero)
+-- @field SYS_ZERO Weight within zero band setting
+-- @field SYS_NET Instrument in Net mode
 
 _M.SYS_OVERLOAD         = 0x00020000
 _M.SYS_UNDERLOAD        = 0x00010000
@@ -85,38 +85,38 @@ local REG_LUA_STAT_NET = 0x030A
 
 --- Status Bits for REG_LUA_STATUS.
 --@table luastatus
--- @field STAT_NET             Displayed weight is in NET mode
--- @field STAT_GROSS           Displayed weight is in GROSS mode
--- @field STAT_ZERO            Weight is in zero band
--- @field STAT_NOTZERO         Weight is not in zero band
--- @field STAT_COZ             Weight is in Centre Of Zero (within 0.25 divisions of zero)
--- @field STAT_NOTCOZ          Weight is not in Centre of Zero
--- @field STAT_MOTION          Weight is unstable
--- @field STAT_NOTMOTION       Weight is stable
--- @field STAT_RANGE1          Weight is in range/interval 1
--- @field STAT_RANGE2          Weight is in range/interval 2
--- @field STAT_PT              Tare in use is a preset tare
--- @field STAT_NOTPT           Tare in use is not a preset tare
--- @field STAT_ERROR           There is an error active
--- @field STAT_ULOAD           Scale is underloaded
--- @field STAT_OLOAD           Scale is overloaded
--- @field STAT_NOTERROR        There is no error active
--- @field STAT_HELD            Weight is held, not available in batching firmware
--- @field STAT_NOTHELD         Weight is not held, not available in batching firmware
--- @field STAT_IDLE            Batch is idle, only available in batching firmware
--- @field STAT_RUN             Batch is running, only available in batching firmware
--- @field STAT_PAUSE           Batch is paused, only available in batching firmware
--- @field STAT_SLOW            Batch is filling at slow speed, only available in batching firmware
--- @field STAT_MED             Batch is filling at medium speed, only available in batching firmware
--- @field STAT_FAST            Batch is filling at fast speed, only available in batching firmware
--- @field STAT_TIME            Batch is waiting for a timer to finish, only available in batching firmware
--- @field STAT_INPUT           Batch is waiting for an input, only available in batching firmware
--- @field STAT_NO_INFO         None of the 5 status bits above are true, only available in batching firmware
--- @field STAT_FILL            Batch is in a fill stage, only available in batching firmware
--- @field STAT_DUMP            Batch is in a dump stage, only available in batching firmware
--- @field STAT_PULSE           Batch is in a pulse stage, only available in batching firmware
--- @field STAT_START           Batch is in the start stage, only available in batching firmware
--- @field STAT_NO_TYPE         None of the 4 status bits above are true, only available in batching firmware
+-- @field STAT_NET Displayed weight is in NET mode
+-- @field STAT_GROSS Displayed weight is in GROSS mode
+-- @field STAT_ZERO Weight is in zero band
+-- @field STAT_NOTZERO Weight is not in zero band
+-- @field STAT_COZ Weight is in Centre Of Zero (within 0.25 divisions of zero)
+-- @field STAT_NOTCOZ Weight is not in Centre of Zero
+-- @field STAT_MOTION Weight is unstable
+-- @field STAT_NOTMOTION Weight is stable
+-- @field STAT_RANGE1 Weight is in range/interval 1
+-- @field STAT_RANGE2 Weight is in range/interval 2
+-- @field STAT_PT Tare in use is a preset tare
+-- @field STAT_NOTPT Tare in use is not a preset tare
+-- @field STAT_ERROR There is an error active
+-- @field STAT_ULOAD Scale is underloaded
+-- @field STAT_OLOAD Scale is overloaded
+-- @field STAT_NOTERROR There is no error active
+-- @field STAT_HELD Weight is held, not available in batching firmware
+-- @field STAT_NOTHELD Weight is not held, not available in batching firmware
+-- @field STAT_IDLE Batch is idle, only available in batching firmware
+-- @field STAT_RUN Batch is running, only available in batching firmware
+-- @field STAT_PAUSE Batch is paused, only available in batching firmware
+-- @field STAT_SLOW Batch is filling at slow speed, only available in batching firmware
+-- @field STAT_MED Batch is filling at medium speed, only available in batching firmware
+-- @field STAT_FAST Batch is filling at fast speed, only available in batching firmware
+-- @field STAT_TIME Batch is waiting for a timer to finish, only available in batching firmware
+-- @field STAT_INPUT Batch is waiting for an input, only available in batching firmware
+-- @field STAT_NO_INFO None of the 5 status bits above are true, only available in batching firmware
+-- @field STAT_FILL Batch is in a fill stage, only available in batching firmware
+-- @field STAT_DUMP Batch is in a dump stage, only available in batching firmware
+-- @field STAT_PULSE Batch is in a pulse stage, only available in batching firmware
+-- @field STAT_START Batch is in the start stage, only available in batching firmware
+-- @field STAT_NO_TYPE None of the 4 status bits above are true, only available in batching firmware
 
 -- Status
 _M.STAT_NET             = 0x00000001
@@ -156,17 +156,17 @@ _M.STAT_NO_TYPE         = 0x20000000
 
 --- Status Bits for REG_LUA_ESTAT.
 --@table luaextendedstatus
--- @field ESTAT_HIRES          Weight is in high resolution (x10) mode
--- @field ESTAT_DISPMODE       Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
--- @field ESTAT_RANGE          The current range/interval, 0 for range/interval 1, 1 for range/interval 2
--- @field ESTAT_MENU_ACTIVE    The user is currently in the menus
--- @field ESTAT_PROD_LOAD      The product has just been changed/loaded
--- @field ESTAT_PROD_SAVE      The product has just been updated/saved
--- @field ESTAT_POWER_OFF      The user is holding the power key down and the power off count-down is currently being displayed
--- @field ESTAT_INIT           The settings have been re-initialised
--- @field ESTAT_RTC            When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
--- @field ESTAT_SER1           When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
--- @field ESTAT_SER2           When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
+-- @field ESTAT_HIRES Weight is in high resolution (x10) mode
+-- @field ESTAT_DISPMODE Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
+-- @field ESTAT_RANGE The current range/interval, 0 for range/interval 1, 1 for range/interval 2
+-- @field ESTAT_MENU_ACTIVE The user is currently in the menus
+-- @field ESTAT_PROD_LOAD The product has just been changed/loaded
+-- @field ESTAT_PROD_SAVE The product has just been updated/saved
+-- @field ESTAT_POWER_OFF The user is holding the power key down and the power off count-down is currently being displayed
+-- @field ESTAT_INIT The settings have been re-initialised
+-- @field ESTAT_RTC When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
+-- @field ESTAT_SER1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
+-- @field ESTAT_SER2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 
 -- Extended status bits
 _M.ESTAT_HIRES           = 0x00000001

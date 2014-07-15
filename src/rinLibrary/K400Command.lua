@@ -15,9 +15,8 @@ local timers = require 'rinSystem.rinTimers.Pack'
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
--------------------------------------------------------------------------------
 -- Commands
--------------------------------------------------------------------------------
+
 local REG_ADC_ZERO         = 0x0300                  -- Execute registers
 local REG_ADC_TARE         = 0x0301
 local REG_ADC_PT           = 0x0302                  -- Tare value is parameter
@@ -55,18 +54,18 @@ local REG_CALIBDIRSPAN     = 0x0107
 
 --- Command Return Constants and strings.
 --@table Command
--- @field CMD_OK          'OK'     command executed successfully
--- @field CMD_CANCEL      'CANCEL'
--- @field CMD_INPROG      'IN PROG'
--- @field CMD_ERROR       'ERROR'
--- @field CMD_OL_UL       'OL-UL'
--- @field CMD_BUSY        'BUSY'
--- @field CMD_MOTION      'MOTION'
--- @field CMD_BAND        'BAND'
--- @field CMD_RESLOW      'RES LOW'
--- @field CMD_COMMAND     'COMMAND'
--- @field CMD_DUPLIC      'DUPLIC'
--- @field CMD_HIRES       'HI RES'
+-- @field ok Command executed successfully
+-- @field cancel Command cancelled
+-- @field in_prog Command in progress
+-- @field error Error processing command
+-- @field ol_ul Overload or Underload
+-- @field busy Busy
+-- @field motion Weight in motion
+-- @field band Band error
+-- @field res_low Low resolution
+-- @field command
+-- @field duplicate Duplicate
+-- @field hi_res High resolution
 
 local CMD_OK        = 0
 local CMD_CANCEL    = 1
@@ -84,16 +83,16 @@ local CMD_HIRES     = 11
 local cmdString = {
     [CMD_OK]        = 'ok',
     [CMD_CANCEL]    = 'cancel',
-    [CMD_INPROG]    = 'in prog',
+    [CMD_INPROG]    = 'in_prog',
     [CMD_ERROR]     = 'error',
-    [CMD_OL_UL]     = 'ol-ul',
+    [CMD_OL_UL]     = 'ol_ul',
     [CMD_BUSY]      = 'busy',
     [CMD_MOTION]    = 'motion',
     [CMD_BAND]      = 'band',
-    [CMD_RESLOW]    = 'res low',
+    [CMD_RESLOW]    = 'res_low',
     [CMD_COMMAND]   = 'command',
     [CMD_DUPLIC]    = 'duplicate',
-    [CMD_HIRES]     = 'hi res'
+    [CMD_HIRES]     = 'hi_res'
 }
 
 local REG_ZEROMVV  = 0x0111

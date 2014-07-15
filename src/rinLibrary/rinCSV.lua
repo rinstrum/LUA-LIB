@@ -209,8 +209,8 @@ end
 --- CSV table is in the format:
 --@table CSV
 -- @field fname name of .csv file associated with table - used to save/restore table contents.
--- @field labels{}  1d array of column labels.
--- @field data{{}}  2d array of data.
+-- @field labels{} 1d array of column labels.
+-- @field data{{}} 2d array of data.
 -- @field differentOnFileSystem Internal flag to indicate a format mismatch between the file system and the in memory version of the CSV file.
 
 -------------------------------------------------------------------------------
@@ -344,13 +344,13 @@ end
 
 --- Result codes from the loadCSV function.
 --@table loadCSV
--- @field create      File didn't exist, returned an empty CSV table
--- @field empty       File was empty, returned an empty CSV table
--- @field load        File loaded fine
--- @field full        File had all fields but some extra fields too
--- @field reordered   File had all fields but in a different order
--- @field partial     File had some common fields, returned a populated CSV table
--- @field immiscable  File had no common fields, returned an empty CSV table
+-- @field create File didn't exist, returned an empty CSV table
+-- @field empty File was empty, returned an empty CSV table
+-- @field load File loaded fine
+-- @field full File had all fields but some extra fields too
+-- @field reordered File had all fields but in a different order
+-- @field partial File had some common fields, returned a populated CSV table
+-- @field immiscable File had no common fields, returned an empty CSV table
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a CSV file but does not update local data in table
