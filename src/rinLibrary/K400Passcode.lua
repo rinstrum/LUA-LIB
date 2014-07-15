@@ -3,7 +3,6 @@
 -- @module rinLibrary.K400Passcode
 -- @author Darren Pearson
 -- @author Merrick Heley
--- @uathor Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local string = string
