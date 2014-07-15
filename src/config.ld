@@ -1,13 +1,7 @@
 project="rinLIB"
 title="Rinstrum Lua Library API"
 format='markdown'
-readme= {
-    'src/topics/lua-development.md',
-    'src/topics/lua.md',
-    'src/topics/overview.md',
-    'src/topics/resources.md',
-    'src/topics/system-architecture.md',
-}
+readme= { 'src/topics' }
 
 output='index'
 examples={
