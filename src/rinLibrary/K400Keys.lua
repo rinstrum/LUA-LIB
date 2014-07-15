@@ -248,7 +248,7 @@ end
 -- @usage
 -- device.flushKeys()
 function _M.flushKeys()
-    _M.sendRegWait('ex', REG_FLUSH_KEYS, 0)
+    _M.exReg(REG_FLUSH_KEYS, 0)
 end
 
 -------------------------------------------------------------------------------

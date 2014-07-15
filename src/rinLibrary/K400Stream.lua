@@ -321,12 +321,8 @@ end
 -- @usage
 -- device.streamCleanup()
 function _M.streamCleanup()
-    _M.sendRegWait('ex',
-                bit32.bor(REG_LUAUSER, REG_STREAMDATA),
-                STM_STOP)  -- stop streaming first
-    _M.sendRegWait('ex',
-                bit32.bor(REG_LUALIB, REG_STREAMDATA),
-                STM_STOP)  -- stop streaming first
+    _M.exReg(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_STOP) -- stop streaming first
+    _M.exReg(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_STOP)  -- stop streaming first
 
     for k,v in pairs(availRegistersUser) do
         _M.sendRegWait('wrfinaldec', bit32.bor(REG_LUAUSER, k), 0)

@@ -75,9 +75,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
 
     if mode == 'lua' then
-        _M.sendRegWait('ex', REG_LCDMODE, 2)
+        _M.exReg(REG_LCDMODE, 2)
     else
-        _M.sendRegWait('ex', REG_LCDMODE, 1)
+        _M.exReg(REG_LCDMODE, 1)
     end
 end
 
@@ -147,7 +147,7 @@ end
 -- @function saveSettings
 -- @local
 function private.saveSettings()
-    _M.sendRegWait('ex', REG_SAVESETTING)
+    _M.exReg(REG_SAVESETTING)
 end
 
 -------------------------------------------------------------------------------
@@ -234,7 +234,7 @@ function _M.configure(model)
 
     readSettings()
 
-    _M.sendRegWait('ex', REG_COMMS_START)  -- clear start message
+    _M.exReg(REG_COMMS_START)  -- clear start message
 
     if err then
         instrumentModel = ''
