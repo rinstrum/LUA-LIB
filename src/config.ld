@@ -4,7 +4,7 @@ format='markdown'   -- 'discount' is faster but isn't available on the device.
 readme= { 'src/topics' }
 
 output='index'
-examples={
+examples={          -- We should be able to wildcard this.
     'examples/helloLua.lua',
     'examples/hello.lua',
     'examples/multi-hello.lua',
