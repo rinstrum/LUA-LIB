@@ -104,21 +104,25 @@ local function isDevice(m)      return m.interface == nil   end
 -------------------------------------------------------------------------------
 -- Load the entire USB tree
 -- @return A table containing a table for each device and interface node
+-- @local
 function _M.loadAll()           return loadDevices(base, function(m) return true end)           end
 
 -------------------------------------------------------------------------------
 -- Load the entire USB device tree
 -- @return A table containing a table for each device node
+-- @local
 function _M.loadAllDevices()    return loadDevices(base, function(m) return isInterface(m) end) end
 
 -------------------------------------------------------------------------------
 -- Load the entire USB interface tree
 -- @return A table containing a table for each interface node
+-- @local
 function _M.loadAllInterfaces() return loadDevices(base, function(m) return isDevice(m) end)    end
 
 -------------------------------------------------------------------------------
 -- Load all USB devices of a specified class
 -- @return A table containing a table for each device of the specified class
+-- @local
 function _M.loadDevices(class)
     return loadDevices(base,
         function(m)
@@ -129,6 +133,7 @@ end
 -------------------------------------------------------------------------------
 -- Load all USB devices of a specified interface
 -- @return A table containing a table for each device of the specified interface
+-- @local
 function _M.loadInterfaces(class)
     return loadDevices(base,
         function(m)
@@ -139,21 +144,25 @@ end
 -------------------------------------------------------------------------------
 -- Load all USB hub devices
 -- @return A table containing a table for each hub in the USB device tree
+-- @local
 function _M.loadHubDevices()    return _M.loadDevices(_M.USB_CLASS_HUB)                         end
 
 -------------------------------------------------------------------------------
 -- Load all USB hub interfaces
 -- @return A table containing a table for each hub in the USB interface tree
+-- @local
 function _M.loadHubInterfaces() return _M.loadInterfaces(_M.USB_CLASS_HUB)                      end
 
 -------------------------------------------------------------------------------
 -- Load all USB storage device interfaces
 -- @return A table containing a table for each storage device in the USB interface tree
+-- @local
 function _M.loadStorage()       return _M.loadInterfaces(_M.USB_CLASS_MASS_STORAGE)             end
 
 -------------------------------------------------------------------------------
 -- Load all USB device with the specified vendor and product ids
 -- @return A table containing a table for each matching device
+-- @local
 function _M.loadProduct(vendor, product)
     return loadDevices(base,
         function(m)
@@ -166,6 +175,7 @@ end
 -- Bind a USB device or interface to the specified USB driver
 -- @param m The USB device descriptor
 -- @param driver A string containing the name of the relevant USB driver
+-- @local
 function _M.bind(m, driver)
     m.driver = driver or m.driver
     writeFile('/sys/bus/usb/drivers/' .. driver .. '/bind', m.name)
@@ -174,6 +184,7 @@ end
 -------------------------------------------------------------------------------
 -- Unbind a USB device or interface
 -- @param m The USB device descriptor
+-- @local
 function _M.unbind(m)
     writeFile(m.path .. 'driver/unbind', m.name)
 end

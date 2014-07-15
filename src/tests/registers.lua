@@ -16,6 +16,7 @@ _M = {}
 -- require("rinLibrary.utilities")(p)
 -- require("rinLibrary.K400Reg")(m, p, d)
 -- regs.populate(p.regPopulate, m, p, d)
+-- @local
 function _M.populate(popf, ...)
     for _, t in pairs({...}) do
         for k, v in pairs(t) do

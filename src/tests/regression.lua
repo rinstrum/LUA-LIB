@@ -41,11 +41,13 @@ return function()
 -- Return the dimensions of the data set.
 -- @return The number of rows
 -- @return The number of columns
+-- @local
     function _M.size() return #d, d.columns end
 
 ------------------------------------------------------------------------------
 -- Add a data point to the statistical accumulations
 -- @return The number of data points present after this one is added.
+-- @local
     function _M.add(...)
         local datum = {...}
         if d.columns == nil then
@@ -67,6 +69,7 @@ return function()
 ------------------------------------------------------------------------------
 -- Accumulate the sums of the data
 -- @return A table containing sums for each column of data.
+-- @local
     function _M.sum()
         if d.sigma == nil then
             d.sigma = sum(d, function(x) return x end)
@@ -77,6 +80,7 @@ return function()
 ------------------------------------------------------------------------------
 -- Accumulate the sums of the squares of the data
 -- @return A table containing sums of squares for each column of data.
+-- @local
     function _M.sumSquares()
         if d.sigma2 == nil then
             d.sigma2 = sum(d, function(x) return x*x end)
@@ -87,6 +91,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The mean of the data
 -- @return A table containing the mean of each column of data.
+-- @local
     function _M.mean()
         if d.mean == nil then
             -- This isn't numerically stable but should be good enough for now
@@ -99,6 +104,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The sample variance of the data
 -- @return A table containing the sample variance of each column of data.
+-- @local
     function _M.variance()
         if d.variance == nil then
             local m, fac = _M.mean(), 1 / (#d -1)
@@ -111,6 +117,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The population variance of the data
 -- @return A table containing the population variance of each column of data.
+-- @local
     function _M.population_variance()
         if d.pop_variance == nil then
             local m, fac = _M.mean(), 1 / #d
@@ -123,6 +130,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The sample standard deviation of the data
 -- @return A table containing the sample standard deviation of each column of data.
+-- @local
     function _M.stddev()
         if d.stddev == nil then
             d.stddev = map(_M.variance(), math.sqrt)
@@ -133,6 +141,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The population standard deviation of the data
 -- @return A table containing the population standard deviation of each column of data.
+-- @local
     function _M.population_stddev()
         if d.pop_stddev == nil then
             d.pop_stddev = map(_M.population_variance(), math.sqrt)
@@ -143,6 +152,7 @@ return function()
 ------------------------------------------------------------------------------
 -- The correlation coefficients for the data
 -- @return A table containing the correlation between each column and the first.
+-- @local
     function _M.r()
         if d.r == nil then
             local m, sd = _M.mean(), _M.stddev()

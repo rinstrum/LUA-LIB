@@ -46,6 +46,7 @@ _M.password = 'root'
 -- @return Application reference
 -- @return Upper unit device
 -- @return Lower unit device
+-- @local
 function _M.openDevices(upper, lower)
     local rinApp = rinAppFactory()
 
@@ -63,6 +64,7 @@ end
 -------------------------------------------------------------------------------
 -- Close the connections to the K400 units.
 -- @param rinApp The application reference.
+-- @local
 function _M.closeDevices(rinApp)
     rinApp.cleanup()
 end
@@ -70,6 +72,7 @@ end
 -------------------------------------------------------------------------------
 -- Switch operations to asynchronous more
 -- @param app The application reference.
+-- @local
 function _M.setAsync(app)
     setloop({
         pcall = pcall,
@@ -92,6 +95,7 @@ end
 -- @return Application reference
 -- @return Upper unit device
 -- @return Lower unit device
+-- @local
 function _M.openAsync(u, l)
     local app, upper, lower = _M.openDevices(u, l)
     _M.setAsync(app)
@@ -101,6 +105,7 @@ end
 -------------------------------------------------------------------------------
 -- Close the connections to the K400 units configured in asynchronous mode.
 -- @param app The application reference.
+-- @local
 function _M.closeAsync(app)
     timers.addEvent(function() app.running = false end)
     app.run()
@@ -110,6 +115,7 @@ end
 -------------------------------------------------------------------------------
 -- Generate a temporary file name that is relatively unique.
 -- @param base The test name for the test being undertaken
+-- @local
 function _M.tmpname(base)
     local s, n = posix.clock_gettime()
     return table.concat {
@@ -133,6 +139,7 @@ end
 -- @param host Either a string host address or a device descriptor
 -- @param filepath The full path to the file sought including the leading '/'
 -- @return The contents of the specified file or nil if it doesn't exist
+-- @local
 function _M.getFile(host, filepath)
     return ftp.get(ftpurl(host, filepath))
 end
@@ -142,6 +149,7 @@ end
 -- @param host Either a string host address or a device descriptor
 -- @param filepath The full path to the file sought including the leading '/'
 -- @param contents The contents for the file
+-- @local
 function _M.putFile(host, filepath, contents)
     return ftp.put(ftpurl(host, filepath), contents)
 end
@@ -150,6 +158,7 @@ end
 -- Delete a file from the target host
 -- @param host Either a string host address or a device descriptor
 -- @param filepath The full path to the file sought including the leading '/'
+-- @local
 function _M.deleteFile(host, filepath)
     _M.xeq(host, 'rm -f '..filepath)
 end
@@ -163,7 +172,9 @@ local tn_binary, tn_echo, tn_suppressGoAhead, tn_status, tn_timingMark = 0, 1, 3
 local tn_term, tn_window, tn_speed, tn_flowControl, tn_linemode = 24, 31, 32, 33, 34
 local tn_environ = 36
 
+-------------------------------------------------------------------------------
 -- Convert an array of numbers into a telnet command string
+-- @local
 local function tncmd(t)
     local s = {}
     for i = 1, #t do
@@ -172,7 +183,9 @@ local function tncmd(t)
     return table.concat(s)
 end
 
+-------------------------------------------------------------------------------
 -- Wait for a specific character to arrive and send the response command
+-- @local
 local function waitFor(s, c, response)
     local res, l = '', #c
     while res ~= c do
@@ -193,6 +206,7 @@ end
 -- @param host Host to connect to
 -- @param port Port to conenct to (default 23)
 -- @return Telnet session identifier
+-- @local
 function _M.telnetOpen(host, port)
     local s = socket.connect(host, port or 23)
 
@@ -245,6 +259,7 @@ end
 -------------------------------------------------------------------------------
 -- Close a telnet connection
 -- @param s Telnet session to close
+-- @local
 function _M.telnetClose(s)
     s:send('exit\r\n\r\n')
     s:close()
@@ -253,6 +268,7 @@ end
 -------------------------------------------------------------------------------
 -- Send a command to a telnet connection and return the output
 -- @param s Telnet session to send the command to
+-- @local
 function _M.telnetSend(s, ...)
     local z = {}
     local lastNL, firstNL = nil, false
@@ -294,6 +310,7 @@ end
 -- Execute a command on the specified host using a telnet connection.
 -- @param host Either a string host address or a device descriptor
 -- @return The output from the command
+-- @local
 function _M.xeq(host, ...)
     local h = checkHost(host)
     local s = _M.telnetOpen(host)

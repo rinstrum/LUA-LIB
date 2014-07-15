@@ -20,6 +20,7 @@ _M = {}
 -- The regs table should contain a number of tables.  In each of these the
 -- .r element is the register to check and the [1], [2], ... are the
 -- expected arguments.
+-- @local
 local function check(func, cmd, ret, m, regs, f, ...)
     local old, wr, oldfunc = {}, {}, nil
     local names = { func }
@@ -54,6 +55,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Various routines to verify that different kinds of message were sent or not
+-- @local
 function _M.checkSendReg(cmd, ...) check('sendReg', cmd, nil, ...) end
 function _M.checkNoSendReg(...) checkNo('sendReg', ...) end
 
