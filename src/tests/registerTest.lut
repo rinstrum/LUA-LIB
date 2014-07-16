@@ -56,7 +56,7 @@ describe("K400Reg #register", function()
     }
     local function makeModule()
         local m, p, d = {}, {}, {}
-        require("rinLibrary.utilities")(p)
+        require("rinLibrary.utilities")(p, d)
         require("rinLibrary.K400Reg")(m, p, d)
 
         regs.populate(p.regPopulate, m, p, d)

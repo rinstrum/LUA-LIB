@@ -46,7 +46,7 @@ describe("Analog #analog", function ()
         local function check(mvv, target, fuzz)
             lower.setAnalogVolt(convertMVV(mvv))
             upper.delay(0.4)
-            upper.waitStatus(upper.STAT_NOTMOTION)
+            upper.waitStatus('notmotion')
             assert.approximately(curWeight, target, fuzz)
         end
 
@@ -77,7 +77,7 @@ describe("Analog #analog", function ()
         for i = 0, 5 do
             upper.setAnalogVolt(convertMVV(i * 0.5))
             lower.delay(0.4)
-            lower.waitStatus(lower.STAT_NOTMOTION)
+            lower.waitStatus('notmotion')
             data.add(i, curWeight)
         end
         assert.roughly({1, 1}, data.r(), 1e-5)

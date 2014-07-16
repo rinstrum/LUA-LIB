@@ -40,12 +40,12 @@ dwi.addStream('grossnet', handleNewWeight, 'change')
 local function handleMotion(status, active)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
   if active then 
-     print ('motion')
+     print('motion')
   else 
      print('stable')  
    end   
 end
-dwi.setStatusCallback(dwi.STAT_MOTION, handleMotion)
+dwi.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -53,9 +53,9 @@ dwi.setStatusCallback(dwi.STAT_MOTION, handleMotion)
 local function handleIO1(IO, active)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
   if active then 
-     print ('IO 1 is on ')
+     print('IO 1 is on ')
   else
-     print ('IO 1 is off ')
+     print('IO 1 is off ')
   end   
 end
 dwi.setIOCallback(1, handleIO1)
@@ -135,7 +135,7 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -- Callback to handle changes in instrument settings
 local function settingsChanged(status, active)
 end
-dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
+dwi.setEStatusCallback('init', settingsChanged)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ local function mainLoop()
       dwi.writeTopLeft()
       dwi.writeBotLeft('')
       dwi.writeBotRight('PLACE')
-      if dwi.allStatusSet(dwi.STAT_NOTZERO, dwi.STAT_NOTMOTION) then
+      if dwi.allStatusSet('notzero', 'notmotion') then
          dwi.writeReg('usernum3', dwi.toPrimary(curWeight))
          dwi.setAutoBotLeft('usernum3')         
          dwi.writeBotRight('CAPTURED')
@@ -182,7 +182,7 @@ local function mainLoop()
          mode = 'wait'
       end
     elseif mode == 'wait' then      
-       if dwi.anyStatusSet(dwi.STAT_MOTION) then
+       if dwi.anyStatusSet('motion') then
            dwi.writeBotRight('')
            dwi.buzz(1)
            dwi.delay(0.5)

@@ -13,7 +13,7 @@ _M = {}
 -- @param ... The tables to populate the register definitions from
 -- @usage
 -- local m, p, d = {}, {}, {}
--- require("rinLibrary.utilities")(p)
+-- require("rinLibrary.utilities")(p, d)
 -- require("rinLibrary.K400Reg")(m, p, d)
 -- regs.populate(p.regPopulate, m, p, d)
 -- @local

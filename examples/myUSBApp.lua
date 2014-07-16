@@ -47,7 +47,7 @@ local function handleMotion(status, active)
      print('stable')
    end
 end
-dwi.setStatusCallback(dwi.STAT_MOTION, handleMotion)
+dwi.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

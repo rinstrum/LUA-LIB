@@ -60,7 +60,7 @@ dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
 -- Callback to handle changes in instrument settings
 local function settingsChanged(status, active)
 end
-dwi.setEStatusCallback(dwi.ESTAT_INIT, settingsChanged)
+dwi.setEStatusCallback('init', settingsChanged)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

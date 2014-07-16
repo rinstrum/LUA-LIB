@@ -85,103 +85,162 @@ local REG_LUA_STAT_NET = 0x030A
 
 --- Status Bits for REG_LUA_STATUS.
 --@table luastatus
--- @field STAT_NET Displayed weight is in NET mode
--- @field STAT_GROSS Displayed weight is in GROSS mode
--- @field STAT_ZERO Weight is in zero band
--- @field STAT_NOTZERO Weight is not in zero band
--- @field STAT_COZ Weight is in Centre Of Zero (within 0.25 divisions of zero)
--- @field STAT_NOTCOZ Weight is not in Centre of Zero
--- @field STAT_MOTION Weight is unstable
--- @field STAT_NOTMOTION Weight is stable
--- @field STAT_RANGE1 Weight is in range/interval 1
--- @field STAT_RANGE2 Weight is in range/interval 2
--- @field STAT_PT Tare in use is a preset tare
--- @field STAT_NOTPT Tare in use is not a preset tare
--- @field STAT_ERROR There is an error active
--- @field STAT_ULOAD Scale is underloaded
--- @field STAT_OLOAD Scale is overloaded
--- @field STAT_NOTERROR There is no error active
--- @field STAT_HELD Weight is held, not available in batching firmware
--- @field STAT_NOTHELD Weight is not held, not available in batching firmware
--- @field STAT_IDLE Batch is idle, only available in batching firmware
--- @field STAT_RUN Batch is running, only available in batching firmware
--- @field STAT_PAUSE Batch is paused, only available in batching firmware
--- @field STAT_SLOW Batch is filling at slow speed, only available in batching firmware
--- @field STAT_MED Batch is filling at medium speed, only available in batching firmware
--- @field STAT_FAST Batch is filling at fast speed, only available in batching firmware
--- @field STAT_TIME Batch is waiting for a timer to finish, only available in batching firmware
--- @field STAT_INPUT Batch is waiting for an input, only available in batching firmware
--- @field STAT_NO_INFO None of the 5 status bits above are true, only available in batching firmware
--- @field STAT_FILL Batch is in a fill stage, only available in batching firmware
--- @field STAT_DUMP Batch is in a dump stage, only available in batching firmware
--- @field STAT_PULSE Batch is in a pulse stage, only available in batching firmware
--- @field STAT_START Batch is in the start stage, only available in batching firmware
--- @field STAT_NO_TYPE None of the 4 status bits above are true, only available in batching firmware
+-- @field net Displayed weight is in NET mode
+-- @field gross Displayed weight is in GROSS mode
+-- @field zero Weight is in zero band
+-- @field notzero Weight is not in zero band
+-- @field coz Weight is in Centre Of Zero (within 0.25 divisions of zero)
+-- @field notcoz Weight is not in Centre of Zero
+-- @field motion Weight is unstable
+-- @field notmotion Weight is stable
+-- @field range1 Weight is in range/interval 1
+-- @field range2 Weight is in range/interval 2
+-- @field pt Tare in use is a preset tare
+-- @field notpt Tare in use is not a preset tare
+-- @field error There is an error active
+-- @field uload Scale is underloaded
+-- @field oload Scale is overloaded
+-- @field noterror There is no error active
+-- @field held Weight is held, not available in batching firmware
+-- @field notheld Weight is not held, not available in batching firmware
+-- @field idle Batch is idle, only available in batching firmware
+-- @field run Batch is running, only available in batching firmware
+-- @field pause Batch is paused, only available in batching firmware
+-- @field slow Batch is filling at slow speed, only available in batching firmware
+-- @field med Batch is filling at medium speed, only available in batching firmware
+-- @field fast Batch is filling at fast speed, only available in batching firmware
+-- @field time Batch is waiting for a timer to finish, only available in batching firmware
+-- @field input Batch is waiting for an input, only available in batching firmware
+-- @field no_info None of the 5 status bits above are true, only available in batching firmware
+-- @field fill Batch is in a fill stage, only available in batching firmware
+-- @field dump Batch is in a dump stage, only available in batching firmware
+-- @field pulse Batch is in a pulse stage, only available in batching firmware
+-- @field start Batch is in the start stage, only available in batching firmware
+-- @field no_type None of the 4 status bits above are true, only available in batching firmware
 
 -- Status
-_M.STAT_NET             = 0x00000001
-_M.STAT_GROSS           = 0x00000002
-_M.STAT_ZERO            = 0x00000004
-_M.STAT_NOTZERO         = 0x00000008
-_M.STAT_COZ             = 0x00000010
-_M.STAT_NOTCOZ          = 0x00000020
-_M.STAT_MOTION          = 0x00000040
-_M.STAT_NOTMOTION       = 0x00000080
-_M.STAT_RANGE1          = 0x00000100
-_M.STAT_RANGE2          = 0x00000200
-_M.STAT_PT              = 0x00000400
-_M.STAT_NOTPT           = 0x00000800
-_M.STAT_ERROR           = 0x00001000
-_M.STAT_ULOAD           = 0x00002000
-_M.STAT_OLOAD           = 0x00004000
-_M.STAT_NOTERROR        = 0x00008000
+local STAT_NET             = 0x00000001
+local STAT_GROSS           = 0x00000002
+local STAT_ZERO            = 0x00000004
+local STAT_NOTZERO         = 0x00000008
+local STAT_COZ             = 0x00000010
+local STAT_NOTCOZ          = 0x00000020
+local STAT_MOTION          = 0x00000040
+local STAT_NOTMOTION       = 0x00000080
+local STAT_RANGE1          = 0x00000100
+local STAT_RANGE2          = 0x00000200
+local STAT_PT              = 0x00000400
+local STAT_NOTPT           = 0x00000800
+local STAT_ERROR           = 0x00001000
+local STAT_ULOAD           = 0x00002000
+local STAT_OLOAD           = 0x00004000
+local STAT_NOTERROR        = 0x00008000
 -- Non-batching status bits
-_M.STAT_HELD            = 0x00010000
-_M.STAT_NOTHELD         = 0x00020000
+local STAT_HELD            = 0x00010000
+local STAT_NOTHELD         = 0x00020000
 -- Batching specific status bits
-_M.STAT_IDLE            = 0x00010000
-_M.STAT_RUN             = 0x00020000
-_M.STAT_PAUSE           = 0x00040000
-_M.STAT_SLOW            = 0x00080000
-_M.STAT_MED             = 0x00100000
-_M.STAT_FAST            = 0x00200000
-_M.STAT_TIME            = 0x00400000
-_M.STAT_INPUT           = 0x00800000
-_M.STAT_NO_INFO         = 0x01000000
-_M.STAT_FILL            = 0x02000000
-_M.STAT_DUMP            = 0x04000000
-_M.STAT_PULSE           = 0x08000000
-_M.STAT_START           = 0x10000000
-_M.STAT_NO_TYPE         = 0x20000000
+local STAT_IDLE            = 0x00010000
+local STAT_RUN             = 0x00020000
+local STAT_PAUSE           = 0x00040000
+local STAT_SLOW            = 0x00080000
+local STAT_MED             = 0x00100000
+local STAT_FAST            = 0x00200000
+local STAT_TIME            = 0x00400000
+local STAT_INPUT           = 0x00800000
+local STAT_NO_INFO         = 0x01000000
+local STAT_FILL            = 0x02000000
+local STAT_DUMP            = 0x04000000
+local STAT_PULSE           = 0x08000000
+local STAT_START           = 0x10000000
+local STAT_NO_TYPE         = 0x20000000
 
---- Status Bits for REG_LUA_ESTAT.
+local statusUnmap, statusMap = {}, {
+    net         = STAT_NET,
+    gross       = STAT_GROSS,
+    zero        = STAT_ZERO,
+    notzero     = STAT_NOTZERO,
+    coz         = STAT_COZ,
+    notcoz      = STAT_NOTCOZ,
+    motion      = STAT_MOTION,
+    notmotion   = STAT_NOTMOTION,
+    range1      = STAT_RANGE1,
+    range2      = STAT_RANGE2,
+    pt          = STAT_PT,
+    notpt       = STAT_NOTPT,
+    error       = STAT_ERROR,
+    uload       = STAT_ULOAD,
+    oload       = STAT_OLOAD,
+    noterror    = STAT_NOTERROR,
+-- Non-batching status bits
+    held        = STAT_HELD,
+    notheld     = STAT_NOTHELD,
+-- Batching specific status bits
+    idle        = STAT_IDLE,
+    run         = STAT_RUN,
+    pause       = STAT_PAUSE,
+    slow        = STAT_SLOW,
+    med         = STAT_MED,
+    fast        = STAT_FAST,
+    time        = STAT_TIME,
+    input       = STAT_INPUT,
+    no_info     = STAT_NO_INFO,
+    fill        = STAT_FILL,
+    dump        = STAT_DUMP,
+    pulse       = STAT_PULSE,
+    start       = STAT_START,
+    no_type     = STAT_NO_TYPE
+}
+for k, v in pairs(statusMap) do
+    statusUnmap[v] = k
+end
+
+--- Status Bits for Extended Status.
 --@table luaextendedstatus
--- @field ESTAT_HIRES Weight is in high resolution (x10) mode
--- @field ESTAT_DISPMODE Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
--- @field ESTAT_RANGE The current range/interval, 0 for range/interval 1, 1 for range/interval 2
--- @field ESTAT_MENU_ACTIVE The user is currently in the menus
--- @field ESTAT_PROD_LOAD The product has just been changed/loaded
--- @field ESTAT_PROD_SAVE The product has just been updated/saved
--- @field ESTAT_POWER_OFF The user is holding the power key down and the power off count-down is currently being displayed
--- @field ESTAT_INIT The settings have been re-initialised
--- @field ESTAT_RTC When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
--- @field ESTAT_SER1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
--- @field ESTAT_SER2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
+-- @field hires Weight is in high resolution (x10) mode
+-- @field dispmode Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
+-- @field range The current range/interval, 0 for range/interval 1, 1 for range/interval 2
+-- @field menu_active The user is currently in the menus
+-- @field prod_load The product has just been changed/loaded
+-- @field prod_save The product has just been updated/saved
+-- @field power_off The user is holding the power key down and the power off count-down is currently being displayed
+-- @field init The settings have been re-initialised
+-- @field rtc When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
+-- @field ser1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
+-- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 
 -- Extended status bits
-_M.ESTAT_HIRES           = 0x00000001
-_M.ESTAT_DISPMODE        = 0x00000006
-_M.ESTAT_DISPMODE_RS     = 1
-_M.ESTAT_RANGE           = 0x00000018
-_M.ESTAT_RANGE_RS        = 3
-_M.ESTAT_MENU_ACTIVE     = 0x00000020
-_M.ESTAT_PROD_LOAD       = 0x00000040
-_M.ESTAT_PROD_SAVE       = 0x00000080
-_M.ESTAT_POWER_OFF       = 0x00000100
-_M.ESTAT_INIT            = 0x01000000
-_M.ESTAT_RTC             = 0x02000000
-_M.ESTAT_SER1            = 0x10000000
-_M.ESTAT_SER2            = 0x20000000
+local ESTAT_HIRES           = 0x00000001
+local ESTAT_DISPMODE        = 0x00000006
+local ESTAT_DISPMODE_RS     = 1
+local ESTAT_RANGE           = 0x00000018
+local ESTAT_RANGE_RS        = 3
+local ESTAT_MENU_ACTIVE     = 0x00000020
+local ESTAT_PROD_LOAD       = 0x00000040
+local ESTAT_PROD_SAVE       = 0x00000080
+local ESTAT_POWER_OFF       = 0x00000100
+local ESTAT_INIT            = 0x01000000
+local ESTAT_RTC             = 0x02000000
+local ESTAT_SER1            = 0x10000000
+local ESTAT_SER2            = 0x20000000
+
+local estatusUnmap, estatusMap = {}, {
+    hires       = ESTAT_HIRES,
+    dispmode    = ESTAT_DISPMODE,
+    dispmode_rs = ESTAT_DISPMODE_RS,
+    range       = ESTAT_RANGE,
+    range_rs    = ESTAT_RANGE_RS,
+    menu_active = ESTAT_MENU_ACTIVE,
+    prod_load   = ESTAT_PROD_LOAD,
+    prod_save   = ESTAT_PROD_SAVE,
+    power_off   = ESTAT_POWER_OFF,
+    init        = ESTAT_INIT,
+    rtc         = ESTAT_RTC,
+    ser1        = ESTAT_SER1,
+    ser2        = ESTAT_SER2
+}
+for k, v in pairs(estatusMap) do
+    estatusUnmap[v] = k
+end
 
 local statBinds = {}
 local statID = nil
@@ -232,7 +291,7 @@ local function statusCallback(data, err)
            else
               v.running = true
               v.lastStatus = status
-              v.f(k, status ~= 0)
+              v.f(convertValueToName(k, statusunMap), status ~= 0)
               v.running = false
            end
         end
@@ -241,14 +300,18 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a status bit
--- @param stat STAT_ status bit
+-- @param status status name
 -- @param callback Function to run when there is an event on change in status
 -- @usage
--- device.setStatusCallback(device.STAT_MOTION, function(stat, value) print('motion of', stat, 'is', value) end)
-function _M.setStatusCallback(stat, callback)
-    statBinds[stat] = {}
-    statBinds[stat]['f'] = callback
-    statBinds[stat]['lastStatus'] = 0xFF
+-- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
+function _M.setStatusCallback(status, callback)
+    local stat = private.convertNameToValue(status, statusMap)
+    if stat then
+        statBinds[stat] = {
+            f = callback,
+            lastStatus = 0xFF
+        }
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -404,23 +467,24 @@ end
 -- @local
 local function eStatusCallback(data, err)
     private.updateSettings(
-        bit32.band(data,_M.ESTAT_HIRES) > 0,
-        1 + bit32.rshift(bit32.band(data, _M.ESTAT_DISPMODE), _M.ESTAT_DISPMODE_RS),
-        1 + bit32.rshift(bit32.band(data, _M.ESTAT_RANGE), _M.ESTAT_RANGE_RS))
+        bit32.band(data, ESTAT_HIRES) > 0,
+        1 + bit32.rshift(bit32.band(data, ESTAT_DISPMODE), ESTAT_DISPMODE_RS),
+        1 + bit32.rshift(bit32.band(data, ESTAT_RANGE), ESTAT_RANGE_RS))
 
-    for k,v in pairs(eStatBinds) do
+    for k, v in pairs(eStatBinds) do
         local status = bit32.band(data,k)
         if status ~= v.lastStatus  then
             if v.running then
                 dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
             else
+                local estatName = private.convertValueToName(k, estatusUnmap, nil)
                 v.running = true
                 v.lastStatus = status
                 if v.mainf then
-                    v.mainf(k,status ~= 0)
+                    v.mainf(estatName, status ~= 0)
                 end
                 if v.f then
-                    v.f(k, status ~= 0)
+                    v.f(estatName, status ~= 0)
                 end
                 v.running = false
             end
@@ -430,31 +494,28 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for an extended status bit
--- @param eStat ESTAT_ status bit
+-- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
-function _M.setEStatusCallback(eStat, callback)
-    eStatBinds[eStat] = eStatBinds[eStat] or {}
-    eStatBinds[eStat]['f'] = callback
-    eStatBinds[eStat]['lastStatus'] = 0xFF
+function _M.setEStatusCallback(eStatus, callback)
+    local eStat = private.convertNameToValue(eStatus, estatusMap)
+    if eStat then
+        eStatBinds[eStat] = eStatBinds[eStat] or {}
+        eStatBinds[eStat]['f'] = callback
+        eStatBinds[eStat]['lastStatus'] = 0xFF
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Set the main library callback function for an extended status bit
--- @param eStat ESTAT_ status bit
+-- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
-function _M.setEStatusMainCallback(eStat, callback)
-    eStatBinds[eStat] = eStatBinds[eStat] or {}
-    eStatBinds[eStat]['mainf'] = callback
-    eStatBinds[eStat]['lastStatus'] = 0xFF
-end
-
--------------------------------------------------------------------------------
--- Called to get current instrument status
--- @return 32 bits of status data with bits as per STAT_ definitions
--- @usage
--- print('current status bits are', device.getCurStatus())
-function _M.getCurStatus()
-    return curStatus
+function _M.setEStatusMainCallback(eStatus, callback)
+    local eStat = private.convertNameToValue(eStatus, estatusMap)
+    if eStat then
+        eStatBinds[eStat] = eStatBinds[eStat] or {}
+        eStatBinds[eStat]['mainf'] = callback
+        eStatBinds[eStat]['lastStatus'] = 0xFF
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -462,10 +523,7 @@ end
 -- @return true if any of the status bits are set in current instrument status
 -- @usage
 -- device.enableOutput(5)
--- if device.anyStatusSet(device.STAT_MOTION,
---                     device.STAT_ERR,
---                     device.STAT_OLOAD,
---                     device.STAT_ULOAD) then
+-- if device.anyStatusSet('motion, 'stat_err', 'oload', 'uload') then
 --     device.turnOn(5)  -- turn on output 5 if motion or any errors
 -- else
 --     device.turnOff(5)
@@ -475,8 +533,9 @@ function _M.anyStatusSet(...)
         return false
     end
 
-    for i,v in ipairs(arg) do
-        if bit32.band(curStatus, v) ~= 0 then
+    for i, v in pairs({...}) do
+        local b = private.convertNameToValue(v, statusMap, 0)
+        if bit32.band(curStatus, b) ~= 0 then
             return true
         end
     end
@@ -488,9 +547,7 @@ end
 -- @return true if all of the status bits are set in cur instrument status
 -- @usage
 -- device.enableOutput(5)
--- if device.allStatusSet(device.STAT_NOTMOTION,
---                        device.STAT_NOTZERO,
---                        device.STAT_GROSS) then
+-- if device.allStatusSet('notmotion', 'notzero', 'gross') then
 --     device.turnOn(5)  -- turn on output 5 if stable gross weight not in zero band
 -- else
 --     device.turnOff(5)
@@ -500,8 +557,9 @@ function _M.allStatusSet(...)
         return false
     end
 
-    for i,v in ipairs(arg) do
-        if bit32.band(curStatus, v) == 0 then
+    for i, v in pairs({...}) do
+        local b = private.convertNameToValue(v, statusMap, 0)
+        if bit32.band(curStatus, b) == 0 then
             return false
         end
     end
@@ -601,7 +659,7 @@ end
 -- @return true if all of the listed IO are active
 -- @usage
 -- device.enableOutput(1)
--- if device.allSETPSet(1,2) then
+-- if device.allSETPSet(1, 2) then
 --     device.turnOn(1)  -- turn on output 1 if Setpoints 1 and 2 are active
 -- else
 --     device.turnOff(1)
@@ -613,11 +671,14 @@ end
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true
 -- @usage
--- device.waitStatus(device.STAT_NOTMOTION)  -- wait for no motion
--- device.waitStatus(device.STAT_COZ)        -- wait for Centre of zero
--- device.waitStatus(device.STAT_ZERO, device.STAT_NOTMOTION) -- wait for no motion and zero
+-- device.waitStatus('notmotion')           -- wait for no motion
+-- device.waitStatus('coz')                 -- wait for Centre of zero
+-- device.waitStatus('zero', 'notmotion')   -- wait for no motion and zero
 function _M.waitStatus(...)
-    local stat = bit32.bor(...)
+    local stat = 0
+    for _, v in pairs({...}) do
+        stat = bit32.bor(stat, private.convertNameToValue(v, statusMap, 0))
+    end
     while bit32.band(curStatus, stat) ~= stat do
         system.handleEvents()
     end
@@ -701,7 +762,7 @@ end
 -- device.writeNetStatus('both')
 function _M.writeNetStatus(status)
     local s = private.convertNameToValue(status, netStatusMap, 0)
-    _M.sendRegWait('wrfinalhex', REG_LUA_STAT_NET, s or 0)
+    _M.sendRegWait('wrfinalhex', REG_LUA_STAT_NET, s)
 end
 
 -------------------------------------------------------------------------------
@@ -716,8 +777,8 @@ function _M.setupStatus()
     IOID    = private.addStreamLib('io_status',  IOCallback,      'change')
     SETPID  = private.addStreamLib(REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
-    _M.setEStatusMainCallback(_M.ESTAT_RTC,  handleRTC)
-    _M.setEStatusMainCallback(_M.ESTAT_INIT, handleINIT)
+    _M.setEStatusMainCallback('rtc',  handleRTC)
+    _M.setEStatusMainCallback('init', handleINIT)
     _M.writeRTCStatus(true)
 end
 
@@ -758,5 +819,66 @@ deprecated.REG_LUA_ESTAT    = REG_LUA_ESTAT
 deprecated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
 deprecated.REG_SETPSTATUS   = REG_SETPSTATUS
 deprecated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
+
+-- These are strings rather than numerics so that comparisons against them
+-- work in call backs
+deprecated.STAT_NET         = 'net'
+deprecated.STAT_GROSS       = 'gross'
+deprecated.STAT_ZERO        = 'zero'
+deprecated.STAT_NOTZERO     = 'notzero'
+deprecated.STAT_COZ         = 'coz'
+deprecated.STAT_NOTCOZ      = 'notcoz'
+deprecated.STAT_MOTION      = 'motion'
+deprecated.STAT_NOTMOTION   = 'notmotion'
+deprecated.STAT_RANGE1      = 'range1'
+deprecated.STAT_RANGE2      = 'range2'
+deprecated.STAT_PT          = 'pt'
+deprecated.STAT_NOTPT       = 'notpt'
+deprecated.STAT_ERROR       = 'error'
+deprecated.STAT_ULOAD       = 'uload'
+deprecated.STAT_OLOAD       = 'oload'
+deprecated.STAT_NOTERROR    = 'noterror'
+-- Non-batching status bits
+deprecated.STAT_HELD        = 'held'
+deprecated.STAT_NOTHELD     = 'notheld'
+-- Batching specific status bits
+deprecated.STAT_IDLE        = 'idle'
+deprecated.STAT_RUN         = 'run'
+deprecated.STAT_PAUSE       = 'pause'
+deprecated.STAT_SLOW        = 'slow'
+deprecated.STAT_MED         = 'med'
+deprecated.STAT_FAST        = 'fast'
+deprecated.STAT_TIME        = 'time'
+deprecated.STAT_INPUT       = 'input'
+deprecated.STAT_NO_INFO     = 'no_info'
+deprecated.STAT_FILL        = 'fill'
+deprecated.STAT_DUMP        = 'dump'
+deprecated.STAT_PULSE       = 'pulse'
+deprecated.STAT_START       = 'start'
+deprecated.STAT_NO_TYPE     = 'no_type'
+
+deprecated.ESTAT_HIRES       = 'hires'
+deprecated.ESTAT_DISPMODE    = 'dispmode'
+deprecated.ESTAT_DISPMODE_RS = 'dispmode_rs'
+deprecated.ESTAT_RANGE       = 'range'
+deprecated.ESTAT_RANGE_RS    = 'range_rs'
+deprecated.ESTAT_MENU_ACTIVE = 'menu_active'
+deprecated.ESTAT_PROD_LOAD   = 'prod_load'
+deprecated.ESTAT_PROD_SAVE   = 'prod_save'
+deprecated.ESTAT_POWER_OFF   = 'power_off'
+deprecated.ESTAT_INIT        = 'init'
+deprecated.ESTAT_RTC         = 'rtc'
+deprecated.ESTAT_SER1        = 'ser1'
+deprecated.ESTAT_SER2        = 'ser2'
+
+-------------------------------------------------------------------------------
+-- Called to get current instrument status
+-- @function getCurStatus
+-- @return 32 bits of status data with bits as per STAT_ definitions
+-- @usage
+-- print('current status bits are', device.getCurStatus())
+function deprecated.getCurStatus()
+    return curStatus
+end
 
 end

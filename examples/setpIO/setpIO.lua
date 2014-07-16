@@ -65,7 +65,7 @@ local function handleMotion(status, active)
      print('stable')  
    end   
 end
-dwi.setStatusCallback(dwi.STAT_MOTION, handleMotion)
+dwi.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
 
 -- Setup Chimes 
@@ -124,7 +124,7 @@ local function handleRTC(status, active)
    end   
    dbg.info('Clock : ',dwi.RTCtostring())
 end
-dwi.setEStatusCallback(dwi.ESTAT_RTC, handleRTC)
+dwi.setEStatusCallback('rtc', handleRTC)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -223,8 +223,7 @@ local function mainLoop()
 
 -- turn on if over target and not motion or error
     if (curWeight > target) and 
-       dwi.allStatusSet(dwi.STAT_NOTMOTION,
-                        dwi.STAT_NOTERROR) then
+       dwi.allStatusSet('notmotion', 'noterror') then
          dwi.turnOn(OVER_OUTPUT)
      else
          dwi.turnOff(OVER_OUTPUT)
