@@ -64,7 +64,7 @@ local function handleKey(key, state)
     end
     return true     -- key handled so don't send back to instrument
 end
-dwi.setKeyGroupCallback(dwi.keyGroup.all, handleKey)
+dwi.setKeyGroupCallback('all', handleKey)
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application

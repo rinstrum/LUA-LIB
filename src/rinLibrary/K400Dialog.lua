@@ -145,16 +145,15 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup keyGroup.all is default group
+-- @param keyGroup The key group, 'all' is default
 -- @return key (KEY_), state ('short','long','up')
 -- @usage
 -- device.displayMessage('Press key', 3)
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup)
-    local keyGroup = keyGroup or _M.keyGroup.all
-    local f = keyGroup.callback
+    local keyGroup = keyGroup or 'all'
 
-    _M.setKeyGroupCallback(keyGroup, getKeyCallback)
+    local f = _M.setKeyGroupCallback(keyGroup, getKeyCallback)
 
     getKeyState = ''
     getKeyPressed = nil
@@ -337,7 +336,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     _M.startDialog()
     while editing and _M.app.running do
-        key, state = _M.getKey(_M.keyGroup.keypad)  -- wait for a key press
+        key, state = _M.getKey('keypad')  -- wait for a key press
         if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
@@ -485,7 +484,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local ok = false
     _M.startDialog()
     while editing and _M.app.running do
-        key, state = _M.getKey(_M.keyGroup.keypad)
+        key, state = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
            editing = false
@@ -622,13 +621,12 @@ function _M.askOK(prompt, q, units, unitsOther)
         return true
     end
 
-    local f = _M.keyGroup.keypad.callback
     local prompt = prompt or ''
     local q = q or ''
     local u = units or 0
     local uo = unitsOther or 0
 
-    _M.setKeyGroupCallback(_M.keyGroup.keypad, askOKCallback)
+    local f = _M.setKeyGroupCallback('keypad', askOKCallback)
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
@@ -643,7 +641,7 @@ function _M.askOK(prompt, q, units, unitsOther)
         system.handleEvents()
     end
     _M.abortDialog()
-    _M.setKeyGroupCallback(_M.keyGroup.keypad, f)
+    _M.setKeyGroupCallback('keypad', f)
 
     _M.restoreBot()
     return askOKResult
@@ -688,7 +686,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
 
    _M.startDialog()
     while editing and _M.app.running do
-        key = _M.getKey(_M.keyGroup.keypad)
+        key = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
            editing = false
         elseif key == _M.KEY_DOWN then

@@ -57,16 +57,6 @@ local firstKey = true    -- flag to catch any garbage
 -- @field KEY_PWR_F3
 -- @field KEY_PWR_CANCEL
 
---- Key Groups.
---@table keygroups
--- @field keyGroup.all
--- @field keyGroup.primary
--- @field keyGroup.functions
--- @field keyGroup.keypad
--- @field keyGroup.numpad
--- @field keyGroup.cursor
--- @field keyGroup.extended
-
 _M.KEY_0                = 0x0000
 _M.KEY_1                = 0x0001
 _M.KEY_2                = 0x0002
@@ -108,49 +98,59 @@ local REG_APP_KEY_HANDLER  = 0x0325
 
 local keyID = nil
 
-_M.keyGroup = {}
-
 -- Be sure to update the ldoc table below to match the defined keyGroups
-_M.keyGroup.all         = {callback = nil}
-_M.keyGroup.primary     = {callback = nil}
-_M.keyGroup.functions   = {callback = nil}
-_M.keyGroup.keypad      = {callback = nil}
-_M.keyGroup.numpad      = {callback = nil}
-_M.keyGroup.cursor      = {callback = nil}
-_M.keyGroup.extended    = {callback = nil}
+local keyGroup = {
+    all         = {callback = nil},
+    primary     = {callback = nil},
+    functions   = {callback = nil},
+    keypad      = {callback = nil},
+    numpad      = {callback = nil},
+    cursor      = {callback = nil},
+    extended    = {callback = nil}
+}
+
+--- Key Groups.
+--@table keygroups
+-- @field all
+-- @field primary
+-- @field functions
+-- @field keypad
+-- @field numpad
+-- @field cursor
+-- @field extended
 
 local keyBinds = {
-    [_M.KEY_0]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_1]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_2]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_3]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_4]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_5]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_6]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_7]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_8]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_9]          = {_M.keyGroup.numpad, _M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_POWER]      = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_ZERO]       = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_TARE]       = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_SEL]         = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_F1]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
-    [_M.KEY_F2]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
-    [_M.KEY_F3]         = {_M.keyGroup.primary,_M.keyGroup.functions, _M.keyGroup.all},
-    [_M.KEY_PLUSMINUS]  = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_DP]         = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_CANCEL]     = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_UP]         = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_DOWN]       = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_OK]         = {_M.keyGroup.cursor,_M.keyGroup.keypad, _M.keyGroup.all},
-    [_M.KEY_SETUP]      = {_M.keyGroup.primary, _M.keyGroup.all},
-    [_M.KEY_PWR_ZERO]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_TARE]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_SEL ]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_F1  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_F2  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_F3  ]   = {_M.keyGroup.extended, _M.keyGroup.all},
-    [_M.KEY_PWR_CANCEL ]   = {_M.keyGroup.extended, _M.keyGroup.all}
+    [_M.KEY_0]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_1]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_2]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_3]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_4]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_5]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_6]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_7]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_8]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_9]              = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_POWER]          = { keyGroup.primary,                       keyGroup.all },
+    [_M.KEY_ZERO]           = { keyGroup.primary,                       keyGroup.all },
+    [_M.KEY_TARE]           = { keyGroup.primary,                       keyGroup.all },
+    [_M.KEY_SEL]            = { keyGroup.primary,                       keyGroup.all },
+    [_M.KEY_F1]             = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
+    [_M.KEY_F2]             = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
+    [_M.KEY_F3]             = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
+    [_M.KEY_PLUSMINUS]      = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_DP]             = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_CANCEL]         = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_UP]             = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_DOWN]           = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_OK]             = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
+    [_M.KEY_SETUP]          = { keyGroup.primary,                       keyGroup.all },
+    [_M.KEY_PWR_ZERO]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_TARE]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_SEL ]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_F1  ]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_F2  ]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_F3  ]       = { keyGroup.extended,                      keyGroup.all },
+    [_M.KEY_PWR_CANCEL ]    = { keyGroup.extended,                      keyGroup.all }
 }
 
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
@@ -327,8 +327,9 @@ end
 -- An individual key handler will override a group handler.  Likewise, the
 -- groups have their own priority order from the fine grained to the all
 -- encompassing.
--- @param keyGroup A keygroup given in keyGroup.*
+-- @param keyGroupName A keygroup name
 -- @param callback Function to run when there is an event on the keygroup
+-- @return The old key group callback
 -- Callback function parameters are key (.KEY_OK etc) and state ('short' or 'long')
 -- Return true in the callback to prevent the handling from being passed along to the next keygroup
 -- @usage
@@ -340,9 +341,12 @@ end
 --     end
 --     return true     -- key handled so don't send back to instrument
 -- end
--- device.setKeyGroupCallback(device.keyGroup.all, handleKey)
-function _M.setKeyGroupCallback(keyGroup, callback)
-    keyGroup.callback = callback
+-- device.setKeyGroupCallback('all', handleKey)
+function _M.setKeyGroupCallback(keyGroupName, callback)
+    local kg = private.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
+    local old = kg.callback
+    kg.callback = callback
+    return old
 end
 
 -------------------------------------------------------------------------------
@@ -385,5 +389,7 @@ deprecated.REG_GET_KEY          = REG_GET_KEY
 deprecated.REG_FLUSH_KEYS       = REG_FLUSH_KEYS
 deprecated.REG_APP_DO_KEYS      = REG_APP_DO_KEYS
 deprecated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
+
+deprecated.keyGroup             = keyGroup
 
 end
