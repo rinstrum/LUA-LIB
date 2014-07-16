@@ -38,7 +38,7 @@ local REG_SETP_PULSE_NUM    = 0xA412
 local REG_SETP_TIMING_DELAY = 0xA40C
 local REG_SETP_TIMING_ON    = 0xA40D
 
--- targets are stored in the product database rather than the setpoint one
+-- targets are stored in the product database rather than the settings one
 local REG_SETP_TARGET       = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
 local LOGIC_HIGH = 0
@@ -88,7 +88,7 @@ local timingMap = {
 -- @field alt_gross Setpoint uses the gross weight in secondary units
 -- @field alt_net Setpoint uses the net weight in secondary units
 -- @field alt_disp Setpoint uses the displayed weight in secondary units
--- @field piece Setpoint uses the peice count value
+-- @field piece Setpoint uses the piece count value
 -- @field reg Setpoint uses the value from the supplied register
 
 local SOURCE_GROSS      = 0
@@ -166,7 +166,7 @@ local NUM_SETP = 16
 
 -------------------------------------------------------------------------------
 -- Write the bit mask of the IOs, bits must first be enabled for comms control.
--- @param 32 bit mask of IOs
+-- @param outp 32 bit mask of IOs
 -- @see setOutputEnable
 -- @usage
 -- -- set IO3 on
@@ -182,7 +182,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Enable IOs for comms control.
--- @param 32 bit mask of IOs
+-- @param en 32 bit mask of IOs
 -- @see setOutputs
 -- @usage
 -- -- set IO3 on
