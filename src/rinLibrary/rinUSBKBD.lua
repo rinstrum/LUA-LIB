@@ -120,7 +120,7 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
             else
                 editVal = string.sub(editVal,1,-2)
             end
-         --   elseif key == _M.KEY_CANCEL then
+         --   elseif key == 'cancel' then
          --       editVal = def
          --     editing = false
 

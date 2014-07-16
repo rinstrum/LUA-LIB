@@ -30,7 +30,7 @@ local function F1Pressed(key, state)
     mode = 'menu'
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
+dwi.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -- Callback to handle F2 key event
@@ -39,7 +39,7 @@ local function F2Pressed(key, state)
     dwi.turnOnTimed(3,5.0)
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
+dwi.setKeyCallback('f2', F2Pressed)
 -------------------------------------------------------------------------------
 
 
@@ -53,7 +53,7 @@ local function pwrCancelPressed(key, state)
     end
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

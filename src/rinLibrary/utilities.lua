@@ -16,7 +16,7 @@ local lower = string.lower
 local min, max = math.min, math.max
 
 return function(private, deprecated)
-    local regMap = { [0] = 0 }
+    local regMap, regUnmap = { [0] = 0 }, { [0] = 0 }
 
 -------------------------------------------------------------------------------
 -- Check if a particular module or modules have been loaded.
@@ -87,7 +87,7 @@ return function(private, deprecated)
     function private.addRegister(reg, num)
         local r = lower(reg)
         regMap[r] = num
-        regMap[num] = r
+        regUnmap[num] = r
     end
 
 -------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ return function(private, deprecated)
 -- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        local n = private.convertValueToName(r, regMap)
+        local n = private.convertValueToName(r, regUnmap)
         if n == nil then
             dbg.warn('rinLibrary: ', 'unknown register '..tostring(r))
             a[nil] = nil

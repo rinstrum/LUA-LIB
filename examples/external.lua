@@ -24,7 +24,7 @@ local function pwrCancelPressed(key, state)
     end 
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================

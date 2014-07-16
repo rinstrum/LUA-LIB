@@ -398,7 +398,7 @@ end
 -- device.init()
 function _M.init()
     _M.renewStreamData()
-    _M.sendKey(_M.KEY_CANCEL, 'long')
+    _M.sendKey('cancel', 'long')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

@@ -319,7 +319,7 @@ local function playOkay(key, st)
     end
     return true
 end
-dwi.setKeyCallback(dwi.KEY_OK, playOkay)
+dwi.setKeyCallback('ok', playOkay)
 
 
 -------------------------------------------------------------------------------
@@ -332,7 +332,7 @@ local function exitPressed(key, state)
     end
     return true
 end
-dwi.setKeyCallback(dwi.KEY_CANCEL, exitPressed)
+dwi.setKeyCallback('cancel', exitPressed)
 
 
 -------------------------------------------------------------------------------
@@ -383,7 +383,7 @@ end
 -- An individual key handler overrides a key group handler anbd we do't want
 -- to see the zero key.
 dwi.setKeyGroupCallback('numpad', numberPressed)
-dwi.setKeyCallback(dwi.KEY_0, function(k, s) return true end)
+dwi.setKeyCallback(0, function(k, s) return true end)
 
 -- Let's ignore all the rest of the keys.  The 'all' key group is the very
 -- last one looked for, so a handler here is only invoked when all else

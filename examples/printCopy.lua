@@ -48,7 +48,7 @@ local function F3Pressed(key, state)
     end
    return true
 end
-dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
+dwi.setKeyCallback('f3', F3Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ local function pwrCancelPressed(key, state)
     end
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================

@@ -59,9 +59,6 @@ end
 -- Callback to handle F1 key event 
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
-    if key == dwi.KEY_PWR_CANCEL and state == 'long' then 
-        rinApp.running = false
-    end
     return true     -- key handled so don't send back to instrument
 end
 dwi.setKeyGroupCallback('all', handleKey)
@@ -75,7 +72,7 @@ local function pwrCancelPressed(key, state)
     end 
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================

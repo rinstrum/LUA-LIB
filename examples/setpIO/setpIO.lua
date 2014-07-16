@@ -162,7 +162,7 @@ local function F1Pressed(key, state)
     dwi.RTC.min = 59    
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
+dwi.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -171,7 +171,7 @@ local function F2Pressed(key, state)
     target = dwi.edit('TARGET 5',target,'number')
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F2, F2Pressed)
+dwi.setKeyCallback('f2', F2Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -181,7 +181,7 @@ local function F3Pressed(key, state)
     dwi.releaseOutput(SETP_FILL)  -- let R420 drive the fill setpoint)
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F3, F3Pressed)
+dwi.setKeyCallback('f3', F3Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -193,7 +193,7 @@ local function pwrCancelPressed(key, state)
     end 
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================
@@ -212,7 +212,7 @@ dwi.enableOutput(OVER_OUTPUT,
 dwi.enableOutput(SETP_FILL)     -- control SETP_FILL from Lua for now
 dwi.turnOff(SETP_FILL)
                  
-dwi.sendKey(dwi.KEY_CANCEL,'long')
+dwi.sendKey('cancel','long')
 --=============================================================================
 -- Main Application Loop
 --=============================================================================

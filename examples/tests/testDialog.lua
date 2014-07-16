@@ -24,7 +24,7 @@ dbg.info(' Value: ', id)
 -- Prompt user to enter the number of times to sound buzzer, validate,
 -- and then buzz after 0.5 second delay
 local val = dwi.edit('BUZZ',2)
-if dwi.askOK('OK?',string.format('BUZZ = %d',val)) == dwi.KEY_OK then   -- confirm buzz amount
+if dwi.askOK('OK?',string.format('BUZZ = %d',val)) == 'ok' then   -- confirm buzz amount
    dwi.delay(0.500)
    dwi.buzz(val)
 end
@@ -48,12 +48,12 @@ dbg.info('',dwi.editReg(0x1121,true))
 -------------------------------------------------------------------------------
 local function F1Pressed(key, state)
     dbg.info('','F1 Pressed')
-    if (dwi.askOK('OK?','CONT') == dwi.KEY_OK) then
+    if (dwi.askOK('OK?','CONT') == 'ok') then
         dwi.buzz(3)
     end
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
+dwi.setKeyCallback('f1', F1Pressed)
 
 -------------------------------------------------------------------------------
 -- Handler to capture PWR+ABORT key and end program
@@ -65,11 +65,11 @@ local function pwrCancelPressed(key, state)
     end
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 
 while rinApp.running do
   local k = dwi.getKey()
-  if k == dwi.KEY_OK then
+  if k == 'ok' then
      dwi.buzz(2)
   end
   system.handleEvents()           -- handleEvents runs the event handlers

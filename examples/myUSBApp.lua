@@ -123,7 +123,7 @@ local function F1Pressed(key, state)
     print (usbKBD.edit(dwi,'NAME','FRED','string'))
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback(dwi.KEY_F1, F1Pressed)
+dwi.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ local function pwrCancelPressed(key, state)
     end
     return false
 end
-dwi.setKeyCallback(dwi.KEY_PWR_CANCEL, pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================

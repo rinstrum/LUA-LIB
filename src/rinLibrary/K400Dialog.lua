@@ -25,8 +25,6 @@ return function (_M, private, deprecated)
 local REG_EDIT_REG = 0x0320
 
 local dialogRunning = 0
-local getKeyPressed = 0
-local getKeyState = ''
 local editing = false
 
 local sEditVal = ' '        -- default edit value for sEdit()
@@ -76,17 +74,6 @@ end
 function _M.startDialog()
     dialogRunning = dialogRunning + 1
     private.bumpIdleTimer()
-end
-
--------------------------------------------------------------------------------
--- General callback to cache the pressed key.
--- @param key The key that was activated
--- @param state The length of the key activation
--- @local
-local function getKeyCallback(key, state)
-    getKeyPressed = key
-    getKeyState = state
-    return true
 end
 
 -------------------------------------------------------------------------------
@@ -146,27 +133,30 @@ end
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default
--- @return key (KEY_), state ('short','long','up')
+-- @return key
+-- @return state ('short','long','up')
 -- @usage
 -- device.displayMessage('Press key', 3)
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup)
     local keyGroup = keyGroup or 'all'
+    local getKeyState, getKeyPressed
 
-    local f = _M.setKeyGroupCallback(keyGroup, getKeyCallback)
+    local f = _M.setKeyGroupCallback(keyGroup,
+        function(key, state)
+            getKeyPressed = key
+            getKeyState = state
+        end)
 
-    getKeyState = ''
-    getKeyPressed = nil
     _M.startDialog()
-    while _M.dialogRunning() and _M.app.running and getKeyState == '' do
+    while _M.dialogRunning() and _M.app.running and not getKeyState do
         system.handleEvents()
     end
     _M.abortDialog()
     _M.setKeyGroupCallback(keyGroup, f)
 
     return getKeyPressed, getKeyState
-
- end
+end
 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
@@ -215,16 +205,16 @@ end
 -- The first press results in the first character, the second the second and
 -- so forth.
 local keyMapping = {
-    [_M.KEY_1] = "$/\\1",
-    [_M.KEY_2] = "ABC2",
-    [_M.KEY_3] = "DEF3",
-    [_M.KEY_4] = "GHI4",
-    [_M.KEY_5] = "JKL5",
-    [_M.KEY_6] = "MNO6",
-    [_M.KEY_7] = "PQRS7",
-    [_M.KEY_8] = "TUV8",
-    [_M.KEY_9] = "WXYZ9",
-    [_M.KEY_0] = " 0"
+    [1] = "$/\\1",
+    [2] = "ABC2",
+    [3] = "DEF3",
+    [4] = "GHI4",
+    [5] = "JKL5",
+    [6] = "MNO6",
+    [7] = "PQRS7",
+    [8] = "TUV8",
+    [9] = "WXYZ9",
+    [0] = " 0"
 }
 
 -----------------------------------------------------------------------------------------------
@@ -346,7 +336,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
            editing = false
            sEditVal = default
         elseif state == "short" then                            -- short key presses for editing
-            if key >= _M.KEY_0 and key <= _M.KEY_9 then     -- keys 0 to 9 on the keypad
+            if type(key) == 'number' then     -- keys 0 to 9 on the keypad
 --              print('i:' .. sEditIndex .. ' l:' .. sLen)   -- debug
                 if key == pKey then         -- if same as the previous key pressed
                     presses = presses + 1   -- add 1 to number of presses of this key
@@ -360,21 +350,21 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 --              print('i:' .. sEditIndex)    -- debug
                 strTab[sEditIndex] = keyChar(key, presses)    -- update the string (table) with the new character
             --
-            elseif (key == _M.KEY_DP) and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
+            elseif (key == 'dp') and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
                 if (pKey and (sEditIndex >= sLen)) or (strTab[sEditIndex] == " ") then    -- if not first key pressed and not space at end
                     sEditIndex = sEditIndex + 1           -- new key pressed, increment the character position
                 end
                 strTab[sEditIndex] = "."                 -- update the string (table) with the new character
                 pKey = key                                  -- remember the key pressed
             --
-            elseif key == _M.KEY_UP then                    -- up key, previous character
+            elseif key == 'up' then                    -- up key, previous character
                 sEditIndex = sEditIndex - 1               -- decrease index
                 if sEditIndex < 1 then                       -- if at first character
                     sEditIndex = sLen                            -- go to last character
                 end
                 pKey = key                                  -- remember the key pressed
             --
-            elseif key == _M.KEY_DOWN then          -- down key, next character
+            elseif key == 'down' then          -- down key, next character
                 sEditIndex = sEditIndex + 1       -- increment index
                 if sEditIndex > sLen then            -- if at last character
                     if strTab[sLen] ~= " " then         -- and last character is not a space
@@ -394,7 +384,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 end
                 pKey = key                                  -- remember the key pressed
             --
-            elseif key == _M.KEY_PLUSMINUS then     -- plus/minus key - insert a character
+            elseif key == 'plusminus' then     -- plus/minus key - insert a character
                 if sLen < maxLen then
                     sLen = sLen + 1                     -- increase the length of the string
                 end
@@ -404,11 +394,11 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 strTab[sEditIndex] = " "             -- insert a space
                 pKey = key                          -- remember the key pressed
             --
-            elseif key == _M.KEY_OK then        -- OK key
+            elseif key == 'ok' then        -- OK key
                 editing = false                      -- finish editing
                 ok = true                           -- accept changes
             --
-            elseif key == _M.KEY_CANCEL then    -- cancel key
+            elseif key == 'cancel' then    -- cancel key
                 if sEditIndex < sLen then
                     for i = sEditIndex, sLen-1 do    -- delete current character
                         strTab[i] = strTab[i+1]         -- shuffle characters along
@@ -419,7 +409,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 pKey = key                          -- remember the key pressed
             end
         elseif state == "long" then         -- long key press only for cancelling editing
-            if key == _M.KEY_CANCEL then    -- cancel key
+            if key == 'cancel' then    -- cancel key
                 sEditVal = default               -- reinstate default string
                 editing = false                     -- finish editing
             end
@@ -490,14 +480,14 @@ function _M.edit(prompt, def, typ, units, unitsOther)
            editing = false
            sEditVal = def
         elseif state == 'short' then
-            if key >= _M.KEY_0 and key <= _M.KEY_9 then
+            if type(key) == 'number' then
                 if first then
                     editVal = tostring(key)
                 else
                     editVal = editVal .. key
                 end
                 first = false
-            elseif key == _M.KEY_DP and editType ~= 'integer' then
+            elseif key == 'dp' and editType ~= 'integer' then
                 if editType == 'number' then
                     if first or string.len(editVal) == 0 then
                        editVal = '0.'
@@ -508,13 +498,13 @@ function _M.edit(prompt, def, typ, units, unitsOther)
                 else
                    editVal = editVal .. '.'
                 end
-            elseif key == _M.KEY_OK then
+            elseif key == 'ok' then
                 editing = false
                  if string.len(editVal) == 0 then
                     editVal = def
                  end
                 ok = true
-            elseif key == _M.KEY_CANCEL then
+            elseif key == 'cancel' then
                 if string.len(editVal) == 0 then
                     editVal = def
                     editing = false
@@ -523,7 +513,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
                 end
             end
         elseif state == 'long' then
-            if key == _M.KEY_CANCEL then
+            if key == 'cancel' then
                 editVal = def
                 editing = false
             end
@@ -569,7 +559,7 @@ function _M.editReg(register, prompt)
         end
         _M.delay(0.050)
         if not _M.dialogRunning() or not _M.app.running then
-            _M.sendKey(_M.KEY_CANCEL,'long')
+            _M.sendKey('cancel','long')
         end
     end
     _M.abortDialog()
@@ -598,24 +588,24 @@ end
 -- @param q string to put on bottom left LCD
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
--- @return either KEY_OK or KEY_CANCEL
+-- @return either 'ok' or 'cancel'
 -- @usage
--- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED')
+-- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
-    local askOKWaiting = false
-    local askOKResult = 0
+    local askOKWaiting = true
+    local askOKResult = 'cancel'
 
     local function askOKCallback(key, state)
         if state ~= 'short' then
             return false
         end
 
-        if key == _M.KEY_OK then
+        if key == 'ok' then
             askOKWaiting = false
-            askOKResult = _M.KEY_OK
-        elseif key == _M.KEY_CANCEL then
+            askOKResult = 'ok'
+        elseif key == 'cancel' then
             askOKWaiting = false
-            askOKResult = _M.KEY_CANCEL
+            askOKResult = 'cancel'
         end
 
         return true
@@ -634,8 +624,6 @@ function _M.askOK(prompt, q, units, unitsOther)
     _M.writeBotUnits(0,0)
     _M.writeBotUnits(u,uo)
 
-    askOKWaiting = true
-    askOKResult = _M.KEY_CANCEL
    _M.startDialog()
     while _M.dialogRunning() and askOKWaiting and _M.app.running do
         system.handleEvents()
@@ -650,7 +638,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a list of options using
--- arrow keys and KEY_OK
+-- arrow keys and ok
 -- @param prompt string to put on bottom right LCD
 -- @param options table of option strings
 -- @param def default selection string.byte
@@ -689,7 +677,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
         key = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
            editing = false
-        elseif key == _M.KEY_DOWN then
+        elseif key == 'down' then
             index = index + 1
             if index > #options then
               if loop then
@@ -698,7 +686,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
                   index = #options
                end
             end
-        elseif key == _M.KEY_UP then
+        elseif key == 'up' then
             index = index - 1
             if index <= 0 then
                if loop then
@@ -707,10 +695,10 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
                   index = 1
                end
             end
-        elseif key == _M.KEY_OK then
+        elseif key == 'ok' then
             sel = options[index]
             editing = false
-        elseif key == _M.KEY_CANCEL then
+        elseif key == 'cancel' then
           editing = false
       end
       _M.writeBotLeft(string.upper(options[index]))
