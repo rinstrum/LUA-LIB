@@ -131,6 +131,53 @@ private.addRegister('select_product_rename',    0xB012)
 -- @field wrfinaldec Write data in decimal format
 -- @field ex Execute with data as execute parameter
 
+-- Register Types
+local TYP_CHAR             = 0x00
+local TYP_UCHAR            = 0x01
+local TYP_SHORT            = 0x02
+local TYP_USHORT           = 0x03
+local TYP_LONG             = 0x04
+local TYP_ULONG            = 0x05
+local TYP_STRING           = 0x06
+local TYP_OPTION           = 0x07
+local TYP_MENU             = 0x08
+local TYP_WEIGHT           = 0x09
+local TYP_BLOB             = 0x0A
+local TYP_EXECUTE          = 0x0B
+local TYP_BITFIELD         = 0x0C
+
+local typeMap = {
+    [TYP_CHAR]     = 'char',
+    [TYP_UCHAR]    = 'uchar',
+    [TYP_SHORT]    = 'short',
+    [TYP_USHORT]   = 'ushort',
+    [TYP_LONG]     = 'long',
+    [TYP_ULONG]    = 'ulong',
+    [TYP_STRING]   = 'string',
+    [TYP_OPTION]   = 'option',
+    [TYP_MENU]     = 'menu',
+    [TYP_WEIGHT]   = 'weight',
+    [TYP_BLOB]     = 'blob',
+    [TYP_EXECUTE]  = 'execute',
+    [TYP_BITFIELD] = 'bitfield'
+}
+
+--- Register Types.
+-- @table rinType
+-- @field char Eight bit character
+-- @field uchar Eight bit unsigned character
+-- @field short Sixteen bit signed integer
+-- @field ushort Sixteen bit unsigned integer
+-- @field long Thirty two bit signed integer
+-- @field ulong Thirty two bit unsigned integer
+-- @field string String
+-- @field option Option
+-- @field menu Menu
+-- @field weight Weight
+-- @field blob Blob
+-- @field execute Execute
+-- @field bitfield Bit Field
+
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
 -- @param cmd command
@@ -266,6 +313,45 @@ function _M.exReg(reg, data, timeout)
     _M.sendRegWait('ex', reg, data, timeout)
 end
 
+-------------------------------------------------------------------------------
+-- Called to read a register value and return value and dp position
+-- Used to work out the dp position of a register value so subsequent
+-- reads can use the hexadecimal format and convert locally using
+-- toFloat
+-- @function getRegDP
+-- @param reg  register to read
+-- @return register value number
+-- @return dp position
+-- @local
+function private.getRegDP(reg)
+    local data, err = _M.sendRegWait('rdlit', reg)
+    if err then
+        dbg.error('getDP: ', reg, err)
+        return nil, nil
+    else
+        local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
+        local dp = string.find(tmp,'%.')
+        if not dp then
+            dp = 0
+        else
+            dp =  string.len(tmp) - dp
+        end
+
+        return tonumber(tmp), dp
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Called to read a register's type
+-- @function getRegType
+-- @param reg Register to query
+-- @return The type of the register
+-- @local
+function private.getRegType(reg)
+    local rdtype = _M.sendRegWait('rdtype', reg)
+    return typeMap[tonumber(rdtype, 16)]
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 for _, v in ipairs({
@@ -289,7 +375,22 @@ for _, v in ipairs({
         }) do
     private.registerDeprecated(v)
 end
+
 deprecated.literalToFloat = private.literalToFloat
 deprecated.toFloat = private.toFloat
+
+deprecated.TYP_CHAR     = TYP_CHAR
+deprecated.TYP_UCHAR    = TYP_UCHAR
+deprecated.TYP_SHORT    = TYP_SHORT
+deprecated.TYP_USHORT   = TYP_USHORT
+deprecated.TYP_LONG     = TYP_LONG
+deprecated.TYP_ULONG    = TYP_ULONG
+deprecated.TYP_STRING   = TYP_STRING
+deprecated.TYP_OPTION   = TYP_OPTION
+deprecated.TYP_MENU     = TYP_MENU
+deprecated.TYP_WEIGHT   = TYP_WEIGHT
+deprecated.TYP_BLOB     = TYP_BLOB
+deprecated.TYP_EXECUTE  = TYP_EXECUTE
+deprecated.TYP_BITFIELD = TYP_BITFIELD
 
 end

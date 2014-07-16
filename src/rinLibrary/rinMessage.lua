@@ -81,43 +81,6 @@ for k, v in pairs(commandMap) do
     commandUnmap[v] = k
 end
 
--- Register Types
-_M.TYP_CHAR             = 0x00
-_M.TYP_UCHAR            = 0x01
-_M.TYP_SHORT            = 0x02
-_M.TYP_USHORT           = 0x03
-_M.TYP_LONG             = 0x04
-_M.TYP_ULONG            = 0x05
-_M.TYP_STRING           = 0x06
-_M.TYP_OPTION           = 0x07
-_M.TYP_MENU             = 0x08
-_M.TYP_WEIGHT           = 0x09
-_M.TYP_BLOB             = 0x0A
-_M.TYP_EXECUTE          = 0x0B
-_M.TYP_BITFIELD         = 0x0C
-
--- Unused currently
--- _M.typStrings =
--- {
---   [0x00] = "char",
---   [0x01] = "unsigned char",
---   [0x02] = "short",
---   [0x03] = "unsigned short",
---   [0x04] = "long",
---   [0x05] = "unsigned long",
---   [0x06] = "string",
---   [0x07] = "option",
---   [0x08] = "menu",
---   [0x09] = "weight",
---   [0x0A] = "blob",
---   [0x0B] = "execute",
---   [0x0C] = "bit field",
---   [0x0D] = "unknown",
---   [0x0E] = "unknown",
---   [0x0F] = "unknown",
---   [0x10] = "unknown" ,
--- }
-
 --  Errors
 local ERR_UNKNOWN          = 0xC000
 local ERR_NOTIMPLMN        = 0xA000

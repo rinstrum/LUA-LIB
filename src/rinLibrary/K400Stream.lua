@@ -40,55 +40,50 @@ local STM_FREQ_AUTO3    = 3
 local STM_FREQ_AUTO1    = 4
 local STM_FREQ_ONCHANGE = 5
 
-local frequencyTable = setmetatable({
-        manual   = STM_FREQ_MANUAL,     [STM_FREQ_MANUAL]   = STM_FREQ_MANUAL,
-        auto     = STM_FREQ_AUTO,       [STM_FREQ_AUTO]     = STM_FREQ_AUTO,
-        auto10   = STM_FREQ_AUTO10,     [STM_FREQ_AUTO10]   = STM_FREQ_AUTO10,
-        auto3    = STM_FREQ_AUTO3,      [STM_FREQ_AUTO3]    = STM_FREQ_AUTO3,
-        auto1    = STM_FREQ_AUTO1,      [STM_FREQ_AUTO1]    = STM_FREQ_AUTO1,
-        onchange = STM_FREQ_ONCHANGE,   [STM_FREQ_ONCHANGE] = STM_FREQ_ONCHANGE,
-    }, { __index = function(t, k)
-                       dbg.warn("K400: unknown stream frequency", k)
-                       return STM_FREQ_ONCHANGE
-                   end
-})
+local frequencyTable = {
+    manual   = STM_FREQ_MANUAL,
+    auto     = STM_FREQ_AUTO,
+    auto10   = STM_FREQ_AUTO10,
+    auto3    = STM_FREQ_AUTO3,
+    auto1    = STM_FREQ_AUTO1,
+    onchange = STM_FREQ_ONCHANGE,
+}
 
 local freqLib = 'onchange'
 local freqUser = 'onchange'
 
-local availRegistersUser = {
-                        [REG_STREAMREG1]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0,
-                                              typ = msg.TYP_LONG},
-                        [REG_STREAMREG2]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0,
-                                              typ = msg.TYP_LONG},
-                        [REG_STREAMREG3]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0,
-                                              typ = msg.TYP_LONG},
-                        [REG_STREAMREG4]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0,
-                                              typ = msg.TYP_LONG},
-                        [REG_STREAMREG5]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0,
-                                              typ = msg.TYP_LONG}
-                    }
-local streamRegistersUser = {}
+local availRegistersUser, streamRegistersUser = {}, {}
+local availRegistersLib, streamRegistersLib = {}, {}
+
+for _, r in pairs({
+    REG_STREAMREG1, REG_STREAMREG2, REG_STREAMREG3,
+    REG_STREAMREG4, REG_STREAMREG5
+}) do
+    availRegistersUser[r] = {   reg = 0,
+                                callback = nil,
+                                onChange = 'change',
+                                lastData = '',
+                                dp = 0,
+                                typ = 'long'
+                              }
+    availRegistersLib[r] = {    reg = 0,
+                                callback = nil,
+                                onChange = 'change',
+                                lastData = '',
+                                dp = 0
+                              }
+end
+
+
+-----------------------------------------------------------------------------
+-- Convert a frequency string to a frequency value
+-- @param f Frequency string
+-- @return Frequency value
+-- @local
+local function convertFrequency(f)
+    return private.convertNameToValue(f, frequencyTable, STM_FREQ_ONCHANGE,
+                                        STM_FREQ_MANUAL, STM_FREQ_ONCHANGE)
+end
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
@@ -112,7 +107,7 @@ local function streamCallback(data, err)
             if substr and substr ~= "" then
                 if (v.onChange ~= 'change') or (v.lastData ~= substr) then
                      v.lastData = substr
-                     if v.typ == msg.TYP_WEIGHT and _M.isHiRes() then
+                     if v.typ == 'weight' and _M.isHiRes() then
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
                      else
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
@@ -152,17 +147,16 @@ function _M.addStream(streamReg, callback, onChange)
     end
 
     _, availRegistersUser[availReg].dp = private.getRegDP(reg)
-    local typ = tonumber(_M.sendRegWait('rdtype', reg), 16)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
     availRegistersUser[availReg].onChange = onChange
     availRegistersUser[availReg].lastData = ''
-    availRegistersUser[availReg].typ = typ
+    availRegistersUser[availReg].typ = private.getRegType(reg)
     streamRegistersUser[reg] = availReg
 
     _M.sendReg('wrfinalhex',
-                bit32.bor(REG_LUAUSER,REG_STREAMMODE),
-                frequencyTable[freqUser])
+                bit32.bor(REG_LUAUSER, REG_STREAMMODE),
+                convertFrequency(freqUser))
     _M.sendReg('wrfinaldec',
                 bit32.bor(REG_LUAUSER, availReg),
                 reg)
@@ -191,35 +185,6 @@ function _M.removeStream(streamReg)
     availRegistersUser[availReg].reg = 0
     streamRegistersUser[reg] = nil
 end
-
-local availRegistersLib = {
-                        [REG_STREAMREG1]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0},
-                        [REG_STREAMREG2]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0},
-                        [REG_STREAMREG3]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0},
-                        [REG_STREAMREG4]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0},
-                        [REG_STREAMREG5]= {reg = 0,
-                                              callback = nil,
-                                              onChange = 'change',
-                                              lastData = '',
-                                              dp = 0}
-                    }
-local streamRegistersLib = {}
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the callbacks for Library streams
@@ -286,7 +251,7 @@ function private.addStreamLib(streamReg, callback, onChange)
 
     _M.sendReg('wrfinalhex',
                 bit32.bor(REG_LUALIB, REG_STREAMMODE),
-                frequencyTable[freqLib])
+                convertFrequency(freqLib))
     _M.sendReg('wrfinaldec',
                 bit32.bor(REG_LUALIB, availReg),
                 reg)
@@ -415,13 +380,26 @@ deprecated.REG_LUAUSER       = REG_LUAUSER
 
 deprecated.STM_START         = STM_START
 deprecated.STM_STOP          = STM_STOP
-
 deprecated.STM_FREQ_MANUAL   = STM_FREQ_MANUAL
 deprecated.STM_FREQ_AUTO     = STM_FREQ_AUTO
 deprecated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
 deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
 deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
 deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
+
+deprecated.TYPE_CHAR         = 'char'
+deprecated.TYPE_UCHAR        = 'uchar'
+deprecated.TYPE_SHORT        = 'short'
+deprecated.TYPE_USHORT       = 'ushort'
+deprecated.TYPE_LONG         = 'long'
+deprecated.TYPE_ULONG        = 'ulong'
+deprecated.TYPE_STRING       = 'string'
+deprecated.TYPE_OPTION       = 'option'
+deprecated.TYPE_MENU         = 'menu'
+deprecated.TYPE_WEIGHT       = 'weight'
+deprecated.TYPE_BLOB         = 'blob'
+deprecated.TYPE_EXECUTE      = 'execute'
+deprecated.TYPE_BITFIELD     = 'bitfield'
 
 deprecated.addStreamLib      = private.addStreamLib
 deprecated.removeStreamLib   = private.removeStreamLib
