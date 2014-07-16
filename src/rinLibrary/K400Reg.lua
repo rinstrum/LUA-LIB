@@ -18,8 +18,8 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-private.addRegister('KEYBUFFER',    0x0008)
-private.addRegister('LCD',          0x0009)
+private.addRegister('keybuffer',    0x0008)
+private.addRegister('lcd',          0x0009)
 
 --- Instrument Reading Registers.
 --@table rdgRegisters
@@ -287,7 +287,7 @@ for _, v in ipairs({
             'select_product_name', 'select_product_no',
             'select_product_rename'
         }) do
-    deprecated['REG_'..string.upper(v)] = private.getRegisterNumber(v)
+    private.registerDeprecated(v)
 end
 deprecated.literalToFloat = private.literalToFloat
 deprecated.toFloat = private.toFloat

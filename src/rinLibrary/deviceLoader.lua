@@ -21,7 +21,7 @@ return function (device, modules)
                     }
 
     -- Populate the utility functions
-    require('rinLibrary.utilities')(private)
+    require('rinLibrary.utilities')(private, deprecated)
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
     -- Set up so that duplicate definitions are a fatal error.

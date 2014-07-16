@@ -15,7 +15,7 @@ local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
 local lower = string.lower
 local min, max = math.min, math.max
 
-return function(private)
+return function(private, deprecated)
     local regMap = { [0] = 0 }
 
 -------------------------------------------------------------------------------
@@ -141,5 +141,16 @@ return function(private)
             a[nil] = nil
         end
         return n
+    end
+
+-------------------------------------------------------------------------------
+-- Register a deprecated register name and value.
+-- @function registerDeprecated
+-- @param reg Register name
+-- @local
+    function private.registerDeprecated(reg)
+        -- Have to rawset this to avoid hitting the set register capture
+        -- function that is installed in the deprecated table.
+        rawset(deprecated, 'REG_' .. string.upper(reg), private.getRegisterNumber(reg))
     end
 end
