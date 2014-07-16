@@ -13,6 +13,7 @@ examples={          -- We should be able to wildcard this.
     'examples/myApp.lua',
     'examples/myCalApp.lua',
     'examples/myUSBApp.lua',
+    'examples/onearmedbandit.lua',
     'examples/printCopy.lua',
     'examples/setpIO/setpIO.lua',
 }

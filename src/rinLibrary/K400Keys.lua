@@ -216,7 +216,7 @@ local function keyCallback(data, err)
        end
 
       if not handled then
-          for i=1,#groups do
+          for i=1, #groups do
             if groups[i].callback then
                 if runningKeyCallback == groups[i].callback then
                     dbg.warn('Attempt to call Key Group Event Handler recursively : ', key)
