@@ -228,7 +228,7 @@ end
 -- @param f Value to update it with
 -- @param n Name of the field
 -- @param l Lowest legal value
--- @param u Highest leval value
+-- @param u Highest legal value
 -- @local
 local function writeRTC(r, f, n, l, u)
     local x = tonumber(f)

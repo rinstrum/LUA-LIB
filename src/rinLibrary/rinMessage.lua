@@ -310,7 +310,7 @@ end
 -- Set your own routine to handle errors reported from the instrument.
 -- The user error handling function should take arguments:
 --      Address, Command, Register, Data, Err String.
--- @param errHandler Function for handling errors,
+-- @param eh Function for handling errors,
 -- @return previously registered handler
 -- @usage
 -- local msg = require "rinLibrary.rinMessage"

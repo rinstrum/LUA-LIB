@@ -233,7 +233,7 @@ end
 -- @return err error string if error received, nil otherwise
 -- @usage
 -- print('serial number is', device.readReg('SerialNo'))
-function _M.readReg(reg)
+function _M.readReg(reg, timeout)
     local data, err
 
     data, err = _M.sendRegWait('rdlit', reg, nil, timeout)
