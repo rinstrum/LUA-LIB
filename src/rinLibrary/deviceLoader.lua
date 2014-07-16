@@ -31,7 +31,6 @@ return function (device, modules)
             function (t, k, v)
                 if kt[k] == nil then
                     kt[k] = v
-                    private.regPopulate(k, v)
                 else
                     dbg.fatal(deviceColon, "redefinition of ".. k .. " as", v)
                     os.exit(1)
