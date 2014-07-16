@@ -35,7 +35,7 @@ end
 dwi.setSerBCallback(printHandler)
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event
+-- Callback to handle F3 key event
 local function F3Pressed(key, state)
    dbg.info('Copy Printed')
    if #printCopy > 0 then
