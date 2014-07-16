@@ -446,6 +446,7 @@ deprecated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
 
 deprecated.keyGroup             = keyGroup
 
+-- Use names not code here so comparison outside are possible.
 deprecated.KEY_0            = 0
 deprecated.KEY_1            = 1
 deprecated.KEY_2            = 2
