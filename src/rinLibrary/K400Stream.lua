@@ -146,7 +146,7 @@ function _M.addStream(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _, availRegistersUser[availReg].dp = private.getRegDP(reg)
+    availRegistersUser[availReg].dp = private.getRegDecimalPlaces(reg)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
     availRegistersUser[availReg].onChange = onChange
@@ -241,7 +241,7 @@ function private.addStreamLib(streamReg, callback, onChange)
         return nil, "no more registers available"
     end
 
-    _, availRegistersLib[availReg].dp = private.getRegDP(reg)
+    availRegistersLib[availReg].dp = private.getRegDecimalPlaces(reg)
     availRegistersLib[availReg].reg = reg
     availRegistersLib[availReg].callback = callback
     availRegistersLib[availReg].onChange = onChange

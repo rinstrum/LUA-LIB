@@ -14,6 +14,9 @@ local timers = require 'rinSystem.rinTimers.Pack'
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 
+local lpeg = require "lpeg"
+local locale, P, S = lpeg.locale(), lpeg.P, lpeg.S
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -178,6 +181,10 @@ local typeMap = {
 -- @field execute Execute
 -- @field bitfield Bit Field
 
+-- Pattern to ease the computation of the number of decimal places in a value
+local dpCount
+local dpPattern = S('+-')^-1 * locale.space^0 * locale.digit^0 * (P'.' * (locale.digit^0 / function(s) dpCount = #s end))^-1
+
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
 -- @param cmd command
@@ -314,30 +321,21 @@ function _M.exReg(reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------
--- Called to read a register value and return value and dp position
--- Used to work out the dp position of a register value so subsequent
--- reads can use the hexadecimal format and convert locally using
--- toFloat
--- @function getRegDP
--- @param reg  register to read
--- @return register value number
--- @return dp position
+-- Called to read a register value and work out how many decimal places the
+-- value contains.
+-- @function getRegDecimalPlaces
+-- @param reg Register to read
+-- @return Decimal places
 -- @local
-function private.getRegDP(reg)
+function private.getRegDecimalPlaces(reg)
     local data, err = _M.sendRegWait('rdlit', reg)
     if err then
-        dbg.error('getDP: ', reg, err)
-        return nil, nil
+        dbg.error('getRegDecimalPlaces: ', reg, err)
+        return nil
     else
-        local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
-        local dp = string.find(tmp,'%.')
-        if not dp then
-            dp = 0
-        else
-            dp =  string.len(tmp) - dp
-        end
-
-        return tonumber(tmp), dp
+        dpCount = 0
+        dpPattern:match(data)
+        return dpCount
     end
 end
 
@@ -392,5 +390,33 @@ deprecated.TYP_WEIGHT   = TYP_WEIGHT
 deprecated.TYP_BLOB     = TYP_BLOB
 deprecated.TYP_EXECUTE  = TYP_EXECUTE
 deprecated.TYP_BITFIELD = TYP_BITFIELD
+
+-------------------------------------------------------------------------------
+-- Called to read a register value and return value and dp position
+-- Used to work out the dp position of a register value so subsequent
+-- reads can use the hexadecimal format and convert locally using
+-- toFloat
+-- @function getRegDP
+-- @param reg  register to read
+-- @return register value number
+-- @return dp position
+-- @local
+function deprecated.getRegDP(reg)
+    local data, err = _M.sendRegWait('rdlit', reg)
+    if err then
+        dbg.error('getDP: ', reg, err)
+        return nil, nil
+    else
+        local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
+        local dp = string.find(tmp,'%.')
+        if not dp then
+            dp = 0
+        else
+            dp =  string.len(tmp) - dp
+        end
+
+        return tonumber(tmp), dp
+    end
+end
 
 end

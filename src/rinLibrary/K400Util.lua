@@ -302,7 +302,6 @@ deprecated.REG_SOFTMODEL            = REG_SOFTMODEL
 deprecated.REG_SOFTVER              = REG_SOFTVER
 deprecated.REG_SERIALNO             = private.REG_SERIALNO
 
-deprecated.getRegDP = private.getRegDP
 deprecated.readSettings = readSettings
 deprecated.saveSettings = private.saveSettings
 deprecated.system = system
