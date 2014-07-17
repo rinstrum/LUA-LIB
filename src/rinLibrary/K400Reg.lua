@@ -59,52 +59,6 @@ private.addRegister('rawadc',       0x002D)
 private.addRegister('altnet',       0x002E)
 private.addRegister('fullscale',    0x002F)
 
---- Instrument User Variables.
---@table usrRegisters
--- @field userid_name1 Names of 5 User ID strings
--- @field userid_name2
--- @field userid_name3
--- @field userid_name4
--- @field userid_name5
--- @field usernum_name1 Names of 5 User ID numbers
--- @field usernum_name2
--- @field usernum_name3
--- @field usernum_name4
--- @field usernum_name5
--- @field userid1 Data for 5 User ID strings
--- @field userid2
--- @field userid3
--- @field userid4
--- @field userid5
--- @field usernum1 Data for 5 User ID numbers
--- @field usernum2 the first 3 are integers
--- @field usernum3 the last 2 are weight values
--- @field usernum4
--- @field usernum5
-
--- USER VARIABLES
-private.addRegister('userid_name1',     0x0080)
-private.addRegister('userid_name2',     0x0081)
-private.addRegister('userid_name3',     0x0082)
-private.addRegister('userid_name4',     0x0083)
-private.addRegister('userid_name5',     0x0084)
-private.addRegister('usernum_name1',    0x0316)
-private.addRegister('usernum_name2',    0x0317)
-private.addRegister('usernum_name3',    0x0318)
-private.addRegister('usernum_name4',    0x0319)
-private.addRegister('usernum_name5',    0x031A)
-
-private.addRegister('userid1',          0x0090)
-private.addRegister('userid2',          0x0092)
-private.addRegister('userid3',          0x0093)
-private.addRegister('userid4',          0x0094)
-private.addRegister('userid5',          0x0095)
-private.addRegister('usernum1',         0x0310)
-private.addRegister('usernum2',         0x0311)
-private.addRegister('usernum3',         0x0312)
-private.addRegister('usernum4',         0x0313)
-private.addRegister('usernum5',         0x0314)
-
 --- Product Registers.
 --@table productRegisters
 -- @field active_product_no Read the Active Product Number, Write to set the active product by number
@@ -493,13 +447,6 @@ for _, v in ipairs({
             'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
             'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
             'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
-
-            'userid1', 'userid2', 'userid3', 'userid4', 'userid5',
-            'userid_name1', 'userid_name2', 'userid_name3',
-            'userid_name4', 'userid_name5',
-            'usernum1', 'usernum2', 'usernum3', 'usernum4', 'usernum5',
-            'usernum_name1', 'usernum_name2', 'usernum_name3',
-            'usernum_name4', 'usernum_name5',
 
             'active_product_name', 'active_product_no', 'clr_all_totals',
             'clr_docket_totals', 'select_product_delete',
