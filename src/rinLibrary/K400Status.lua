@@ -55,27 +55,41 @@ end
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
---- Status Bits for REG_SYSSTATUS.
+--- Status Bits for register sysstatus.
 --@table sysstatus
--- @field SYS_OVERLOAD Scale overloaded
--- @field SYS_UNDERLOAD Scale underload
--- @field SYS_ERR Error active
--- @field SYS_SETUP Instrument in setup mode
--- @field SYS_CALINPROG Instrument calibration in progress
--- @field SYS_MOTION Weight unstable
--- @field SYS_CENTREOFZERO Centre of Zero (within 0.25 divisions of zero)
--- @field SYS_ZERO Weight within zero band setting
--- @field SYS_NET Instrument in Net mode
+-- @field overload Scale overloaded
+-- @field underload Scale underload
+-- @field err Error active
+-- @field setup Instrument in setup mode
+-- @field calinprog Instrument calibration in progress
+-- @field motion Weight unstable
+-- @field centreofzero Centre of Zero (within 0.25 divisions of zero)
+-- @field zero Weight within zero band setting
+-- @field net Instrument in Net mode
+-- @see checkAnySystemStatus
+-- @see checkAllSystemStatus
 
-_M.SYS_OVERLOAD         = 0x00020000
-_M.SYS_UNDERLOAD        = 0x00010000
-_M.SYS_ERR              = 0x00008000
-_M.SYS_SETUP            = 0x00004000
-_M.SYS_CALINPROG        = 0x00002000
-_M.SYS_MOTION           = 0x00001000
-_M.SYS_CENTREOFZERO     = 0x00000800
-_M.SYS_ZERO             = 0x00000400
-_M.SYS_NET              = 0x00000200
+local SYS_OVERLOAD      = 0x00020000
+local SYS_UNDERLOAD     = 0x00010000
+local SYS_ERR           = 0x00008000
+local SYS_SETUP         = 0x00004000
+local SYS_CALINPROG     = 0x00002000
+local SYS_MOTION        = 0x00001000
+local SYS_CENTREOFZERO  = 0x00000800
+local SYS_ZERO          = 0x00000400
+local SYS_NET           = 0x00000200
+
+local sysStatusMap = {
+    overload        = SYS_OVERLOAD,
+    underload       = SYS_UNDERLOAD,
+    err             = SYS_ERR,
+    setup           = SYS_SETUP,
+    calinprog       = SYS_CALINPROG,
+    motion          = SYS_MOTION,
+    centreofzero    = SYS_CENTREOFZERO,
+    zero            = SYS_ZERO,
+    net             = SYS_NET
+}
 
 local REG_LUA_STATUS   = 0x0329
 local REG_LUA_ESTAT    = 0x0305
@@ -83,7 +97,7 @@ local REG_LUA_STAT_RTC = 0x032A
 local REG_SETPSTATUS   = 0x032E
 local REG_LUA_STAT_NET = 0x030A
 
---- Status Bits for REG_LUA_STATUS.
+--- Status Bits for register lua_status.
 --@table luastatus
 -- @field net Displayed weight is in NET mode
 -- @field gross Displayed weight is in GROSS mode
@@ -117,6 +131,10 @@ local REG_LUA_STAT_NET = 0x030A
 -- @field pulse Batch is in a pulse stage, only available in batching firmware
 -- @field start Batch is in the start stage, only available in batching firmware
 -- @field no_type None of the 4 status bits above are true, only available in batching firmware
+-- @see setStatusCallback
+-- @see anyStatusSet
+-- @see allStatusSet
+-- @see waitStatus
 
 -- Status
 local STAT_NET             = 0x00000001
@@ -207,6 +225,8 @@ end
 -- @field rtc When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
 -- @field ser1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
 -- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
+-- @see setEStatusCallback
+-- @see setEStatusMainCallback
 
 -- Extended status bits
 local ESTAT_HIRES           = 0x00000001
@@ -259,6 +279,65 @@ local curStatus, curIO, curSETP
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
 -------------------------------------------------------------------------------
+-- Scan the arguments for a status setting and if it isn't there query it.
+-- @param status Status number (optional)
+-- @param ... Statuses to check for (as strings)
+-- @return System status
+-- @return List of status names
+-- @local
+local function checkOptionalSystemStatus(status, ...)
+    if type(status) == 'number' then
+        return status, {...}
+    end
+
+    msg, err = _M.sendRegWait('rdfinalhex', 'sysstatus', nil, 1.0)
+    if msg ~= nil then
+        return tonumber(msg, 16), {status, ...}
+    end
+    return 0, {status, ...}
+end
+
+-------------------------------------------------------------------------------
+-- Check if any of the listed system statuses are present.
+-- @param status System status code, this is optional but must be first if present
+-- @param ... Statuses to check for (as strings)
+-- @return True iff any one of the referenced statuses is current
+-- @see sysstatus
+-- @see checkAllSystemStatus
+-- @usage
+-- local nonZero = not device.checkAnySystemStatus('zero')
+function _M.checkAnySystemStatus(status, ...)
+    local s, p = checkOptionalSystemStatus(status, ...)
+
+    for _, bit in pairs(p) do
+        if bit32.band(s, private.convertNameToValue(bit, sysStatusMap, 0)) ~= 0 then
+            return true
+        end
+    end
+    return false
+end
+
+-------------------------------------------------------------------------------
+-- Check if all of the listed system statuses are present.
+-- @param status System status code, this is optional but must be first if present
+-- @param ... Statuses to check for (as strings)
+-- @return True iff any one of the referenced statuses is current
+-- @see sysstatus
+-- @see checkAnySystemStatus
+-- @usage
+-- local zeroNet = device.checkAllSystemStatus('zero', 'net')
+function _M.checkAllSystemStatus(status, ...)
+    local s, p = checkOptionalSystemStatus(status, ...)
+
+    for _, bit in pairs(p) do
+        if bit32.band(s, private.convertNameToValue(bit, sysStatusMap, 0)) == 0 then
+            return false
+        end
+    end
+    return true
+end
+
+-------------------------------------------------------------------------------
 -- Called when stream data is being renewed
 -- @local
 function private.renewStatusBinds()
@@ -302,6 +381,10 @@ end
 -- Set the callback function for a status bit
 -- @param status status name
 -- @param callback Function to run when there is an event on change in status
+-- @see luastatus
+-- @see anyStatusSet
+-- @see allStatusSet
+-- @see waitStatus
 -- @usage
 -- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(status, callback)
@@ -351,6 +434,11 @@ end
 -- Set the callback function for a IO
 -- @param IO 1..32
 -- @param callback Function taking IO and on/off status as parameters
+-- @see setAllIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see allIOSet
+-- @see waitIO
 -- @usage
 -- function handleIO1(IO, active)
 --     if (active) then
@@ -374,6 +462,11 @@ end
 -------------------------------------------------------------------------------
 -- Set a callback function that is called whenever any IO status changes
 -- @param callback Function taking current IO status as a parameter
+-- @see setIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see allIOSet
+-- @see waitIO
 -- @usage
 -- function handleIO(data)
 --     -- 4 bits of status information for IO 3..6 turned into a grading indication
@@ -429,6 +522,10 @@ end
 -- Set the callback function for a SETP
 -- @param SETP 1..16
 -- @param callback Function taking SETP and on/off status as parameters
+-- @see setAllSETPCallback
+-- @see anySETPSet
+-- @see allSETPSet
+-- @see waitSETP
 -- @usage
 -- function handleSETP1(SETP, active)
 --     if (active) then
@@ -447,6 +544,10 @@ end
 -------------------------------------------------------------------------------
 -- Set a callback function that is called whenever any SETP status changes
 -- @param callback Function taking current SETP status as a parameter
+-- @see setSETPCallback
+-- @see anySETPSet
+-- @see allSETPSet
+-- @see waitSETP
 -- @usage
 -- function handleSETP(data)
 --     -- 4 bits of status information for SETP 3..6 turned into a grading indication
@@ -496,6 +597,8 @@ end
 -- Set the callback function for an extended status bit
 -- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
+-- @see luaextendedstatus
+-- @see setEStatusMainCallback
 function _M.setEStatusCallback(eStatus, callback)
     local eStat = private.convertNameToValue(eStatus, estatusMap)
     if eStat then
@@ -509,6 +612,8 @@ end
 -- Set the main library callback function for an extended status bit
 -- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
+-- @see luaextendedstatus
+-- @see setEStatusCallback
 function _M.setEStatusMainCallback(eStatus, callback)
     local eStat = private.convertNameToValue(eStatus, estatusMap)
     if eStat then
@@ -520,7 +625,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current instrument status
+-- @param ... Status bits to check
 -- @return true if any of the status bits are set in current instrument status
+-- @see luastatus
+-- @see setStatusCallback
+-- @see allStatusSet
+-- @see waitStatus
 -- @usage
 -- device.enableOutput(5)
 -- if device.anyStatusSet('motion, 'stat_err', 'oload', 'uload') then
@@ -544,7 +654,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current instrument status
+-- @param ... Status bits to check
 -- @return true if all of the status bits are set in cur instrument status
+-- @see luastatus
+-- @see setStatusCallback
+-- @see anyStatusSet
+-- @see waitStatus
 -- @usage
 -- device.enableOutput(5)
 -- if device.allStatusSet('notmotion', 'notzero', 'gross') then
@@ -569,6 +684,12 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO
 -- @return 32 bits of IO data
+-- @see setIOCallback
+-- @see setAllIOCallback
+-- @see getCurIOStr
+-- @see anyIOSet
+-- @see allIOSet
+-- @see waitIO
 -- @usage
 -- print('current IO bits are', device.getCurIO())
 function _M.getCurIO()
@@ -597,6 +718,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s
 -- @return 32 characters of IO data
+-- @see getCurIO
 -- @usage
 -- print('current IO bits are: ' .. device.getCurIOStr())
 function _M.getCurIOStr()
@@ -605,7 +727,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current IO
+-- @param ... IOs to check
 -- @return true if any of the listed IO are active
+-- @see setIOCallback
+-- @see setAllIOCallback
+-- @see getCurIO
+-- @see allIOSet
+-- @see waitIO
 -- @usage
 -- device.enableOutput(3)
 -- if not device.anyIOSet(1,2,4,5) then
@@ -619,7 +747,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of IO
+-- @param ... IOs to check
 -- @return true if all of the listed IO are active
+-- @see setIOCallback
+-- @see setAllIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see waitIO
 -- @usage
 -- device.enableOutput(3)
 -- if device.allIOSet(1,2) then
@@ -642,7 +776,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current SETP
+-- @param ... Set points to check
 -- @return true if any of the listed SETP are active
+-- @see setSETPCallback
+-- @see setAllSETPCallback
+-- @see allSETPSet
+-- @see waitSETP
 -- @usage
 -- device.enableOutput(1)
 -- if not device.anySETPSet(1,2) then
@@ -656,7 +795,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of SETP
+-- @param ... Set points to check
 -- @return true if all of the listed IO are active
+-- @see setSETPCallback
+-- @see setAllSETPCallback
+-- @see anySETPSet
+-- @see waitSETP
 -- @usage
 -- device.enableOutput(1)
 -- if device.allSETPSet(1, 2) then
@@ -670,6 +814,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true
+-- @param ... Status bits to wait for
+-- @see luastatus
+-- @see setStatusCallback
+-- @see anyStatusSet
+-- @see allStatusSet
+-- @see waitStatus
 -- @usage
 -- device.waitStatus('notmotion')           -- wait for no motion
 -- device.waitStatus('coz')                 -- wait for Centre of zero
@@ -688,6 +838,11 @@ end
 -- Wait until IO is in a particular state
 -- @param IO 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
+-- @see setIOCallback
+-- @see setAllIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see allIOSet
 -- @usage
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
@@ -705,6 +860,11 @@ end
 -- Wait until SETP is in a particular state
 -- @param SETP 1..16
 -- @param state true to wait for SETP to come on or false to wait for it to go off
+-- @see setSETPCallback
+-- @see setAllSETPCallback
+-- @see anySETPSet
+-- @see allSETPSet
+-- @see waitSETP
 -- @usage
 -- device.waitSETP(1, true) -- wait until Setpoint 1 turns on
 function _M.waitSETP(SETP, state)
@@ -819,6 +979,16 @@ deprecated.REG_LUA_ESTAT    = REG_LUA_ESTAT
 deprecated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
 deprecated.REG_SETPSTATUS   = REG_SETPSTATUS
 deprecated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
+
+deprecated.SYS_OVERLOAD     = SYS_OVERLOAD
+deprecated.SYS_UNDERLOAD    = SYS_UNDERLOAD
+deprecated.SYS_ERR          = SYS_ERR
+deprecated.SYS_SETUP        = SYS_SETUP
+deprecated.SYS_CALINPROG    = SYS_CALINPROG
+deprecated.SYS_MOTION       = SYS_MOTION
+deprecated.SYS_CENTREOFZERO = SYS_CENTREOFZERO
+deprecated.SYS_ZERO         = SYS_ZERO
+deprecated.SYS_NET          = SYS_NET
 
 -- These are strings rather than numerics so that comparisons against them
 -- work in call backs
