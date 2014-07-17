@@ -279,6 +279,19 @@ local curStatus, curIO, curSETP
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
 -------------------------------------------------------------------------------
+-- Query the current system status.
+-- @return System status
+-- @return Error code, nil if none
+-- @local
+function private.getSystemStatus()
+    local msg, err = _M.sendRegWait('rdfinalhex', 'sysstatus', nil, 1.0)
+    if msg ~= nil then
+        return tonumber(msg, 16), nil
+    end
+    return nil, err
+end
+
+-------------------------------------------------------------------------------
 -- Scan the arguments for a status setting and if it isn't there query it.
 -- @param status Status number (optional)
 -- @param ... Statuses to check for (as strings)
@@ -290,11 +303,7 @@ local function checkOptionalSystemStatus(status, ...)
         return status, {...}
     end
 
-    msg, err = _M.sendRegWait('rdfinalhex', 'sysstatus', nil, 1.0)
-    if msg ~= nil then
-        return tonumber(msg, 16), {status, ...}
-    end
-    return 0, {status, ...}
+    return private.getSystemStatus(), {status, ...}
 end
 
 -------------------------------------------------------------------------------

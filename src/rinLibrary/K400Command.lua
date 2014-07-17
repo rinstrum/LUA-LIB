@@ -192,23 +192,21 @@ end
 local function doCalibrate(reg, data, timeout)
     local msg, err = _M.exReg(reg, data, timeout)
     if not msg then
-        return msg, err
+        return nil, err
     end
 
     local timeout = false
     timers.addTimer(0, 300, function() timeout = true end)
 
     while not timeout do
-       msg, err = _M.sendRegWait('rdfinalhex', 'sysstatus', nil, 1.0)
-       if msg then
-           msg = tonumber(msg,16)
-           if bit32.band(msg, _M.SYS_CALINPROG) == 0 then
-              msg = bit32.band(msg,0x0F)
-              return cmdString[msg], nil
-           end
-       else
-           return nil, err
-       end
+        msg, err = private.getSystemStatus()
+        if msg ~= nil then
+            if not _M.checkAllSystemStatus(msg, 'calinprog') then
+                return cmdString[bit32.band(msg, 0x0F)], nil
+            end
+        else
+            return nil, err
+        end
     end
     return nil, "timeout"
 end
