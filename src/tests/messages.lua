@@ -57,8 +57,8 @@ end
 -- Various routines to verify that different kinds of message were sent or not
 -- @local
 
-function _M.checkWriteReg(...) check('readReg', ...) end
-function _M.checkNoWriteReg(...) checkNo('readReg', ...) end
+function _M.checkReadReg(...) check('readReg', ...) end
+function _M.checkNoReadReg(...) checkNo('readReg', ...) end
 
 function _M.checkWriteReg(...) check('writeReg', nil, ...) end
 function _M.checkNoWriteReg(...) checkNo('writeReg', ...) end
