@@ -552,7 +552,7 @@ function _M.editReg(register, prompt)
     _M.writeReg(REG_EDIT_REG, reg)
     _M.startDialog()
     while true do
-        local data,err = _M.sendRegWait('rdfinalhex', REG_EDIT_REG)
+        local data,err = private.readRegHex(REG_EDIT_REG)
 
         if err or (data and tonumber(data,16) ~= reg) then
             break

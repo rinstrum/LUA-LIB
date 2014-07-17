@@ -419,7 +419,7 @@ end
 -- ...
 -- device.writeAutoTopLeft(old)
 function _M.readAutoTopLeft()
-    local reg = _M.sendRegWait('rdfinaldec', REG_DISP_AUTO_TOP_LEFT)
+    local reg = private.readRegDec(REG_DISP_AUTO_TOP_LEFT)
     reg = tonumber(reg)
     curAutoTopLeft = reg
     return private.getRegisterName(reg)
@@ -452,7 +452,7 @@ end
 -- ...
 -- device.writeAutoBotLeft(old)
 function _M.readAutoBotLeft()
-    local reg = _M.sendRegWait('rdfinaldec', REG_DISP_AUTO_BOTTOM_LEFT)
+    local reg = private.readRegDec(REG_DISP_AUTO_BOTTOM_LEFT)
     reg = tonumber(reg)
     curAutoBotLeft = reg
     return private.getRegisterName(reg)

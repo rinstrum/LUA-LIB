@@ -300,6 +300,57 @@ function _M.readReg(reg, timeout)
 end
 
 -------------------------------------------------------------------------------
+-- Called to read register contents
+-- @param reg register to read
+-- @param timeout timeout in seconds (optional)
+-- @return data received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+function private.readRegLiteral(reg, timeout)
+    local data, err
+
+    data, err = _M.sendRegWait('rdlit', reg, nil, timeout)
+    if err then
+        dbg.debug('Read Literal Error', err)
+    end
+    return data, nil
+end
+
+-------------------------------------------------------------------------------
+-- Called to read register contents in decimal
+-- @param reg register to read
+-- @param timeout timeout in seconds (optional)
+-- @return data received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+function private.readRegDec(reg, timeout)
+    local data, err
+
+    data, err = _M.sendRegWait('rdfinaldec', reg, nil, timeout)
+    if err then
+        dbg.debug('Read Dec Error', err)
+    end
+    return data, nil
+end
+
+-------------------------------------------------------------------------------
+-- Called to read register contents in decimal
+-- @param reg register to read
+-- @param timeout timeout in seconds (optional)
+-- @return data received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+function private.readRegHex(reg, timeout)
+    local data, err
+
+    data, err = _M.sendRegWait('rdfinalhex', reg, nil, timeout)
+    if err then
+        dbg.debug('Read Hex Error', err)
+    end
+    return data, err
+end
+
+-------------------------------------------------------------------------------
 -- Called to write data to an instrument register
 -- @param reg register
 -- @param data to send
@@ -319,8 +370,7 @@ end
 -- @param timeout timeout for send operation
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
--- @usage
--- device.writeReg('usernum1', 0)
+-- @local
 function private.writeRegHex(reg, data, timeout)
     return _M.sendRegWait('wrfinalhex', reg, data, timeout)
 end

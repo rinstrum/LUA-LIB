@@ -284,7 +284,7 @@ local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] 
 -- @return Error code, nil if none
 -- @local
 function private.getSystemStatus()
-    local msg, err = _M.sendRegWait('rdfinalhex', 'sysstatus', nil, 1.0)
+    local msg, err = private.readRegHex('sysstatus', 1.0)
     if msg ~= nil then
         return tonumber(msg, 16), nil
     end

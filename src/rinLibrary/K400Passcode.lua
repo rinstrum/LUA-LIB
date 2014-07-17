@@ -50,7 +50,7 @@ function _M.checkPasscode(pc, code, tries)
 
     _M.startDialog()
     while _M.dialogRunning() and _M.app.running do
-        local m, err = _M.sendRegWait('rdfinalhex', pcode, nil, 1.0)
+        local m, err = private.readRegHex(pcode, 1.0)
         if not m then
             if count > tries then
                 msg.setErrHandler(f)
@@ -97,7 +97,7 @@ function _M.lockPasscode(pc)
     local pcodeData = passcodes[pc].pcodeData
 
     local f = msg.removeErrHandler()
-    local m, err = _M.sendRegWait('rdfinalhex', pcodeData, nil, 1.0)
+    local m, err = private.readRegHex(pcodeData, 1.0)
     if m then
         m = bit32.bxor(tonumber(m,16),0xFF)
         m, err = private.writeRegHex(pcode, _M.toPrimary(m, 0), 1.0)

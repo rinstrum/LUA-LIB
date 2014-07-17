@@ -170,7 +170,7 @@ local function readSettings()
     settings.fullscale = _M.readReg('fullscale')
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
-            local data, err = _M.sendRegWait('rdfinalhex', settings.dispmode[mode].reg)
+            local data, err = private.readRegHex(settings.dispmode[mode].reg)
             if data and not err then
                 data = tonumber(data, 16)
                 if data ~= nil then
@@ -198,10 +198,10 @@ end
 -- @usage
 -- device.configure('K401')
 function _M.configure(model)
-    local s, err = _M.sendRegWait('rdlit', REG_SOFTMODEL)
+    local s, err = private.readRegLiteral(REG_SOFTMODEL)
     if not err then
         instrumentModel = s
-        instrumentSerialNumber, err = _M.sendRegWait('rdlit', private.REG_SERIALNO)
+        instrumentSerialNumber, err = private.readRegLiteral(private.REG_SERIALNO)
     end
 
     dbg.info(instrumentModel, instrumentSerialNumber)
@@ -239,7 +239,7 @@ end
 -- @return Unit software version
 function _M.getVersion()
     if instrumentSoftwareVersion == nil then
-        instrumentSoftwareVersion = _M.sendRegWait('rdlit', REG_SOFTVER)
+        instrumentSoftwareVersion = private.readRegLiteral(REG_SOFTVER)
     end
     return instrumentSoftwareVersion
 end

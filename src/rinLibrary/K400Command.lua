@@ -290,7 +290,7 @@ end
 -- @return error string if error encountered, nil otherwise
 -- @local
 local function readCalibration(reg, dp)
-    local data, err = _M.sendRegWait('rdfinalhex', reg)
+    local data, err = private.readRegHex(reg)
     if data then
         data = private.toFloat(data, dp)
         return data, nil
