@@ -10,7 +10,7 @@ describe("buzzer #buzz", function ()
 
     local function makeModule()
         local m, p, d = {}, {}, {}
-        require("rinLibrary.utilities")(p, d)
+        require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.K400Buzz")(m, p, d)
         return m, p, d
     end
@@ -35,7 +35,7 @@ describe("buzzer #buzz", function ()
 
         it("initial", function()
             assert.is_nil(m.getLastBuzzLen())
-            z.checkSendReg('wrfinalhex', m, {{ r=regLen, short }}, m.setBuzzLen)
+            z.checkWriteRegHexAsync(m, {{ r=regLen, short }}, m.setBuzzLen)
         end)
 
         local cases = {
@@ -52,9 +52,9 @@ describe("buzzer #buzz", function ()
             it("test "..n, function()
                 local i, val = cases[n][1], cases[n][2]
 
-                z.checkSendReg('wrfinalhex', m, {{ r=regLen, val }}, m.setBuzzLen, i)
+                z.checkWriteRegHexAsync(m, {{ r=regLen, val }}, m.setBuzzLen, i)
                 assert.is_equal(val, m.getLastBuzzLen())
-                z.checkNoSendReg(m, m.setBuzzLen, i)
+                z.checkNoWriteRegHexAsync(m, m.setBuzzLen, i)
             end)
         end
     end)
@@ -63,11 +63,11 @@ describe("buzzer #buzz", function ()
         local z = require "tests.messages"
         local m = makeModule()
 
-        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
-        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 }},                            m.buzz, 1)
-        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 4 }},                            m.buzz, 5)
-        z.checkSendReg('wrfinalhex', m, {{ r=regLen, long },    { r=regLen, long}},   m.buzz, 3, 'long')
-        z.checkSendReg('wrfinalhex', m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz, 1, 'short')
-        z.checkSendReg('wrfinalhex', m, {{ r=regLen, medium },  { r=regLen, medium }},m.buzz, 3, 'medium')
+        z.checkWriteRegHexAsync(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz)
+        z.checkWriteRegHexAsync(m, {{ r=regNum, 1 }},                            m.buzz, 1)
+        z.checkWriteRegHexAsync(m, {{ r=regNum, 4 }},                            m.buzz, 5)
+        z.checkWriteRegHexAsync(m, {{ r=regLen, long },    { r=regLen, long}},   m.buzz, 3, 'long')
+        z.checkWriteRegHexAsync(m, {{ r=regNum, 1 },       { r=regLen, short }}, m.buzz, 1, 'short')
+        z.checkWriteRegHexAsync(m, {{ r=regLen, medium },  { r=regLen, medium }},m.buzz, 3, 'medium')
     end)
 end)

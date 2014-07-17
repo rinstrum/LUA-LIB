@@ -87,7 +87,7 @@ end
 -- device.setAnalogRaw(25000)   -- mid scale
 function _M.setAnalogRaw(raw)
     if lastAnalogue ~= raw then
-        _M.sendReg('wrfinaldec', REG_ANALOGUE_DATA, raw)
+        private.writeRegAsync(REG_ANALOGUE_DATA, raw)
         lastAnalogue = raw
     end
 end

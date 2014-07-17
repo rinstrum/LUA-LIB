@@ -175,7 +175,7 @@ local NUM_SETP = 16
 -- @local
 local function setOutputs(outp)
     if outp ~= lastOutputs then
-        _M.sendReg('wrfinaldec', 'io_status', outp)
+        private.writeRegAsync('io_status', outp)
         lastOutputs = outp
     end
 end
@@ -191,7 +191,7 @@ end
 -- @local
 local function setOutputEnable(en)
     if en ~= lastIOEnable then
-        _M.sendReg('wrfinaldec', REG_IO_ENABLE, en)
+        private.writeRegAsync(REG_IO_ENABLE, en)
         lastIOEnable = en
     end
 end

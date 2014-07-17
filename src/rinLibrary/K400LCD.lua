@@ -234,7 +234,7 @@ local function slideTopLeft()
     if slideTopLeftPos > #slideTopLeftWords then
        slideTopLeftPos = 1
     end
-    _M.sendReg('wrfinalhex', REG_DISP_TOP_LEFT,
+    private.writeRegHexAsync(REG_DISP_TOP_LEFT,
          string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
 end
 
@@ -257,7 +257,7 @@ function _M.writeTopLeft(s,t)
             slideTopLeftWords = splitWords(s,6)
             slideTopLeftPos = 1
             timers.removeTimer(slideTopLeftTimer)
-            _M.sendReg('wrfinalhex', REG_DISP_TOP_LEFT,
+            private.writeRegHexAsync(REG_DISP_TOP_LEFT,
                  string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
                 slideTopLeftTimer = timers.addTimer(t, t, slideTopLeft)
@@ -275,7 +275,7 @@ end
 -- device.writeTopRight('ABCD')
 function _M.writeTopRight(s)
     if s and s ~= curTopRight then
-        _M.sendReg('wrfinalhex', REG_DISP_TOP_RIGHT, s)
+        private.writeRegHexAsync(REG_DISP_TOP_RIGHT, s)
         curTopRight = s
     end
 end
@@ -288,7 +288,7 @@ local function slideBotLeft()
     if slideBotLeftPos > #slideBotLeftWords then
        slideBotLeftPos = 1
     end
-    _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_LEFT,
+    private.writeRegHexAsync(REG_DISP_BOTTOM_LEFT,
          string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
 end
 
@@ -312,7 +312,7 @@ function _M.writeBotLeft(s, t)
             slideBotLeftWords = splitWords(s,9)
             slideBotLeftPos = 1
             timers.removeTimer(slideBotLeftTimer)
-            _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_LEFT,
+            private.writeRegHexAsync(REG_DISP_BOTTOM_LEFT,
                  string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
             if #slideBotLeftWords > 1 then
                 slideBotLeftTimer = timers.addTimer(t, t, slideBotLeft)
@@ -331,7 +331,7 @@ local function slideBotRight()
     if slideBotRightPos > #slideBotRightWords then
        slideBotRightPos = 1
     end
-    _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_RIGHT,
+    private.writeRegHexAsync(REG_DISP_BOTTOM_RIGHT,
          string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
 end
 
@@ -354,7 +354,7 @@ function _M.writeBotRight(s, t)
             slideBotRightWords = splitWords(s,8)
             slideBotRightPos = 1
             timers.removeTimer(slideBotRightTimer)
-            _M.sendReg('wrfinalhex', REG_DISP_BOTTOM_RIGHT,
+            private.writeRegHexAsync(REG_DISP_BOTTOM_RIGHT,
                  string.format('%-8s',padDots(slideBotRightWords[slideBotRightPos])))
             if #slideBotRightWords > 1 then
                 slideBotRightTimer = timers.addTimer(t, t, slideBotRight)

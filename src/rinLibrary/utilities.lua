@@ -15,7 +15,7 @@ local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
 local lower = string.lower
 local min, max = math.min, math.max
 
-return function(private, deprecated)
+return function(mod, private, deprecated)
     local regMap, regUnmap = { [0] = 0 }, { [0] = 0 }
 
 -------------------------------------------------------------------------------
@@ -152,5 +152,9 @@ return function(private, deprecated)
         -- Have to rawset this to avoid hitting the set register capture
         -- function that is installed in the deprecated table.
         rawset(deprecated, 'REG_' .. string.upper(reg), private.getRegisterNumber(reg))
+    end
+
+    if _TEST then
+        mod.getPrivate = function() return private end
     end
 end

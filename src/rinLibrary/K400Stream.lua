@@ -154,15 +154,9 @@ function _M.addStream(streamReg, callback, onChange)
     availRegistersUser[availReg].typ = private.getRegType(reg)
     streamRegistersUser[reg] = availReg
 
-    _M.sendReg('wrfinalhex',
-                bit32.bor(REG_LUAUSER, REG_STREAMMODE),
-                convertFrequency(freqUser))
-    _M.sendReg('wrfinaldec',
-                bit32.bor(REG_LUAUSER, availReg),
-                reg)
-    _M.sendReg('ex',
-                bit32.bor(REG_LUAUSER, REG_STREAMDATA),
-                STM_START)
+    private.writeRegHexAsync(bit32.bor(REG_LUAUSER, REG_STREAMMODE), convertFrequency(freqUser))
+    private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
+    private.exRegAsync(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_START)
 
     _M.bindRegister(bit32.bor(REG_LUAUSER, REG_STREAMDATA), streamCallback)
     return streamReg
@@ -249,15 +243,9 @@ function private.addStreamLib(streamReg, callback, onChange)
 
     streamRegistersLib[reg] = availReg
 
-    _M.sendReg('wrfinalhex',
-                bit32.bor(REG_LUALIB, REG_STREAMMODE),
-                convertFrequency(freqLib))
-    _M.sendReg('wrfinaldec',
-                bit32.bor(REG_LUALIB, availReg),
-                reg)
-    _M.sendReg('ex',
-                bit32.bor(REG_LUALIB, REG_STREAMDATA),
-                STM_START)
+    private.writeRegHexAsync(bit32.bor(REG_LUALIB, REG_STREAMMODE), convertFrequency(freqLib))
+    private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
+    private.exRegAsync(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_START)
 
    _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
     return streamReg

@@ -21,26 +21,26 @@ _M = {}
 -- .r element is the register to check and the [1], [2], ... are the
 -- expected arguments.
 -- @local
-local function check(func, cmd, ret, m, regs, f, ...)
-    local old, wr, oldfunc = {}, {}, nil
+local function check(func, ret, m, regs, f, ...)
+    local old, oldp, wr, oldfunc = {}, {}, {}, nil
     local names = { func }
+    local priv = m.getPrivate()
 
     for _,v in ipairs(names) do
         old[v], m[v] = m[v], wr
+        oldp[v], priv[v] = priv[v], wr
     end
 
     m[func] = spy.new(function() return ret end)
+    priv[func] = m[func]
     f(...)
     for _, res in pairs(regs) do
-        if cmd then
-            assert.spy(m[func]).was.called_with(cmd, res.r, unpack(res))
-        else
-            assert.spy(m[func]).was.called_with(res.r, unpack(res))
-        end
+        assert.spy(m[func]).was.called_with(res.r, unpack(res))
     end
 
     for _,v in ipairs(names) do
         m[v] = old[v]
+        priv[v] = oldp[v]
     end
 
     return ret
@@ -56,13 +56,23 @@ end
 -------------------------------------------------------------------------------
 -- Various routines to verify that different kinds of message were sent or not
 -- @local
-function _M.checkSendReg(cmd, ...) check('sendReg', cmd, nil, ...) end
-function _M.checkNoSendReg(...) checkNo('sendReg', ...) end
 
-function _M.checkSendRegWait(cmd, ...) check('sendRegWait', cmd, true, ...) end
-function _M.checkNoSendRegWait(...) checkNo('sendRegWait', ...) end
+function _M.checkWriteReg(...) check('readReg', ...) end
+function _M.checkNoWriteReg(...) checkNo('readReg', ...) end
 
-function _M.checkWriteReg(...) check('writeReg', nil, nil, ...) end
+function _M.checkWriteReg(...) check('writeReg', nil, ...) end
 function _M.checkNoWriteReg(...) checkNo('writeReg', ...) end
+
+function _M.checkWriteRegAsync(...) check('writeRegAsync', nil, ...) end
+function _M.checkNoWriteRegAsync(...) checkNo('writeRegAsync', ...) end
+
+function _M.checkWriteRegHexAsync(...) check('writeRegHexAsync', nil, ...) end
+function _M.checkNoWriteRegHexAsync(...) checkNo('writeRegHexAsync', ...) end
+
+function _M.checkExReg(...) check('exReg', nil, ...) end
+function _M.checkNoExReg(...) checkNo('exReg', ...) end
+
+function _M.checkExRegAsync(...) check('exRegAsync', nil, ...) end
+function _M.checkNoExRegAsync(...) checkNo('exRegAsync', ...) end
 
 return _M

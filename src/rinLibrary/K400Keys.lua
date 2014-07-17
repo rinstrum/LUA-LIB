@@ -281,7 +281,7 @@ local function keyCallback(data, err)
     end
 
     if not handled then
-        _M.sendReg('wrfinaldec', REG_APP_DO_KEYS, data)
+        private.writeRegAsync( REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
         private.bumpIdleTimer()

@@ -192,7 +192,7 @@ local dpPattern = S('+-')^-1 * locale.space^0 * locale.digit^0 * (P'.' * (locale
 -- @param data to send
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @local
-function _M.sendReg(cmd, reg, data, crc)
+local function sendReg(cmd, reg, data, crc)
     local r = private.getRegisterNumber(reg)
     _M.send(nil, cmd, r, data, "noReply", crc)
 end
@@ -310,6 +310,26 @@ function _M.writeReg(reg, data)
 end
 
 -------------------------------------------------------------------------------
+-- Called to write data to an instrument register asynchronously
+-- @function writeRegAsync
+-- @param reg register
+-- @param data to send
+-- @local
+function private.writeRegAsync(reg, data)
+    _M.sendReg('wrfinaldec', reg, data)
+end
+
+-------------------------------------------------------------------------------
+-- Called to write hex data to an instrument register asynchronously
+-- @function writeRegHexAsync
+-- @param reg register
+-- @param data to send
+-- @local
+function private.writeRegHexAsync(reg, data)
+    _M.sendReg('wrfinalhex', reg, data)
+end
+
+-------------------------------------------------------------------------------
 -- Called to run a register execute command with data as the execute parameter
 -- @param reg register
 -- @param data to send
@@ -318,6 +338,17 @@ end
 -- device.exReg('flush_keys', 0) -- flush pending key presses
 function _M.exReg(reg, data, timeout)
     _M.sendRegWait('ex', reg, data, timeout)
+end
+
+-------------------------------------------------------------------------------
+-- Call to run a register execute command with data as the execute parameter.
+-- This call doesn't wait for a response.
+-- @function exRegAsync
+-- @param reg register
+-- @param data to send
+-- @local
+function private.exRegAsync(reg, data)
+    _M.sendReg('ex', reg, data, "noReply")
 end
 
 -------------------------------------------------------------------------------
@@ -376,6 +407,7 @@ end
 
 deprecated.literalToFloat = private.literalToFloat
 deprecated.toFloat = private.toFloat
+deprecated.sendReg = sendReg
 
 deprecated.TYP_CHAR     = TYP_CHAR
 deprecated.TYP_UCHAR    = TYP_UCHAR

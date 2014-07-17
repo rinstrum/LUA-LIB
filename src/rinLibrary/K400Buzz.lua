@@ -38,7 +38,7 @@ return function (_M, private, deprecated)
     local function setBuzzLen(len)
         local l = private.convertNameToValue(len, lengthMap, BUZZ_SHORT, BUZZ_SHORT, BUZZ_LONG)
         if l ~= lastBuzzLen then
-            _M.sendReg('wrfinalhex', REG_BUZZ_LEN, l)
+            private.writeRegHexAsync(REG_BUZZ_LEN, l)
             lastBuzzLen = l
         end
     end
@@ -61,7 +61,7 @@ return function (_M, private, deprecated)
         
         local n = max(1, min(4, tonumber(times or 1)))
         setBuzzLen(len)
-        _M.sendReg('wrfinalhex', REG_BUZZ_NUM, n)
+        private.writeRegHexAsync(REG_BUZZ_NUM, n)
     end
 
     -- Allow the unit tests to dig deeper into our internals
