@@ -66,10 +66,10 @@ function _M.printCustomTransmit(tokenStr, comPortName)
 
     if comPort ~= curPrintPort  then
         curPrintPort = comPort
-        _M.sendRegWait('wrfinalhex', REG_PRINTPORT, comPort)
+        private.writeRegHex(REG_PRINTPORT, comPort)
     end
     tokenStr = expandCustomTransmit(tokenStr)
-    _M.sendRegWait('wrfinalhex', REG_PRINTTOKENSTR, tokenStr)
+    private.writeRegHex(REG_PRINTTOKENSTR, tokenStr)
 end
 
 -------------------------------------------------------------------------------
@@ -80,7 +80,7 @@ end
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
-    s = _M.sendRegWait('wrfinalhex', REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
+    s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
     dbg.printVar(s)
     return s
 end

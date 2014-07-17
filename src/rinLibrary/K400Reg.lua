@@ -303,10 +303,26 @@ end
 -- Called to write data to an instrument register
 -- @param reg register
 -- @param data to send
+-- @param timeout timeout for send operation
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
 -- @usage
 -- device.writeReg('usernum1', 0)
-function _M.writeReg(reg, data)
-    _M.sendRegWait('wrfinaldec', reg, data)
+function _M.writeReg(reg, data, timeout)
+    return _M.sendRegWait('wrfinaldec', reg, data, timeout)
+end
+
+-------------------------------------------------------------------------------
+-- Called to write hex data to an instrument register
+-- @param reg register
+-- @param data to send
+-- @param timeout timeout for send operation
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @usage
+-- device.writeReg('usernum1', 0)
+function private.writeRegHex(reg, data, timeout)
+    return _M.sendRegWait('wrfinalhex', reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -334,10 +350,12 @@ end
 -- @param reg register
 -- @param data to send
 -- @param timeout Timeout in seconds (optional)
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
 -- @usage
 -- device.exReg('flush_keys', 0) -- flush pending key presses
 function _M.exReg(reg, data, timeout)
-    _M.sendRegWait('ex', reg, data, timeout)
+    return _M.sendRegWait('ex', reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------

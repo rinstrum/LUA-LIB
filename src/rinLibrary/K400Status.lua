@@ -897,7 +897,7 @@ end
 -- device.writeRTCStatus(true)  -- enable RTC monitoring
 -- device.writeRTCStatus(false) -- disable RTC monitoring
 function _M.writeRTCStatus(s)
-    _M.sendRegWait('wrfinalhex', REG_LUA_STAT_RTC, s == false and 0 or 1)
+    private.writeRegHex(REG_LUA_STAT_RTC, s == false and 0 or 1)
 end
 
 -------------------------------------------------------------------------------
@@ -931,7 +931,7 @@ end
 -- device.writeNetStatus('both')
 function _M.writeNetStatus(status)
     local s = private.convertNameToValue(status, netStatusMap, 0)
-    _M.sendRegWait('wrfinalhex', REG_LUA_STAT_NET, s)
+    private.writeRegHex(REG_LUA_STAT_NET, s)
 end
 
 -------------------------------------------------------------------------------

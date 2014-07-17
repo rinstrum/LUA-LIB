@@ -309,7 +309,7 @@ end
 -- framework takes care of this.
 function _M.setupKeys()
     _M.flushKeys()
-    _M.sendRegWait('wrfinalhex', REG_APP_KEY_HANDLER, 1)
+    private.writeRegHex(REG_APP_KEY_HANDLER, 1)
     keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
 end
 
@@ -330,7 +330,7 @@ function _M.endKeys(flush)
         _M.flushKeys()
     end
 
-    _M.sendRegWait('wrfinalhex', REG_APP_KEY_HANDLER, 0)
+    private.writeRegHex(REG_APP_KEY_HANDLER, 0)
 
     _M.removeStream(keyID)
 end

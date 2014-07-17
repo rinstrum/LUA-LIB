@@ -74,7 +74,7 @@ function _M.checkPasscode(pc, code, tries)
                     return false
                 end
             end
-            m, err = _M.sendRegWait('wrfinalhex', pcode, _M.toPrimary(pass, 0), 1.0)
+            m, err = private.writeRegHex(pcode, _M.toPrimary(pass, 0), 1.0)
             count = count + 1
         else
             break
@@ -100,7 +100,7 @@ function _M.lockPasscode(pc)
     local m, err = _M.sendRegWait('rdfinalhex', pcodeData, nil, 1.0)
     if m then
         m = bit32.bxor(tonumber(m,16),0xFF)
-        m, err = _M.sendRegWait('wrfinalhex', pcode, _M.toPrimary(m, 0), 1.0)
+        m, err = private.writeRegHex(pcode, _M.toPrimary(m, 0), 1.0)
     end
     msg.setErrHandler(f)
 end
@@ -127,7 +127,7 @@ function _M.changePasscode(pc, oldCode, newCode)
             end
             newCode = pass
         end
-        local m, err = _M.sendRegWait('wrfinalhex', pcodeData, _M.toPrimary(newCode, 0), 1.0)
+        local m, err = private.writeRegHex(pcodeData, _M.toPrimary(newCode, 0), 1.0)
         if not m then
             return false
         else
