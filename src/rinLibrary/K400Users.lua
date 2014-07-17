@@ -29,8 +29,8 @@ return function (_M, private, deprecated)
 -- @field userid5
 -- @field usernum1 Data for 5 User ID numbers
 -- @field usernum2 the first 3 are integers
--- @field usernum3 the last 2 are weight values
--- @field usernum4
+-- @field usernum3
+-- @field usernum4 the last 2 are weight values
 -- @field usernum5
 
 -- USER VARIABLES
