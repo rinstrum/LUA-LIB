@@ -34,27 +34,28 @@ return function (_M, private, deprecated)
 -- @field usernum5
 
 -- USER VARIABLES
-    private.addRegister('userid_name1',     0x0080)
-    private.addRegister('userid_name2',     0x0081)
-    private.addRegister('userid_name3',     0x0082)
-    private.addRegister('userid_name4',     0x0083)
-    private.addRegister('userid_name5',     0x0084)
-    private.addRegister('usernum_name1',    0x0316)
-    private.addRegister('usernum_name2',    0x0317)
-    private.addRegister('usernum_name3',    0x0318)
-    private.addRegister('usernum_name4',    0x0319)
-    private.addRegister('usernum_name5',    0x031A)
-
-    private.addRegister('userid1',          0x0090)
-    private.addRegister('userid2',          0x0092)
-    private.addRegister('userid3',          0x0093)
-    private.addRegister('userid4',          0x0094)
-    private.addRegister('userid5',          0x0095)
-    private.addRegister('usernum1',         0x0310)
-    private.addRegister('usernum2',         0x0311)
-    private.addRegister('usernum3',         0x0312)
-    private.addRegister('usernum4',         0x0313)
-    private.addRegister('usernum5',         0x0314)
+    private.addRegisters{
+        { 'userid_name1',     0x0080 },
+        { 'userid_name2',     0x0081 },
+        { 'userid_name3',     0x0082 },
+        { 'userid_name4',     0x0083 },
+        { 'userid_name5',     0x0084 },
+        { 'usernum_name1',    0x0316 },
+        { 'usernum_name2',    0x0317 },
+        { 'usernum_name3',    0x0318 },
+        { 'usernum_name4',    0x0319 },
+        { 'usernum_name5',    0x031A },
+        { 'userid1',          0x0090 },
+        { 'userid2',          0x0092 },
+        { 'userid3',          0x0093 },
+        { 'userid4',          0x0094 },
+        { 'userid5',          0x0095 },
+        { 'usernum1',         0x0310 },
+        { 'usernum2',         0x0311 },
+        { 'usernum3',         0x0312 },
+        { 'usernum4',         0x0313 },
+        { 'usernum5',         0x0314 }
+    }
 
 
 -------------------------------------------------------------------------------

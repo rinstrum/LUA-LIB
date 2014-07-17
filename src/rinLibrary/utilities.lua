@@ -77,17 +77,36 @@ return function(mod, private, deprecated)
 
 -------------------------------------------------------------------------------
 -- Add an entry to the register mapping table
--- @function addRegister
 -- @param k Key
 -- @param v Value
--- @see getRegisterNumber
--- @see getRegisterName
--- @see regPopulate
+-- @see addRegisters
 -- @local
-    function private.addRegister(reg, num)
+    local function addRegister(reg, num)
         local r = lower(reg)
         regMap[r] = num
         regUnmap[num] = r
+    end
+
+-------------------------------------------------------------------------------
+-- Add a list of registers to the mapping table
+-- @function addRegisters
+-- @param reglist List of pairs to add
+-- @see addRegister
+-- @see getRegisterNumber
+-- @see getRegisterName
+-- @see regPopulate
+-- @usage
+-- private.addRegisters{{ 'regname', 0x666}}
+--
+-- private.addRegisters{
+--     { 'dead', 0xdead },
+--     { 'beef', 0xbeef }
+-- }
+-- @local
+    function private.addRegisters(reglist)
+        for _, v in pairs(reglist) do
+            addRegister(v[1], v[2])
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -103,7 +122,7 @@ return function(mod, private, deprecated)
         if type(k) == "string" then
             local m = regPattern:match(k)
             if m ~= nil then
-                private.addRegister(m, v)
+                addRegister(m, v)
             end
         end
     end

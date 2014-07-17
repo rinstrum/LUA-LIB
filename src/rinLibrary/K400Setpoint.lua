@@ -15,7 +15,7 @@ local dbg = require "rinLibrary.rinDebug"
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-private.addRegister('io_status', 0x0051)
+private.addRegisters{ {'io_status', 0x0051 } }
 local REG_IO_ENABLE         = 0x0054
 
 local REG_SETP_NUM          = 0xA400
