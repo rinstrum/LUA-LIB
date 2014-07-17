@@ -334,7 +334,7 @@ end
 -- @local
 local function setpParam(setp, reg, v)
     local r = private.getRegisterNumber(reg)
-    _M.sendRegWait('wrfinaldec', _M.setpRegAddress(setp, r), v)
+    _M.writeReg(_M.setpRegAddress(setp, r), v)
 end
 
 -------------------------------------------------------------------------------
@@ -348,7 +348,7 @@ end
 -- -- re-enable previously disabled setpoints
 -- device.setNumSetp(8)
 function _M.setNumSetp(n)
-    _M.sendRegWait('wrfinaldec', REG_SETP_NUM, n)
+    _M.writeReg(REG_SETP_NUM, n)
 end
 
 -------------------------------------------------------------------------------
@@ -359,7 +359,7 @@ end
 -- -- set the target for setpoint 5 to 150
 -- device.setpTarget(5, 150)
 function _M.setpTarget(setp,target)
-    _M.sendRegWait('wrfinaldec', _M.setpRegAddress(setp, REG_SETP_TARGET), target)
+    _M.writeReg(_M.setpRegAddress(setp, REG_SETP_TARGET), target)
 end
 
 -------------------------------------------------------------------------------

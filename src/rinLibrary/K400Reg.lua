@@ -426,6 +426,10 @@ end
 deprecated.literalToFloat = private.literalToFloat
 deprecated.toFloat = private.toFloat
 deprecated.sendReg = sendReg
+deprecated.sendRegWait = sendRegWait
+deprecated.readReg = readReg
+deprecated.writeReg = writeReg
+deprecated.exReg = exReg
 
 deprecated.TYP_CHAR     = TYP_CHAR
 deprecated.TYP_UCHAR    = TYP_UCHAR

@@ -44,7 +44,7 @@ local analogSourceMap = {   comms = ANALOG_COMMS    }
 -- device.setAnalogSource('comms')
 function _M.setAnalogSource(source)
     local src = private.convertNameToValue(source, analogSourceMap)
-    _M.sendRegWait('wrfinaldec', REG_ANALOGUE_SOURCE, src)
+    _M.writeReg(REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
 
@@ -60,9 +60,7 @@ function _M.setAnalogType(oType)
     curAnalogType = private.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
 
     if curAnalogType ~= prev then
-        _M.sendRegWait('wrfinaldec',
-                REG_ANALOGUE_TYPE,
-                curAnalogType)
+        _M.writeReg(REG_ANALOGUE_TYPE, curAnalogType)
     end
     return analogNames[prev]
 end
@@ -77,7 +75,7 @@ end
 function _M.setAnalogClip(c)
     if c == true then c = 1 elseif c == false then c = 0 end
 
-    _M.send(nil, 'wrfinaldec', REG_ANALOGUE_CLIP, c, 'noReply')
+    private.writeRegAsync(REG_ANALOGUE_CLIP, c)
 end
 
 -------------------------------------------------------------------------------

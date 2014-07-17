@@ -162,7 +162,7 @@ end
 function _M.sendDateFormat(f)
     local fmt = convertStringToFormat(f)
 
-    _M.sendRegWait('wrfinaldec', REG_TIMEFORMAT, fmt)
+    _M.writeReg(REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)
 end
 

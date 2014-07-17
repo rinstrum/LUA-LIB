@@ -242,7 +242,7 @@ function _M.calibrateSpan(span)
         span = tonumber(span)
     end
 
-    local msg, err = _M.sendRegWait('wrfinaldec', REG_CALIBWGT, _M.toPrimary(span), 1.0)
+    local msg, err = _M.writeReg(REG_CALIBWGT, _M.toPrimary(span), 1.0)
     if not msg then
         return msg, err
     end
@@ -400,7 +400,7 @@ function _M.calibrateLin(pt, val)
     if type(val) == 'string' then
        val = tonumber(val)
     end
-    local msg, err = _M.sendRegWait('wrfinaldec', REG_CALIBWGT, _M.toPrimary(val), 1.0)
+    local msg, err = _M.writeReg(REG_CALIBWGT, _M.toPrimary(val), 1.0)
     if not msg then
         return msg, err
     end

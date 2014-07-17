@@ -549,7 +549,7 @@ function _M.editReg(register, prompt)
             _M.writeBotRight(_M.sendRegWait('rdname', reg))
         end
     end
-    _M.sendRegWait('wrfinaldec', REG_EDIT_REG, reg)
+    _M.writeReg(REG_EDIT_REG, reg)
     _M.startDialog()
     while true do
         local data,err = _M.sendRegWait('rdfinalhex', REG_EDIT_REG)

@@ -414,7 +414,7 @@ function _M.sendKey(keyName, status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendRegWait('wrfinaldec', REG_APP_DO_KEYS, data)
+        _M.writeReg(REG_APP_DO_KEYS, data)
     else
         dbg.warn('Unknown key :', keyName)
     end
@@ -433,7 +433,7 @@ function _M.sendIOKey(io,status)
         if status == 'long' then
             data = bit32.bor(data, 0x80)
         end
-        _M.sendRegWait('wrfinaldec',REG_APP_DO_KEYS, data)
+        _M.writeReg(REG_APP_DO_KEYS, data)
     end
 end
 
