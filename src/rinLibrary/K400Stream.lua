@@ -173,7 +173,7 @@ function _M.removeStream(streamReg)
 
      if availReg == nil then return end   -- stream already removed
 
-    _M.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
+    private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
     _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
 
     availRegistersUser[availReg].reg = 0
@@ -261,7 +261,7 @@ function private.removeStreamLib(streamReg)
 
      if availReg == nil then return end   -- stream already removed
 
-    _M.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
+    private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
     _M.unbindRegister(bit32.bor(REG_LUALIB, availReg))
 
     availRegistersLib[availReg].reg = 0
@@ -274,15 +274,15 @@ end
 -- @usage
 -- device.streamCleanup()
 function _M.streamCleanup()
-    _M.exReg(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_STOP) -- stop streaming first
-    _M.exReg(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_STOP)  -- stop streaming first
+    private.exReg(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_STOP) -- stop streaming first
+    private.exReg(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_STOP)  -- stop streaming first
 
     for k,v in pairs(availRegistersUser) do
-        _M.writeReg(bit32.bor(REG_LUAUSER, k), 0)
+        private.writeReg(bit32.bor(REG_LUAUSER, k), 0)
         v.reg = 0
     end
     for k,v in pairs(availRegistersLib) do
-        _M.writeReg(bit32.bor(REG_LUALIB, k), 0)
+        private.writeReg(bit32.bor(REG_LUALIB, k), 0)
         v.reg = 0
     end
 

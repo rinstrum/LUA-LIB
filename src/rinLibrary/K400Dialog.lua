@@ -546,10 +546,10 @@ function _M.editReg(register, prompt)
         if type(prompt) == 'string' then
             _M.writeBotRight(prompt)
         else
-            _M.writeBotRight(_M.sendRegWait('rdname', reg))
+            _M.writeBotRight(private.getRegName(reg))
         end
     end
-    _M.writeReg(REG_EDIT_REG, reg)
+    private.writeReg(REG_EDIT_REG, reg)
     _M.startDialog()
     while true do
         local data,err = private.readRegHex(REG_EDIT_REG)
@@ -566,7 +566,7 @@ function _M.editReg(register, prompt)
     if prompt then
         _M.restoreBot()
     end
-    return private.literalToFloat(_M.sendRegWait('rdlit', reg))
+    return private.readReg(reg)
 end
 
 -------------------------------------------------------------------------------

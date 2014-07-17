@@ -132,7 +132,7 @@ function _M.flush()
         -- There is a queue of messages building up.  Send a mostly harmless
         -- ping to the display and away its response.  This flushes the queue.
         queueClearing = true
-        _M.readReg(private.REG_SERIALNO)
+        private.readReg(private.REG_SERIALNO)
         queueClearing = false
     end
 end

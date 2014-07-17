@@ -44,7 +44,7 @@ local analogSourceMap = {   comms = ANALOG_COMMS    }
 -- device.setAnalogSource('comms')
 function _M.setAnalogSource(source)
     local src = private.convertNameToValue(source, analogSourceMap)
-    _M.writeReg(REG_ANALOGUE_SOURCE, src)
+    private.writeReg(REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
 
@@ -60,7 +60,7 @@ function _M.setAnalogType(oType)
     curAnalogType = private.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
 
     if curAnalogType ~= prev then
-        _M.writeReg(REG_ANALOGUE_TYPE, curAnalogType)
+        private.writeReg(REG_ANALOGUE_TYPE, curAnalogType)
     end
     return analogNames[prev]
 end

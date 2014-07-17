@@ -710,7 +710,7 @@ local otherAunnunictors = {
 function _M.writeTopUnits (units)
     local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
 
-    _M.writeReg(REG_DISP_TOP_UNITS, u)
+    private.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
 end
 
@@ -724,7 +724,7 @@ function _M.writeBotUnits (units, other)
     local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
     local o = private.convertNameToValue(other, otherAunnunictors, UNITS_NONE)
 
-    _M.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
+    private.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u
     curBotUnitsOther = o
 end

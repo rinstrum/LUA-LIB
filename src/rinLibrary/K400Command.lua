@@ -111,7 +111,7 @@ local NUM_LINPTS   = 10
 -- @return error string, nil if no error
 -- @local
 local function doCmd(reg, data, timeout)
-    local msg, err = _M.exReg(reg, data, timeout)
+    local msg, err = private.exReg(reg, data, timeout)
     if msg then
         msg = tonumber(msg)
         return cmdString[msg], nil
@@ -190,7 +190,7 @@ end
 -- @return error code or nil for none
 -- @local
 local function doCalibrate(reg, data, timeout)
-    local msg, err = _M.exReg(reg, data, timeout)
+    local msg, err = private.exReg(reg, data, timeout)
     if not msg then
         return nil, err
     end
@@ -242,7 +242,7 @@ function _M.calibrateSpan(span)
         span = tonumber(span)
     end
 
-    local msg, err = _M.writeReg(REG_CALIBWGT, _M.toPrimary(span), 1.0)
+    local msg, err = private.writeReg(REG_CALIBWGT, _M.toPrimary(span), 1.0)
     if not msg then
         return msg, err
     end
@@ -359,14 +359,14 @@ function _M.readLinCal()
     local t = {}
     for i = 1, NUM_LINPTS do
         table.insert(t,{})
-        local msg, err = _M.exReg(REG_LINPC, i-1, 1.0)
+        local msg, err = private.exReg(REG_LINPC, i-1, 1.0)
         if not msg then
             return msg, err
         else
             t[i].pc = private.toFloat(msg,0)
         end
 
-        msg, err = _M.exReg(REG_LINWGT, i-1, 1.0)
+        msg, err = private.exReg(REG_LINWGT, i-1, 1.0)
         if not msg then
             return msg, err
         else
@@ -400,7 +400,7 @@ function _M.calibrateLin(pt, val)
     if type(val) == 'string' then
        val = tonumber(val)
     end
-    local msg, err = _M.writeReg(REG_CALIBWGT, _M.toPrimary(val), 1.0)
+    local msg, err = private.writeReg(REG_CALIBWGT, _M.toPrimary(val), 1.0)
     if not msg then
         return msg, err
     end

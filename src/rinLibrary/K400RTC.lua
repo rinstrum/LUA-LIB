@@ -162,7 +162,7 @@ end
 function _M.sendDateFormat(f)
     local fmt = convertStringToFormat(f)
 
-    _M.writeReg(REG_TIMEFORMAT, fmt)
+    private.writeReg(REG_TIMEFORMAT, fmt)
     setDateFormat(fmt)
 end
 
@@ -199,7 +199,7 @@ function _M.RTCread(d)
     RTC.load_time = true
   end
 
-  RTC.sec, err = _M.readReg(REG_TIMESEC)
+  RTC.sec, err = private.readReg(REG_TIMESEC)
 
   if err then
     RTC.sec = 0
@@ -233,7 +233,7 @@ end
 local function writeRTC(r, f, n, l, u)
     local x = tonumber(f)
     if x ~= nil and x >= l and x <= u then
-        _M.writeReg(r, x)
+        private.writeReg(r, x)
         RTC[n] = x
     end
 end

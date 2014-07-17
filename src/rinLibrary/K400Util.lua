@@ -75,9 +75,9 @@ function _M.lcdControl(mode)
     local mode = mode or ''
 
     if mode == 'lua' then
-        _M.exReg(REG_LCDMODE, 2)
+        private.exReg(REG_LCDMODE, 2)
     else
-        _M.exReg(REG_LCDMODE, 1)
+        private.exReg(REG_LCDMODE, 1)
     end
 end
 
@@ -121,7 +121,7 @@ end
 -- @function saveSettings
 -- @local
 function private.saveSettings()
-    _M.exReg(REG_SAVESETTING)
+    private.exReg(REG_SAVESETTING)
 end
 
 -------------------------------------------------------------------------------
@@ -167,7 +167,7 @@ end
 -- Called to load settings
 -- @local
 local function readSettings()
-    settings.fullscale = _M.readReg('fullscale')
+    settings.fullscale = private.readReg('fullscale')
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
             local data, err = private.readRegHex(settings.dispmode[mode].reg)
@@ -208,7 +208,7 @@ function _M.configure(model)
 
     readSettings()
 
-    _M.exReg(REG_COMMS_START)  -- clear start message
+    private.exReg(REG_COMMS_START)  -- clear start message
 
     if err then
         instrumentModel = ''
@@ -262,35 +262,6 @@ function _M.toPrimary(v, dp)
         v = tonumber(v)
     end                              -- TODO: how to handle non-numbers elegantly here?
     return floor(0.5 + v * powersOfTen[dp])
-end
-
--------------------------------------------------------------------------------
--- Read a RIS file and send valid commands to the device
--- @param filename Name of the RIS file
--- @usage
--- device.loadRIS('myApp.RIS')
-function _M.loadRIS(filename)
-    local file = io.open(filename, "r")
-    if not file then
-      dbg.warn('RIS file not found',filename)
-      return
-    end
-    for line in file:lines() do
-         if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
-            local endCh = string.sub(line, -1, -1)
-            if endCh ~= '\r' and endCh ~= '\n' then
-                 line = line .. ';'
-            end
-
-            local _,cmd,reg,data,err = rinMsg.processMsg(line)
-            if err then
-               dbg.error('RIS error: ',err)
-            end
-            _M.sendRegWait(cmd,reg,data)
-         end
-    end
-    private.saveSettings()
-    file:close()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

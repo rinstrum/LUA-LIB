@@ -207,7 +207,7 @@ end
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
-function _M.sendRegWait(cmd, reg, data, t, crc)
+local function sendRegWait(cmd, reg, data, t, crc)
 
     local t = t or 2.0
 
@@ -248,11 +248,10 @@ end
 -- processes the return string from rdlit command
 -- if data is a floating point number then the converted number is returned
 -- otherwise the original data string is returned
--- @function literalToFloat
 -- @param data returned from rdlit
 -- @return floating point number or data string
 -- @local
-function private.literalToFloat(data)
+function literalToFloat(data)
     local a, b = string.find(data,'[+-]?%s*%d*%.?%d*')
     if not a then
         return data
@@ -285,35 +284,32 @@ end
 -- @param timeout timeout in seconds (optional)
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
--- @usage
--- print('serial number is', device.readReg('SerialNo'))
-function _M.readReg(reg, timeout)
+-- @local
+function private.readRegLiteral(reg, timeout)
     local data, err
 
-    data, err = _M.sendRegWait('rdlit', reg, nil, timeout)
+    data, err = sendRegWait('rdlit', reg, nil, timeout)
     if err then
-        dbg.debug('Read Error', err)
-        return nil, err
-    else
-        return private.literalToFloat(data), nil
+        dbg.debug('Read Literal Error', err)
     end
+    return data, nil
 end
 
 -------------------------------------------------------------------------------
 -- Called to read register contents
+-- @function readReg
 -- @param reg register to read
 -- @param timeout timeout in seconds (optional)
 -- @return data received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
-function private.readRegLiteral(reg, timeout)
-    local data, err
+function private.readReg(reg, timeout)
+    local data, err = private.readRegLiteral(reg, timeout)
 
-    data, err = _M.sendRegWait('rdlit', reg, nil, timeout)
     if err then
-        dbg.debug('Read Literal Error', err)
+        return nil, err
     end
-    return data, nil
+    return literalToFloat(data), nil
 end
 
 -------------------------------------------------------------------------------
@@ -326,7 +322,7 @@ end
 function private.readRegDec(reg, timeout)
     local data, err
 
-    data, err = _M.sendRegWait('rdfinaldec', reg, nil, timeout)
+    data, err = sendRegWait('rdfinaldec', reg, nil, timeout)
     if err then
         dbg.debug('Read Dec Error', err)
     end
@@ -343,7 +339,7 @@ end
 function private.readRegHex(reg, timeout)
     local data, err
 
-    data, err = _M.sendRegWait('rdfinalhex', reg, nil, timeout)
+    data, err = sendRegWait('rdfinalhex', reg, nil, timeout)
     if err then
         dbg.debug('Read Hex Error', err)
     end
@@ -352,15 +348,15 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to write data to an instrument register
+-- @function writeReg
 -- @param reg register
 -- @param data to send
 -- @param timeout timeout for send operation
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
--- @usage
--- device.writeReg('usernum1', 0)
-function _M.writeReg(reg, data, timeout)
-    return _M.sendRegWait('wrfinaldec', reg, data, timeout)
+-- @local
+function private.writeReg(reg, data, timeout)
+    return sendRegWait('wrfinaldec', reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -372,7 +368,7 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.writeRegHex(reg, data, timeout)
-    return _M.sendRegWait('wrfinalhex', reg, data, timeout)
+    return sendRegWait('wrfinalhex', reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -382,7 +378,7 @@ end
 -- @param data to send
 -- @local
 function private.writeRegAsync(reg, data)
-    _M.sendReg('wrfinaldec', reg, data)
+    sendReg('wrfinaldec', reg, data)
 end
 
 -------------------------------------------------------------------------------
@@ -392,20 +388,20 @@ end
 -- @param data to send
 -- @local
 function private.writeRegHexAsync(reg, data)
-    _M.sendReg('wrfinalhex', reg, data)
+    sendReg('wrfinalhex', reg, data)
 end
 
 -------------------------------------------------------------------------------
 -- Called to run a register execute command with data as the execute parameter
+-- @function exReg
 -- @param reg register
 -- @param data to send
 -- @param timeout Timeout in seconds (optional)
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
--- @usage
--- device.exReg('flush_keys', 0) -- flush pending key presses
-function _M.exReg(reg, data, timeout)
-    return _M.sendRegWait('ex', reg, data, timeout)
+-- @local
+function private.exReg(reg, data, timeout)
+    return sendRegWait('ex', reg, data, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -416,7 +412,18 @@ end
 -- @param data to send
 -- @local
 function private.exRegAsync(reg, data)
-    _M.sendReg('ex', reg, data, "noReply")
+    sendReg('ex', reg, data, "noReply")
+end
+
+-------------------------------------------------------------------------------
+-- Called to get a registers name
+-- @param reg register
+-- @param timeout Timeout in seconds (optional)
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+function private.getRegName(reg, timeout)
+    return sendRegWait('rdname', reg, nil, timout)
 end
 
 -------------------------------------------------------------------------------
@@ -427,7 +434,7 @@ end
 -- @return Decimal places
 -- @local
 function private.getRegDecimalPlaces(reg)
-    local data, err = _M.sendRegWait('rdlit', reg)
+    local data, err = sendRegWait('rdlit', reg)
     if err then
         dbg.error('getRegDecimalPlaces: ', reg, err)
         return nil
@@ -445,8 +452,37 @@ end
 -- @return The type of the register
 -- @local
 function private.getRegType(reg)
-    local rdtype = _M.sendRegWait('rdtype', reg)
+    local rdtype = sendRegWait('rdtype', reg)
     return typeMap[tonumber(rdtype, 16)]
+end
+
+-------------------------------------------------------------------------------
+-- Read a RIS file and send valid commands to the device
+-- @param filename Name of the RIS file
+-- @usage
+-- device.loadRIS('myApp.RIS')
+function _M.loadRIS(filename)
+    local file = io.open(filename, "r")
+    if not file then
+        dbg.warn('RIS file not found',filename)
+        return
+    end
+    for line in file:lines() do
+        if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
+            local endCh = string.sub(line, -1, -1)
+            if endCh ~= '\r' and endCh ~= '\n' then
+                line = line .. ';'
+            end
+
+            local _, cmd, reg, data, err = rinMsg.processMsg(line)
+            if err then
+                dbg.error('RIS error: ',err)
+            end
+            sendRegWait(cmd, reg, data)
+        end
+    end
+    private.saveSettings()
+    file:close()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -473,14 +509,6 @@ for _, v in ipairs({
     private.registerDeprecated(v)
 end
 
-deprecated.literalToFloat = private.literalToFloat
-deprecated.toFloat = private.toFloat
-deprecated.sendReg = sendReg
-deprecated.sendRegWait = sendRegWait
-deprecated.readReg = readReg
-deprecated.writeReg = writeReg
-deprecated.exReg = exReg
-
 deprecated.TYP_CHAR     = TYP_CHAR
 deprecated.TYP_UCHAR    = TYP_UCHAR
 deprecated.TYP_SHORT    = TYP_SHORT
@@ -495,6 +523,14 @@ deprecated.TYP_BLOB     = TYP_BLOB
 deprecated.TYP_EXECUTE  = TYP_EXECUTE
 deprecated.TYP_BITFIELD = TYP_BITFIELD
 
+deprecated.literalToFloat = literalToFloat
+deprecated.toFloat = private.toFloat
+deprecated.sendReg = sendReg
+deprecated.sendRegWait = sendRegWait
+deprecated.readReg = private.readReg
+deprecated.writeReg = private.writeReg
+deprecated.exReg = private.exReg
+
 -------------------------------------------------------------------------------
 -- Called to read a register value and return value and dp position
 -- Used to work out the dp position of a register value so subsequent
@@ -506,7 +542,7 @@ deprecated.TYP_BITFIELD = TYP_BITFIELD
 -- @return dp position
 -- @local
 function deprecated.getRegDP(reg)
-    local data, err = _M.sendRegWait('rdlit', reg)
+    local data, err = sendRegWait('rdlit', reg)
     if err then
         dbg.error('getDP: ', reg, err)
         return nil, nil
@@ -521,6 +557,12 @@ function deprecated.getRegDP(reg)
 
         return tonumber(tmp), dp
     end
+end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Expose some internals for testing purposes
+if _TEST then
+    private.literalToFloat = literalToFloat
 end
 
 end
