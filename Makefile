@@ -33,10 +33,10 @@ clean:
 	rm -rf $(M01_DIR)
 
 test:
-	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) .
+	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) src
 
 net:
-	busted -p 'lnt$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) .
+	busted -p 'lnt$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) src
 
 pdf: all
 	htmldoc -f rinApp.pdf --webpage --size universal --no-title --no-toc \
