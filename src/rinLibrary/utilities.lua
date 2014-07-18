@@ -165,12 +165,14 @@ return function(mod, private, deprecated)
 -------------------------------------------------------------------------------
 -- Register a deprecated register name and value.
 -- @function registerDeprecated
--- @param reg Register name
+-- @param registers List of register names
 -- @local
-    function private.registerDeprecated(reg)
+    function private.registerDeprecated(registers)
         -- Have to rawset this to avoid hitting the set register capture
         -- function that is installed in the deprecated table.
-        rawset(deprecated, 'REG_' .. string.upper(reg), private.getRegisterNumber(reg))
+        for k, reg in pairs(registers) do
+            rawset(deprecated, 'REG_' .. string.upper(reg), private.getRegisterNumber(reg))
+        end
     end
 
     if _TEST then

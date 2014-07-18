@@ -442,20 +442,18 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-for _, v in ipairs({
-            'keybuffer', 'lcd',
+private.registerDeprecated{
+    'keybuffer', 'lcd',
 
-            'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
-            'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
-            'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
+    'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
+    'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
+    'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
 
-            'active_product_name', 'active_product_no', 'clr_all_totals',
-            'clr_docket_totals', 'select_product_delete',
-            'select_product_name', 'select_product_no',
-            'select_product_rename'
-        }) do
-    private.registerDeprecated(v)
-end
+    'active_product_name', 'active_product_no', 'clr_all_totals',
+    'clr_docket_totals', 'select_product_delete',
+    'select_product_name', 'select_product_no',
+    'select_product_rename'
+}
 
 deprecated.TYP_CHAR     = TYP_CHAR
 deprecated.TYP_UCHAR    = TYP_UCHAR

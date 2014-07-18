@@ -469,7 +469,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-private.registerDeprecated('io_status')
+private.registerDeprecated{'io_status'}
 
 deprecated.REG_IO_ENABLE            = REG_IO_ENABLE
 deprecated.REG_SETP_NUM             = REG_SETP_NUM

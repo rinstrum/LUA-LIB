@@ -196,15 +196,13 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-for _, v in ipairs({
-            'userid1', 'userid2', 'userid3', 'userid4', 'userid5',
-            'userid_name1', 'userid_name2', 'userid_name3',
-            'userid_name4', 'userid_name5',
-            'usernum1', 'usernum2', 'usernum3', 'usernum4', 'usernum5',
-            'usernum_name1', 'usernum_name2', 'usernum_name3',
-            'usernum_name4', 'usernum_name5',
-        }) do
-    private.registerDeprecated(v)
-end
+private.registerDeprecated{
+    'userid1', 'userid2', 'userid3', 'userid4', 'userid5',
+    'userid_name1', 'userid_name2', 'userid_name3',
+    'userid_name4', 'userid_name5',
+    'usernum1', 'usernum2', 'usernum3', 'usernum4', 'usernum5',
+    'usernum_name1', 'usernum_name2', 'usernum_name3',
+    'usernum_name4', 'usernum_name5',
+}
 
 end
