@@ -21,7 +21,7 @@ local function pwrCancelPressed(key, state)
     if state == 'long' then
       rinApp.running = false
       return true
-    end 
+    end
     return false
 end
 dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
@@ -163,13 +163,13 @@ sockets.createServerSocket(1112, socketUnidirectionalAccept)
 -- mainLoop gets continually called by the framework
 -- Main Application logic goes here
 local function mainLoop()
-     
+
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
 --=============================================================================
--- Clean Up 
+-- Clean Up
 --=============================================================================
 -- Put any application clean up here
 

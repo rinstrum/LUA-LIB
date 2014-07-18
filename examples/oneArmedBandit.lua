@@ -14,24 +14,24 @@
 -- It actually implements two different machines and chooses which one
 -- to play randomly at start up.  Despite this, the actual game play is
 -- identical for both.
--- 
+--
 -- To play, simply run the application.  To exit at any time, press and
 -- hold the cancel key.
--- 
+--
 -- On start up, you will be shown some flashed up welcome messages.
 -- These messages are different for the two machines which is the first
 -- indication as to which of the machines you are playing this session.
--- 
+--
 -- You will then come to the wager screen.  The top left clearly asks
 -- "WAGER?", the top right indicates to you the legal betting range: $1-$9,
 -- the bottom right shows you your current balance and the bottom left
 -- has a flashing message indicating the current level of the jackpot.
 -- To continue, enter your wager by pressing one of the numeric keys.
 -- You cannot bet more than you have of course and this is checked.
--- 
+--
 -- After entering your wager, you will briefly be shown the value of the
 -- bet and then the real game begins.
--- 
+--
 -- You automatically proceed to the PICK screen (PICK being displayed in
 -- the top right).  The top left contains the various symbols as they speed
 -- past the viewing window.  Press the OK button to choose when to stop
@@ -40,17 +40,17 @@
 -- first symbol is shown in the bottom left in addition to the rotating
 -- view of the second wheel's symbols.  Again press OK to stop the second
 -- and finally the third wheels.
--- 
+--
 -- You will then get the results for you spin.  Either a "Sorry" message
 -- or a display of the amount you've won.  If you manage to get either of
 -- the little or the big jackpots, you get a special flashing message and
 -- a greatly increased prize.  Prizes are given for threes of a kind and
 -- pairs of cherries.
--- 
+--
 -- Then it is back to the wager screen until either you run out of money
 -- and go home broke or break the bank and win!
--- 
--- 
+--
+--
 -- The video demonstrates the entire process.  The first bet is $5 and the
 -- result is "Cherry Cherry Gold" which pays four times ($20).  The second
 -- bet is $8 and the result is "Gold Orange Plum" which loses.  The third bet
@@ -59,7 +59,7 @@
 -- point the cancel button is used to quit.  Neither jackpot sequence is
 -- shown in the video and the alternate machine start up and extra symbols
 -- are likewise absent.  You'll just have to play the game to see these.
--- 
+--
 -- If you looked carefully, you might have noticed that the jackpot value
 -- increased as you play.  A portion of all bets is added to the jackpot.
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -303,7 +303,7 @@ local function playOkay(key, st)
         local r = rng
         irolls[nroll] = r
         rolls[nroll] = shortNames[r]
-        
+
         nroll = nroll + 1
         dwi.writeBotLeft(rolls[1] .. " " .. rolls[2] .. " " .. rolls[3])
         timers.removeTimer(playtimer)
@@ -416,7 +416,7 @@ weclomePlayer()
 timers.addTimer(0.005, 0, function () rng = random(nSides) end)
 
 -- Main Application Loop
-rinApp.run()            
+rinApp.run()
 
 -- Cleanup the application and exit
 dwi.writeTopLeft("")
@@ -424,5 +424,5 @@ dwi.writeBotLeft("")
 dwi.writeTopRight("")
 dwi.writeBotRight("")
 
-rinApp.cleanup()                   
+rinApp.cleanup()
 os.exit()

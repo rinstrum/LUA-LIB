@@ -46,15 +46,15 @@ module(...)
 local function rfind(s, pattern, init, finish)
   init = init or #s
   finish = finish or 1
-  
+
   for i = init, finish, -1 do
     local lfind, rfind = sfind(s, pattern, i)
-    
+
     if lfind and rfind then
       return lfind, rfind
     end
   end
-  
+
   return nil
 end
 
@@ -132,13 +132,13 @@ ExtensionList = listOf(V'Extension', S* V',' *S),
 Extension =  eV'IntLit' *S* (V'TO' *S*
 	(V'IntLit' + V'MAX' + error("expected integer or 'max'")) )^-1,
 
-Type = (V'DOUBLE' + V'FLOAT' + 
+Type = (V'DOUBLE' + V'FLOAT' +
 V'INT32' + V'INT64' +
 V'UINT32' + V'UINT64' +
 V'SINT32' + V'SINT64' +
 V'FIXED32' + V'FIXED64' +
 V'SFIXED32' + V'SFIXED64' +
-V'BOOL' + 
+V'BOOL' +
 V'STRING' + V'BYTES' + V'UserType'),
 
 BoolLit = (V'TRUE' + V'FALSE'),
@@ -155,20 +155,20 @@ util.complete(rules, scanner.symbols)
 function check(input)
   local builder = P(rules)
   local result = builder:match(input)
-  
+
   if result ~= #input + 1 then -- failure, build the error message
-    local init, _ = rfind(input, '\n*', result - 1) 
+    local init, _ = rfind(input, '\n*', result - 1)
     local _, finish = sfind(input, '\n*', result + 1)
-    
+
     init = init or 0
     finish = finish or #input
-    
+
     local line = scanner.lines(input:sub(1, result))
     local vicinity = input:sub(init + 1, finish)
-    
+
     return false, 'Syntax error at line '..line..', near "'..vicinity..'"'
   end
-  
+
   return true
 end
 

@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- multi-device
--- 
+--
 -- Demonstrates how the libraries can control multiple devices
--- 
+--
 -- Displays 'hello' to two instruments and closes when a button is pressed on
 -- a certain instrument.
 -------------------------------------------------------------------------------
@@ -16,7 +16,7 @@ local dwiA = rinApp.addK400("K401")     --  make a connection to the instrument
 local dwiB = rinApp.addK400("K401", "10.0.0.2", 2222)
 
 --=============================================================================
--- Main Application 
+-- Main Application
 --=============================================================================
 
 -- Write "Hello world" to the LCD screen.
@@ -29,7 +29,7 @@ dwiB.writeBotRight("B")
 dwiA.getKey()  -- Wait for the user to press a key on the dwi
 
 --=============================================================================
--- Clean Up 
+-- Clean Up
 --=============================================================================
 rinApp.cleanup()
 

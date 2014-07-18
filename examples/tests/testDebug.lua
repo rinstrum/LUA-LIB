@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- testDebug
--- 
+--
 -- Show capabilities of the rinDebug library
--- 
+--
 -------------------------------------------------------------------------------
 
 local dbg = require "rinLibrary.rinDebug"
@@ -11,7 +11,7 @@ local dbg = require "rinLibrary.rinDebug"
 dbg.configureDebug({level = 'DEBUG',timestamp = true, logger = 'console'})
 dbg.print('','DEBUG level selected with timestamping')
 dbg.debug('Test: ',1,2,3)
--- log debug messages at each level 
+-- log debug messages at each level
 dbg.debug("Hello", '')  -- log simple message without label
 dbg.info( 'String with CRLF at end: ',"Extra Information\r\n")
 dbg.warn('String with SOH and EOT: ',"\01Warning\04")

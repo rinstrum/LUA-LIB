@@ -1,8 +1,8 @@
 -------------------------------------------------------------------------------
 -- testCSV
--- 
+--
 -- Show capabilities of the rinCSV library
--- 
+--
 -------------------------------------------------------------------------------
 
 local csv = require "rinLibrary.rinCSV"
@@ -12,7 +12,7 @@ local db = {}
 
 -- Create a materials table for the database. This will be called materials.csv,
 -- and will have the headings Mat.No, Name, and Density.
--- This will also populate the database with some initial data of a material 
+-- This will also populate the database with some initial data of a material
 -- called cement that has a Mat.No of 1 and a Density of 1.0.
 csv.addTableDB(db,'materials', {
                 ['fname'] = 'materials.csv',
@@ -20,7 +20,7 @@ csv.addTableDB(db,'materials', {
                 ['data'] = {{1,'CEMENT',1.0}}
             })
 
--- Create a recipes table for the database. This file will have 3 rows of 
+-- Create a recipes table for the database. This file will have 3 rows of
 -- initial data.
 csv.addTableDB(db,'recipes', {
                 ['fname'] = 'recipe.csv',
@@ -29,8 +29,8 @@ csv.addTableDB(db,'recipes', {
                             {2,1,2000,0,0}}
             })
 
--- Attempt to load the database from existing files on disk. If 
-csv.loadDB(db)  
+-- Attempt to load the database from existing files on disk. If
+csv.loadDB(db)
 
 print('Database Contents:')
 print(csv.tostringDB(db,10))

@@ -1,9 +1,9 @@
 -------------------------------------------------------------------------------
 -- myApp
--- 
+--
 -- Application template
---    
--- Copy this file to your project directory and insert the specific code of 
+--
+-- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
 
@@ -29,8 +29,8 @@ local slideRepeat = 0.400  -- time in seconds that the timer repeats
 local function slide()
 
     -- Check if message is finished
-    if msg == false then 
-        return 
+    if msg == false then
+        return
     end
 
     -- If there's nothing left to move, clear the screen
@@ -38,10 +38,10 @@ local function slide()
     if msg == '' then
         dwi.writeBotLeft('')
         msg = false
-        
+
     -- If there's something left to write, write a substring of 9 characters
     -- to the device and remove a character from the message
-    else   
+    else
         dwi.writeBotLeft(string.format('%-9s',string.upper(string.sub(msg,1,9))))
         msg = string.sub(msg,2)
     end
@@ -56,7 +56,7 @@ local function showMarquee (s)
 end
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event 
+-- Callback to handle F1 key event
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
     return true     -- key handled so don't send back to instrument
@@ -69,16 +69,16 @@ local function pwrCancelPressed(key, state)
     if state == 'long' then
       rinApp.running = false
       return true
-    end 
+    end
     return false
 end
 dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
 -------------------------------------------------------------------------------
 
 --=============================================================================
--- Initialisation 
+-- Initialisation
 --=============================================================================
---  This is a good place to put your initialisation code 
+--  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
 showMarquee("This is a very long message for a small LCD screen")
@@ -89,13 +89,13 @@ showMarquee("This is a very long message for a small LCD screen")
 -- mainLoop gets continually called by the framework
 -- Main Application logic goes here
 function mainLoop()
-     
+
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
 --=============================================================================
--- Clean Up 
+-- Clean Up
 --=============================================================================
 -- Put any application clean up here
 
