@@ -97,18 +97,83 @@ describe("analog #analog", function ()
     end)
 
     it("val", function()
-        pending("unimplemented test case")
+        local m, p = makeModule()
+        local cases = {
+            { val = 0,          ex = 0      },
+            { val = 1,          ex = 50000  },
+            { val = 0.5,        ex = 25000  },
+            { val = 0.777799,   ex = 38890  }
+        }
+        for i, v in pairs(cases) do
+            it("test "..i, function()
+                stub(m, 'setAnalogRaw')
+                m.setAnalogVal(v.val)
+                assert.stub(m.setAnalogRaw).was.called_with(v.ex)
+                m.setAnalogRaw:revert()
+            end)
+        end
     end)
 
     it("percent", function()
-        pending("unimplemented test case")
-    end)
-
-    it("volt", function()
-        pending("unimplemented test case")
+        local m, p = makeModule()
+        local cases = {
+            { val = 0,          ex = 0      },
+            { val = 100,        ex = 50000  },
+            { val = 50,         ex = 25000  },
+            { val = 77.7799,    ex = 38890  }
+        }
+        for i, v in pairs(cases) do
+            it("test "..i, function()
+                stub(m, 'setAnalogRaw')
+                m.setAnalogPC(v.val)
+                assert.stub(m.setAnalogRaw).was.called_with(v.ex)
+                m.setAnalogRaw:revert()
+            end)
+        end
     end)
 
     it("current", function()
-        pending("unimplemented test case")
+        local m, p = makeModule()
+        local cases = {
+            { val = 4,          ex = 0      },
+            { val = 20,         ex = 50000  },
+            { val = 12,         ex = 25000  },
+            { val = 13,         ex = 28125  }
+        }
+        for i, v in pairs(cases) do
+            it("test "..i, function()
+                stub(m, 'setAnalogRaw')
+                stub(m, 'setAnalogType')
+
+                m.setAnalogCur(v.val)
+                assert.stub(m.setAnalogRaw).was.called_with(v.ex)
+                assert.stub(m.setAnalogType).was.called_with(current)
+
+                m.setAnalogRaw:revert()
+                m.setAnalogType:revert()
+            end)
+        end
+    end)
+
+    it("volt", function()
+        local m, p = makeModule()
+        local cases = {
+            { val = 0,          ex = 0      },
+            { val = 10,         ex = 50000  },
+            { val = 1.2345678,  ex = 6173   }
+        }
+        for i, v in pairs(cases) do
+            it("test "..i, function()
+                stub(m, 'setAnalogRaw')
+                stub(m, 'setAnalogType')
+
+                m.setAnalogVolt(v.val)
+                assert.stub(m.setAnalogRaw).was.called_with(v.ex)
+                assert.stub(m.setAnalogType).was.called_with(volt)
+
+                m.setAnalogRaw:revert()
+                m.setAnalogType:revert()
+            end)
+        end
     end)
 end)
