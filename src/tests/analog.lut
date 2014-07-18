@@ -95,4 +95,20 @@ describe("analog #analog", function ()
             end)
         end
     end)
+
+    it("val", function()
+        pending("unimplemented test case")
+    end)
+
+    it("percent", function()
+        pending("unimplemented test case")
+    end)
+
+    it("volt", function()
+        pending("unimplemented test case")
+    end)
+
+    it("current", function()
+        pending("unimplemented test case")
+    end)
 end)
