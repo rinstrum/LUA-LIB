@@ -5,6 +5,9 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local dbg = require "rinLibrary.rinDebug"
+local lpeg = require "lpeg"
+local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -59,13 +62,41 @@ return function (_M, private, deprecated)
 
 
 -------------------------------------------------------------------------------
+-- Check an incoming Id and correcly process it into its proper form
+-- @param id User id
+-- @param base Base register name
+-- @return The canonical refined register name
+-- @local
+local function checkId(id, base)
+    local n = nil
+
+    if type(id) == 'number' then
+        local tid = math.floor(id)
+        if tid >= 1 and tid <= 5 then
+            n = tid
+        end
+    elseif type(id) == 'string' then
+        n = ((C(R"15") + P(base) * C(R"15")) * -1):match(string.lower(id))
+    end
+    if n ~= nil then
+        return base .. tostring(n)
+    end
+
+    print('K400Users: ', 'unknown user ID: '..tostring(id))
+    return nil
+end
+
+-------------------------------------------------------------------------------
 -- Set one of the user IDs to the specified string
 -- @param id User ID in question (1 .. 5)
 -- @param s String to set to
 -- @usage
 -- device.setUserId(3, 'Brick')
     function _M.setUserId(id, s)
-        private.writeReg('userid'..id, s)
+        local u = checkId(id, 'userid')
+        if u ~= nil then
+            private.writeReg(u, s)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -76,7 +107,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- print('User ID is doing:', device.getUserId(3)
     function _M.getUserId(id)
-        return private.readReg('userid'..id)
+        local u = checkId(id, 'userid')
+        if u ~= nil then
+            return private.readReg(u)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -86,7 +120,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.setUserNumber(5, 22)
     function _M.setUserNumber(id, x)
-        private.writeReg('usernum'..id, x)
+        local u = checkId(id, 'usernum')
+        if u ~= nil then
+            private.writeReg(u, x)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -97,7 +134,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- print('User ID has', device.getUserNumber(5)
     function _M.getUserNumber(id)
-        return private.readReg('usernum'..id)
+        local u = checkId(id, 'usernum')
+        if u ~= nil then
+            return private.readReg(u)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -107,7 +147,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.setUserIdName(1, 'Fred')
     function _M.setUserIdName(id, n)
-        private.writeReg('userid_name'..id, n)
+        local u = checkId(id, 'userid_name')
+        if u ~= nil then
+            private.writeReg(u, n)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -118,7 +161,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- print('User ID is doing:', device.getUserIdName(1)
     function _M.getUserIdName(id)
-        return private.readReg('userid_name'..id)
+        local u = checkId(id, 'userid_name')
+        if u ~= nil then
+            return private.readReg(u)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -128,7 +174,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.setUserIdName(2, 'Johnny')
     function _M.setUserNumberName(id, n)
-        private.writeReg('usernum_name'..id, n)
+        local u = checkId(id, 'usernum_name')
+        if u ~= nil then
+            private.writeReg(u, n)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -139,7 +188,10 @@ return function (_M, private, deprecated)
 -- @usage
 -- print('User ID is doing:', device.getUserNumberName(2)
     function _M.getUserNumberName(id)
-        return private.readReg('usernum_name'..id)
+        local u = checkId(id, 'usernum_name')
+        if u ~= nil then
+            return private.readReg(u)
+        end
     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
