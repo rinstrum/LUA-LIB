@@ -1,7 +1,9 @@
 -------------------------------------------------------------------------------
---- General purpose utility functions.
--- Functions for internal library use
--- @module rinLibrary.utilities
+--- Name encoding and decoding functions.
+-- Functions intended for internal library use but they might be useful
+-- to applications. These functions deal with converting names into values
+-- and the inverse.
+-- @module rinLibrary.namings
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -22,10 +24,10 @@ local lower = string.lower
 -- local name = require 'rinLibrary.namings'
 --
 -- local map = {
---     cthulhu = 1,
---     hastur = 2,
+--     cthulhu      = 1,
+--     hastur       = 2,
 --     nyarlathotep = 3,
---     tsathoggua = 4
+--     tsathoggua   = 4
 -- }
 --
 -- print(name.convertNameToValue('Cthulhu', map))
