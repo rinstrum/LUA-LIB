@@ -18,6 +18,7 @@ local ipairs = ipairs
 local math = math
 
 local logging = require "logging"
+local naming = require 'rinLibrary.namings'
 
 -- Local variables
 local secondaryLogFunction = nil
@@ -28,26 +29,22 @@ require "logging.console"
 require "logging.file"
 local logger = logging.console("%message\n")
 
-_M.DEBUG    = logging.DEBUG
-_M.INFO     = logging.INFO
-_M.WARN     = logging.WARN
-_M.ERROR    = logging.ERROR
-_M.FATAL    = logging.FATAL
+local DEBUG = logging.DEBUG
+local INFO  = logging.INFO
+local WARN  = logging.WARN
+local ERROR = logging.ERROR
+local FATAL = logging.FATAL
 
-local levelNames = {
-    DEBUG = _M.DEBUG,
-    INFO  = _M.INFO,
-    WARN  = _M.WARN,
-    ERROR = _M.ERROR,
-    FATAL = _M.FATAL
+local levelCodes, levelNames = {}, {
+    debug = DEBUG,
+    info  = INFO,
+    warn  = WARN,
+    error = ERROR,
+    fatal = FATAL
 }
-local levels = setmetatable({}, { __index = function(t,k) return _M.INFO end })
+for k, v in pairs(levelNames) do levelCodes[v] = string.upper(k) end
 
-for k, v in pairs(levelNames) do
-    levels[k], levels[v] = v, k
-end
-
-local currentLevel = _M.DEBUG
+local currentLevel = DEBUG
 local lastLevel = currentLevel
 local timestamp = 'off'
 
@@ -59,10 +56,7 @@ local varString, tableString
 -- @return the numeric coded level corresponding to the specified level
 -- @local
 local function checkLevel(level)
-    if type(level) == 'string' then
-        level = string.upper(level)
-    end
-    return levels[level]
+    return naming.convertNameToValue(levels, levelNames, INFO)
 end
 
 -------------------------------------------------------------------------------
@@ -73,11 +67,11 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.setLevel('fatal')    -- Keep things nice and quiet
 function _M.setLevel(level)
-   lastLevel = currentLevel
-   currentLevel = checkLevel(level)
-   if lastLevel ~= currentLevel then
-      logger:setLevel(currentLevel)
-   end	
+    lastLevel = currentLevel
+    currentLevel = checkLevel(level)
+    if lastLevel ~= currentLevel then
+        logger:setLevel(currentLevel)
+    end	
 end
 
 -------------------------------------------------------------------------------
@@ -102,16 +96,16 @@ end
 -- dbg.setLogger({ logger = 'console' })
 function _M.setLogger(config)
 
-  if config.logger == 'file' then
-     logger = logging.file(config.file.filename, nil, "%message\n")
-  else -- config.logger is 'console' by default
-	 config.logger = 'console'
-	 logger = logging.console("%message\n")
-  end
+    if config.logger == 'file' then
+        logger = logging.file(config.file.filename, nil, "%message\n")
+    else -- config.logger is 'console' by default
+	    config.logger = 'console'
+	    logger = logging.console("%message\n")
+    end
 end
 
 local configuration = {
-    level = 'INFO',
+    level = 'info',
     timestamp = 'on',
     logger = 'console'
 }
@@ -255,7 +249,7 @@ function _M.print(prompt, ...)
     end
 
     local level = _M.tempLevel or currentLevel
-    local header = string.format("%s %s: ", timestr, levelNames[level])
+    local header = string.format("%s %s: ", timestr, levelCodes[level])
     local margin = #header
 
     if type(prompt) == 'string' then
@@ -289,7 +283,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.debug('help', "we don't know what is going on", 'this might assist')
 function _M.debug(prompt, ...)
-    _M.tempLevel = _M.DEBUG
+    _M.tempLevel = DEBUG
     _M.print(prompt, ...)
 end
 
@@ -301,7 +295,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.info('info', 'pi is', 3.14159265358979323846264338327950, 'roughly')
 function _M.info(prompt, ...)
-    _M.tempLevel = _M.INFO
+    _M.tempLevel = INFO
     _M.print(prompt, ...)
 
 end
@@ -314,7 +308,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.warn('warning', 'something went awry, i =', i)
 function _M.warn(prompt, ...)
-    _M.tempLevel = _M.WARN
+    _M.tempLevel = WARN
     _M.print(prompt, ...)
 
 end
@@ -326,7 +320,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.error('oops', 'something went awry, i =', i)
 function _M.error(prompt, ...)
-    _M.tempLevel = _M.ERROR
+    _M.tempLevel = ERROR
     _M.print(prompt, ...)
 end
 
@@ -338,7 +332,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.fatal('critical', 'something went awry, i =', i)
 function _M.fatal(prompt, ...)
-    _M.tempLevel = _M.FATAL
+    _M.tempLevel = FATAL
     _M.print(prompt, ...)
 end
 
