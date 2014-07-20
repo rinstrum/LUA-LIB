@@ -9,6 +9,7 @@
 local string = string
 local tonumber = tonumber
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 -------------------------------------------------------------------------------
 -- Return the length of a month in a given year
@@ -111,7 +112,7 @@ end
 -- @return Numeric date format code
 -- @local
 local function convertStringToFormat(f)
-    return private.convertNameToValue(f, stringDateMap, TM_DDMMYYYY, TM_DDMMYY, TM_YYYYMMDD)
+    return naming.convertNameToValue(f, stringDateMap, TM_DDMMYYYY, TM_DDMMYY, TM_YYYYMMDD)
 end
 
 -------------------------------------------------------------------------------
@@ -120,7 +121,7 @@ end
 -- @return Numeric date format code
 -- @local
 local function convertFormatToString(f)
-    return private.convertValueToName(f, stringDateUnmap, 'dmy')
+    return naming.convertValueToName(f, stringDateUnmap, 'dmy')
 end
 
 -------------------------------------------------------------------------------

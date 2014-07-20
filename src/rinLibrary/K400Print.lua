@@ -9,6 +9,7 @@
 local string = string
 local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 local REG_PRINTPORT         = 0xA317
 local REG_PRINTTOKENSTR     = 0x004C
@@ -62,7 +63,7 @@ end
 -- end
 -- device.printCustomTransmit([[<<Copy>>\C1]], 'ser1a')
 function _M.printCustomTransmit(tokenStr, comPortName)
-    local comPort = private.convertNameToValue(comPortName, portMap, curPrintPort or PRINT_SER1A)
+    local comPort = naming.convertNameToValue(comPortName, portMap, curPrintPort or PRINT_SER1A)
 
     if comPort ~= curPrintPort  then
         curPrintPort = comPort

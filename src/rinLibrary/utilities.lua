@@ -6,6 +6,7 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 local lpeg = require "lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
@@ -30,49 +31,6 @@ return function(mod, private, deprecated)
             r = r and (private.modules[m] or false)
         end
         return r
-    end
-
--------------------------------------------------------------------------------
--- Convert a named value into a real value but also let real values through
--- unmodified.
--- @function convertNameToValue
--- @param n Name to be converted
--- @param map Mapping from names to numeric values
--- @param default Default value to return if something is amiss
--- @param l Least value allowed
--- @param u Uppermost value allowed
--- @return The numeric code associted with the specified name
--- @local
-    function private.convertNameToValue(n, map, default, l, u)
-        local r
-        if type(n) == 'string' then
-            r = map[lower(n)] or default
-        elseif type(n) == 'number' then
-            r = n
-        else
-            r = default
-        end
-        if l ~= nil and r < l then r = default end
-        if u ~= nil and r > u then r = default end
-        return r
-    end
-
--------------------------------------------------------------------------------
--- Convert a named value into a real value but also let real values through
--- unmodified.
--- @function convertValueToName
--- @param n Number to be converted
--- @param map Mapping from numeric values to names
--- @param default Default value to return if something is amiss
--- @return The name associted with the specified code
--- @local
-    function private.convertValueToName(n, map, default)
-        if type(n) == 'string' then
-            return lower(n)
-        elseif type(n) == 'number' then
-            return map[n] or default
-        end
-        return default
     end
 
 -------------------------------------------------------------------------------
@@ -138,7 +96,7 @@ return function(mod, private, deprecated)
 -- print(private.getRegisterNumber('gross')
 -- @local
     function private.getRegisterNumber(r)
-        local n = private.convertNameToValue(r, regMap)
+        local n = naming.convertNameToValue(r, regMap)
         if n == nil then
             dbg.error('rinLibrary: ', 'bad register '..tostring(r))
             a[nil] = nil
@@ -154,7 +112,7 @@ return function(mod, private, deprecated)
 -- @see getRegisterNumber
 -- @local
     function private.getRegisterName(r)
-        local n = private.convertValueToName(r, regUnmap)
+        local n = naming.convertValueToName(r, regUnmap)
         if n == nil then
             dbg.warn('rinLibrary: ', 'unknown register '..tostring(r))
             a[nil] = nil

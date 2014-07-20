@@ -12,6 +12,7 @@ local ipairs = ipairs
 local bit32 = require "bit"
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -319,7 +320,7 @@ function _M.checkAnySystemStatus(status, ...)
     local s, p = checkOptionalSystemStatus(status, ...)
 
     for _, bit in pairs(p) do
-        if bit32.band(s, private.convertNameToValue(bit, sysStatusMap, 0)) ~= 0 then
+        if bit32.band(s, naming.convertNameToValue(bit, sysStatusMap, 0)) ~= 0 then
             return true
         end
     end
@@ -339,7 +340,7 @@ function _M.checkAllSystemStatus(status, ...)
     local s, p = checkOptionalSystemStatus(status, ...)
 
     for _, bit in pairs(p) do
-        if bit32.band(s, private.convertNameToValue(bit, sysStatusMap, 0)) == 0 then
+        if bit32.band(s, naming.convertNameToValue(bit, sysStatusMap, 0)) == 0 then
             return false
         end
     end
@@ -379,7 +380,7 @@ local function statusCallback(data, err)
            else
               v.running = true
               v.lastStatus = status
-              v.f(convertValueToName(k, statusunMap), status ~= 0)
+              v.f(naming.convertValueToName(k, statusunMap), status ~= 0)
               v.running = false
            end
         end
@@ -397,7 +398,7 @@ end
 -- @usage
 -- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(status, callback)
-    local stat = private.convertNameToValue(status, statusMap)
+    local stat = naming.convertNameToValue(status, statusMap)
     if stat then
         statBinds[stat] = {
             f = callback,
@@ -587,7 +588,7 @@ local function eStatusCallback(data, err)
             if v.running then
                 dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
             else
-                local estatName = private.convertValueToName(k, estatusUnmap, nil)
+                local estatName = naming.convertValueToName(k, estatusUnmap, nil)
                 v.running = true
                 v.lastStatus = status
                 if v.mainf then
@@ -609,7 +610,7 @@ end
 -- @see luaextendedstatus
 -- @see setEStatusMainCallback
 function _M.setEStatusCallback(eStatus, callback)
-    local eStat = private.convertNameToValue(eStatus, estatusMap)
+    local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}
         eStatBinds[eStat]['f'] = callback
@@ -624,7 +625,7 @@ end
 -- @see luaextendedstatus
 -- @see setEStatusCallback
 function _M.setEStatusMainCallback(eStatus, callback)
-    local eStat = private.convertNameToValue(eStatus, estatusMap)
+    local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}
         eStatBinds[eStat]['mainf'] = callback
@@ -653,7 +654,7 @@ function _M.anyStatusSet(...)
     end
 
     for i, v in pairs({...}) do
-        local b = private.convertNameToValue(v, statusMap, 0)
+        local b = naming.convertNameToValue(v, statusMap, 0)
         if bit32.band(curStatus, b) ~= 0 then
             return true
         end
@@ -682,7 +683,7 @@ function _M.allStatusSet(...)
     end
 
     for i, v in pairs({...}) do
-        local b = private.convertNameToValue(v, statusMap, 0)
+        local b = naming.convertNameToValue(v, statusMap, 0)
         if bit32.band(curStatus, b) == 0 then
             return false
         end
@@ -836,7 +837,7 @@ end
 function _M.waitStatus(...)
     local stat = 0
     for _, v in pairs({...}) do
-        stat = bit32.bor(stat, private.convertNameToValue(v, statusMap, 0))
+        stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
     end
     while bit32.band(curStatus, stat) ~= stat do
         system.handleEvents()
@@ -930,7 +931,7 @@ end
 -- device.writeNetStatus('none')
 -- device.writeNetStatus('both')
 function _M.writeNetStatus(status)
-    local s = private.convertNameToValue(status, netStatusMap, 0)
+    local s = naming.convertNameToValue(status, netStatusMap, 0)
     private.writeRegHex(REG_LUA_STAT_NET, s)
 end
 

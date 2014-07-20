@@ -14,6 +14,7 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local msg = require 'rinLibrary.rinMessage'
+local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -81,7 +82,7 @@ end
 -- @return Frequency value
 -- @local
 local function convertFrequency(f)
-    return private.convertNameToValue(f, frequencyTable, STM_FREQ_ONCHANGE,
+    return naming.convertNameToValue(f, frequencyTable, STM_FREQ_ONCHANGE,
                                         STM_FREQ_MANUAL, STM_FREQ_ONCHANGE)
 end
 

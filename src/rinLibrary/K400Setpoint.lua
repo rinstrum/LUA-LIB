@@ -10,6 +10,7 @@ local math = math
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -381,7 +382,7 @@ end
 -- -- set setpoint 10 to over
 -- device.setpType(10, 'over')
 function _M.setpType(setp, sType)
-    local v = private.convertNameToValue(sType, typeMap)
+    local v = naming.convertNameToValue(sType, typeMap)
     setpParam(setp, REG_SETP_TYPE, v)
 end
 
@@ -395,7 +396,7 @@ end
 -- -- make setpoint 4 active high
 -- device.setpLogic(4, 'high')
 function _M.setpLogic(setp, lType)
-    local v = private.convertNameToValue(lType, logicMap)
+    local v = naming.convertNameToValue(lType, logicMap)
     setpParam(setp, REG_SETP_LOGIC, v)
 end
 
@@ -409,7 +410,7 @@ end
 -- -- disable the alarm on setpoint 11
 -- device.setpAlarm(11, 'none')
 function _M.setpAlarm(setp, aType)
-    local v = private.convertNameToValue(aType, alarmTypeMap)
+    local v = naming.convertNameToValue(aType, alarmTypeMap)
     setpParam(setp, REG_SETP_ALARM, v)
 end
 
@@ -438,7 +439,7 @@ end
 -- -- set setpoint 2 to use the total weight
 -- device.setpSource(2, 'reg', device.REG_GRANDTOTAL)
 function _M.setpSource(setp, sType, reg)
-    local v = private.convertNameToValue(sType, sourceMap)
+    local v = naming.convertNameToValue(sType, sourceMap)
 
     setpParam(setp, REG_SETP_SOURCE, v)
     if (v == SOURCE_REG) and reg then

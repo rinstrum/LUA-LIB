@@ -11,6 +11,7 @@ local ipairs = ipairs
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -243,7 +244,7 @@ local function keyCallback(data, err)
     local handled = false
     local groups = keyBinds[key]
     if groups ~= nil then
-        local keyName = private.convertValueToName(key, keyUnmap)
+        local keyName = naming.convertValueToName(key, keyUnmap)
 
         -- No point trying to deal with a key we don't know about
         if keyName == nil then
@@ -365,7 +366,7 @@ end
 -- end
 -- device.setKeyCallback('f1', F1Pressed)
 function _M.setKeyCallback(keyName, callback)
-    local key = private.convertNameToValue(keyName, keyMap)
+    local key = naming.convertNameToValue(keyName, keyMap)
     local old = keyBinds[key].directCallback
     if key then
         keyBinds[key].directCallback = callback
@@ -394,7 +395,7 @@ end
 -- end
 -- device.setKeyGroupCallback('all', handleKey)
 function _M.setKeyGroupCallback(keyGroupName, callback)
-    local kg = private.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
+    local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
     local old = kg.callback
     kg.callback = callback
     return old
@@ -408,7 +409,7 @@ end
 -- -- Send a short cancel key press to the display
 -- device.sendKey('cancel', 'short')
 function _M.sendKey(keyName, status)
-    local key = private.convertNameToValue(keyName, keyMap)
+    local key = naming.convertNameToValue(keyName, keyMap)
     if key then
         local data = key
         if status == 'long' then

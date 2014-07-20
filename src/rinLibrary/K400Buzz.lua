@@ -6,6 +6,7 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local min, max = math.min, math.max
+local naming = require 'rinLibrary.namings'
 
 -------------------------------------------------------------------------------
 --- Buzzer Control.
@@ -36,7 +37,7 @@ return function (_M, private, deprecated)
 -- @param len - length of buzzer sound ('short', 'medium' or 'long')
 -- @local
     local function setBuzzLen(len)
-        local l = private.convertNameToValue(len, lengthMap, BUZZ_SHORT, BUZZ_SHORT, BUZZ_LONG)
+        local l = naming.convertNameToValue(len, lengthMap, BUZZ_SHORT, BUZZ_SHORT, BUZZ_LONG)
         if l ~= lastBuzzLen then
             private.writeRegHexAsync(REG_BUZZ_LEN, l)
             lastBuzzLen = l

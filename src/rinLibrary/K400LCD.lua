@@ -11,6 +11,7 @@ local math = math
 local string = string
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
+local naming = require 'rinLibrary.namings'
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -466,7 +467,7 @@ end
 local function convertAnnunicatorBits(t, l)
     local res = 0
     for _, v in pairs(l) do
-        res = bit32.bor(res, private.convertNameToValue(v, t, 0))
+        res = bit32.bor(res, naming.convertNameToValue(v, t, 0))
     end
     return res
 end
@@ -708,7 +709,7 @@ local otherAunnunictors = {
 -- @usage
 -- device.writeTopUnits('kg')
 function _M.writeTopUnits (units)
-    local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
+    local u = naming.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
 
     private.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
@@ -721,8 +722,8 @@ end
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
 function _M.writeBotUnits (units, other)
-    local u = private.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
-    local o = private.convertNameToValue(other, otherAunnunictors, UNITS_NONE)
+    local u = naming.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
+    local o = naming.convertNameToValue(other, otherAunnunictors, UNITS_NONE)
 
     private.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u

@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 local math = math
 local bit32 = require "bit"
+local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -43,7 +44,7 @@ local analogSourceMap = {   comms = ANALOG_COMMS    }
 -- @usage
 -- device.setAnalogSource('comms')
 function _M.setAnalogSource(source)
-    local src = private.convertNameToValue(source, analogSourceMap)
+    local src = naming.convertNameToValue(source, analogSourceMap)
     private.writeReg(REG_ANALOGUE_SOURCE, src)
     private.saveSettings()
 end
@@ -57,7 +58,7 @@ end
 function _M.setAnalogType(oType)
     local prev = curAnalogType
 
-    curAnalogType = private.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
+    curAnalogType = naming.convertNameToValue(oType, analogTypes, VOLT, CUR, VOLT)
 
     if curAnalogType ~= prev then
         private.writeReg(REG_ANALOGUE_TYPE, curAnalogType)
