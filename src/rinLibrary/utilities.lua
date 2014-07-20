@@ -99,7 +99,7 @@ return function(mod, private, deprecated)
         local n = naming.convertNameToValue(r, regMap)
         if n == nil then
             dbg.error('rinLibrary: ', 'bad register '..tostring(r))
-            a[nil] = nil
+            unknown_register[nil] = nil
         end
         return n
     end
@@ -115,7 +115,7 @@ return function(mod, private, deprecated)
         local n = naming.convertValueToName(r, regUnmap)
         if n == nil then
             dbg.warn('rinLibrary: ', 'unknown register '..tostring(r))
-            a[nil] = nil
+            unknown_register[nil] = nil
         end
         return n
     end
