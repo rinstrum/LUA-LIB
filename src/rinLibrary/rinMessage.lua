@@ -8,6 +8,7 @@ local bit32  = require "bit"
 local lpeg   = require "lpeg"
 local ccitt  = require "rinLibrary.rinCCITT"
 local dbg    = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 local str    = string
 local table  = table
@@ -130,10 +131,9 @@ end
 -- @return The command name
 -- @local
 local function getcmd(s)
-    cmd = tonum(s, 16)
-    if commandUnmap[cmd] ~= nil then
-        cmd = commandUnmap[cmd]
-    else
+    local n = tonum(s, 16)
+    cmd = naming.convertValueToName(n, commandUnmap, n)
+    if type(cmd) ~= 'string' then
         dbg.warn('rinMessage:', 'unknown command number '..cmd)
     end
 end
@@ -231,7 +231,7 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
     end
 
     if type(cmd) == 'string' then
-        cmd = commandMap[string.lower(cmd)] or CMD_RDFINALHEX
+        cmd = naming.convertNameToValue(cmd, commandMap, CMD_RDFINALHEX)
     end
 
     if reply == 'reply' then

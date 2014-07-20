@@ -40,6 +40,7 @@ function _M.convertNameToValue(n, map, default, l, u)
     else
         r = default
     end
+
     if l ~= nil and r < l then r = default end
     if u ~= nil and r > u then r = default end
     return r
