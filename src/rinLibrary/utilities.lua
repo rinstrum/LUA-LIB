@@ -35,8 +35,8 @@ return function(mod, private, deprecated)
 
 -------------------------------------------------------------------------------
 -- Add an entry to the register mapping table
--- @param k Key
--- @param v Value
+-- @param reg Key
+-- @param num Value
 -- @see addRegisters
 -- @local
     local function addRegister(reg, num)
