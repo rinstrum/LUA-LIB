@@ -16,6 +16,7 @@ local powersOfTen = require "rinLibrary.powersOfTen"
 local rinMsg = require "rinLibrary.rinMessage"
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -142,7 +143,8 @@ end
 -- @usage
 -- print(device.getDispModeDP('primary')..' decimal places in the primary display')
 function _M.getDispModeDP(display)
-    local d = displayModeMap[string.lower(display)]
+    local d = naming.convertStringToValue(display, displayModeMap, nil,
+                                            DISPMODE_PRIMARY, DISPMODE_SECONDARY)
 
     if d ~= nil then
         return settings.dispmode[d].dp
