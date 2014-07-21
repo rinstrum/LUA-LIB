@@ -355,7 +355,11 @@ end
 -- -- re-enable previously disabled setpoints
 -- device.setNumSetp(8)
 function _M.setNumSetp(n)
-    private.writeReg(REG_SETP_NUM, n)
+    if (n > NUM_SETP) or (n < 1) then
+        dbg.error('Setpoint Invalid: ', n)
+    else
+        private.writeReg(REG_SETP_NUM, n-1)
+    end
 end
 
 -------------------------------------------------------------------------------
