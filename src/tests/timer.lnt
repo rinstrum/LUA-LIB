@@ -32,7 +32,10 @@ describe("Timer #timer", function ()
     end)
 
     it("timer", function(done)
-        print('testing ....')
         timers.addTimer(0, .1, async(function() done() end))
+    end)
+
+    it("event", function(done)
+        timers.addEvent(async(function() done() end))
     end)
 end)
