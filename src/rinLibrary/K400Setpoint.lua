@@ -126,6 +126,8 @@ local sourceMap = {
 -- @field logic_and A binary logic AND is performed on the source with the mask value
 -- @field logic_or A binary logic OR is performed on the source with the mask value
 -- @field logic_xor A binary logic XOR is performed on the source with the mask value
+-- @field scale_ready Setpoint is active when the scale is stable in the zero band for the set period of time
+-- @field scale_exit Setpoint is active when there has been a print since the weight left the zero band
 -- @field buzzer Setpoint is active when the buzzer is beeping
 
 local TYPE_OFF      = 0
