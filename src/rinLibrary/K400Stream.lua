@@ -13,7 +13,6 @@ local pairs = pairs
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
-local msg = require 'rinLibrary.rinMessage'
 local naming = require 'rinLibrary.namings'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

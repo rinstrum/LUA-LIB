@@ -13,7 +13,6 @@ local type = type
 local floor = math.floor
 local bit32 = require "bit"
 local powersOfTen = require "rinLibrary.powersOfTen"
-local rinMsg = require "rinLibrary.rinMessage"
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
