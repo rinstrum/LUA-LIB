@@ -51,4 +51,90 @@ describe("Setpoint #setpoint", function ()
         lower.delay(0.3)
         assert.spy(cb).was.called_with(63)
     end)
+    
+    it("over", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            lower.setAllIOCallback(nil)
+        end)
+        
+        -- set 4 setpoints to 'over', use IOs 1 through 4
+        local targ = 2000
+        for i = 1, 4 do
+            upper.setpType(i, 'over')
+            upper.setpIO(i, i)
+            upper.setpTarget(i, targ)
+            targ = targ + 2000  -- increment for each setpoint
+        end
+        upper.setNumSetp(4)
+        
+        lower.setAnalogVolt(0)
+        lower.delay(1)
+        lower.setAllIOCallback(cb)
+        lower.delay(0.2)
+        lower.setAnalogVolt(10)
+        lower.delay(0.6)
+        assert.spy(cb).was.called_with(1)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(3)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(7)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(15)
+        lower.setAnalogVolt(0)
+        lower.delay(0.6)
+        assert.spy(cb).was.called_with(7)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(3)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(1)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(0)
+    end)
+    
+    it("under", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            lower.setAllIOCallback(nil)
+        end)
+        
+        -- set 4 setpoints to 'under', use IOs 1 through 4
+        local targ = 2000
+        for i = 1, 4 do
+            upper.setpType(i, 'under')
+            upper.setpIO(i, i)
+            upper.setpTarget(i, targ)
+            targ = targ + 2000  -- increment for each setpoint
+        end
+        upper.setNumSetp(4)
+        
+        lower.setAnalogVolt(0)
+        lower.delay(1)
+        lower.setAllIOCallback(cb)
+        lower.delay(0.2)
+        lower.setAnalogVolt(10)
+        lower.delay(0.6)
+        assert.spy(cb).was.called_with(14)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(12)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(8)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(0)
+        lower.setAnalogVolt(0)
+        lower.delay(0.6)
+        assert.spy(cb).was.called_with(8)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(12)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(14)
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(15)
+    end)
 end)
