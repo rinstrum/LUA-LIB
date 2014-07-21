@@ -1,0 +1,54 @@
+-------------------------------------------------------------------------------
+-- Setpoint network test.
+-- @author Sean
+-- @copyright 2014 Rinstrum Pty Ltd
+-------------------------------------------------------------------------------
+require "tests.assertions"
+
+describe("Setpoint #setpoint", function ()
+    local net = require "tests.network"
+    local timers = require 'rinSystem.rinTimers.Pack'
+    local app, upper, lower
+
+    setup(function()
+        app, upper, lower = net.openDevices()
+    end)
+
+    teardown(function()
+        net.closeDevices(app)
+    end)
+
+    before_each(function()
+        death = timers.addTimer(0, 5, function() assert.equal("timed out", nil) end)
+    end)
+
+    after_each(function()
+        timers.removeTimer(death)
+        death = nil
+    end)
+    
+    it("number", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            lower.setAllIOCallback(nil)
+        end)
+        
+        -- set 8 setpoints to 'on', use IOs 1 through 8
+        for i = 1, 8 do
+            upper.setpType(i, 'on')
+            upper.setpIO(i, i)
+        end
+        
+        lower.setAllIOCallback(cb)
+        lower.delay(0.3)
+        upper.setNumSetp(3)
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(7)
+        upper.setNumSetp(6)
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(63)
+    end)
+end)
