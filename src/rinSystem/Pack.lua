@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 --
 local socket = require "socket"
+local posix = require "posix"
 local io = require "io"
 
 local timers = require "rinSystem.rinTimers.Pack"
@@ -52,6 +53,20 @@ function _M.handleEvents()
 		
 end
 
+-------------------------------------------------------------------------------
+-- Hard sleep for a specified period of time.  This will completely block
+-- your application and shouldn't be called.  Use the device.delay() call
+-- instead.
+-- @param s Seconds to sleep for, can be fractional
+-- @see delay
+-- @local
+function _M.sleep(s)
+    if math.floor(s) == s then
+        posix.sleep(s)
+    else
+        socket.select(nil, nil, s)
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Close down everything read for a restart at some later point.
