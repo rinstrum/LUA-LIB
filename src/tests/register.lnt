@@ -9,133 +9,89 @@ local regs = require "tests.registers"
 describe("K400Reg #register", function()
     local net = require "tests.network"
     local timers = require 'rinSystem.rinTimers.Pack'
-    local app, upper, lower
+    local app, upper, lower, death, lowerPrivate, upperPrivate
 
     setup(function()
-        app, upper, lower = net.openAsync()
+        app, upper, lower = net.openDevices()
+        lowerPrivate, upperPrivate = lower.getPrivate(), upper.getPrivate()
     end)
 
     teardown(function()
-        net.closeAsync(app)
+        net.closeDevices(app)
+    end)
+
+    before_each(function()
+        death = timers.addTimer(0, 5, function() assert.equal("timed out", nil) end)
+    end)
+
+    after_each(function()
+        timers.removeTimer(death)
+        death = nil
     end)
 
     describe("read and write numeric", function()
         local reg = 'usernum1'
 
-        local function check(a, b, done)
-            lower.delay(0.15)
+        local function check(a, b)
+            upper.writeReg(reg, a)
+            lower.writeReg(reg, b)
+            lower.delay(0.2)
 
-            local r, err = upper.readReg(reg)
+            local r, err = upperPrivate.readReg(reg)
             assert.is_nil(err)
             assert.equal(a, r)
 
             r, err = lower.readReg(reg)
             assert.is_nil(err)
             assert.equal(b, r)
-
-            done()
         end
 
-        it("firsts", function(done)
-            timers.addEvent(async(function()
-                upper.writeReg(reg, 3)
-                lower.writeReg(reg, 2)
-                check(3, 2, done)
-            end))
-        end)
-
-        it("seconds", function(done)
-            timers.addEvent(async(function()
-                lower.writeReg(reg, 13)
-                upper.writeReg(reg, 11)
-                check(11, 13, done)
-            end))
-        end)
-
-        it("thirds", function(done)
-            timers.addEvent(async(function()
-                upper.writeReg(reg, 5)
-                lower.writeReg(reg, 7)
-                check(5, 7, done)
-            end))
-        end)
+        it("firsts", function()     check(3, 2)     end)
+        it("seconds", function()    check(11, 13)   end)
+        it("thirds", function()     check(5, 7)     end)
     end)
 
     describe("read and write string", function()
         local reg = 'userid1'
 
-        local function check(a, b, done)
-            upper.delay(0.15)
+        local function check(a, b)
+            upper.writeReg(reg, a)
+            lower.writeReg(reg, b)
+            upper.delay(0.2)
 
             local d, e = upper.sendRegWait('rdlit', reg)
             assert.is_nil(e)
             assert.equal(a, d)
 
-            d, e = lower.sendRegWait('rdlit', reg)
+            d, e = lowerPrivate.readRegLiteral(reg)
             assert.is_nil(e)
             assert.equal(b, d)
-
-            done()
         end
 
-        it("initials", function(done)
-            timers.addEvent(async(function()
-                upper.writeReg(reg, 'hello')
-                lower.writeReg(reg, 'fnord')
-                check('hello', 'fnord', done)
-            end))
-        end)
-
-        it("middles", function(done)
-            timers.addEvent(async(function()
-                lower.writeReg(reg, 'bogus')
-                upper.writeReg(reg, 'fake')
-                lower.flush()
-                check('fake', 'bogus', done)
-            end))
-        end)
-
-        it("finals", function(done)
-            timers.addEvent(async(function()
-                lower.writeReg(reg, '')
-                upper.writeReg(reg, 'bye')
-                check('bye', '', done)
-            end))
-        end)
+        it("initials", function()   check('hello', 'fnord') end)
+        it("middles", function()    check('fake', 'bogus')  end)
+        it("finals", function()     check('bye', '')        end)
     end)
 
-    it("execute", function()
+    describe("execute", function()
         local xreg = 'select_product_rename'
         local rreg = 'select_product_name'
 
-        local function check(a, b, done)
-            upper.delay(0.15)
+        local function check(a, b)
+            upper.exReg(xreg, a)
+            lower.exReg(xreg, b)
+            upper.delay(0.2)
 
-            local d, e = upper.sendRegWait('rdlit', rreg)
+            local d, e = upper.readReg(rreg)
             assert.is_nil(e)
-            assert.equal(a, d)
+            assert.equal(1, d)
 
-            d, e = lower.sendRegWait('rdlit', rreg)
+            d, e = lower.readReg(rreg)
             assert.is_nil(e)
-            assert.equal(b, d)
-
-            done()
+            assert.equal(1, d)
         end
 
-        it("product", function(done)
-            timers.addEvent(async(function()
-                upper.exReg(xreg, 'aprod')
-                lower.exReg(xreg, 'proda')
-                check('aprod', 'proda', done)
-            end))
-        end)
-
-        it("wedge", function(done)
-            timers.addEvent(async(function()
-                upper.exReg(xreg, 'widget')
-                lower.exReg(xreg, 'boxen')
-                check('widget', 'boxen', done)
-            end))
-        end)
+        it("product", function()    check('aprod', 'proda')     end)
+        it("wedge", function()      check('widget', 'boxen')    end)
     end)
 end)

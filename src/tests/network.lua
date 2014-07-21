@@ -58,6 +58,7 @@ function _M.openDevices(upper, lower)
     upperDevice = rinApp.addK400("K401", upper, _M.upperPort)
     lowerDevice = rinApp.addK400("K401", lower, _M.lowerPort)
 
+    rinApp.init()
     return rinApp, upperDevice, lowerDevice
 end
 
@@ -67,49 +68,6 @@ end
 -- @local
 function _M.closeDevices(rinApp)
     rinApp.cleanup()
-end
-
--------------------------------------------------------------------------------
--- Switch operations to asynchronous more
--- @param app The application reference.
--- @local
-function _M.setAsync(app)
-    setloop({
-        pcall = pcall,
-        create_timer =  function(sec, on_timeout)
-                            timers.addTimer(0, sec, on_timeout)
-                        end,
-        step =          function()
-                            if app.running then
-                                app.step()
-                            end
-                        end
-    })
-    app.init()
-end
-
--------------------------------------------------------------------------------
--- Open connections to two K400 units and set asynchronous test mode.
--- @param u The address of the upper unit (default upperIPaddress)
--- @param l The address of the lower unit (default lowerIPaddress)
--- @return Application reference
--- @return Upper unit device
--- @return Lower unit device
--- @local
-function _M.openAsync(u, l)
-    local app, upper, lower = _M.openDevices(u, l)
-    _M.setAsync(app)
-    return app, upper, lower
-end
-
--------------------------------------------------------------------------------
--- Close the connections to the K400 units configured in asynchronous mode.
--- @param app The application reference.
--- @local
-function _M.closeAsync(app)
-    timers.addEvent(function() app.running = false end)
-    app.run()
-    _M.closeDevices(app)
 end
 
 -------------------------------------------------------------------------------
