@@ -7,7 +7,6 @@
 -------------------------------------------------------------------------------
 
 local dbg = require "rinLibrary.rinDebug"
-local lpeg = require "lpeg"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
