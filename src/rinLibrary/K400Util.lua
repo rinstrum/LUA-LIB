@@ -16,11 +16,14 @@ local powersOfTen = require "rinLibrary.powersOfTen"
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local lpeg = require 'lpeg'
+local system = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
+local REG_RESTART           = 0x0016
 local REG_SAVESETTING       = 0x0010
 local REG_LCDMODE           = 0x000D
 local REG_COMMS_START       = 0x0309
@@ -263,6 +266,40 @@ function _M.toPrimary(v, dp)
         v = tonumber(v)
     end                              -- TODO: how to handle non-numbers elegantly here?
     return floor(0.5 + v * powersOfTen[dp])
+end
+
+-------------------------------------------------------------------------------\
+-- Restart the display and this module
+-- @param what Which devices to reboot, nil or 'lua' for the lua host,
+-- 'all' for everything.
+-- @usage
+-- device.restart()
+-- -- This line is never executed
+function _M.restart(what)
+    local w = what or 'lua'
+
+    if w == 'all' then
+        -- The trick here is after we tell the display to restart, our power will
+        -- be dropped at some not well determined point.  Thus we've got to do
+        -- this as cleanly as possible
+
+        local Cb, Cg, P, R = lpeg.Cb, lpeg.Cg, lpeg.P, lpeg.R
+        local pat = P'/dev/' * Cg(P'sd' * R'az' * R'09'^1, 'dv') *
+                    P' /mnt/' * (Cb'dv' / function(m) os.execute('umount -f /mnt/'..m) end)
+
+        for mount in io.lines('/proc/mounts') do
+            pat:match(mount)
+        end
+
+        os.execute('sync')
+        system.sleep(0.5)
+        os.execute('sync')
+
+        private.exRegAsync(REG_RESTART)
+    end
+
+    os.execute('reboot')
+    system.sleep(300)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
