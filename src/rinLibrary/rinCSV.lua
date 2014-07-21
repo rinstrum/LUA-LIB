@@ -7,16 +7,16 @@
 
 local _M = {}
 
-local string = string
-local table = table
-local pairs = pairs
-local io = io
-local ipairs = ipairs
-local tostring = tostring
-local error = error
-local xeq = os.execute
+local string    = string
+local table     = table
+local pairs     = pairs
+local io        = io
+local ipairs    = ipairs
+local tostring  = tostring
+local error     = error
+local xeq       = os.execute
 
-local dbg = require "rinLibrary.rinDebug"
+local dbg       = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- LPEG pattern for parsing a CSV file

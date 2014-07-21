@@ -7,17 +7,17 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-local string = string
-local tonumber = tonumber
-local type = type
-local floor = math.floor
-local bit32 = require "bit"
-local powersOfTen = require "rinLibrary.powersOfTen"
-local system = require 'rinSystem.Pack'
-local dbg = require "rinLibrary.rinDebug"
-local naming = require 'rinLibrary.namings'
-local lpeg = require 'lpeg'
-local system = require 'rinSystem.Pack'
+local string        = string
+local tonumber      = tonumber
+local type          = type
+local floor         = math.floor
+local bit32         = require "bit"
+local powersOfTen   = require "rinLibrary.powersOfTen"
+local system        = require 'rinSystem.Pack'
+local dbg           = require "rinLibrary.rinDebug"
+local naming        = require 'rinLibrary.namings'
+local lpeg          = require 'lpeg'
+local system        = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here

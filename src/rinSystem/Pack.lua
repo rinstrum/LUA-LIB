@@ -5,15 +5,12 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 --
-local socket = require "socket"
-local posix = require "posix"
-local io = require "io"
+local socket    = require "socket"
+local posix     = require "posix"
 
-local timers = require "rinSystem.rinTimers.Pack"
-local sockets = require "rinSystem.rinSockets.Pack"
-local dbg = require "rinLibrary.rinDebug"
-
-local pairs = pairs
+local timers    = require "rinSystem.rinTimers.Pack"
+local sockets   = require "rinSystem.rinSockets.Pack"
+local dbg       = require "rinLibrary.rinDebug"
 
 local deprecatedFields, warned = {
     timers = timers,
