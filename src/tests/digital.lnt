@@ -26,13 +26,6 @@ describe("Digital #digital", function ()
         death = nil
     end)
 
-    it("timer", function()
-        local called = false
-        timers.addTimer(0, .1, function() called = true end)
-        lower.delay(.15)
-        assert.is_true(called)
-    end)
-
     it("all", function()
         local cb = spy.new(function() end)
 
