@@ -38,6 +38,19 @@ local SerBCallback  = nil
 
 local largeSerialBMessageWarning = false  -- Have we warned about an over sized message yet?
 local queueClearing = false
+local sendingCRC = ''
+
+-------------------------------------------------------------------------------
+-- Change the default behaviour with repsects to the inclusion of a CRC in
+-- the packet stream.
+-- @param crc Set to 'crc' for checksummed operation and '' for not.
+-- @return The old CRC setting.
+-- @local
+function private.setCRCmode(crc)
+    local old = sendingCRC
+    sendingCRC = crc
+    return old
+end
 
 -------------------------------------------------------------------------------
 -- Designed to be registered with rinSystem. If a message error occurs, pass it
@@ -145,7 +158,7 @@ end
 -- @usage
 -- local msg = require 'rinLibrary.rinMessage'
 -- local message = msg.buildMsg(addr, cmd, reg, data, reply)
--- device.sendRaw(msg.encapsulateMsg(message), 'crc')
+-- device.sendRaw(msg.encapsulateMsg(message))
 function _M.sendRaw(raw)
     if sockets.writeSocket(_M.socketA, raw) > 5 then
         _M.flush()
@@ -161,7 +174,7 @@ end
 -- @usage
 -- stream.sendMsg(message, crc)
 function _M.sendMsg(msg, crc)
-    _M.sendRaw(rinMsg.encapsulateMsg(msg, crc or ''))
+    _M.sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
 end
 
 -------------------------------------------------------------------------------
