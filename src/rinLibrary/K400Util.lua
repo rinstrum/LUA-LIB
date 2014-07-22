@@ -300,6 +300,7 @@ function _M.restart(what)
 
     os.execute('reboot')
     system.sleep(300)
+    dbg.warn('Reboot failed')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
