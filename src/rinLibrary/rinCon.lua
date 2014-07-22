@@ -158,8 +158,9 @@ end
 -- @usage
 -- local msg = require 'rinLibrary.rinMessage'
 -- local message = msg.buildMsg(addr, cmd, reg, data, reply)
--- device.sendRaw(msg.encapsulateMsg(message))
-function _M.sendRaw(raw)
+-- sendRaw(msg.encapsulateMsg(message))
+-- @local
+local function sendRaw(raw)
     if sockets.writeSocket(_M.socketA, raw) > 5 then
         _M.flush()
     end
@@ -174,7 +175,7 @@ end
 -- @usage
 -- stream.sendMsg(message, crc)
 function _M.sendMsg(msg, crc)
-    _M.sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
+    sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
 end
 
 -------------------------------------------------------------------------------
@@ -187,7 +188,7 @@ end
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @usage
 -- stream.send('broadcast', device.CMD_RDLIT, 'grossnet', data, 'reply')
-function _M.send(addr, cmd, reg, data, reply, crc)
+function private.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
     _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
@@ -198,11 +199,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Get the binding for a specified device register
+-- @function getDeviceRegister
 -- @param reg register to be checked
 -- @return Device register binding
 -- @usage
 -- local func = device.getDeviceRegister('grossnet')
-function _M.getDeviceRegister(reg)
+-- @local
+function private.getDeviceRegister(reg)
     local r = private.getRegisterNumber(reg)
     return deviceRegisters[r]
 end
@@ -370,5 +373,8 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 deprecated.dbg = dbg
+deprecated.sendRaw = sendRaw
+deprecated.send = private.send
+deprecated.getDeviceRegister = private.getDeviceRegister
 
 end

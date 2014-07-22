@@ -149,7 +149,7 @@ local dpPattern = S('+-')^-1 * locale.space^0 * locale.digit^0 * (P'.' * (locale
 -- @local
 local function sendReg(cmd, reg, data, crc)
     local r = private.getRegisterNumber(reg)
-    _M.send(nil, cmd, r, data, "noReply", crc)
+    private.send(nil, cmd, r, data, "noReply", crc)
 end
 
 -------------------------------------------------------------------------------
@@ -184,9 +184,9 @@ local function sendRegWait(cmd, reg, data, t, crc)
           waiting = false
     end
 
-    local f = _M.getDeviceRegister(r)
+    local f = private.getDeviceRegister(r)
     _M.bindRegister(r, waitf)
-    _M.send(nil, cmd, r, data, "reply", crc)
+    private.send(nil, cmd, r, data, "reply", crc)
     local tmr = timers.addTimer(0, t, waitf, nil, 'Timeout')
 
     while waiting do
