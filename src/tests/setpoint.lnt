@@ -8,7 +8,7 @@ require "tests.assertions"
 describe("Setpoint #setpoint", function ()
     local net = require "tests.network"
     local timers = require 'rinSystem.rinTimers.Pack'
-    local app, upper, lower
+    local app, upper, lower, death
 
     setup(function()
         app, upper, lower = net.openDevices()
@@ -19,7 +19,7 @@ describe("Setpoint #setpoint", function ()
     end)
 
     before_each(function()
-        death = timers.addTimer(0, 5, function() assert.equal("timed out", nil) end)
+        death = timers.addTimer(0, 30, function() assert.equal("timed out", nil) end)
     end)
 
     after_each(function()
@@ -136,5 +136,54 @@ describe("Setpoint #setpoint", function ()
         assert.spy(cb).was.called_with(14)
         lower.delay(0.2)
         assert.spy(cb).was.called_with(15)
+    end)
+    
+    it("status", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            lower.setAllIOCallback(nil)
+            upper.presetTare(0)
+            upper.gross()
+        end)
+        
+        -- set 4 setpoints to use IOs 1 through 4
+        for i = 1, 4 do
+            upper.setpIO(i, i)
+        end
+        upper.setNumSetp(4)
+        upper.setpType(1, 'coz')
+        upper.setpType(2, 'zero')
+        upper.setpType(3, 'net')
+        upper.setpType(4, 'motion')
+        -- skip 'error', 'scale_ready', 'scale_exit' and 'buzzer' for now until we find a good way to test them
+        upper.gross()  -- make sure we are starting in gross
+        
+        lower.setAnalogVolt(2)
+        lower.delay(1)
+        lower.setAllIOCallback(cb)
+        lower.delay(0.3)
+        lower.setAnalogVolt(0)
+        lower.delay(0.3)
+        upper.waitStatus('zero')  -- wait until we are in the zero band
+        upper.waitStatus('notmotion')  -- zero wont happen until weight is stable
+        upper.zero()  -- perform user zero so we will always get coz
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(3)
+        lower.setAnalogVolt(5)
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(8)
+        upper.presetTare(500)
+        upper.net()
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(12)
+        upper.waitStatus('notmotion')
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(4)
+        upper.gross()
+        lower.delay(0.3)
+        assert.spy(cb).was.called_with(0)
     end)
 end)
