@@ -380,7 +380,7 @@ local function statusCallback(data, err)
            else
               v.running = true
               v.lastStatus = status
-              v.f(naming.convertValueToName(k, statusunMap), status ~= 0)
+              v.f(naming.convertValueToName(k, statusUnmap), status ~= 0)
               v.running = false
            end
         end
