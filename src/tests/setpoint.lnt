@@ -31,9 +31,9 @@ describe("Setpoint #setpoint", function ()
         local cb = spy.new(function() end)
         
         finally(function()
+            lower.setAllIOCallback(nil)
             upper.setNumSetp(1)
             upper.setpType(1, 'off')
-            lower.setAllIOCallback(nil)
         end)
         
         -- set 8 setpoints to 'on', use IOs 1 through 8
@@ -56,9 +56,9 @@ describe("Setpoint #setpoint", function ()
         local cb = spy.new(function() end)
         
         finally(function()
+            lower.setAllIOCallback(nil)
             upper.setNumSetp(1)
             upper.setpType(1, 'off')
-            lower.setAllIOCallback(nil)
         end)
         
         -- set 4 setpoints to 'over', use IOs 1 through 4
@@ -99,9 +99,9 @@ describe("Setpoint #setpoint", function ()
         local cb = spy.new(function() end)
         
         finally(function()
+            lower.setAllIOCallback(nil)
             upper.setNumSetp(1)
             upper.setpType(1, 'off')
-            lower.setAllIOCallback(nil)
         end)
         
         -- set 4 setpoints to 'under', use IOs 1 through 4
@@ -142,9 +142,9 @@ describe("Setpoint #setpoint", function ()
         local cb = spy.new(function() end)
         
         finally(function()
+            lower.setAllIOCallback(nil)
             upper.setNumSetp(1)
             upper.setpType(1, 'off')
-            lower.setAllIOCallback(nil)
             upper.presetTare(0)
             upper.gross()
         end)
@@ -185,5 +185,82 @@ describe("Setpoint #setpoint", function ()
         upper.gross()
         lower.delay(0.3)
         assert.spy(cb).was.called_with(0)
+    end)
+    
+    it("logic", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            lower.setAllIOCallback(nil)
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            upper.setpLogic(1, 'high')
+            upper.setpLogic(2, 'high')
+            upper.setpIO(1, 0)
+        end)
+        
+        -- set 2 setpoints to 'over', use IOs 1 and 2
+        local targ = 2000
+        for i = 1, 2 do
+            upper.setpType(i, 'over')
+            upper.setpIO(i, i)
+            upper.setpTarget(i, targ)
+        end
+        upper.setNumSetp(2)
+        upper.setpLogic(1, 'high')
+        upper.setpLogic(2, 'low')
+        
+        lower.setAnalogVolt(0)
+        lower.delay(1)
+        lower.setAllIOCallback(cb)
+        lower.delay(0.2)
+        lower.setAnalogVolt(4)
+        lower.delay(0.8)
+        assert.spy(cb).was.called_with(1)
+        lower.setAnalogVolt(0)
+        lower.delay(0.8)
+        assert.spy(cb).was.called_with(2)
+    end)
+    
+    it("source", function()
+        local cb = spy.new(function() end)
+        
+        finally(function()
+            lower.setAllIOCallback(nil)
+            upper.setNumSetp(1)
+            upper.setpType(1, 'off')
+            upper.setpIO(1, 0)
+            upper.setpSource(2, 'gross')
+            upper.setpSource(3, 'gross')
+            upper.gross()
+        end)
+        
+        -- set 3 setpoints to 'over', use IOs 1 through 3
+        local targ = 2000
+        for i = 1, 3 do
+            upper.setpType(i, 'over')
+            upper.setpIO(i, i)
+            upper.setpTarget(i, targ)
+        end
+        upper.setNumSetp(3)
+        upper.setpSource(1, 'gross')
+        upper.setpSource(2, 'net')
+        upper.setpSource(3, 'disp')
+        
+        lower.setAnalogVolt(0)
+        upper.presetTare(2000)
+        upper.gross()
+        lower.delay(1)
+        lower.setAllIOCallback(cb)
+        lower.delay(0.2)
+        lower.setAnalogVolt(3)
+        lower.delay(1)
+        assert.spy(cb).was.called_with(5)
+        upper.net()
+        lower.delay(0.2)
+        assert.spy(cb).was.called_with(1)
+        lower.setAnalogVolt(5)
+        lower.delay(1)
+        assert.spy(cb).was.called_with(7)
     end)
 end)
