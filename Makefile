@@ -32,11 +32,11 @@ clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
 	rm -rf $(M01_DIR)
 
-test:
-	busted -p 'lut$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) src
+unit test:
+	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
 
 net:
-	busted -p 'lnt$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) src
+	busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
 
 pdf: all
 	htmldoc -f rinApp.pdf --webpage --size universal --no-title --no-toc \

@@ -7,7 +7,7 @@
 describe("CSV tests #csv", function()
     local dbg = require "rinLibrary.rinDebug"
     local csv = require "rinLibrary.rinCSV"
-    local path = "src/tests/"
+    local path = "tests/unit/"
 
     -- test escapeCSV
     describe("escapeCSV #escapecsv", function()
