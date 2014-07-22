@@ -174,7 +174,8 @@ end
 -- @param crc if crc = 'crc' then SOH msg CRC EOT sent, msg CRLF otherwise (default)
 -- @usage
 -- stream.sendMsg(message, crc)
-function _M.sendMsg(msg, crc)
+-- @local
+local function sendMsg(msg, crc)
     sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
 end
 
@@ -190,7 +191,7 @@ end
 -- stream.send('broadcast', device.CMD_RDLIT, 'grossnet', data, 'reply')
 function private.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
-    _M.sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
+    sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -375,6 +376,7 @@ end
 deprecated.dbg = dbg
 deprecated.sendRaw = sendRaw
 deprecated.send = private.send
+deprecated.sendMsg = sendMsg
 deprecated.getDeviceRegister = private.getDeviceRegister
 
 end

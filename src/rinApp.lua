@@ -131,9 +131,6 @@ function _M.addK400(model, ip, portA, portB)
     socks.addSocket(device.socketA, device.socketACallback)
     socks.addSocket(device.socketB, device.socketBCallback)
 
-    -- Add a timer for the heartbeat (every 5s)
-    timers.addTimer(5.000, 0, device.sendMsg, "2017032F:10", true)
-
 	-- Create the extra debug port
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
 	dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
