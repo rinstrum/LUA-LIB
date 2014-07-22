@@ -375,20 +375,6 @@ deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
 deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
 deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
 
-deprecated.TYPE_CHAR         = 'char'
-deprecated.TYPE_UCHAR        = 'uchar'
-deprecated.TYPE_SHORT        = 'short'
-deprecated.TYPE_USHORT       = 'ushort'
-deprecated.TYPE_LONG         = 'long'
-deprecated.TYPE_ULONG        = 'ulong'
-deprecated.TYPE_STRING       = 'string'
-deprecated.TYPE_OPTION       = 'option'
-deprecated.TYPE_MENU         = 'menu'
-deprecated.TYPE_WEIGHT       = 'weight'
-deprecated.TYPE_BLOB         = 'blob'
-deprecated.TYPE_EXECUTE      = 'execute'
-deprecated.TYPE_BITFIELD     = 'bitfield'
-
 deprecated.addStreamLib      = private.addStreamLib
 deprecated.removeStreamLib   = private.removeStreamLib
 deprecated.setStreamFreqLib  = private.setStreamFreqLib
