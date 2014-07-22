@@ -268,7 +268,7 @@ function _M.toPrimary(v, dp)
     return floor(0.5 + v * powersOfTen[dp])
 end
 
--------------------------------------------------------------------------------\
+-------------------------------------------------------------------------------
 -- Restart the display and this module
 -- @param what Which devices to reboot, nil or 'lua' for the lua host,
 -- 'all' for everything.
