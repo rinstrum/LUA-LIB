@@ -7,7 +7,7 @@
 describe("Digital #digital", function ()
     local net = require "tests.network"
     local timers = require 'rinSystem.rinTimers.Pack'
-    local app, upper, lower
+    local app, upper, lower, death
 
     setup(function()
         app, upper, lower = net.openDevices()
