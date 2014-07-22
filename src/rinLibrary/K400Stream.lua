@@ -334,7 +334,7 @@ function _M.renewStreamData()
 
 
     if streamUser then
-        private.readRegHex(REG_LUAUSER, REG_STREAMDATA)
+        private.readRegHex(bit32.bor(REG_LUAUSER, REG_STREAMDATA))
     end
     private.readRegHex(bit32.bor(REG_LUALIB, REG_STREAMDATA))
 end
