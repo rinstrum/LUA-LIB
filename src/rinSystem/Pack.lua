@@ -55,7 +55,6 @@ end
 -- your application and shouldn't be called.  Use the device.delay() call
 -- instead.
 -- @param s Seconds to sleep for, can be fractional
--- @see delay
 -- @local
 function _M.sleep(s)
     if math.floor(s) == s then

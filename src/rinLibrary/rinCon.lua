@@ -181,6 +181,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Sends a structured message built up from individual parameters as follows
+-- @function send
 -- @param addr Indicator address (0x00 to 0x1F) of 'broadcast'.
 -- @param cmd Command
 -- @param reg Register
