@@ -171,7 +171,7 @@ function _M.removeStream(streamReg)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = streamRegistersUser[reg]
 
-     if availReg == nil then return end   -- stream already removed
+    if availReg == nil then return end  -- stream already removed
 
     private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
     _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
@@ -189,8 +189,8 @@ local function streamCallbackLib(data, err)
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then
-          dbg.error('Corrupt Lib Stream Data: ',data)
-          return
+        dbg.error('Corrupt Lib Stream Data: ',data)
+        return
     end
 
     for k,v in pairs(availRegistersLib) do
