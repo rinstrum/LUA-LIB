@@ -80,6 +80,8 @@ private.addRegisters{
     { 'select_product_rename',    0xB012 }
 }
 
+local REG_HEARTBEAT         = 0x032F
+
 --- Main Instrument Commands.
 --@table rinCMD
 -- @field rdlit Read literal data
@@ -446,6 +448,9 @@ function _M.loadRIS(filename, calibration)
     private.saveSettings()
     file:close()
 end
+
+-- Add a timer for the heartbeat (every 5s)
+timers.addTimer(5.0, 0, private.writeRegAsync, REG_HEARTBEAT, 10)
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
