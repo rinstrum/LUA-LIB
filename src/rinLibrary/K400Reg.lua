@@ -414,14 +414,20 @@ end
 -------------------------------------------------------------------------------
 -- Read a RIS file and send valid commands to the device
 -- @param filename Name of the RIS file
+-- @param calibration Set to true to rewrite calibration data.  This will
+-- increase the calibration count and should not be used lightly.  Generally,
+-- omit this argument and rely on the default behaviour of not rewriting the
+-- calibration data.
 -- @usage
 -- device.loadRIS('myApp.RIS')
-function _M.loadRIS(filename)
+function _M.loadRIS(filename, calibration)
     local file = io.open(filename, "r")
     if not file then
         dbg.warn('RIS file not found',filename)
         return
     end
+
+    local oldCRC = private.setCRCmode(calibration == true and 'crc' or '')
     for line in file:lines() do
         if (string.find(line, ':') and tonumber(string.sub(line, 1, 8), 16)) then
             local endCh = string.sub(line, -1, -1)
@@ -436,6 +442,7 @@ function _M.loadRIS(filename)
             sendRegWait(cmd, reg, data)
         end
     end
+    private.setCRCmode(oldCRC)
     private.saveSettings()
     file:close()
 end
