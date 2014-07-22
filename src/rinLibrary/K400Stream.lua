@@ -334,13 +334,9 @@ function _M.renewStreamData()
 
 
     if streamUser then
-        _M.send(nil, 'rdfinalhex',
-                    bit32.bor(REG_LUAUSER, REG_STREAMDATA),
-                    '', 'reply')
+        private.readRegHex(REG_LUAUSER, REG_STREAMDATA)
     end
-    _M.send(nil, 'rdfinalhex',
-                bit32.bor(REG_LUALIB, REG_STREAMDATA),
-                '', 'reply')
+    private.readRegHex(bit32.bor(REG_LUALIB, REG_STREAMDATA))
 end
 
 

@@ -370,7 +370,7 @@ end
 -- @param s Bit mask for the annunciators
 -- @local
 local function writeBotAnnuns(s)
-    _M.send(nil, 'wrfinalhex', REG_DISP_BOTTOM_ANNUN, s, "noReply")
+    private.writeRegHexAsync(REG_DISP_BOTTOM_ANNUN, s)
 end
 
 -----------------------------------------------------------------------------
@@ -378,7 +378,7 @@ end
 -- @param s Bit mask for the annunciators
 -- @local
 local function writeTopAnnuns(s)
-    _M.send(nil, 'wrfinalhex', REG_DISP_TOP_ANNUN, s, "noReply")
+    private.writeRegHexAsync(REG_DISP_TOP_ANNUN, s)
 end
 
 -----------------------------------------------------------------------------
@@ -389,7 +389,7 @@ end
 -- device.writeAutoTopAnnun(0)
 function _M.writeAutoTopAnnun(reg)
     local r = private.getRegisterNumber(reg)
-    _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_TOP_ANNUN, r, "noReply")
+    private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
 end
 
 
@@ -405,7 +405,7 @@ function _M.writeAutoTopLeft(register)
     if reg ~= curAutoTopLeft then
         timers.removeTimer(slideTopLeftTimer)
         curTopLeft = nil
-        _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_TOP_LEFT, reg, "noReply")
+        private.writeRegHexAsync(REG_DISP_AUTO_TOP_LEFT, reg)
         saveAutoTopLeft = curAutoTopLeft
         curAutoTopLeft = reg
     end
@@ -438,7 +438,7 @@ function _M.writeAutoBotLeft(register)
     if reg ~= curAutoBotLeft then
         timers.removeTimer(slideBotLeftTimer)
         curBotLeft = nil
-        _M.send(nil, 'wrfinalhex', REG_DISP_AUTO_BOTTOM_LEFT, reg, "noReply")
+        private.writeRegHexAsync(REG_DISP_AUTO_BOTTOM_LEFT, reg)
         saveAutoBotLeft = curAutoBotLeft
         curAutoBotLeft = reg
     end
