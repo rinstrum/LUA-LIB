@@ -23,12 +23,6 @@ describe("Analog #analog", function ()
         lower = nil
     end)
 
-    local function convertMVV(mvv)
-        local VOLT_0MVV  = 1.3
-        local VOLT_2MVV  = 4.48
-        return (VOLT_0MVV + VOLT_2MVV * mvv * 0.5)
-    end
-
     it("check limits", function()
         --  Callback to capture changes to current weight
         local curWeight = 0
@@ -43,8 +37,8 @@ describe("Analog #analog", function ()
 --            end
 --        end)
 
-        local function check(mvv, target, fuzz)
-            lower.setAnalogVolt(convertMVV(mvv))
+        local function check(volts, target, fuzz)
+            lower.setAnalogVolt(volts)
             upper.delay(0.4)
             upper.waitStatus('notmotion')
             assert.approximately(curWeight, target, fuzz)
@@ -52,8 +46,8 @@ describe("Analog #analog", function ()
 
         local count = 0
         app.setMainLoop(function()
-            check(0.0, 2, 10)
-            check(2.5, 10000, 15)
+            check(0, 0, 10)
+            check(10, 10000, 15)
 
             count = count + 1
             if count >= 2 then
@@ -75,7 +69,7 @@ describe("Analog #analog", function ()
 
         local data = require("tests.regression")()
         for i = 0, 5 do
-            upper.setAnalogVolt(convertMVV(i * 0.5))
+            upper.setAnalogVolt(i * 2)
             lower.delay(0.4)
             lower.waitStatus('notmotion')
             data.add(i, curWeight)
