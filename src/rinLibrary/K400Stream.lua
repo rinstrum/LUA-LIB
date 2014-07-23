@@ -178,11 +178,21 @@ function _M.removeStream(streamReg)
         local availReg = streamRegistersUser[reg]
 
         if availReg ~= nil then
-            private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
-            private.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
-
             availRegistersUser[availReg].reg = 0
             streamRegistersUser[reg] = nil
+
+            local stop = true
+            for k, v in pairs(availRegistersUser) do
+                if v.reg ~= 0 then
+                    stop = false
+                end
+            end
+            if stop then
+                private.exReg(REG_USER_STREAMDATA, STM_STOP)
+            end
+
+            private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
+            private.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
         end
     end
 end
@@ -267,11 +277,21 @@ function private.removeStreamLib(streamReg)
         local availReg = streamRegistersLib[reg]
 
         if availReg ~= nil then
-            private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
-            private.unbindRegister(bit32.bor(REG_LUALIB, availReg))
-
             availRegistersLib[availReg].reg = 0
             streamRegistersLib[reg] = nil
+
+            local stop = true
+            for k,v in pairs(availRegistersLib) do
+                if v.reg ~= 0 then
+                    stop = false
+                end
+            end
+            if stop then
+                private.exReg(REG_LIB_STREAMDATA, STM_STOP)
+            end
+
+            private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
+            private.unbindRegister(bit32.bor(REG_LUALIB, availReg))
         end
     end
 end
