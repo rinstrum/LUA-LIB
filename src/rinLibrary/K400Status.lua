@@ -465,7 +465,7 @@ function _M.setIOCallback(IO, callback)
         IOBinds[status]['lastStatus'] = 0xFFFFFFFF
     else
         IOBinds[status] = nil
-        dbg.warn('','setIOCallback:  nil value for callback function')
+        dbg.debug('','setIOCallback:  nil value for callback function')
     end
 end
 
@@ -491,7 +491,7 @@ function _M.setAllIOCallback(callback)
         IOBinds[0]['lastStatus'] = 0xFFFFFF
     else
         IOBinds[0] = nil
-        dbg.warn('','setIOCallback:  nil value for all callback function')
+        dbg.debug('','setAllIOCallback:  nil value for all callback function')
     end
 end
 

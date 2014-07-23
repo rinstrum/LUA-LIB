@@ -521,6 +521,7 @@ end
 -- Expose some internals for testing purposes
 if _TEST then
     private.literalToFloat = literalToFloat
+    private.sendRegWait = sendRegWait
 end
 
 end

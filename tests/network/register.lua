@@ -33,15 +33,15 @@ describe("K400Reg #register", function()
         local reg = 'usernum1'
 
         local function check(a, b)
-            upper.writeReg(reg, a)
-            lower.writeReg(reg, b)
+            upperPrivate.writeReg(reg, a)
+            lowerPrivate.writeReg(reg, b)
             lower.delay(0.2)
 
             local r, err = upperPrivate.readReg(reg)
             assert.is_nil(err)
             assert.equal(a, r)
 
-            r, err = lower.readReg(reg)
+            r, err = lowerPrivate.readReg(reg)
             assert.is_nil(err)
             assert.equal(b, r)
         end
@@ -55,11 +55,11 @@ describe("K400Reg #register", function()
         local reg = 'userid1'
 
         local function check(a, b)
-            upper.writeReg(reg, a)
-            lower.writeReg(reg, b)
+            upperPrivate.writeReg(reg, a)
+            lowerPrivate.writeReg(reg, b)
             upper.delay(0.2)
 
-            local d, e = upper.sendRegWait('rdlit', reg)
+            local d, e = upperPrivate.sendRegWait('rdlit', reg)
             assert.is_nil(e)
             assert.equal(a, d)
 
@@ -78,15 +78,15 @@ describe("K400Reg #register", function()
         local rreg = 'select_product_name'
 
         local function check(a, b)
-            upper.exReg(xreg, a)
-            lower.exReg(xreg, b)
+            upperPrivate.exReg(xreg, a)
+            lowerPrivate.exReg(xreg, b)
             upper.delay(0.2)
 
-            local d, e = upper.readReg(rreg)
+            local d, e = upperPrivate.readReg(rreg)
             assert.is_nil(e)
             assert.equal(1, d)
 
-            d, e = lower.readReg(rreg)
+            d, e = lowerPrivate.readReg(rreg)
             assert.is_nil(e)
             assert.equal(1, d)
         end
