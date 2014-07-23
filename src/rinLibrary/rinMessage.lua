@@ -10,9 +10,9 @@ local ccitt  = require "rinLibrary.rinCCITT"
 local dbg    = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 
-local str    = string
-local table  = table
-local tonum  = tonumber
+local string    = string
+local table     = table
+local tonumber  = tonumber
 local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 
 local _M = {}
@@ -120,7 +120,7 @@ local delim, addr, cmd, reg, data, crc, excess, tocrc
 -- @param s Message string to decode
 -- @local
 local function datacrc(s)
-    crc = tonum(string.sub(s, -4), 16)
+    crc = tonumber(string.sub(s, -4), 16)
     data = string.sub(s, 1, -5)
 end
 
@@ -131,7 +131,7 @@ end
 -- @return The command name
 -- @local
 local function getcmd(s)
-    local n = tonum(s, 16)
+    local n = tonumber(s, 16)
     cmd = naming.convertValueToName(n, commandUnmap, n)
     if type(cmd) ~= 'string' then
         dbg.warn('rinMessage:', 'unknown command number '..cmd)
@@ -145,9 +145,9 @@ local msgpat = P({
     rns     = V"msgrns" * (P"\r\n" + S"\r\n;")  / function(s) delim = "NORM"      end,
     msgrns  = V"header" * ((P(1)-S"\r\n;")^0    / function(s) data = s            end),
     header  = V"addr" * V"cmd" * V"reg" * V"hd"^0 * P':',
-    addr    = V"hd2"                            / function(s) addr = tonum(s, 16) end,
+    addr    = V"hd2"                            / function(s) addr = tonumber(s, 16) end,
     cmd     = V"hd2"                            / getcmd,
-    reg     = V"hd4"                            / function(s) reg  = tonum(s, 16) end,
+    reg     = V"hd4"                            / function(s) reg  = tonumber(s, 16) end,
     hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
 })
 
@@ -182,7 +182,7 @@ function _M.processMsg(msg, err)
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
     elseif bit32.band(addr, ADDR_ERR) == ADDR_ERR then
-        return addr % 32, cmd, reg, data, errStrings[tonum(data, 16)], excess
+        return addr % 32, cmd, reg, data, errStrings[tonumber(data, 16)], excess
     end
     return addr % 32, cmd, reg, data, nil, excess
 end
@@ -201,7 +201,7 @@ end
 -- print('wrappered message with crc:', msg.encapsulateMsg('goodbye', 'crc'))
 function _M.encapsulateMsg(msg, crc)
     if crc == 'crc' then
-        return table.concat({'\01', msg, str.format("%04X", ccitt(msg)), '\04'})
+        return table.concat({'\01', msg, string.format("%04X", ccitt(msg)), '\04'})
     else
         return msg .. '\13\10'
     end
@@ -240,11 +240,11 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
 
     if cmd == CMD_WRFINALHEX or cmd == CMD_EX then
         if type(data) == 'number' then
-            data = str.format("%X", data)
+            data = string.format("%X", data)
         end
     end
 
-    return str.format("%02X%02X%04X:%s", addr, cmd, reg, data)
+    return string.format("%02X%02X%04X:%s", addr, cmd, reg, data)
 end
 
 -------------------------------------------------------------------------------
@@ -261,9 +261,17 @@ local errHandler = function(addr, cmd, reg, data, s)
     local tmps
 
     if addr == nil then
-        tmps = str.format("%s (broken message)", s)
+        tmps = string.format("%s (broken message)", s)
     else
-        tmps = str.format("%s (%02X%02X%04X:%s)", s, tonum(addr), tonum(cmd), tonum(reg), data)
+        local function format(x, n)
+            local r = tonumber(x)
+            if r == nil then
+                return string.rep('?', n)
+            end
+            return string.format('%0'..n..'X', r)
+        end
+
+        tmps = string.format("%s (%s%s%s:%s)", s, format(addr, 2), format(cmd, 2), format(reg, 4), data)
     end
 
     dbg.warn('rinCMD Error: ', tmps)
