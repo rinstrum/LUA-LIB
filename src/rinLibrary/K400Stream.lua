@@ -30,6 +30,11 @@ local REG_STREAMREG5    = 0x0046
 local REG_LUALIB        = 0x0300    -- Should be bor'd with other stream regs
 local REG_LUAUSER       = 0x0310    -- should be bor'd with base stream regs
 
+local REG_LIB_STREAMDATA    = bit32.bor(REG_LUALIB, REG_STREAMDATA)
+local REG_LIB_STREAMMODE    = bit32.bor(REG_LUALIB, REG_STREAMMODE)
+local REG_USER_STREAMDATA   = bit32.bor(REG_LUAUSER, REG_STREAMDATA)
+local REG_USER_STREAMMODE   = bit32.bor(REG_LUAUSER, REG_STREAMMODE)
+
 local STM_START         = 1
 local STM_STOP          = 0
 
@@ -154,11 +159,11 @@ function _M.addStream(streamReg, callback, onChange)
     availRegistersUser[availReg].typ = private.getRegType(reg)
     streamRegistersUser[reg] = availReg
 
-    private.writeRegHexAsync(bit32.bor(REG_LUAUSER, REG_STREAMMODE), convertFrequency(freqUser))
+    private.writeRegHexAsync(REG_USER_STREAMMODE, convertFrequency(freqUser))
     private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
-    private.exRegAsync(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_START)
+    private.exRegAsync(REG_USER_STREAMDATA, STM_START)
 
-    private.bindRegister(bit32.bor(REG_LUAUSER, REG_STREAMDATA), streamCallback)
+    private.bindRegister(REG_USER_STREAMDATA, streamCallback)
     return streamReg
 end
 
@@ -244,11 +249,11 @@ function private.addStreamLib(streamReg, callback, onChange)
 
     streamRegistersLib[reg] = availReg
 
-    private.writeRegHexAsync(bit32.bor(REG_LUALIB, REG_STREAMMODE), convertFrequency(freqLib))
+    private.writeRegHexAsync(REG_LIB_STREAMMODE, convertFrequency(freqLib))
     private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
-    private.exRegAsync(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_START)
+    private.exRegAsync(REG_LIB_STREAMDATA, STM_START)
 
-    private.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
+    private.bindRegister(REG_LIB_STREAMDATA, streamCallbackLib)
     return streamReg
 end
 
@@ -277,8 +282,8 @@ end
 -- @usage
 -- device.streamCleanup()
 function _M.streamCleanup()
-    private.exReg(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_STOP) -- stop streaming first
-    private.exReg(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_STOP)  -- stop streaming first
+    private.exReg(REG_USER_STREAMDATA, STM_STOP) -- stop streaming first
+    private.exReg(REG_LIB_STREAMDATA, STM_STOP)  -- stop streaming first
 
     for k,v in pairs(availRegistersUser) do
         private.writeReg(bit32.bor(REG_LUAUSER, k), 0)
@@ -337,9 +342,9 @@ function _M.renewStreamData()
 
 
     if streamUser then
-        private.readRegHex(bit32.bor(REG_LUAUSER, REG_STREAMDATA))
+        private.readRegHex(REG_USER_STREAMDATA)
     end
-    private.readRegHex(bit32.bor(REG_LUALIB, REG_STREAMDATA))
+    private.readRegHex(REG_LIB_STREAMDATA)
 end
 
 
