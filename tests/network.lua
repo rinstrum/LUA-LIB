@@ -19,9 +19,9 @@ package.loaded["rinLibrary.rinDebug"] = {
     print = function() end,
     debug = function() end,
     info = function() end,
-    warn = function() end,
-    error = function() end,
-    fatal = function() end,
+    warn = function(...) print('warning: ', ...) end,
+    error = function(...) print('error: ', ...) end,
+    fatal = function(...) print('fatal: ', ...) end,
     printVar = function() end,
 }
 
