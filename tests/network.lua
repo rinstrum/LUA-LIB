@@ -4,6 +4,11 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local function diagnostic(name, ...)
+    print(name, ...)
+    --print(debug.traceback())
+end
+
 package.loaded["rinLibrary.rinDebug"] = {
     DEBUG = 0,
     INFO = 1,
@@ -19,9 +24,9 @@ package.loaded["rinLibrary.rinDebug"] = {
     print = function() end,
     debug = function() end,
     info = function() end,
-    warn = function(...) print('warning: ', ...) end,
-    error = function(...) print('error: ', ...) end,
-    fatal = function(...) print('fatal: ', ...) end,
+    warn = function(...) diagnostic('warning: ', ...) end,
+    error = function(...) diagnostic('error: ', ...) end,
+    fatal = function(...) diagnostic('fatal: ', ...) end,
     printVar = function() end,
 }
 
