@@ -69,9 +69,9 @@ describe("Digital #digital", function ()
                             lower.setIOCallback(4, cb4)
 
         upper.delay(.3)     upper.turnOn(4)
-        upper.delay(.3)    assert.spy(cb4).was.called_with(4, true)
+        upper.delay(.3)     assert.spy(cb4).was.called_with(4, true)
                             upper.turnOn(3)
-        upper.delay(.3)    assert.spy(cb3).was.called_with(3, true)
+        upper.delay(.3)     assert.spy(cb3).was.called_with(3, true)
                             upper.turnOff(4)
 
         lower.delay(.3)     assert.spy(cb4).was.called_with(4, false)
