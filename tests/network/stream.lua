@@ -31,9 +31,7 @@ describe("Streaming #stream", function ()
 -- Need to verify streaming multiple registers.
 -- Need to verify different stream timings.
     describe("timings", function()
-        local s, count
-
-        before_each(function() count = 0 end)
+        local s, count = nil, 0
 
         after_each(function()
             upper.removeStream(s)
@@ -41,7 +39,7 @@ describe("Streaming #stream", function ()
             upper.setStreamFreq('onchange')
         end)
 
-        local function increment() count = count + 1 end
+        local function increment(...) count = count + 1 end
 
         it("auto10", function()
             upper.setStreamFreq('auto10')
