@@ -168,16 +168,18 @@ end
 -- @usage
 -- device.removeStream('grossnet')
 function _M.removeStream(streamReg)
-    local reg = private.getRegisterNumber(streamReg)
-    local availReg = streamRegistersUser[reg]
+    if streamReg ~= nil then
+        local reg = private.getRegisterNumber(streamReg)
+        local availReg = streamRegistersUser[reg]
 
-    if availReg == nil then return end  -- stream already removed
+        if availReg ~= nil then
+            private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
+            _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
 
-    private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
-    _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
-
-    availRegistersUser[availReg].reg = 0
-    streamRegistersUser[reg] = nil
+            availRegistersUser[availReg].reg = 0
+            streamRegistersUser[reg] = nil
+        end
+    end
 end
 
 -----------------------------------------------------------------------------
@@ -246,7 +248,7 @@ function private.addStreamLib(streamReg, callback, onChange)
     private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
     private.exRegAsync(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_START)
 
-   _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
+    _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
     return streamReg
 end
 
@@ -255,16 +257,18 @@ end
 -- @param streamReg Register to be removed
 -- @local
 function private.removeStreamLib(streamReg)
-    local reg = private.getRegisterNumber(streamReg)
-    local availReg = streamRegistersLib[reg]
+    if streamReg ~= nil then
+        local reg = private.getRegisterNumber(streamReg)
+        local availReg = streamRegistersLib[reg]
 
-     if availReg == nil then return end   -- stream already removed
+        if availReg ~= nil then
+            private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
+            _M.unbindRegister(bit32.bor(REG_LUALIB, availReg))
 
-    private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
-    _M.unbindRegister(bit32.bor(REG_LUALIB, availReg))
-
-    availRegistersLib[availReg].reg = 0
-    streamRegistersLib[reg] = nil
+            availRegistersLib[availReg].reg = 0
+            streamRegistersLib[reg] = nil
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
