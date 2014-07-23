@@ -26,9 +26,9 @@ package.loaded["rinLibrary.rinDebug"] = {
 }
 
 local rinAppFactory = require "rinApp"
-local timers = require 'rinSystem.rinTimers.Pack'
-local ftp = require "socket.ftp"
-local posix = require "posix"
+local timers        = require 'rinSystem.rinTimers.Pack'
+local ftp           = require "socket.ftp"
+local posix         = require "posix"
 
 local _M = {}
 
@@ -49,8 +49,6 @@ _M.password = 'root'
 -- @local
 function _M.openDevices(upper, lower)
     local rinApp = rinAppFactory()
-
-    --dbg.setLevel('FATAL')
 
     upper = upper or _M.upperIPaddress
     lower = lower or _M.lowerIPaddress
