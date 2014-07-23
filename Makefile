@@ -19,6 +19,7 @@ PKGVERS := $(shell sed -n -r "s/Version: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/contr
 PKGARCH := $(shell sed -n -r "s/Architecture: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
 PKGNAMEVERS=$(PKGNAME)-$(PKGVERS)
 RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
+PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-M01.pdf
 
 SRC_BASE = *.lua
 
@@ -39,7 +40,8 @@ net:
 	busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
 
 pdf: all
-	htmldoc -f rinApp.pdf --webpage --size universal --no-title --no-toc \
+	$(MKDIR) $(M01_DIR)
+	htmldoc -f $(PDF_M01_TARGET) --webpage --size universal --no-title --no-toc \
 		--numbered --links --format pdf11 --book --color \
 		`find opkg/usr/local/www/html/libdocs -type f -name '*.html'`
 
@@ -69,7 +71,7 @@ install:
 
 # Rule to create M01 release target
 $(RELEASE_M01_TARGET): override DEST_DIR=$(BUILDDIR)/$(STAGE_DIR)
-$(RELEASE_M01_TARGET): install
+$(RELEASE_M01_TARGET): install pdf
 #Opkg it....
 	$(MKDIR) $(M01_DIR)
 	./opkg-build -O -o root -g root $(STAGE_DIR)
