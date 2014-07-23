@@ -39,7 +39,7 @@ unit test:
 net:
 	busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
 
-pdf: all
+pdf:
 	$(MKDIR) $(M01_DIR)
 	htmldoc -f $(PDF_M01_TARGET) --webpage --size universal --no-title --no-toc \
 		--numbered --links --format pdf11 --book --color \
