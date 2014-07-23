@@ -158,7 +158,7 @@ function _M.addStream(streamReg, callback, onChange)
     private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
     private.exRegAsync(bit32.bor(REG_LUAUSER, REG_STREAMDATA), STM_START)
 
-    _M.bindRegister(bit32.bor(REG_LUAUSER, REG_STREAMDATA), streamCallback)
+    private.bindRegister(bit32.bor(REG_LUAUSER, REG_STREAMDATA), streamCallback)
     return streamReg
 end
 
@@ -174,7 +174,7 @@ function _M.removeStream(streamReg)
 
         if availReg ~= nil then
             private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
-            _M.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
+            private.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
 
             availRegistersUser[availReg].reg = 0
             streamRegistersUser[reg] = nil
@@ -248,7 +248,7 @@ function private.addStreamLib(streamReg, callback, onChange)
     private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
     private.exRegAsync(bit32.bor(REG_LUALIB, REG_STREAMDATA), STM_START)
 
-    _M.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
+    private.bindRegister(bit32.bor(REG_LUALIB, REG_STREAMDATA), streamCallbackLib)
     return streamReg
 end
 
@@ -263,7 +263,7 @@ function private.removeStreamLib(streamReg)
 
         if availReg ~= nil then
             private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
-            _M.unbindRegister(bit32.bor(REG_LUALIB, availReg))
+            private.unbindRegister(bit32.bor(REG_LUALIB, availReg))
 
             availRegistersLib[availReg].reg = 0
             streamRegistersLib[reg] = nil

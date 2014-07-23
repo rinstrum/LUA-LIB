@@ -224,7 +224,7 @@ end
 --     curIO = tonumber(data, 16)
 -- end
 -- device.bindRegister('iostatus', IOStatusHandler)
-function _M.bindRegister(reg, callback)
+function private.bindRegister(reg, callback)
     local r = private.getRegisterNumber(reg)
     local prev = deviceRegisters[r]
     deviceRegisters[r] = callback
@@ -238,8 +238,8 @@ end
 -- @return previous register binding
 -- @usage
 -- device.unbindRegister('iostatus')
-function _M.unbindRegister(reg)
-    return _M.bindRegister(reg, nil)
+function private.unbindRegister(reg)
+    return private.bindRegister(reg, nil)
 end
 
 -------------------------------------------------------------------------------
@@ -379,5 +379,7 @@ deprecated.sendRaw = sendRaw
 deprecated.send = private.send
 deprecated.sendMsg = sendMsg
 deprecated.getDeviceRegister = private.getDeviceRegister
+deprecated.bindRegister = private.bindRegister
+deprecated.unbindRegister = private.unbindRegister
 
 end

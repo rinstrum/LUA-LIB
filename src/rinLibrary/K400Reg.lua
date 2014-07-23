@@ -187,7 +187,7 @@ local function sendRegWait(cmd, reg, data, t, crc)
     end
 
     local f = private.getDeviceRegister(r)
-    _M.bindRegister(r, waitf)
+    private.bindRegister(r, waitf)
     private.send(nil, cmd, r, data, "reply", crc)
     local tmr = timers.addTimer(0, t, waitf, nil, 'Timeout')
 
@@ -195,7 +195,7 @@ local function sendRegWait(cmd, reg, data, t, crc)
         system.handleEvents()
     end
 
-    _M.bindRegister(r, f)
+    private.bindRegister(r, f)
 
     timers.removeTimer(tmr)
     return regData, regErr

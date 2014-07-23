@@ -33,7 +33,6 @@ describe("Streaming #stream", function ()
     describe("timings", function()
         local s, count
 
-        --after_each(function() upper.removeStream(s) s = nil print("after 2") end)
         before_each(function() count = 0 end)
 
         after_each(function()
