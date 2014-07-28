@@ -37,12 +37,12 @@ local posix         = require "posix"
 
 local _M = {}
 
-_M.upperIPaddress = 'm4223testbox-upper.rinstrumau.local' -- '172.17.1.26'
-_M.lowerIPaddress = 'm4223testbox-lower.rinstrumau.local' -- '172.17.1.27'
-_M.upperPort = 2222
-_M.lowerPort = 2222
-_M.username = 'root'
-_M.password = 'root'
+_M.upperIPaddress = os.getenv('UPPER_HOST') or 'm4223testbox-upper.rinstrumau.local'
+_M.lowerIPaddress = os.getenv('LOWER_HOST') or 'm4223testbox-lower.rinstrumau.local'
+_M.upperPort = tonumber(os.getenv('UPPER_PORT') or 2222)
+_M.lowerPort = tonumber(os.getenv('LOWER_PORT') or 2222)
+_M.username = os.getenv('TEST_USERNAME') or 'root'
+_M.password = os.getenv('TEST_PASSWORD') or 'root'
 
 -------------------------------------------------------------------------------
 -- Open connections to both K400 units.

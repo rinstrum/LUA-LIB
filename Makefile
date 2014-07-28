@@ -5,6 +5,14 @@ STAGE_DIR = opkg
 M01_DIR = M01
 WWW_DIR = usr/local/www/html
 
+# Test hosts
+#export UPPER_HOST := m4223testbox-upper.rinstrumau.local
+#export UPPER_PORT := 2222
+#export LOWER_HOST := m4223testbox-lower.rinstrumau.local
+#export LOWER_PORT := 2222
+#export TEST_USERNAME := root
+#export TEST_PASSWORD := root
+
 NET_LUA_PATH := './src/?.lua;../L001-507/src/?.lua'
 
 #Commands
