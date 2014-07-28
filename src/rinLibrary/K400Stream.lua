@@ -129,7 +129,7 @@ end
 -- received changed, 'always' otherwise
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
--- @param onChange Change parameter
+-- @param onChange Change parameter ('change' or 'always')
 -- @return streamReg identity
 -- @return error message
 -- @usage
@@ -233,7 +233,7 @@ end
 -- In other words, don't use this function.
 -- @param streamReg Register to stream from
 -- @param callback Function to bind to streaming register
--- @param onChange Change parameter
+-- @param onChange Change parameter ('change' or 'always')
 -- @return streamReg identity
 -- @return error message
 -- @local
