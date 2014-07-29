@@ -1,0 +1,38 @@
+#!/bin/sh
+
+LOCK_FILE_NAME='/tmp/test-lock'
+if [ -z "$UPPER_HOST" ]
+then
+    UPPER_HOST="m4223testbox-upper.rinstrumau.local"
+fi
+
+if [ "$1" == 'obtain' ]
+then
+    o=`(
+        echo root
+        sleep .1
+        echo root
+        sleep .2
+        echo "find $LOCK_FILE_NAME -mmin +1 -exec rmdir '{}' ';' >/dev/null 2>&1"
+        sleep .1
+        echo "if mkdir $LOCK_FILE_NAME; then echo 'lock'ing-goodness; else echo 'lock'ing-failed; fi"
+        sleep .5
+    ) | nc "$UPPER_HOST" 23 | grep locking-`
+    if [ -n "`echo $o | grep failed`" ]
+    then
+        echo 'failed to obtain lock'
+        exit 1
+    fi
+elif [ "$1" == 'release' ]
+then
+    (
+        echo root
+        sleep .1
+        echo root
+        sleep .2
+        echo "rmdir $LOCK_FILE_NAME"
+        sleep .1
+    ) | nc "$UPPER_HOST" 23 >/dev/null
+else
+    echo "Unknown locking command"
+fi

@@ -45,7 +45,9 @@ unit test:
 	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
 
 net:
-	busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
+	./lock obtain
+	-busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
+	./lock release
 
 pdf: install
 	$(MKDIR) $(M01_DIR)
