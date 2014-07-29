@@ -46,7 +46,6 @@ local STM_FREQ_AUTO1    = 4
 local STM_FREQ_ONCHANGE = 5
 
 local frequencyTable = {
-    manual   = STM_FREQ_MANUAL,
     auto     = STM_FREQ_AUTO,
     auto10   = STM_FREQ_AUTO10,
     auto3    = STM_FREQ_AUTO3,
