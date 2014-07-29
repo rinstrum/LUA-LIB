@@ -13,7 +13,7 @@ then
         sleep .1
         echo root
         sleep .2
-        echo "find $LOCK_FILE_NAME -mmin +1 -exec rmdir '{}' ';' >/dev/null 2>&1"
+        echo "find $LOCK_FILE_NAME -mmin +5 -exec rmdir '{}' ';' >/dev/null 2>&1"
         sleep .1
         echo "if mkdir $LOCK_FILE_NAME; then echo 'lock'ing-goodness; else echo 'lock'ing-failed; fi"
         sleep .5
