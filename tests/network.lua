@@ -274,7 +274,7 @@ end
 -- @local
 function _M.xeq(host, ...)
     local h = checkHost(host)
-    local s = _M.telnetOpen(host)
+    local s = _M.telnetOpen(h)
     local z = _M.telnetSend(s, ...)
     _M.telnetClose(s)
     return z
