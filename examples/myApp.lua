@@ -92,43 +92,20 @@ dwi.setAllSETPCallback(handleSETP)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event
-local function F1Pressed(key, state)
-    if state == 'long' then
-        print('Long F1 Pressed')
-    else
-        if mode == 'idle' then
-            mode = 'run'
-        end
-    end
-    return true    -- key handled here so don't send back to instrument for handling
-end
-dwi.setKeyCallback('f1', F1Pressed)
+-- Callbacks to handle F1 key event
+dwi.setKeyCallback('f1', function() print('Long F1 Pressed') return true end, 'long')
+dwi.setKeyCallback('f1', function() mode = 'run' return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Callback to handle F2 key event
-local function F2Pressed(key, state)
-    if state == 'long' then
-        print('Long F1 Pressed')
-    else
-        mode = 'idle'
-    end
-    return true    -- key handled here so don't send back to instrument for handling
-end
-dwi.setKeyCallback('f2', F2Pressed)
+-- Callbacks to handle F2 key event
+dwi.setKeyCallback('f2', function() print('Long F2 Pressed') return true end, 'long')
+dwi.setKeyCallback('f2', function() mode = 'idle' return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-local function pwrCancelPressed(key, state)
-    if state == 'long' then
-      rinApp.running = false
-      return true
-    end
-    return false
-end
-dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', function() rinApp.running = false return true end, 'long')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

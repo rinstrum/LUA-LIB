@@ -46,14 +46,7 @@ dwi.setKeyCallback('f2', F2Pressed)
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-local function pwrCancelPressed(key, state)
-    if state == 'long' then
-      rinApp.running = false
-      return true
-    end
-    return false
-end
-dwi.setKeyCallback('pwr_cancel', pwrCancelPressed)
+dwi.setKeyCallback('pwr_cancel', function() rinApp.running = false return true end, 'long')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

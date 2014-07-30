@@ -299,7 +299,7 @@ end
 -- @param key Key code pressed (always okay)
 -- @param st Type of key press
 local function playOkay(key, st)
-    if state == "play" and st == 'short' then
+    if state == "play" then
         local r = rng
         irolls[nroll] = r
         rolls[nroll] = shortNames[r]
@@ -319,20 +319,14 @@ local function playOkay(key, st)
     end
     return true
 end
-dwi.setKeyCallback('ok', playOkay)
+dwi.setKeyCallback('ok', playOkay, 'short')
 
 
 -------------------------------------------------------------------------------
 -- Add key to stop the program
 -- @param key Key code pressed (always okay)
 -- @param state Type of key press
-local function exitPressed(key, state)
-    if state == 'long' then
-        termination()
-    end
-    return true
-end
-dwi.setKeyCallback('cancel', exitPressed)
+dwi.setKeyCallback('cancel', function() termination() return true end, 'long')
 
 
 -------------------------------------------------------------------------------
@@ -354,7 +348,7 @@ end
 -- @param key The key pressed
 -- @param st The state of the press 'long' or 'short'
 local function numberPressed(key, st)
-    if state == "bet" and st == "short" then
+    if state == "bet" then
         promptTR("")
         if key > balance then
             state = "error"
@@ -380,15 +374,15 @@ end
 
 -- Installed the numberic handler for the keys we're interested in, we
 -- use the key group 'numpad' here and trap the zero key separately.
--- An individual key handler overrides a key group handler anbd we do't want
+-- An individual key handler overrides a key group handler and we do't want
 -- to see the zero key.
-dwi.setKeyGroupCallback('numpad', numberPressed)
-dwi.setKeyCallback(0, function(k, s) return true end)
+dwi.setKeyGroupCallback('numpad', numberPressed, 'short')
+dwi.setKeyCallback(0, function(k, s) return true end, 'short')
 
 -- Let's ignore all the rest of the keys.  The 'all' key group is the very
 -- last one looked for, so a handler here is only invoked when all else
 -- fails.
-dwi.setKeyGroupCallback('all', function(k, s) return true end)
+dwi.setKeyGroupCallback('all', function(k, s) return true end, 'short', 'long')
 
 -------------------------------------------------------------------------------
 -- The initial begin state displays a weclome message,
