@@ -239,6 +239,7 @@ local function keyCallback(data, err)
 
     local state = "short"
     local key = bit32.band(data, 0x3F)
+    local keyHandler = keyBinds[key]
 
     if bit32.band(data, KEYF_UP) ~= 0 then
         state = "up"
@@ -254,27 +255,37 @@ local function keyCallback(data, err)
     end
     firstKey = false
 
-    -- Infrastructure for key repeats to be added later.
-    --if state == 'long' then
-    --    -- TODO: start the key repeat handler
-    --elseif state == 'up' then
-    --    -- TODO: remove the key repeat handler
-    --end
-
     -- Throw away uninteresting events
     -- Key up events on the power key are always delivered
-    if not keyMode[state] and (state ~= 'up' or key ~= KEY_POWER) then
-        return
-    end
+    --if state ~= 'up' or key ~= KEY_POWER then
 
     local handled = false
-    local keyHandler = keyBinds[key]
     if keyHandler ~= nil then
         local keyName = naming.convertValueToName(key, keyUnmap)
 
         -- No point trying to deal with a key we don't know about
         if keyName == nil then
             return
+        end
+
+        if keyHandler['repeat'] ~= nil then
+            local function keyRepeater(keyHandler, key)
+                keyCallback(key + KEYF_REPEAT, nil)
+                if keyHandler.repeatInterval > .12 then
+                    keyHandler.repeatInterval = keyHandler.repeatInterval * 0.85
+                end
+                keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key)
+            end
+
+            if state == 'long' then
+                timers.removeTimer(keyHandler.repeatTimer)
+                keyHandler.repeatTimer = timers.addTimer(0, 0, keyRepeater, keyHandler, key)
+                keyHandler.repeatInterval = 0.5
+            elseif state == 'up' then
+                timers.removeTimer(keyHandler.repeatTimer)
+                keyHandler.repeatTimer = nil
+                keyHandler.repeatInterval = nil
+            end
         end
 
         if keyHandler[state] ~= nil then
@@ -311,8 +322,10 @@ local function keyCallback(data, err)
         end
     end
 
-    if not handled then
-        private.writeRegAsync(REG_APP_DO_KEYS, data)
+    if not handled and state ~= 'repeat' then
+        if state ~= 'up' or key == KEY_POWER then
+            private.writeRegAsync(REG_APP_DO_KEYS, data)
+        end
     end
     if state ~= 'up' then
         private.bumpIdleTimer()
