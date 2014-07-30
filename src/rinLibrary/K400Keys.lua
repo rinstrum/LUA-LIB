@@ -255,11 +255,6 @@ local function keyCallback(data, err)
     firstKey = false
 
     -- Infrastructure for key repeats to be added later.
-    -- Might be worthwhile moving to per key filtering based on the kind of key press:
-    -- e.g. addKeyHandler('f1', function, 'short', 'up')
-    --      addKeyHandler('f1', function, 'long')
-    --      addKeyHandler('f1', function, 'repeat')
-    -- i.e. multiple different handlers for each key
     --if state == 'long' then
     --    -- TODO: start the key repeat handler
     --elseif state == 'up' then
@@ -462,7 +457,7 @@ end
 function private.getKeyGroupCallback(keyGroupName, event)
     local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
 
-    return kg.callback[event]
+    return kg[event]
 end
 
 -------------------------------------------------------------------------------
