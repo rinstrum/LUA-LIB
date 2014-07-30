@@ -134,7 +134,7 @@ end
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default
 -- @return key
--- @return state ('short','long','up')
+-- @return state ('short' or 'long')
 -- @usage
 -- device.displayMessage('Press key', 3)
 -- print('key pressed was:', device.getKey())
@@ -142,18 +142,21 @@ function _M.getKey(keyGroup)
     local keyGroup = keyGroup or 'all'
     local getKeyState, getKeyPressed
 
-    local f = _M.setKeyGroupCallback(keyGroup,
+    local short = private.getKeyGroupCallback(keyGroup, 'short')
+    local long = private.getKeyGroupCallback(keyGroup, 'long')
+    _M.setKeyGroupCallback(keyGroup,
         function(key, state)
             getKeyPressed = key
             getKeyState = state
-        end)
+        end, 'short', 'long')
 
     _M.startDialog()
     while _M.dialogRunning() and _M.app.running and not getKeyState do
         system.handleEvents()
     end
     _M.abortDialog()
-    _M.setKeyGroupCallback(keyGroup, f)
+    _M.setKeyGroupCallback(keyGroup, short, 'short')
+    _M.setKeyGroupCallback(keyGroup, long, 'long')
 
     return getKeyPressed, getKeyState
 end
@@ -596,10 +599,6 @@ function _M.askOK(prompt, q, units, unitsOther)
     local askOKResult = 'cancel'
 
     local function askOKCallback(key, state)
-        if state ~= 'short' then
-            return false
-        end
-
         if key == 'ok' then
             askOKWaiting = false
             askOKResult = 'ok'
@@ -616,7 +615,8 @@ function _M.askOK(prompt, q, units, unitsOther)
     local u = units or 0
     local uo = unitsOther or 0
 
-    local f = _M.setKeyGroupCallback('keypad', askOKCallback)
+    local f = private.getKeyGroupCallback('keypad', 'short')
+    _M.setKeyGroupCallback('keypad', askOKCallback)
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(prompt)
@@ -629,7 +629,7 @@ function _M.askOK(prompt, q, units, unitsOther)
         system.handleEvents()
     end
     _M.abortDialog()
-    _M.setKeyGroupCallback('keypad', f)
+    _M.setKeyGroupCallback('keypad', f, 'short')
 
     _M.restoreBot()
     return askOKResult
