@@ -21,11 +21,9 @@ local naming = require 'rinLibrary.namings'
 -- @return true iff one of the bits is set.
 -- @local
 local function anyBitSet(data, ...)
-    if arg.n == 0 then
-        return false
-    end
+    local args = {...}
 
-    for i,v in ipairs(arg) do
+    for i,v in ipairs(args) do
         if bit32.band(bit32.lshift(0x01, v-1), data) ~= 0 then
             return true
         end
@@ -40,11 +38,12 @@ end
 -- @return true iff all of the bits is set.
 -- @local
 local function allBitSet(data, ...)
-    if arg.n == 0 then
+    local args = {...}
+    if #args == 0 then
         return false
     end
 
-    for i,v in ipairs(arg) do
+    for i,v in ipairs(args) do
         if bit32.band(bit32.lshift(0x01, v-1), data) == 0 then
             return false
         end
@@ -649,11 +648,9 @@ end
 --     device.turnOff(5)
 -- end
 function _M.anyStatusSet(...)
-    if arg.n == 0 then
-        return false
-    end
+    local args = {...}
 
-    for i, v in pairs({...}) do
+    for i, v in pairs(args) do
         local b = naming.convertNameToValue(v, statusMap, 0)
         if bit32.band(curStatus, b) ~= 0 then
             return true
@@ -678,11 +675,12 @@ end
 --     device.turnOff(5)
 -- end
 function _M.allStatusSet(...)
-    if arg.n == 0 then
+    local args = {...}
+    if #args == 0 then
         return false
     end
 
-    for i, v in pairs({...}) do
+    for i, v in pairs(args) do
         local b = naming.convertNameToValue(v, statusMap, 0)
         if bit32.band(curStatus, b) == 0 then
             return false
