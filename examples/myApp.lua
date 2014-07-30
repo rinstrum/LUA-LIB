@@ -151,7 +151,7 @@ local function mainLoop()
       dwi.writeBotRight('PLACE')
       if dwi.allStatusSet('notzero', 'notmotion') then
          dwi.setUserNumber(3, dwi.toPrimary(curWeight))
-         dwi.setAutoBotLeft('usernum3')
+         dwi.writeAutoBotLeft('usernum3')
          dwi.writeBotRight('CAPTURED')
          dwi.buzz(2)
          dwi.delay(1)
