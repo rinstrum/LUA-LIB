@@ -196,6 +196,61 @@ local keyBinds = {
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls
 
+--- Key events are grouped into a number of different types.
+--
+-- By default, both short and long presses are seen
+--@table keyEvents
+-- @field short A short press of a key
+-- @field long A long press of a key
+-- @field repeat A continued repeating press of a key (preceeded by a long event)
+-- @field up A release of a key
+-- @see addKeyEvents
+-- @see removeKeyEvents
+
+local keyMode = {
+    short = true,
+    long = true,
+    up = false,
+    ['repeat'] = false
+}
+
+local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
+local KEYF_MASK = 0x3F
+
+-------------------------------------------------------------------------------
+-- Add key events that should be forwarded
+-- @param ... List of key event to add
+-- @see keyEvents
+-- @see removeKeyEvents
+-- @usage
+-- device.addKeyEvents('repeat')
+function _M.addKeyEvents(...)
+    for _, e in pairs({...}) do
+        if keyMode[e] ~= nil then
+            keyMode[e] = true
+        else
+            dbg.error('Attempt to add unknown key event: ', e)
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Hide key events
+-- @param ... List of key event to hide
+-- @see keyEvents
+-- @see addKeyEvents
+-- @usage
+-- device.removeKeyEvents('long')
+function _M.removeKeyEvents(...)
+    for _, e in pairs({...}) do
+        if keyMode[e] ~= nil then
+            keyMode[e] = false
+        else
+            dbg.error('Attempt to remove unknown key event: ', e)
+        end
+    end
+end
+
 -------------------------------------------------------------------------------
 -- Give the idle timeout timer a kick
 -- @function bumpIdleTimer
@@ -211,33 +266,46 @@ end
 
 -- Called when keys are streamed, send the keys to each group it is bound to
 -- in order of priority, until one of them returns true.
--- key states are 'short','long','up'
+-- key states are 'short', 'long', 'up' and 'repeat'
 -- Note: keybind tables should be sorted by priority
 -- @param data Data on key streamed
 -- @param err Potential error message
 -- @local
 local function keyCallback(data, err)
+    if data == KEY_IDLE then return end
 
     local state = "short"
     local key = bit32.band(data, 0x3F)
 
-    if bit32.band(data, 0x80) > 0 then
-        state = "long"
-    end
-
-    if bit32.band(data, 0x40) > 0 then
+    if bit32.band(data, KEYF_UP) ~= 0 then
         state = "up"
+    elseif bit32.band(data, KEYF_LONG) ~= 0 then
+        state = "long"
+    elseif bit32.band(data, KEYF_REPEAT) ~= 0 then
+        state = 'repeat'
     end
 
---    dbg.debug('Key: ',data,err)
-    -- Debug - throw away first 0 key garbage
+    -- Debug - throw away first 0 key garbage -- this doesn't seem to appear anymore
     if data == 0 and firstKey then
         return
     end
     firstKey = false
 
-    -- Debug  - throw away up and idle events
-    if (state == "up" and key ~= KEY_POWER) or data == KEY_IDLE then
+    -- Infrastructure for key repeats to be added later.
+    -- Might be worthwhile moving to per key filtering based on the kind of key press:
+    -- e.g. addKeyHandler('f1', function, 'short', 'up')
+    --      addKeyHandler('f1', function, 'long')
+    --      addKeyHandler('f1', function, 'repeat')
+    -- i.e. multiple different handlers for each key
+    --if state == 'long' then
+    --    -- TODO: start the key repeat handler
+    --elseif state == 'up' then
+    --    -- TODO: remove the key repeat handler
+    --end
+
+    -- Throw away uninteresting events
+    -- Key up events on the power key are always delivered
+    if not keyMode[state] and (state ~= 'up' or key ~= KEY_POWER) then
         return
     end
 
@@ -253,7 +321,7 @@ local function keyCallback(data, err)
 
         if groups.directCallback then
             if runningKeyCallback == groups.directCallback then
-               dbg.warn('Attempt to call Key Event Handler recursively : ', keyName)
+               dbg.warn('Attempt to call key event handler recursively : ', keyName)
                return
             end
             runningKeyCallback = groups.directCallback
@@ -267,7 +335,7 @@ local function keyCallback(data, err)
             for i=1, #groups do
                 if groups[i].callback then
                     if runningKeyCallback == groups[i].callback then
-                        dbg.warn('Attempt to call Key Group Event Handler recursively : ', keyName)
+                        dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
                         return
                     end
                     runningKeyCallback = groups[i].callback
@@ -282,7 +350,7 @@ local function keyCallback(data, err)
     end
 
     if not handled then
-        private.writeRegAsync( REG_APP_DO_KEYS, data)
+        private.writeRegAsync(REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
         private.bumpIdleTimer()
