@@ -156,7 +156,7 @@ for _, g in pairs({
             'all',      'cursor',   'extended',  'functions',
             'keypad',   'numpad',   'primary'
         }) do
-    keyGroup[g] = { callback = nil }
+    keyGroup[g] = { --[[ short = nil, long = nil, up = nil, repeat = nil --]] }
 end
 
 local keyBinds = {
@@ -194,7 +194,6 @@ local keyBinds = {
 }
 
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
-local runningKeyCallback = nil  -- keeps track of any running callback to prevent recursive calls
 
 --- Key events are grouped into a number of different types.
 --
@@ -204,52 +203,16 @@ local runningKeyCallback = nil  -- keeps track of any running callback to preven
 -- @field long A long press of a key
 -- @field repeat A continued repeating press of a key (preceeded by a long event)
 -- @field up A release of a key
--- @see addKeyEvents
--- @see removeKeyEvents
 
 local keyMode = {
     short = true,
     long = true,
-    up = false,
-    ['repeat'] = false
+    up = true,
+    ['repeat'] = true
 }
 
 local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
 local KEYF_MASK = 0x3F
-
--------------------------------------------------------------------------------
--- Add key events that should be forwarded
--- @param ... List of key event to add
--- @see keyEvents
--- @see removeKeyEvents
--- @usage
--- device.addKeyEvents('repeat')
-function _M.addKeyEvents(...)
-    for _, e in pairs({...}) do
-        if keyMode[e] ~= nil then
-            keyMode[e] = true
-        else
-            dbg.error('Attempt to add unknown key event: ', e)
-        end
-    end
-end
-
--------------------------------------------------------------------------------
--- Hide key events
--- @param ... List of key event to hide
--- @see keyEvents
--- @see addKeyEvents
--- @usage
--- device.removeKeyEvents('long')
-function _M.removeKeyEvents(...)
-    for _, e in pairs({...}) do
-        if keyMode[e] ~= nil then
-            keyMode[e] = false
-        else
-            dbg.error('Attempt to remove unknown key event: ', e)
-        end
-    end
-end
 
 -------------------------------------------------------------------------------
 -- Give the idle timeout timer a kick
@@ -310,8 +273,8 @@ local function keyCallback(data, err)
     end
 
     local handled = false
-    local groups = keyBinds[key]
-    if groups ~= nil then
+    local keyHandler = keyBinds[key]
+    if keyHandler ~= nil then
         local keyName = naming.convertValueToName(key, keyUnmap)
 
         -- No point trying to deal with a key we don't know about
@@ -319,33 +282,37 @@ local function keyCallback(data, err)
             return
         end
 
-        if groups.directCallback then
-            if runningKeyCallback == groups.directCallback then
-               dbg.warn('Attempt to call key event handler recursively : ', keyName)
-               return
-            end
-            runningKeyCallback = groups.directCallback
-            if groups.directCallback(keyName, state) == true then
+        if keyHandler[state] ~= nil then
+            local cb = keyHandler[state]
+            keyHandler[state] =
+                    function()
+                        dbg.warn('Attempt to call key event handler recursively : ', keyName)
+                        return true
+                    end
+            local r = cb(keyName, state)
+            keyHandler[state] = cb
+            if r == true then
                 handled = true
             end
-            runningKeyCallback = nil
         end
 
         if not handled then
-            for i=1, #groups do
-                if groups[i].callback then
-                    if runningKeyCallback == groups[i].callback then
-                        dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
-                        return
-                    end
-                    runningKeyCallback = groups[i].callback
-                    if groups[i].callback(keyName, state) == true then
+            for i = 1, #keyHandler do
+                if keyHandler[i][state] ~= nil then
+                    local cb = keyHandler[i][state]
+                    keyHandler[i][state] =
+                            function()
+                                dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
+                                return true
+                            end
+                    local r = cb(keyName, state)
+                    keyHandler[i][state] = cb
+                    if r == true then
                         handled = true
                         break
                     end
                 end
             end
-            runningKeyCallback = nil
         end
     end
 
@@ -423,7 +390,7 @@ end
 -- Set the callback function for an existing key
 -- @param keyName to monitor
 -- @param callback Function to run when there is an event for that key.
--- @return The old callback function
+-- @param ... Events for which this callback should be used
 -- @usage
 -- -- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
 -- local function F1Pressed(key, state)
@@ -433,13 +400,21 @@ end
 --     return true    -- F1 handled here so don't send back to instrument for handling
 -- end
 -- device.setKeyCallback('f1', F1Pressed)
-function _M.setKeyCallback(keyName, callback)
+function _M.setKeyCallback(keyName, callback, ...)
     local key = naming.convertNameToValue(keyName, keyMap)
-    local old = keyBinds[key].directCallback
     if key then
-        keyBinds[key].directCallback = callback
+        local events = {...}
+        if #events == 0 then
+            events = { 'short', 'long' }
+        end
+        for _, e in pairs(events) do
+            if keyMode[e] then
+                keyBinds[key][e] = callback
+            else
+                dbg.error('Attempt to add unknown key event: ', e)
+            end
+        end
     end
-    return old
 end
 
 -------------------------------------------------------------------------------
@@ -449,7 +424,7 @@ end
 -- encompassing.
 -- @param keyGroupName A keygroup name
 -- @param callback Function to run when there is an event on the keygroup
--- @return The old key group callback
+-- @param ... Events for which this callback should be used
 -- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
 -- Return true in the callback to prevent the handling from being passed along to the next keygroup
 -- @usage
@@ -461,12 +436,33 @@ end
 --     end
 --     return true     -- key handled so don't send back to instrument
 -- end
--- device.setKeyGroupCallback('all', handleKey)
-function _M.setKeyGroupCallback(keyGroupName, callback)
+-- device.setKeyGroupCallback('all', handleKey, 'long')
+-- device.setKeyGroupCallback('numpad', handleKey, 'short')
+function _M.setKeyGroupCallback(keyGroupName, callback, ...)
     local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
-    local old = kg.callback
-    kg.callback = callback
-    return old
+    local events = {...}
+    if #events == 0 then
+        events = { 'short', 'long' }
+    end
+    for _, e in pairs(events) do
+        if keyMode[e] then
+            kg[e] = callback
+        else
+            dbg.error('Attempt to add unknown key group event: ', e)
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Get the callback function for an existing key group for the specified event
+-- @param keyGroupName A keygroup name
+-- @param event Event to check for
+-- @return callback
+-- @local
+function private.getKeyGroupCallback(keyGroupName, event)
+    local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
+
+    return kg.callback[event]
 end
 
 -------------------------------------------------------------------------------
