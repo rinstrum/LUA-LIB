@@ -19,20 +19,20 @@ local naming = require 'rinLibrary.namings'
 -- @return The number of display characters
 -- @local
 local function strLenR400(s)
-   local len = 0
-   local dotFound = true
-   for i = 1,#s do
-     local ch = string.sub(s,i,i)
-     if not dotFound and  ch == '.' then
-         dotFound = true
-     else
-        if ch ~= '.' then
-           dotFound = false
+    local len = 0
+    local dotFound = true
+    for i = 1,#s do
+        local ch = string.sub(s,i,i)
+        if not dotFound and  ch == '.' then
+            dotFound = true
+        else
+            if ch ~= '.' then
+                dotFound = false
+            end
+            len = len + 1
         end
-        len = len + 1
-     end
-   end
-  return len
+    end
+    return len
 end
 
 -------------------------------------------------------------------------------
@@ -89,7 +89,8 @@ end
 -- @param len Length of display field
 -- @return list of fragments of the string formatted to fit the field width
 -- @local
-local function splitWords(s,len)
+local function splitWords(s, len)
+    s = tostring(s)
     local t = {}
     local p = ''
     local len = len or 8
@@ -186,6 +187,7 @@ local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
 --     print('yes')
 -- end
 function _M.rightJustify(s, w)
+    s = tostring(s)
     local l = strLenR400(s)
     if l >= w then
         return s
