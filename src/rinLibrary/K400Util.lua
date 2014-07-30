@@ -25,7 +25,6 @@ return function (_M, private, deprecated)
 
 local REG_RESTART           = 0x0016
 local REG_SAVESETTING       = 0x0010
-local REG_LCDMODE           = 0x000D
 local REG_COMMS_START       = 0x0309
 local REG_SOFTMODEL         = 0x0003
 local REG_SOFTVER           = 0x0004
@@ -62,27 +61,6 @@ local settings = {
 local instrumentModel = ''
 local instrumentSerialNumber = nil
 local instrumentSoftwareVersion = nil
-
--------------------------------------------------------------------------------
--- Called to setup LCD control.
--- The rinApp framework generally takes care of calling this function for you.
--- However, sometimes you'll want to return control to the display device
--- for a time and grab control again later.
--- @param mode  is 'lua' to control display from script or 'default'
--- to return control to the default instrument application
--- @usage
--- device.lcdControl('default')     -- let the display control itself
--- ...
--- device.lcdControl('lua')         -- switch on Lua display
-function _M.lcdControl(mode)
-    local mode = mode or ''
-
-    if mode == 'lua' then
-        private.exReg(REG_LCDMODE, 2)
-    else
-        private.exReg(REG_LCDMODE, 1)
-    end
-end
 
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
@@ -305,7 +283,6 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-deprecated.REG_LCDMODE              = REG_LCDMODE
 deprecated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
 deprecated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
 deprecated.REG_SOFTMODEL            = REG_SOFTMODEL

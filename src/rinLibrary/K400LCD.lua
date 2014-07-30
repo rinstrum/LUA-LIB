@@ -139,6 +139,7 @@ end
 return function (_M, private, deprecated)
 
 --LCD display registers
+local REG_LCDMODE              = 0x000D
 local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
 local REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
@@ -176,6 +177,27 @@ local saveBotUnitsOther = 0
 local slideBotLeftPos, slideBotLeftWords, slideBotLeftTimer
 local slideBotRightPos, slideBotRightWords, slideBotRightTimer
 local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
+
+-------------------------------------------------------------------------------
+-- Called to setup LCD control.
+-- The rinApp framework generally takes care of calling this function for you.
+-- However, sometimes you'll want to return control to the display device
+-- for a time and grab control again later.
+-- @param mode  is 'lua' to control display from script or 'default'
+-- to return control to the default instrument application
+-- @usage
+-- device.lcdControl('default')     -- let the display control itself
+-- ...
+-- device.lcdControl('lua')         -- switch on Lua display
+function _M.lcdControl(mode)
+    local mode = mode or ''
+
+    if mode == 'lua' then
+        private.exReg(REG_LCDMODE, 2)
+    else
+        private.exReg(REG_LCDMODE, 1)
+    end
+end
 
 -------------------------------------------------------------------------------
 -- Right justify a string in a given field
@@ -749,6 +771,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
+deprecated.REG_LCDMODE              = REG_LCDMODE
 deprecated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
 deprecated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
 deprecated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
