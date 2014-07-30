@@ -314,14 +314,16 @@ keyCallback = function(data, err)
         end
 
         if keyHandler[state] ~= nil then
+            local function handler()
+                dbg.warn('Attempt to call key event handler recursively : ', keyName)
+                return true
+            end
             local cb = keyHandler[state]
-            keyHandler[state] =
-                    function()
-                        dbg.warn('Attempt to call key event handler recursively : ', keyName)
-                        return true
-                    end
+            keyHandler[state] = handler
             local r = cb(keyName, state)
-            keyHandler[state] = cb
+            if keyHandler[state] == handler then
+                keyHandler[state] = cb
+            end
             if r == true then
                 handled = true
             end
@@ -330,14 +332,16 @@ keyCallback = function(data, err)
         if not handled then
             for i = 1, #keyHandler do
                 if keyHandler[i][state] ~= nil then
+                    local function handler()
+                        dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
+                        return true
+                    end
                     local cb = keyHandler[i][state]
-                    keyHandler[i][state] =
-                            function()
-                                dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
-                                return true
-                            end
+                    keyHandler[i][state] = handler
                     local r = cb(keyName, state)
-                    keyHandler[i][state] = cb
+                    if keyHandler[i][state] == handler then
+                        keyHandler[i][state] = cb
+                    end
                     if r == true then
                         handled = true
                         break
