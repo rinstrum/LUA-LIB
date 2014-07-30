@@ -214,6 +214,10 @@ local keyMode = {
 local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
 local KEYF_MASK = 0x3F
 
+local repeatStart, repeatDecay, repeatFinish
+
+local keyCallback       -- Forward declaration
+
 -------------------------------------------------------------------------------
 -- Give the idle timeout timer a kick
 -- @function bumpIdleTimer
@@ -227,14 +231,39 @@ function private.bumpIdleTimer()
     end
 end
 
+-------------------------------------------------------------------------------
+-- Set the repeat interval parameters.
+-- @param start The initial time between repeat key events (default 0.5 seconds)
+-- @param decay The multiplicative decay factor between key events (default 0.85)
+-- @param finish The fastest repeat interval permitted (default 0.12 seconds)
+function _M.setKeyRepeatParameters(start, decay, finish)
+    repeatStart = start or 0.5
+    repeatDecay = decay or 0.85
+    repeatFinish = finish or 0.12
+end
+_M.setKeyRepeatParameters()
+
+-------------------------------------------------------------------------------
+-- Called to generate repeating keys
+-- @param keyHandler The key handler in question
+-- @param key The key being pressed
+-- @local
+local function keyRepeater(keyHandler, key)
+    keyCallback(key + KEYF_REPEAT, nil)
+    keyHandler.repeatInterval = math.max(keyHandler.repeatInterval * repeatDecay, repeatFinish)
+    keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key)
+end
+
+-------------------------------------------------------------------------------
 -- Called when keys are streamed, send the keys to each group it is bound to
 -- in order of priority, until one of them returns true.
 -- key states are 'short', 'long', 'up' and 'repeat'
 -- Note: keybind tables should be sorted by priority
+-- @function keyCallback
 -- @param data Data on key streamed
 -- @param err Potential error message
 -- @local
-local function keyCallback(data, err)
+keyCallback = function(data, err)
     if data == KEY_IDLE then return end
 
     local state = "short"
@@ -269,23 +298,19 @@ local function keyCallback(data, err)
         end
 
         if keyHandler['repeat'] ~= nil then
-            local function keyRepeater(keyHandler, key)
-                keyCallback(key + KEYF_REPEAT, nil)
-                if keyHandler.repeatInterval > .12 then
-                    keyHandler.repeatInterval = keyHandler.repeatInterval * 0.85
-                end
-                keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key)
-            end
-
             if state == 'long' then
                 timers.removeTimer(keyHandler.repeatTimer)
                 keyHandler.repeatTimer = timers.addTimer(0, 0, keyRepeater, keyHandler, key)
-                keyHandler.repeatInterval = 0.5
+                keyHandler.repeatInterval = repeatStart
             elseif state == 'up' then
                 timers.removeTimer(keyHandler.repeatTimer)
                 keyHandler.repeatTimer = nil
                 keyHandler.repeatInterval = nil
             end
+        elseif keyHandler.repeatTimer ~= nil then
+            timers.removeTimer(keyHandler.repeatTimer)
+            keyHandler.repeatTimer = nil
+            keyHandler.repeatInterval = nil
         end
 
         if keyHandler[state] ~= nil then
@@ -322,10 +347,8 @@ local function keyCallback(data, err)
         end
     end
 
-    if not handled and state ~= 'repeat' then
-        if state ~= 'up' or key == KEY_POWER then
-            private.writeRegAsync(REG_APP_DO_KEYS, data)
-        end
+    if not handled and state ~= 'repeat' and (state ~= 'up' or key == KEY_POWER) then
+        private.writeRegAsync(REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
         private.bumpIdleTimer()
