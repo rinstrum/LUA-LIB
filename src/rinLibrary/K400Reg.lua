@@ -110,18 +110,18 @@ local TYP_BITFIELD          = 0x0C
 
 local typeMap = {
     [TYP_CHAR]              = 'char',
-    [TYP_UCHAR]            = 'uchar',
-    [TYP_SHORT]            = 'short',
-    [TYP_USHORT]           = 'ushort',
-    [TYP_LONG]             = 'long',
-    [TYP_ULONG]            = 'ulong',
-    [TYP_STRING]           = 'string',
-    [TYP_OPTION]           = 'option',
-    [TYP_MENU]             = 'menu',
-    [TYP_WEIGHT]           = 'weight',
-    [TYP_BLOB]             = 'blob',
-    [TYP_EXECUTE]          = 'execute',
-    [TYP_BITFIELD]         = 'bitfield'
+    [TYP_UCHAR]             = 'uchar',
+    [TYP_SHORT]             = 'short',
+    [TYP_USHORT]            = 'ushort',
+    [TYP_LONG]              = 'long',
+    [TYP_ULONG]             = 'ulong',
+    [TYP_STRING]            = 'string',
+    [TYP_OPTION]            = 'option',
+    [TYP_MENU]              = 'menu',
+    [TYP_WEIGHT]            = 'weight',
+    [TYP_BLOB]              = 'blob',
+    [TYP_EXECUTE]           = 'execute',
+    [TYP_BITFIELD]          = 'bitfield'
 }
 
 --- Register Types.
