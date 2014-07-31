@@ -34,8 +34,7 @@ for k,v in pairs(analogTypes) do analogNames[v] = k end
 local curAnalogType = -1
 local lastAnalogue = nil
 
-local ANALOG_COMMS = 3
-local analogSourceMap = {   comms = ANALOG_COMMS    }
+local analogSourceMap = {   comms = 3    }
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
@@ -133,7 +132,7 @@ end
 -- Fill in all the deprecated fields
 deprecated.CUR = CUR
 deprecated.VOLT = VOLT
-deprecated.ANALOG_COMMS = ANALOG_COMMS
+deprecated.ANALOG_COMMS = analogSourceMap.comms
 
 deprecated.REG_ANALOGUE_DATA = REG_ANALOGUE_DATA
 deprecated.REG_ANALOGUE_TYPE = REG_ANALOGUE_TYPE
