@@ -113,13 +113,12 @@ end
 -- local otherDevice = rinApp.addK400('K401', '1.1.1.1')
 function _M.addK400(model, ip, portA, portB)
     -- Create the socket
-    local device = require("rinLibrary.K400")()
+    local device = require("rinLibrary.K400")(model)
     table.insert(_M.devices, device)
 
     device.ipaddress = ip or "127.0.0.1"
     device.portA = portA or 2222
     device.portB = portB or 2223
-    device.model = model or ""
 
   	local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
     local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)

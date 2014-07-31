@@ -34,6 +34,12 @@ describe("K400Reg #register", function()
         sysstatus               = 0x0021,
         tare                    = 0x0028
     }
+
+    -- Newer registers that don't get the deprecated REG_xxx interface
+    local extraRegisters = {
+        piececount              = 0x0053
+    }
+
     local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
@@ -68,6 +74,16 @@ describe("K400Reg #register", function()
     describe("registers", function()
         local m, p = makeModule()
         for r, v in pairs(registers) do
+            it('test '..r, function()
+                assert.equal(v, p.getRegisterNumber(r))
+                assert.equal(r, p.getRegisterName(v))
+            end)
+        end
+    end)
+
+    describe("extra registers", function()
+        local m, p = makeModule()
+        for r, v in pairs(extraRegisters) do
             it('test '..r, function()
                 assert.equal(v, p.getRegisterNumber(r))
                 assert.equal(r, p.getRegisterName(v))

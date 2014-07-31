@@ -38,26 +38,26 @@ return function (_M, private, deprecated)
 
 -- USER VARIABLES
     private.addRegisters{
-        { 'userid_name1',     0x0080 },
-        { 'userid_name2',     0x0081 },
-        { 'userid_name3',     0x0082 },
-        { 'userid_name4',     0x0083 },
-        { 'userid_name5',     0x0084 },
-        { 'usernum_name1',    0x0316 },
-        { 'usernum_name2',    0x0317 },
-        { 'usernum_name3',    0x0318 },
-        { 'usernum_name4',    0x0319 },
-        { 'usernum_name5',    0x031A },
-        { 'userid1',          0x0090 },
-        { 'userid2',          0x0092 },
-        { 'userid3',          0x0093 },
-        { 'userid4',          0x0094 },
-        { 'userid5',          0x0095 },
-        { 'usernum1',         0x0310 },
-        { 'usernum2',         0x0311 },
-        { 'usernum3',         0x0312 },
-        { 'usernum4',         0x0313 },
-        { 'usernum5',         0x0314 }
+        userid_name1    = 0x0080,
+        userid_name2    = 0x0081,
+        userid_name3    = 0x0082,
+        userid_name4    = 0x0083,
+        userid_name5    = 0x0084,
+        usernum_name1   = 0x0316,
+        usernum_name2   = 0x0317,
+        usernum_name3   = 0x0318,
+        usernum_name4   = 0x0319,
+        usernum_name5   = 0x031A,
+        userid1         = 0x0090,
+        userid2         = 0x0092,
+        userid3         = 0x0093,
+        userid4         = 0x0094,
+        userid5         = 0x0095,
+        usernum1        = 0x0310,
+        usernum2        = 0x0311,
+        usernum3        = 0x0312,
+        usernum4        = 0x0313,
+        usernum5        = 0x0314
     }
 
 

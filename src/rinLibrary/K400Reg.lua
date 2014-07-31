@@ -22,8 +22,8 @@ local locale, P, S = lpeg.locale(), lpeg.P, lpeg.S
 return function (_M, private, deprecated)
 
 private.addRegisters{
-    { 'keybuffer',    0x0008 },
-    { 'lcd',          0x0009 },
+    keybuffer               = 0x0008,
+    lcd                     = 0x0009,
 
 --- Instrument Reading Registers.
 --@table rdgRegisters
@@ -42,22 +42,24 @@ private.addRegisters{
 -- @field rawadc Raw ADC reading (2,560,000 = 1.0 mV/V)
 -- @field altnet Net weight in secondary units
 -- @field fullscale Fullscale weight
+-- @field piececount Piece count
 
-    { 'adcsample',    0x0020 },
-    { 'sysstatus',    0x0021 },
-    { 'syserr',       0x0022 },
-    { 'absmvv',       0x0023 }, 
-    { 'grossnet',     0x0025 },
-    { 'gross',        0x0026 },
-    { 'net',          0x0027 },
-    { 'tare',         0x0028 },
-    { 'peakhold',     0x0029 },
-    { 'manhold',      0x002A },
-    { 'grandtotal',   0x002B },
-    { 'altgross',     0x002C },
-    { 'rawadc',       0x002D },
-    { 'altnet',       0x002E },
-    { 'fullscale',    0x002F },
+    adcsample               = 0x0020,
+    sysstatus               = 0x0021,
+    syserr                  = 0x0022,
+    absmvv                  = 0x0023, 
+    grossnet                = 0x0025,
+    gross                   = 0x0026,
+    net                     = 0x0027,
+    tare                    = 0x0028,
+    peakhold                = private.nonbatching(0x0029),
+    manhold                 = private.nonbatching(0x002A),
+    grandtotal              = 0x002B,
+    altgross                = private.nonbatching(0x002C),
+    rawadc                  = 0x002D,
+    altnet                  = private.nonbatching(0x002E),
+    fullscale               = 0x002F,
+    piececount              = private.nonbatching(0x0053),
 
 --- Product Registers.
 --@table productRegisters
@@ -70,14 +72,14 @@ private.addRegisters{
 -- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
 -- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
 
-    { 'active_product_no',        0xB000 },
-    { 'active_product_name',      0xB006 },
-    { 'clr_all_totals',           0xB002 },
-    { 'clr_docket_totals',        0xB004 },
-    { 'select_product_no',        0xB00F },
-    { 'select_product_name',      0xB010 },
-    { 'select_product_delete',    0xB011 },
-    { 'select_product_rename',    0xB012 }
+    active_product_no       = 0xB000,
+    active_product_name     = 0xB006,
+    clr_all_totals          = 0xB002,
+    clr_docket_totals       = 0xB004,
+    select_product_no       = 0xB00F,
+    select_product_name     = 0xB010,
+    select_product_delete   = 0xB011,
+    select_product_rename   = 0xB012
 }
 
 local REG_HEARTBEAT         = 0x032F
@@ -92,34 +94,34 @@ local REG_HEARTBEAT         = 0x032F
 -- @field ex Execute with data as execute parameter
 
 -- Register Types
-local TYP_CHAR             = 0x00
-local TYP_UCHAR            = 0x01
-local TYP_SHORT            = 0x02
-local TYP_USHORT           = 0x03
-local TYP_LONG             = 0x04
-local TYP_ULONG            = 0x05
-local TYP_STRING           = 0x06
-local TYP_OPTION           = 0x07
-local TYP_MENU             = 0x08
-local TYP_WEIGHT           = 0x09
-local TYP_BLOB             = 0x0A
-local TYP_EXECUTE          = 0x0B
-local TYP_BITFIELD         = 0x0C
+local TYP_CHAR              = 0x00
+local TYP_UCHAR             = 0x01
+local TYP_SHORT             = 0x02
+local TYP_USHORT            = 0x03
+local TYP_LONG              = 0x04
+local TYP_ULONG             = 0x05
+local TYP_STRING            = 0x06
+local TYP_OPTION            = 0x07
+local TYP_MENU              = 0x08
+local TYP_WEIGHT            = 0x09
+local TYP_BLOB              = 0x0A
+local TYP_EXECUTE           = 0x0B
+local TYP_BITFIELD          = 0x0C
 
 local typeMap = {
-    [TYP_CHAR]     = 'char',
-    [TYP_UCHAR]    = 'uchar',
-    [TYP_SHORT]    = 'short',
-    [TYP_USHORT]   = 'ushort',
-    [TYP_LONG]     = 'long',
-    [TYP_ULONG]    = 'ulong',
-    [TYP_STRING]   = 'string',
-    [TYP_OPTION]   = 'option',
-    [TYP_MENU]     = 'menu',
-    [TYP_WEIGHT]   = 'weight',
-    [TYP_BLOB]     = 'blob',
-    [TYP_EXECUTE]  = 'execute',
-    [TYP_BITFIELD] = 'bitfield'
+    [TYP_CHAR]              = 'char',
+    [TYP_UCHAR]            = 'uchar',
+    [TYP_SHORT]            = 'short',
+    [TYP_USHORT]           = 'ushort',
+    [TYP_LONG]             = 'long',
+    [TYP_ULONG]            = 'ulong',
+    [TYP_STRING]           = 'string',
+    [TYP_OPTION]           = 'option',
+    [TYP_MENU]             = 'menu',
+    [TYP_WEIGHT]           = 'weight',
+    [TYP_BLOB]             = 'blob',
+    [TYP_EXECUTE]          = 'execute',
+    [TYP_BITFIELD]         = 'bitfield'
 }
 
 --- Register Types.
@@ -411,6 +413,28 @@ end
 function private.getRegType(reg)
     local rdtype = sendRegWait('rdtype', reg)
     return typeMap[tonumber(rdtype, 16)]
+end
+
+-------------------------------------------------------------------------------
+-- Called to read a register's maximum value
+-- @function getRegMax
+-- @param reg Register to query
+-- @return The type of the register
+-- @return Error code or nil for no error
+-- @local
+function private.getRegMax(reg)
+    return sendRegWait('rdrangemax', reg)
+end
+
+-------------------------------------------------------------------------------
+-- Called to read a register's minimum value
+-- @function getRegMin
+-- @param reg Register to query
+-- @return The type of the register
+-- @return Error code or nil for no error
+-- @local
+function private.getRegMin(reg)
+    return sendRegWait('rdrangemin', reg)
 end
 
 -------------------------------------------------------------------------------

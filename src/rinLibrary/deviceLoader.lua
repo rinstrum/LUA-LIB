@@ -14,8 +14,9 @@ return function (device, modules)
     local deviceColon = device .. ': '
     local _M, kt = {}, {}
     local deprecated, dwarned = {}, {}
-    local private = {   deviceType = device,
-                        [device] = true,
+
+    _M.model = device
+    local private = {   deviceType = string.lower(device),
                         modules = { utilities = true }
                     }
 

@@ -16,7 +16,7 @@ local naming = require 'rinLibrary.namings'
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
-private.addRegisters{ {'io_status', 0x0051 } }
+private.addRegisters{ io_status = 0x0051 }
 local REG_IO_ENABLE         = 0x0054
 
 local REG_SETP_NUM          = 0xA400
@@ -105,11 +105,11 @@ local sourceMap = {
     gross =     SOURCE_GROSS,
     net =       SOURCE_NET,
     disp =      SOURCE_DISP,
-    alt_gross = SOURCE_ALT_GROSS,
-    alt_net =   SOURCE_ALT_NET,
-    alt_disp =  SOURCE_ALT_DISP,
-    piece =     SOURCE_PIECE,
-    reg =       SOURCE_REG
+    alt_gross = private.nonbatching(SOURCE_ALT_GROSS),
+    alt_net =   private.nonbatching(SOURCE_ALT_NET),
+    alt_disp =  private.nonbatching(SOURCE_ALT_DISP),
+    piece =     private.nonbatching(SOURCE_PIECE),
+    reg =       private.nonbatching(SOURCE_REG)
 }
 
 --- Setpoint Types.
@@ -126,8 +126,13 @@ local sourceMap = {
 -- @field logic_and A binary logic AND is performed on the source with the mask value
 -- @field logic_or A binary logic OR is performed on the source with the mask value
 -- @field logic_xor A binary logic XOR is performed on the source with the mask value
--- @field scale_ready Setpoint is active when the scale is stable in the zero band for the set period of time
--- @field scale_exit Setpoint is active when there has been a print since the weight left the zero band
+-- @field scale_ready Setpoint is active when the scale is stable in the zero band for the set period of time (non-batching units only)
+-- @field scale_exit Setpoint is active when there has been a print since the weight left the zero band (non-batching units only)
+-- @field tol Setpoint is active when (batching units only)
+-- @field pause Setpoint is active when (batching units only)
+-- @field wait Setpoint is active when (batching units only)
+-- @field run Setpoint is active when (batching units only)
+-- @field fill Setpoint is active when (batching units only)
 -- @field buzzer Setpoint is active when the buzzer is beeping
 
 local TYPE_OFF      = 0
@@ -144,7 +149,12 @@ local TYPE_LGC_OR   = 10
 local TYPE_LGC_XOR  = 11
 local TYPE_SC_READY = 12
 local TYPE_SC_EXIT  = 13
-local TYPE_BUZZER   = 14
+local TYPE_TOL      = 12
+local TYPE_PAUSE    = 13
+local TYPE_WAIT     = 14
+local TYPE_RUN      = 15
+local TYPE_FILL     = 16
+local TYPE_BUZZER   = private.batching(17) or 14
 
 local typeMap = {
     off =         TYPE_OFF,
@@ -159,8 +169,13 @@ local typeMap = {
     logic_and =   TYPE_LGC_AND,
     logic_or =    TYPE_LGC_OR,
     logic_xor =   TYPE_LGC_XOR,
-    scale_ready = TYPE_SC_READY,
-    scale_exit =  TYPE_SC_EXIT,
+    scale_ready = private.nonbatching(TYPE_SC_READY),
+    scale_exit =  private.nonbatching(TYPE_SC_EXIT),
+    tol =         private.batching(TYPE_TOL),
+    pause =       private.batching(TYPE_PAUSE),
+    wait =        private.batching(TYPE_WAIT),
+    run =         private.batching(TYPE_RUN),
+    fill =        private.batching(TYPE_FILL),
     buzzer =      TYPE_BUZZER
 }
 
@@ -169,7 +184,7 @@ local timedOutputs = 0   -- keeps track of which IO are already running off time
 -- bits set if under LUA control, clear if under instrument control
 local lastIOEnable = nil
 
-local NUM_SETP = 16
+local NUM_SETP = nil
 
 -------------------------------------------------------------------------------
 -- Write the bit mask of the IOs, bits must first be enabled for comms control.
@@ -276,7 +291,7 @@ end
 -- device.enableOutput(1,2,3,4)
 -- device.turnOn(1)
 -- device.turnOff(2)
--- device.turnOnTimed(3, 0.500)  -- pulse output 3 for 500 milliseconds
+-- device.turnOnTimed(3, 0.500) -- pulse output 3 for 500 milliseconds
 -- device.releaseOutput(1,2,3,4)
 
 function _M.enableOutput(...)
@@ -314,8 +329,9 @@ end
 
 --------------------------------------------------------------------------------
 -- Returns actual register address for a particular setpoint parameter.
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param register is REG_SETP_*
+-- @see setPointCount
 -- @return address of this register for setpoint setp
 -- @usage
 -- -- edit the target for setpoint 3
@@ -323,9 +339,9 @@ end
 function _M.setpRegAddress(setp, register)
     local reg = private.getRegisterNumber(register)
 
-    if (setp > NUM_SETP) or (setp < 1) then
+    if (setp > _M.setPointCount()) or (setp < 1) then
         dbg.error('Setpoint Invalid: ', setp)
-        return 0
+        return nil
     elseif reg == REG_SETP_TARGET then
         return reg+setp-1
     else
@@ -335,9 +351,10 @@ end
 
 --------------------------------------------------------------------------------
 -- Write to a set point register.
--- @param setp Setpoint 1 .. 16
+-- @param setp Setpoint 1 .. setPointCount()
 -- @param reg Register (REG_SETP_*)
 -- @param v Value to write
+-- @see setPointCount
 -- @local
 local function setpParam(setp, reg, v)
     local r = private.getRegisterNumber(reg)
@@ -347,7 +364,8 @@ end
 -------------------------------------------------------------------------------
 -- Set the number of enabled Setpoints.
 -- this disables all setpoints above the set number
--- @param n is the number of setpoints 0..16
+-- @param n is the number of setpoints 0 .. setPointCount()
+-- @see setPointCount
 -- @usage
 -- -- reduce the number of active setpoints to setpoints 1 to 4 temporarily
 -- device.setNumSetp(4)
@@ -355,7 +373,7 @@ end
 -- -- re-enable previously disabled setpoints
 -- device.setNumSetp(8)
 function _M.setNumSetp(n)
-    if (n > NUM_SETP) or (n < 1) then
+    if (n > _M.setPointCount()) or (n < 1) then
         dbg.error('Setpoint Invalid: ', n)
     else
         private.writeReg(REG_SETP_NUM, n-1)
@@ -364,8 +382,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set Target for setpoint.
--- @param setp Setpoint 1..16
+-- @param setp Setpoint 1 .. setPointCount()
 -- @param target Target value
+-- @see setPointCount
 -- @usage
 -- -- set the target for setpoint 5 to 150
 -- device.setpTarget(5, 150)
@@ -375,8 +394,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set which Output the setpoint controls.
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param IO is output 1..32, 0 for none
+-- @see setPointCount
 -- @usage
 -- -- make setpoint 12 use IO 3
 -- device.setpIO(12, 3)
@@ -386,8 +406,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls.
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param sType is setpoint type
+-- @see setPointCount
 -- @usage
 -- -- set setpoint 10 to over
 -- device.setpType(10, 'over')
@@ -400,8 +421,9 @@ end
 -- Set the Logic for the setpoint controls.
 -- High means the output will be on when the setpoint is active and
 -- low means the output will be on when the setpoint is inactive.
--- @param setp is setpount 1..16
+-- @param setp is setpount 1 .. setPointCount()
 -- @param lType is setpoint logic type "high" or "low"
+-- @see setPointCount
 -- @usage
 -- -- make setpoint 4 active high
 -- device.setpLogic(4, 'high')
@@ -414,8 +436,9 @@ end
 -- Set the Alarm for the setpoint.
 -- The alarm can beep once a second, twice a second or flash the display when
 -- the setpoint is active
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param aType is alarm type
+-- @see setPointCount
 -- @usage
 -- -- disable the alarm on setpoint 11
 -- device.setpAlarm(11, 'none')
@@ -426,22 +449,31 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Name of the setpoint.
--- this name will be displayed when editing targets via the keys
--- @param setp is setpoint 1..16
+-- This name will be displayed when editing targets via the keys.
+-- @function setpName
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param v is setpoint name (8 character string)
+-- @see setPointCount
 -- @usage
 -- -- name setpoint 6 fred
 -- device.setpName(6, 'fred')
-function _M.setpName(setp, v)
-    setpParam(setp, REG_SETP_NAME, v)
+if private.batching(true) then
+    function _M.setpName(setp, v)
+        dbg.error("K400Setpoint:", "unable to name setpoints on this device")
+    end
+else
+    function _M.setpName(setp, v)
+        setpParam(setp, REG_SETP_NAME, v)
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls.
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param sType is setpoint source type (string)
 -- @param reg is register address for setpoints using .SOURCE_REG type source data.
 -- For other setpoint source types parameter reg is not required.
+-- @see setPointCount
 -- @usage
 -- -- set setpoint 1 to use the displayed weight
 -- device.setpSource(1, 'disp')
@@ -459,8 +491,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Hysteresis for of the setpoint controls.
--- @param setp is setpoint 1..16
+-- @param setp is setpoint 1 .. setPointCount()
 -- @param v is setpoint hysteresis
+-- @see setPointCount
 -- @usage
 -- -- set setpoint 1 target to 1200 and hysteresis to 10
 -- device.setTarget(1, 1200)
@@ -475,6 +508,12 @@ end
 -- @usage
 -- local n = device.setPointCount()
 function _M.setPointCount()
+    if NUM_SETP == nil then
+        local n = private.getRegMax(REG_SETP_NUM)
+        if n ~= nil then
+            NUM_SETP = tonumber(n, 16) + 1
+        end
+    end
     return NUM_SETP
 end
 
@@ -499,8 +538,6 @@ deprecated.REG_SETP_RESET           = REG_SETP_RESET
 deprecated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
 deprecated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
 deprecated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
-
-deprecated.NUM_SETP                 = NUM_SETP
 
 deprecated.LOGIC_HIGH               = LOGIC_HIGH
 deprecated.LOGIC_LOW                = LOGIC_LOW

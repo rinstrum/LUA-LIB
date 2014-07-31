@@ -109,7 +109,7 @@ local function streamCallback(data, err)
             local substr = string.sub(data,ind+1,ind+8)
 
             if substr and substr ~= "" then
-                if (v.onChange ~= 'change') or (v.lastData ~= substr) then
+                if (v.onChange == 'always') or (v.lastData ~= substr) then
                      v.lastData = substr
                      if v.typ == 'weight' and _M.isHiRes() then
                          timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
@@ -153,7 +153,7 @@ function _M.addStream(streamReg, callback, onChange)
     availRegistersUser[availReg].dp = private.getRegDecimalPlaces(reg)
     availRegistersUser[availReg].reg = reg
     availRegistersUser[availReg].callback = callback
-    availRegistersUser[availReg].onChange = onChange
+    availRegistersUser[availReg].onChange = onChange or 'change'
     availRegistersUser[availReg].lastData = ''
     availRegistersUser[availReg].typ = private.getRegType(reg)
     streamRegistersUser[reg] = availReg
@@ -214,7 +214,7 @@ local function streamCallbackLib(data, err)
             local substr = string.sub(data,ind+1,ind+8)
 
             if substr and substr ~= "" then
-                if (v.onChange ~= 'change') or (v.lastData ~= substr) then
+                if (v.onChange == 'always') or (v.lastData ~= substr) then
                      v.lastData = substr
                      timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
                 end
@@ -253,7 +253,7 @@ function private.addStreamLib(streamReg, callback, onChange)
     availRegistersLib[availReg].dp = private.getRegDecimalPlaces(reg)
     availRegistersLib[availReg].reg = reg
     availRegistersLib[availReg].callback = callback
-    availRegistersLib[availReg].onChange = onChange
+    availRegistersLib[availReg].onChange = onChange or 'change'
     availRegistersLib[availReg].lastData = ''
 
     streamRegistersLib[reg] = availReg

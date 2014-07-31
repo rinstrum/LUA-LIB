@@ -66,9 +66,16 @@ return function (_M, private, deprecated)
 -- @field centreofzero Centre of Zero (within 0.25 divisions of zero)
 -- @field zero Weight within zero band setting
 -- @field net Instrument in Net mode
+-- @field adcinprogress ADV operation in progress
+-- @field lastadvokay Last ADC operation was successful
+-- @field tiltxy Tilt XY high (K491 only)
+-- @field tiltx Tilt X high (K491 only)
+-- @field tilty Tilt Y high (K491 only)
 -- @see checkAnySystemStatus
 -- @see checkAllSystemStatus
 
+local SYS_ADCINPROGRESS = 0x00080000
+local SYS_LASTADCOKAY   = 0x00040000
 local SYS_OVERLOAD      = 0x00020000
 local SYS_UNDERLOAD     = 0x00010000
 local SYS_ERR           = 0x00008000
@@ -78,8 +85,13 @@ local SYS_MOTION        = 0x00001000
 local SYS_CENTREOFZERO  = 0x00000800
 local SYS_ZERO          = 0x00000400
 local SYS_NET           = 0x00000200
+local SYS_TILTXY        = 0x00100000
+local SYS_TILTX         = 0x00200000
+local SYS_TILTY         = 0x00400000
 
 local sysStatusMap = {
+    adcinprogress   = SYS_ADCINPROGRESS,
+    lastadcokay     = SYS_LASTADCOKAY,
     overload        = SYS_OVERLOAD,
     underload       = SYS_UNDERLOAD,
     err             = SYS_ERR,
@@ -88,7 +100,11 @@ local sysStatusMap = {
     motion          = SYS_MOTION,
     centreofzero    = SYS_CENTREOFZERO,
     zero            = SYS_ZERO,
-    net             = SYS_NET
+    net             = SYS_NET,
+
+    tiltxy          = private.k491(SYS_TILTXY),
+    tiltx           = private.k491(SYS_TILTX),
+    tilty           = private.k491(SYS_TILTY)
 }
 
 local REG_LUA_STATUS   = 0x0329
@@ -190,23 +206,23 @@ local statusUnmap, statusMap = {}, {
     oload       = STAT_OLOAD,
     noterror    = STAT_NOTERROR,
 -- Non-batching status bits
-    held        = STAT_HELD,
-    notheld     = STAT_NOTHELD,
+    held        = private.nonbatching(STAT_HELD),
+    notheld     = private.nonbatching(STAT_NOTHELD),
 -- Batching specific status bits
-    idle        = STAT_IDLE,
-    run         = STAT_RUN,
-    pause       = STAT_PAUSE,
-    slow        = STAT_SLOW,
-    med         = STAT_MED,
-    fast        = STAT_FAST,
-    time        = STAT_TIME,
-    input       = STAT_INPUT,
-    no_info     = STAT_NO_INFO,
-    fill        = STAT_FILL,
-    dump        = STAT_DUMP,
-    pulse       = STAT_PULSE,
-    start       = STAT_START,
-    no_type     = STAT_NO_TYPE
+    idle        = private.batching(STAT_IDLE),
+    run         = private.batching(STAT_RUN),
+    pause       = private.batching(STAT_PAUSE),
+    slow        = private.batching(STAT_SLOW),
+    med         = private.batching(STAT_MED),
+    fast        = private.batching(STAT_FAST),
+    time        = private.batching(STAT_TIME),
+    input       = private.batching(STAT_INPUT),
+    no_info     = private.batching(STAT_NO_INFO),
+    fill        = private.batching(STAT_FILL),
+    dump        = private.batching(STAT_DUMP),
+    pulse       = private.batching(STAT_PULSE),
+    start       = private.batching(STAT_START),
+    no_type     = private.batching(STAT_NO_TYPE)
 }
 for k, v in pairs(statusMap) do
     statusUnmap[v] = k
@@ -529,7 +545,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a SETP
--- @param SETP 1..16
+-- @param SETP 1 .. setPointCount()
 -- @param callback Function taking SETP and on/off status as parameters
 -- @see setAllSETPCallback
 -- @see anySETPSet
@@ -543,11 +559,15 @@ end
 -- end
 -- device.setSETPCallback(1, handleSETP1)
 function _M.setSETPCallback(SETP, callback)
-    local status = bit32.lshift(0x00000001, SETP-1)
-    SETPBinds[status] = {}
-    SETPBinds[status]['SETP'] = SETP
-    SETPBinds[status]['f'] = callback
-    SETPBinds[status]['lastStatus'] = 0xFF
+    if SETP < 1 or SETP > _M.setPointCount() then
+        dbg.error('setSETPCallback setpoint Invalid:', setp)
+    else
+        local status = bit32.lshift(0x00000001, SETP-1)
+        SETPBinds[status] = {}
+        SETPBinds[status]['SETP'] = SETP
+        SETPBinds[status]['f'] = callback
+        SETPBinds[status]['lastStatus'] = 0xFF
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -854,7 +874,7 @@ end
 -- @usage
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
-    local mask = bit32.lshift(0x00000001,(IO-1))
+    local mask = bit32.lshift(0x00000001, IO-1)
     while _M.app.running do
         local data = bit32.band(curIO, mask)
         if (state and data ~= 0) or (not state and data == 0) then
@@ -866,8 +886,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until SETP is in a particular state
--- @param SETP 1..16
+-- @param SETP 1 .. setPointCount()
 -- @param state true to wait for SETP to come on or false to wait for it to go off
+-- @return true is the wait succeeded and false otherwise
 -- @see setSETPCallback
 -- @see setAllSETPCallback
 -- @see anySETPSet
@@ -876,7 +897,11 @@ end
 -- @usage
 -- device.waitSETP(1, true) -- wait until Setpoint 1 turns on
 function _M.waitSETP(SETP, state)
-    local mask = bit32.lshift(0x00000001,(SETP-1))
+    if SETP < 1 or SETP > _M.setPointCount() then
+        dbg.error('waitSETP setpoint Invalid:', setp)
+        return false
+    end
+    local mask = bit32.lshift(0x00000001, SETP-1)
     while _M.app.running do
         local data = bit32.band(curSETP, mask)
         if (state and data ~= 0) or (not state and data == 0) then
@@ -884,6 +909,7 @@ function _M.waitSETP(SETP, state)
         end
         system.handleEvents()
     end
+    return true
 end
 
 -------------------------------------------------------------------------------

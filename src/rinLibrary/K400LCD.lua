@@ -12,6 +12,7 @@ local string = string
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
+local dbg = require "rinLibrary.rinDebug"
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -153,6 +154,8 @@ local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
 local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
 local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
 
+--local REG_DEFAULTMODE          = 0x0166
+
 local botAnnunState = 0
 local topAnnunState = 0
 local waitPos = 1
@@ -178,6 +181,21 @@ local slideBotLeftPos, slideBotLeftWords, slideBotLeftTimer
 local slideBotRightPos, slideBotRightWords, slideBotRightTimer
 local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
 
+--- LCD Control Modes.
+--@table lcdControlModes
+-- @field default Set to a default setting (currently dual)
+-- @field dual Change to dual display mode
+-- @field lua Commuication mode, necessary for LUA control
+-- @field master Change to master display mode
+-- @field product Change to product display mode
+local lcdModes = {
+    default = private.k410(0) or 1,
+    dual    = private.k410(0) or 1,
+    lua     = private.k410(1) or 2,
+    master  = private.k410(2) or 3,
+    product = private.k402(0) or private.k491(0)
+}
+
 -------------------------------------------------------------------------------
 -- Called to setup LCD control.
 -- The rinApp framework generally takes care of calling this function for you.
@@ -190,13 +208,13 @@ local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
 -- ...
 -- device.lcdControl('lua')         -- switch on Lua display
 function _M.lcdControl(mode)
-    local mode = mode or ''
-
-    if mode == 'lua' then
-        private.exReg(REG_LCDMODE, 2)
-    else
-        private.exReg(REG_LCDMODE, 1)
+    mode = mode or 'default'
+    local m = lcdModes[mode]
+    if m == nil then
+        dbg.error("K400LCD: unknown lcd mode: ", mode)
+        m = lcdModes.default
     end
+    private.exReg(REG_LCDMODE, m)
 end
 
 -------------------------------------------------------------------------------

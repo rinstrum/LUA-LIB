@@ -29,6 +29,6 @@ local modules = {
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
-return function ()
-    return loader('K400', modules)
+return function (model)
+    return loader(model, modules)
 end

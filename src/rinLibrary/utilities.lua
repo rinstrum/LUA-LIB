@@ -62,8 +62,8 @@ return function(mod, private, deprecated)
 -- }
 -- @local
     function private.addRegisters(reglist)
-        for _, v in pairs(reglist) do
-            addRegister(v[1], v[2])
+        for r, v in pairs(reglist) do
+            addRegister(r, v)
         end
     end
 
@@ -128,12 +128,69 @@ return function(mod, private, deprecated)
     function private.registerDeprecated(registers)
         -- Have to rawset this to avoid hitting the set register capture
         -- function that is installed in the deprecated table.
-        for k, reg in pairs(registers) do
-            rawset(deprecated, 'REG_' .. string.upper(reg), private.getRegisterNumber(reg))
+        for _, reg in pairs(registers) do
+            local n = naming.convertNameToValue(reg, regMap)
+            if n ~= nil then
+                rawset(deprecated, 'REG_' .. string.upper(reg), n)
+            end
         end
     end
 
     if _TEST then
         mod.getPrivate = function() return private end
     end
+
+-------------------------------------------------------------------------------
+-- Return our argument
+-- @param v Value to return
+-- @return v
+-- @local
+    local function willy(v)
+        return v
+    end
+
+-------------------------------------------------------------------------------
+-- Return nil
+-- @param v Value to not return
+-- @return nil
+-- @local
+    local function nilly(v)
+        return nil
+    end
+
+-------------------------------------------------------------------------------
+-- Filter a value based on a batching device
+-- @function batching
+-- @param v Value to return if batching
+-- @return v or nil
+-- @local
+
+-------------------------------------------------------------------------------
+-- Filter a value based on a nonbatching device
+-- @function nonbatching
+-- @param v Value to return if non-batching
+-- @return v or nil
+-- @local
+    if private.deviceType == 'k410' then
+        private.batching = willy
+        private.nonbatching = nilly
+    else
+        private.batching = nilly
+        private.nonbatching = willy
+    end
+
+-------------------------------------------------------------------------------
+-- Filter a value based on a specific device
+-- @function k401 k402 k410 k491
+-- @param v Value to return if we're the specified device
+-- @return v or nil
+-- @local
+    for _, d in pairs{'k401', 'k402', 'k410', 'k491'} do
+        if private.deviceType == d then
+            private[d] = willy
+        else
+            private[d] = nilly
+        end
+    end
+
 end
