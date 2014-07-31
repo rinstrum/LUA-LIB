@@ -73,38 +73,21 @@ return function (_M, private, deprecated)
 -- @field tilty Tilt Y high (K491 only)
 -- @see checkAnySystemStatus
 -- @see checkAllSystemStatus
-
-local SYS_ADCINPROGRESS = 0x00080000
-local SYS_LASTADCOKAY   = 0x00040000
-local SYS_OVERLOAD      = 0x00020000
-local SYS_UNDERLOAD     = 0x00010000
-local SYS_ERR           = 0x00008000
-local SYS_SETUP         = 0x00004000
-local SYS_CALINPROG     = 0x00002000
-local SYS_MOTION        = 0x00001000
-local SYS_CENTREOFZERO  = 0x00000800
-local SYS_ZERO          = 0x00000400
-local SYS_NET           = 0x00000200
-local SYS_TILTXY        = 0x00100000
-local SYS_TILTX         = 0x00200000
-local SYS_TILTY         = 0x00400000
-
 local sysStatusMap = {
-    adcinprogress   = SYS_ADCINPROGRESS,
-    lastadcokay     = SYS_LASTADCOKAY,
-    overload        = SYS_OVERLOAD,
-    underload       = SYS_UNDERLOAD,
-    err             = SYS_ERR,
-    setup           = SYS_SETUP,
-    calinprog       = SYS_CALINPROG,
-    motion          = SYS_MOTION,
-    centreofzero    = SYS_CENTREOFZERO,
-    zero            = SYS_ZERO,
-    net             = SYS_NET,
-
-    tiltxy          = private.k491(SYS_TILTXY),
-    tiltx           = private.k491(SYS_TILTX),
-    tilty           = private.k491(SYS_TILTY)
+    adcinprogress   = 0x00080000,
+    lastadcokay     = 0x00040000,
+    overload        = 0x00020000,
+    underload       = 0x00010000,
+    err             = 0x00008000,
+    setup           = 0x00004000,
+    calinprog       = 0x00002000,
+    motion          = 0x00001000,
+    centreofzero    = 0x00000800,
+    zero            = 0x00000400,
+    net             = 0x00000200,
+    tiltxy          = private.k491(0x00100000),
+    tiltx           = private.k491(0x00200000),
+    tilty           = private.k491(0x00400000)
 }
 
 local REG_LUA_STATUS   = 0x0329
@@ -151,82 +134,52 @@ local REG_LUA_STAT_NET = 0x030A
 -- @see anyStatusSet
 -- @see allStatusSet
 -- @see waitStatus
-
--- Status
-local STAT_NET             = 0x00000001
-local STAT_GROSS           = 0x00000002
-local STAT_ZERO            = 0x00000004
-local STAT_NOTZERO         = 0x00000008
-local STAT_COZ             = 0x00000010
-local STAT_NOTCOZ          = 0x00000020
-local STAT_MOTION          = 0x00000040
-local STAT_NOTMOTION       = 0x00000080
-local STAT_RANGE1          = 0x00000100
-local STAT_RANGE2          = 0x00000200
-local STAT_PT              = 0x00000400
-local STAT_NOTPT           = 0x00000800
-local STAT_ERROR           = 0x00001000
-local STAT_ULOAD           = 0x00002000
-local STAT_OLOAD           = 0x00004000
-local STAT_NOTERROR        = 0x00008000
--- Non-batching status bits
-local STAT_HELD            = 0x00010000
-local STAT_NOTHELD         = 0x00020000
--- Batching specific status bits
-local STAT_IDLE            = 0x00010000
-local STAT_RUN             = 0x00020000
-local STAT_PAUSE           = 0x00040000
-local STAT_SLOW            = 0x00080000
-local STAT_MED             = 0x00100000
-local STAT_FAST            = 0x00200000
-local STAT_TIME            = 0x00400000
-local STAT_INPUT           = 0x00800000
-local STAT_NO_INFO         = 0x01000000
-local STAT_FILL            = 0x02000000
-local STAT_DUMP            = 0x04000000
-local STAT_PULSE           = 0x08000000
-local STAT_START           = 0x10000000
-local STAT_NO_TYPE         = 0x20000000
-
 local statusUnmap, statusMap = {}, {
-    net         = STAT_NET,
-    gross       = STAT_GROSS,
-    zero        = STAT_ZERO,
-    notzero     = STAT_NOTZERO,
-    coz         = STAT_COZ,
-    notcoz      = STAT_NOTCOZ,
-    motion      = STAT_MOTION,
-    notmotion   = STAT_NOTMOTION,
-    range1      = STAT_RANGE1,
-    range2      = STAT_RANGE2,
-    pt          = STAT_PT,
-    notpt       = STAT_NOTPT,
-    error       = STAT_ERROR,
-    uload       = STAT_ULOAD,
-    oload       = STAT_OLOAD,
-    noterror    = STAT_NOTERROR,
+    net         = 0x00000001,
+    gross       = 0x00000002,
+    zero        = 0x00000004,
+    notzero     = 0x00000008,
+    coz         = 0x00000010,
+    notcoz      = 0x00000020,
+    motion      = 0x00000040,
+    notmotion   = 0x00000080,
+    range1      = 0x00000100,
+    range2      = 0x00000200,
+    pt          = 0x00000400,
+    notpt       = 0x00000800,
+    error       = 0x00001000,
+    uload       = 0x00002000,
+    oload       = 0x00004000,
+    noterror    = 0x00008000,
 -- Non-batching status bits
-    held        = private.nonbatching(STAT_HELD),
-    notheld     = private.nonbatching(STAT_NOTHELD),
+    held        = private.nonbatching(0x00010000),
+    notheld     = private.nonbatching(0x00020000),
 -- Batching specific status bits
-    idle        = private.batching(STAT_IDLE),
-    run         = private.batching(STAT_RUN),
-    pause       = private.batching(STAT_PAUSE),
-    slow        = private.batching(STAT_SLOW),
-    med         = private.batching(STAT_MED),
-    fast        = private.batching(STAT_FAST),
-    time        = private.batching(STAT_TIME),
-    input       = private.batching(STAT_INPUT),
-    no_info     = private.batching(STAT_NO_INFO),
-    fill        = private.batching(STAT_FILL),
-    dump        = private.batching(STAT_DUMP),
-    pulse       = private.batching(STAT_PULSE),
-    start       = private.batching(STAT_START),
-    no_type     = private.batching(STAT_NO_TYPE)
+    idle        = private.batching(0x00010000),
+    run         = private.batching(0x00020000),
+    pause       = private.batching(0x00040000),
+    slow        = private.batching(0x00080000),
+    med         = private.batching(0x00100000),
+    fast        = private.batching(0x00200000),
+    time        = private.batching(0x00400000),
+    input       = private.batching(0x00800000),
+    no_info     = private.batching(0x01000000),
+    fill        = private.batching(0x02000000),
+    dump        = private.batching(0x04000000),
+    pulse       = private.batching(0x08000000),
+    start       = private.batching(0x10000000),
+    no_type     = private.batching(0x20000000)
 }
 for k, v in pairs(statusMap) do
     statusUnmap[v] = k
 end
+
+-- Extended status bits
+local ESTAT_HIRES           = 0x00000001
+local ESTAT_DISPMODE        = 0x00000006
+local ESTAT_DISPMODE_RS     = 1
+local ESTAT_RANGE           = 0x00000018
+local ESTAT_RANGE_RS        = 3
 
 --- Status Bits for Extended Status.
 --@table luaextendedstatus
@@ -243,36 +196,18 @@ end
 -- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 -- @see setEStatusCallback
 -- @see setEStatusMainCallback
-
--- Extended status bits
-local ESTAT_HIRES           = 0x00000001
-local ESTAT_DISPMODE        = 0x00000006
-local ESTAT_DISPMODE_RS     = 1
-local ESTAT_RANGE           = 0x00000018
-local ESTAT_RANGE_RS        = 3
-local ESTAT_MENU_ACTIVE     = 0x00000020
-local ESTAT_PROD_LOAD       = 0x00000040
-local ESTAT_PROD_SAVE       = 0x00000080
-local ESTAT_POWER_OFF       = 0x00000100
-local ESTAT_INIT            = 0x01000000
-local ESTAT_RTC             = 0x02000000
-local ESTAT_SER1            = 0x10000000
-local ESTAT_SER2            = 0x20000000
-
 local estatusUnmap, estatusMap = {}, {
     hires       = ESTAT_HIRES,
     dispmode    = ESTAT_DISPMODE,
-    dispmode_rs = ESTAT_DISPMODE_RS,
     range       = ESTAT_RANGE,
-    range_rs    = ESTAT_RANGE_RS,
-    menu_active = ESTAT_MENU_ACTIVE,
-    prod_load   = ESTAT_PROD_LOAD,
-    prod_save   = ESTAT_PROD_SAVE,
-    power_off   = ESTAT_POWER_OFF,
-    init        = ESTAT_INIT,
-    rtc         = ESTAT_RTC,
-    ser1        = ESTAT_SER1,
-    ser2        = ESTAT_SER2
+    menu_active = 0x00000020,
+    prod_load   = 0x00000040,
+    prod_save   = 0x00000080,
+    power_off   = 0x00000100,
+    init        = 0x01000000,
+    rtc         = 0x02000000,
+    ser1        = 0x10000000,
+    ser2        = 0x20000000
 }
 for k, v in pairs(estatusMap) do
     estatusUnmap[v] = k
@@ -1014,15 +949,15 @@ deprecated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
 deprecated.REG_SETPSTATUS   = REG_SETPSTATUS
 deprecated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
 
-deprecated.SYS_OVERLOAD     = SYS_OVERLOAD
-deprecated.SYS_UNDERLOAD    = SYS_UNDERLOAD
-deprecated.SYS_ERR          = SYS_ERR
-deprecated.SYS_SETUP        = SYS_SETUP
-deprecated.SYS_CALINPROG    = SYS_CALINPROG
-deprecated.SYS_MOTION       = SYS_MOTION
-deprecated.SYS_CENTREOFZERO = SYS_CENTREOFZERO
-deprecated.SYS_ZERO         = SYS_ZERO
-deprecated.SYS_NET          = SYS_NET
+deprecated.SYS_OVERLOAD     = sysStatusMap.overload
+deprecated.SYS_UNDERLOAD    = sysStatusMap.underload
+deprecated.SYS_ERR          = sysStatusMap.err
+deprecated.SYS_SETUP        = sysStatusMap.setup
+deprecated.SYS_CALINPROG    = sysStatusMap.calinprog
+deprecated.SYS_MOTION       = sysStatusMap.motion
+deprecated.SYS_CENTREOFZERO = sysStatusMap.centreofzero
+deprecated.SYS_ZERO         = sysStatusMap.zero
+deprecated.SYS_NET          = sysStatusMap.net
 
 -- These are strings rather than numerics so that comparisons against them
 -- work in call backs
