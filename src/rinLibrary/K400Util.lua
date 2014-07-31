@@ -196,6 +196,7 @@ function _M.configure(model)
         instrumentModel = ''
         return err
     elseif model ~= instrumentModel then
+        dbg.error('K400:', 'wrong software model '..model..' (device is '..instrumentModel..')')
         return "Wrong Software Model"
     else
         return nil
