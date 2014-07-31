@@ -84,15 +84,6 @@ private.addRegisters{
 
 local REG_HEARTBEAT         = 0x032F
 
---- Main Instrument Commands.
---@table rinCMD
--- @field rdlit Read literal data
--- @field rdfinalhex Read data in hexadecimal format
--- @field rdfinaldec Read data in decimal format
--- @field wrfinalhex Write data in hexadecimal format
--- @field wrfinaldec Write data in decimal format
--- @field ex Execute with data as execute parameter
-
 -- Register Types
 local TYP_CHAR              = 0x00
 local TYP_UCHAR             = 0x01
@@ -107,22 +98,6 @@ local TYP_WEIGHT            = 0x09
 local TYP_BLOB              = 0x0A
 local TYP_EXECUTE           = 0x0B
 local TYP_BITFIELD          = 0x0C
-
-local typeMap = {
-    [TYP_CHAR]              = 'char',
-    [TYP_UCHAR]             = 'uchar',
-    [TYP_SHORT]             = 'short',
-    [TYP_USHORT]            = 'ushort',
-    [TYP_LONG]              = 'long',
-    [TYP_ULONG]             = 'ulong',
-    [TYP_STRING]            = 'string',
-    [TYP_OPTION]            = 'option',
-    [TYP_MENU]              = 'menu',
-    [TYP_WEIGHT]            = 'weight',
-    [TYP_BLOB]              = 'blob',
-    [TYP_EXECUTE]           = 'execute',
-    [TYP_BITFIELD]          = 'bitfield'
-}
 
 --- Register Types.
 -- @table rinType
@@ -139,6 +114,21 @@ local typeMap = {
 -- @field blob Blob
 -- @field execute Execute
 -- @field bitfield Bit Field
+local typeMap = {
+    [TYP_CHAR]              = 'char',
+    [TYP_UCHAR]             = 'uchar',
+    [TYP_SHORT]             = 'short',
+    [TYP_USHORT]            = 'ushort',
+    [TYP_LONG]              = 'long',
+    [TYP_ULONG]             = 'ulong',
+    [TYP_STRING]            = 'string',
+    [TYP_OPTION]            = 'option',
+    [TYP_MENU]              = 'menu',
+    [TYP_WEIGHT]            = 'weight',
+    [TYP_BLOB]              = 'blob',
+    [TYP_EXECUTE]           = 'execute',
+    [TYP_BITFIELD]          = 'bitfield'
+}
 
 -- Pattern to ease the computation of the number of decimal places in a value
 local dpCount
