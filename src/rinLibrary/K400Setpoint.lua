@@ -42,12 +42,13 @@ local REG_SETP_TIMING_ON    = 0xA40D
 -- targets are stored in the product database rather than the settings one
 local REG_SETP_TARGET       = 0xB080  -- add setpoint offset (0..15) for the other 16 setpoint targets
 
-local LOGIC_HIGH = 0
-local LOGIC_LOW  = 1
-
+--- Setpoint Logic Types.
+--@table Logic
+-- @field high High
+-- @field low Low
 local logicMap = {
-    high = LOGIC_HIGH,
-    low  = LOGIC_LOW
+    high = 0,
+    low  = 1
 }
 
 --- Setpoint Alarms Types.
@@ -56,29 +57,24 @@ local logicMap = {
 -- @field single Beep once per second
 -- @field double Beep twice per second
 -- @field flash Flash the display
-
-local ALARM_NONE   = 0
-local ALARM_SINGLE = 1
-local ALARM_DOUBLE = 2
-local ALARM_FLASH  = 3
-
 local alarmTypeMap = {
-    none = ALARM_NONE,
-    single = ALARM_SINGLE,
-    double = ALARM_DOUBLE,
-    flash = ALARM_FLASH
+    none    = 0,
+    single  = 1,
+    double  = 2,
+    flash   = 3
 }
 
-local TIMING_LEVEL = 0
-local TIMING_EDGE  = 1
-local TIMING_PULSE = 2
-local TIMING_LATCH = 3
-
+--- Setpoint Timing Types.
+--@table Timing
+-- @field level Level
+-- @field edge Edge
+-- @field pulse Pulse
+-- @field latch Latch
 local timingMap = {
-    level = TIMING_LEVEL,
-    edge  = TIMING_EDGE,
-    pulse = TIMING_PULSE,
-    latch = TIMING_LATCH
+    level = 0,
+    edge  = 1,
+    pulse = 2,
+    latch = 3
 }
 
 --- Setpoint Source Types.
@@ -91,25 +87,17 @@ local timingMap = {
 -- @field alt_disp Setpoint uses the displayed weight in secondary units
 -- @field piece Setpoint uses the piece count value
 -- @field reg Setpoint uses the value from the supplied register
-
-local SOURCE_GROSS      = 0
-local SOURCE_NET        = 1
-local SOURCE_DISP       = 2
-local SOURCE_ALT_GROSS  = 3
-local SOURCE_ALT_NET    = 4
-local SOURCE_ALT_DISP   = 5
-local SOURCE_PIECE      = 6
 local SOURCE_REG        = 7
 
 local sourceMap = {
-    gross =     SOURCE_GROSS,
-    net =       SOURCE_NET,
-    disp =      SOURCE_DISP,
-    alt_gross = private.nonbatching(SOURCE_ALT_GROSS),
-    alt_net =   private.nonbatching(SOURCE_ALT_NET),
-    alt_disp =  private.nonbatching(SOURCE_ALT_DISP),
-    piece =     private.nonbatching(SOURCE_PIECE),
-    reg =       private.nonbatching(SOURCE_REG)
+    gross     = 0,
+    net       = 1,
+    disp      = 2,
+    alt_gross = private.nonbatching(3),
+    alt_net   = private.nonbatching(4),
+    alt_disp  = private.nonbatching(5),
+    piece     = private.nonbatching(6),
+    reg       = private.nonbatching(SOURCE_REG)
 }
 
 --- Setpoint Types.
@@ -134,49 +122,27 @@ local sourceMap = {
 -- @field run Setpoint is active when (batching units only)
 -- @field fill Setpoint is active when (batching units only)
 -- @field buzzer Setpoint is active when the buzzer is beeping
-
-local TYPE_OFF      = 0
-local TYPE_ON       = 1
-local TYPE_OVER     = 2
-local TYPE_UNDER    = 3
-local TYPE_COZ      = 4
-local TYPE_ZERO     = 5
-local TYPE_NET      = 6
-local TYPE_MOTION   = 7
-local TYPE_ERROR    = 8
-local TYPE_LGC_AND  = 9
-local TYPE_LGC_OR   = 10
-local TYPE_LGC_XOR  = 11
-local TYPE_SC_READY = 12
-local TYPE_SC_EXIT  = 13
-local TYPE_TOL      = 12
-local TYPE_PAUSE    = 13
-local TYPE_WAIT     = 14
-local TYPE_RUN      = 15
-local TYPE_FILL     = 16
-local TYPE_BUZZER   = private.batching(17) or 14
-
 local typeMap = {
-    off =         TYPE_OFF,
-    on =          TYPE_ON,
-    over =        TYPE_OVER,
-    under =       TYPE_UNDER,
-    coz =         TYPE_COZ,
-    zero =        TYPE_ZERO,
-    net =         TYPE_NET,
-    motion =      TYPE_MOTION,
-    error =       TYPE_ERROR,
-    logic_and =   TYPE_LGC_AND,
-    logic_or =    TYPE_LGC_OR,
-    logic_xor =   TYPE_LGC_XOR,
-    scale_ready = private.nonbatching(TYPE_SC_READY),
-    scale_exit =  private.nonbatching(TYPE_SC_EXIT),
-    tol =         private.batching(TYPE_TOL),
-    pause =       private.batching(TYPE_PAUSE),
-    wait =        private.batching(TYPE_WAIT),
-    run =         private.batching(TYPE_RUN),
-    fill =        private.batching(TYPE_FILL),
-    buzzer =      TYPE_BUZZER
+    off         = 0,
+    on          = 1,
+    over        = 2,
+    under       = 3,
+    coz         = 4,
+    zero        = 5,
+    net         = 6,
+    motion      = 7,
+    error       = 8,
+    logic_and   = 9,
+    logic_or    = 10,
+    logic_xor   = 11,
+    scale_ready = private.nonbatching(12),
+    scale_exit  = private.nonbatching(13),
+    tol         = private.batching(12),
+    pause       = private.batching(13),
+    wait        = private.batching(14),
+    run         = private.batching(15),
+    fill        = private.batching(16),
+    buzzer      = private.batching(17) or 14
 }
 
 local lastOutputs = nil
@@ -471,7 +437,7 @@ end
 -- Set the data source of the setpoint controls.
 -- @param setp is setpoint 1 .. setPointCount()
 -- @param sType is setpoint source type (string)
--- @param reg is register address for setpoints using .SOURCE_REG type source data.
+-- @param reg is register address for setpoints using source register type source data.
 -- For other setpoint source types parameter reg is not required.
 -- @see setPointCount
 -- @usage
@@ -479,7 +445,7 @@ end
 -- device.setpSource(1, 'disp')
 --
 -- -- set setpoint 2 to use the total weight
--- device.setpSource(2, 'reg', device.REG_GRANDTOTAL)
+-- device.setpSource(2, 'reg', 'grandtotal')
 function _M.setpSource(setp, sType, reg)
     local v = naming.convertNameToValue(sType, sourceMap)
 
@@ -539,41 +505,41 @@ deprecated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
 deprecated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
 deprecated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
 
-deprecated.LOGIC_HIGH               = LOGIC_HIGH
-deprecated.LOGIC_LOW                = LOGIC_LOW
+deprecated.LOGIC_HIGH               = logicMap.high
+deprecated.LOGIC_LOW                = logicMap.low
 
-deprecated.ALARM_NONE               = ALARM_NONE
-deprecated.ALARM_SINGLE             = ALARM_SINGLE
-deprecated.ALARM_DOUBLE             = ALARM_DOUBLE
-deprecated.ALARM_FLASH              = ALARM_FLASH
+deprecated.ALARM_NONE               = alarmTypeMap.none
+deprecated.ALARM_SINGLE             = alarmTypeMap.single
+deprecated.ALARM_DOUBLE             = alarmTypeMap.double
+deprecated.ALARM_FLASH              = alarmTypeMap.flash
 
-deprecated.TIMING_LEVEL             = TIMING_LEVEL
-deprecated.TIMING_EDGE              = TIMING_EDGE
-deprecated.TIMING_PULSE             = TIMING_PULSE
-deprecated.TIMING_LATCH             = TIMING_LATCH
+deprecated.TIMING_LEVEL             = timingMap.level
+deprecated.TIMING_EDGE              = timingMap.edge
+deprecated.TIMING_PULSE             = timingMap.pulse
+deprecated.TIMING_LATCH             = timingMap.latch
 
-deprecated.SOURCE_GROSS             = SOURCE_GROSS
-deprecated.SOURCE_NET               = SOURCE_NET
-deprecated.SOURCE_DISP              = SOURCE_DISP
-deprecated.SOURCE_ALT_GROSS         = SOURCE_ALT_GROSS
-deprecated.SOURCE_ALT_NET           = SOURCE_ALT_NET
-deprecated.SOURCE_ALT_DISP          = SOURCE_ALT_DISP
-deprecated.SOURCE_PIECE             = SOURCE_PIECE
-deprecated.SOURCE_REG               = SOURCE_REG
+deprecated.SOURCE_GROSS             = sourceMap.gross
+deprecated.SOURCE_NET               = sourceMap.net
+deprecated.SOURCE_DISP              = sourceMap.disp
+deprecated.SOURCE_ALT_GROSS         = sourceMap.alt_gross
+deprecated.SOURCE_ALT_NET           = sourceMap.alt_net
+deprecated.SOURCE_ALT_DISP          = sourceMap.alt_disp
+deprecated.SOURCE_PIECE             = sourceMap.piece
+deprecated.SOURCE_REG               = sourceMap.reg
 
-deprecated.TYPE_OFF                 = TYPE_OFF
-deprecated.TYPE_ON                  = TYPE_ON
-deprecated.TYPE_OVER                = TYPE_OVER
-deprecated.TYPE_UNDER               = TYPE_UNDER
-deprecated.TYPE_COZ                 = TYPE_COZ
-deprecated.TYPE_ZERO                = TYPE_ZERO
-deprecated.TYPE_NET                 = TYPE_NET
-deprecated.TYPE_MOTION              = TYPE_MOTION
-deprecated.TYPE_ERROR               = TYPE_ERROR
-deprecated.TYPE_LGC_AND             = TYPE_LGC_AND
-deprecated.TYPE_LGC_OR              = TYPE_LGC_OR
-deprecated.TYPE_LGC_XOR             = TYPE_LGC_XOR
-deprecated.TYPE_BUZZER              = TYPE_BUZZER
+deprecated.TYPE_OFF                 = typeMap.off
+deprecated.TYPE_ON                  = typeMap.on
+deprecated.TYPE_OVER                = typeMap.over
+deprecated.TYPE_UNDER               = typeMap.under
+deprecated.TYPE_COZ                 = typeMap.coz
+deprecated.TYPE_ZERO                = typeMap.zero
+deprecated.TYPE_NET                 = typeMap.net
+deprecated.TYPE_MOTION              = typeMap.motion
+deprecated.TYPE_ERROR               = typeMap.error
+deprecated.TYPE_LGC_AND             = typeMap.lgc_and
+deprecated.TYPE_LGC_OR              = typeMap.lgc_or
+deprecated.TYPE_LGC_XOR             = typeMap.lgc_xor
+deprecated.TYPE_BUZZER              = typeMap.buzzer
 
 end
 
