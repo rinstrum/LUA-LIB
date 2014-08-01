@@ -409,18 +409,16 @@ end
 
 -----------------------------------------------------------------------------
 -- Set the bottom annunciators directly.
--- @param s Bit mask for the annunciators
 -- @local
-local function writeBotAnnuns(s)
-    private.writeRegHexAsync(REG_DISP_BOTTOM_ANNUN, s)
+local function writeBotAnnuns()
+    private.writeRegHexAsync(REG_DISP_BOTTOM_ANNUN, botAnnunState)
 end
 
 -----------------------------------------------------------------------------
 -- Set the top annunciators directly.
--- @param s Bit mask for the annunciators
 -- @local
-local function writeTopAnnuns(s)
-    private.writeRegHexAsync(REG_DISP_TOP_ANNUN, s)
+local function writeTopAnnuns()
+    private.writeRegHexAsync(REG_DISP_TOP_ANNUN, topAnnunState)
 end
 
 -----------------------------------------------------------------------------
@@ -501,42 +499,41 @@ function _M.readAutoBotLeft()
     return private.getRegisterName(reg)
 end
 
--------------------------------------------------------------------------------
--- Convert the annunciator bit maps to a value
--- @param t String to value table
--- @param l List of annunciators
--- @local
-local function convertAnnunicatorBits(t, l)
-    local res = 0
-    for _, v in pairs(l) do
-        res = bit32.bor(res, naming.convertNameToValue(v, t, 0))
-    end
-    return res
-end
-
---- Bottom LCD Annunciators
---@table BotAnnuns
--- @field BATTERY
--- @field CLOCK
--- @field BAT_LO
--- @field BAT_MIDL
--- @field BAT_MIDH
--- @field BAT_HI
--- @field BAT_FULL
--- @field WAIT
--- @field WAIT45
--- @field WAIT90
--- @field WAIT135
--- @field WAITALL
+--- LCD Annunciators
+-- These are the definitions of all the annunicators top and bottom.
+--@table Annunicators
+-- @field sigma (top)
+-- @field balance (top)
+-- @field coz (top)
+-- @field hold (top)
+-- @field motion (top)
+-- @field net (top)
+-- @field range (top)
+-- @field zero (top)
+-- @field bal_sega (top)
+-- @field bal_segb (top)
+-- @field bal_segc (top)
+-- @field bal_segd (top)
+-- @field bal_sege (top)
+-- @field bal_segf (top)
+-- @field bal_segg (top)
+-- @field range_segadg (top)
+-- @field range_segc (top)
+-- @field range_sege (top)
+-- @field battery (bottom)
+-- @field clock (bottom)
+-- @field bat_lo (bottom)
+-- @field bat_midl (bottom)
+-- @field bat_midh (bottom)
+-- @field bat_hi (bottom)
+-- @field bat_full (bottom)
+-- @field wait (bottom)
+-- @field wait45 (bottom)
+-- @field wait90 (bottom)
+-- @field wait135 (bottom)
+-- @field waitall (bottom)
 
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
-local BATTERY   = 0x0001
-local CLOCK     = 0x0002
-local BAT_LO    = 0x0004
-local BAT_MIDL  = 0x0008
-local BAT_MIDH  = 0x0010
-local BAT_HI    = 0x0020
-local BAT_FULL  = 0x003D
 local WAIT      = 0x0040
 local WAIT45    = 0x0100
 local WAIT90    = 0x0200
@@ -544,41 +541,92 @@ local WAIT135   = 0x0080
 local WAITALL   = 0x03C0
 local WAIT_SEGS = { WAIT, WAIT45, WAIT90, WAIT135 }
 
-local bottomAnnunicators = {
-    battery     = BATTERY,
-    clock       = CLOCK,
-    bat_lo      = BAT_LO,
-    bat_midl    = BAT_MIDL,
-    bat_midh    = BAT_MIDH,
-    bat_hi      = BAT_HI,
-    bat_full    = BAT_FULL,
-    wait        = WAIT,
-    wait45      = WAIT45,
-    wait90      = WAIT90,
-    wait135     = WAIT135,
-    waitall     = WAITALL
+-- REG_DISP_TOP_ANNUN BIT SETTINGS
+local annunicatorMap = {
+    sigma           = { v=0x00001,  locn='top' },
+    balance         = { v=0x00002,  locn='top' },
+    coz             = { v=0x00004,  locn='top' },
+    hold            = { v=0x00008,  locn='top' },
+    motion          = { v=0x00010,  locn='top' },
+    net             = { v=0x00020,  locn='top' },
+    range           = { v=0x00040,  locn='top' },
+    zero            = { v=0x00080,  locn='top' },
+    bal_sega        = { v=0x00100,  locn='top' },
+    bal_segb        = { v=0x00200,  locn='top' },
+    bal_segc        = { v=0x00400,  locn='top' },
+    bal_segd        = { v=0x00800,  locn='top' },
+    bal_sege        = { v=0x01000,  locn='top' },
+    bal_segf        = { v=0x02000,  locn='top' },
+    bal_segg        = { v=0x04000,  locn='top' },
+    range_segadg    = { v=0x08000,  locn='top' },
+    range_segc      = { v=0x10000,  locn='top' },
+    range_sege      = { v=0x20000,  locn='top' },
+    battery         = { v=0x0001,   locn='bottom' },
+    clock           = { v=0x0002,   locn='bottom' },
+    bat_lo          = { v=0x0004,   locn='bottom' },
+    bat_midl        = { v=0x0008,   locn='bottom' },
+    bat_midh        = { v=0x0010,   locn='bottom' },
+    bat_hi          = { v=0x0020,   locn='bottom' },
+    bat_full        = { v=0x003D,   locn='bottom' },
+    wait            = { v=WAIT,     locn='bottom' },
+    wait45          = { v=WAIT45,   locn='bottom' },
+    wait90          = { v=WAIT90,   locn='bottom' },
+    wait135         = { v=WAIT135,  locn='bottom' },
+    waitall         = { v=WAITALL,  locn='bottom' }
 }
 
 -------------------------------------------------------------------------------
--- Sets the annunciator bits for Bottom Annunciators
--- @param ... holds bit locations
--- @usage
--- device.setBitsBotAnnuns('battery', 'clock')
-function _M.setBitsBotAnnuns(...)
-    local bits = convertAnnunicatorBits(bottomAnnunicators, {...})
-    botAnnunState = bit32.bor(botAnnunState, bits)
-    writeBotAnnuns(botAnnunState)
+-- Convert the annunciator bit maps to a list of values
+-- @param l List of annunciators
+-- @return table of bit mask values for 'top' and 'bottom'
+-- @local
+local function convertAnnunicatorBits(l)
+    local res = { top = 0, bottom = 0, unknown = 0 }
+    local missing = { v=1, locn='unknown' }
+
+    for _, v in pairs(l) do
+        local bit = naming.convertNameToValue(v, annunicatorMap, missing)
+        res[bit.locn] = bit32.bor(res[bit.locn], bit.v)
+    end
+    return res
 end
 
 -------------------------------------------------------------------------------
--- Clears the annunciator bits for Bottom Annunciators
--- @param ... holds bit locations
+-- Turns the annunciators on
+-- @param ... holds annunicator names
 -- @usage
--- device.clrBitsBotAnnuns('battery')
-function _M.clrBitsBotAnnuns(...)
-    local bits = convertAnnunicatorBits(bottomAnnunicators, {...})
-    botAnnunState = bit32.band(botAnnunState, bit32.bnot(bits))
-    writeBotAnnuns(botAnnunState)
+-- device.setAnnunicators('battery', 'clock', 'balance')
+function _M.setAnnunicators(...)
+    local bits = convertAnnunicatorBits{...}
+
+    if bits.bottom ~= 0 then
+        botAnnunState = bit32.bor(botAnnunState, bits.bottom)
+        writeBotAnnuns()
+    end
+
+    if bits.top ~= 0 then
+        topAnnunState = bit32.bor(topAnnunState, bits.top)
+        writeTopAnnuns()
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Turns the annunciators off
+-- @param ... holds annunicator names
+-- @usage
+-- device.setAnnunicators('net', 'battery', 'hold')
+function _M.clearAnnunicators(...)
+    local bits = convertAnnunicatorBits{...}
+
+    if bits.bottom ~= 0 then
+        botAnnunState = bit32.band(botAnnunState, bit32.bnot(bits.bottom))
+        writeBotAnnuns()
+    end
+
+    if bits.top ~= 0 then
+        topAnnunState = bit32.band(topAnnunState, bit32.bnot(bits.top))
+        writeTopAnnuns()
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -597,91 +645,7 @@ function _M.rotWAIT(dir)
 
     botAnnunState = bit32.band(botAnnunState, bit32.bnot(WAITALL))
     botAnnunState = bit32.bor(botAnnunState, WAIT_SEGS[waitPos])
-    writeBotAnnuns(botAnnunState)
-end
-
---- Top LCD Annunciators
---@table TopAnnuns
--- @field SIGMA
--- @field BALANCE
--- @field COZ
--- @field HOLD
--- @field MOTION
--- @field NET
--- @field RANGE
--- @field ZERO
--- @field BAL_SEGA
--- @field BAL_SEGB
--- @field BAL_SEGC
--- @field BAL_SEGD
--- @field BAL_SEGE
--- @field BAL_SEGF
--- @field BAL_SEGG
--- @field RANGE_SEGADG
--- @field RANGE_SEGC
--- @field RANGE_SEGE
-
--- REG_DISP_TOP_ANNUN BIT SETTINGS
-local SIGMA        = 0x00001
-local BALANCE      = 0x00002
-local COZ          = 0x00004
-local HOLD         = 0x00008
-local MOTION       = 0x00010
-local NET          = 0x00020
-local RANGE        = 0x00040
-local ZERO         = 0x00080
-local BAL_SEGA     = 0x00100
-local BAL_SEGB     = 0x00200
-local BAL_SEGC     = 0x00400
-local BAL_SEGD     = 0x00800
-local BAL_SEGE     = 0x01000
-local BAL_SEGF     = 0x02000
-local BAL_SEGG     = 0x04000
-local RANGE_SEGADG = 0x08000
-local RANGE_SEGC   = 0x10000
-local RANGE_SEGE   = 0x20000
-
-local topAnnunicators = {
-    sigma           = SIGMA,
-    balance         = BALANCE,
-    coz             = COZ,
-    hold            = HOLD,
-    motion          = MOTION,
-    net             = NET,
-    range           = RANGE,
-    zero            = ZERO,
-    bal_sega        = BAL_SEGA,
-    bal_segb        = BAL_SEGB,
-    bal_segc        = BAL_SEGC,
-    bal_segd        = BAL_SEGD,
-    bal_sege        = BAL_SEGE,
-    bal_segf        = BAL_SEGF,
-    bal_segg        = BAL_SEGG,
-    range_segadg    = RANGE_SEGADG,
-    range_segc      = RANGE_SEGC,
-    range_sege      = RANGE_SEGE
-}
-
--------------------------------------------------------------------------------
--- Sets the annunciator bits for Top Annunciators
--- @param ... holds bit locations
--- @usage
--- device.setBitsTopAnnuns('sigma', 'motion', 'zero', 'range')
-function _M.setBitsTopAnnuns(...)
-    local bits = convertAnnunicatorBits(topAnnunicators, {...})
-    topAnnunState = bit32.bor(topAnnunState, bits)
-    writeTopAnnuns(topAnnunState)
-end
-
--------------------------------------------------------------------------------
--- Clears the annunciator bits for Top Annunciators
--- @param d holds bit locations
--- @usage
--- device.clrBitsTopAnnuns('net', 'hold')
-function _M.clrBitsTopAnnuns(...)
-    local bits = convertAnnunicatorBits(topAnnunicators, {...})
-    topAnnunState = bit32.band(topAnnunState, bit32.bnot(bits))
-    writeTopAnnuns(topAnnunState)
+    writeBotAnnuns()
 end
 
 --- Main Units
@@ -789,7 +753,7 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-deprecated.REG_LCDMODE              = REG_LCDMODE
+deprecated.REG_LCDMODE                  = REG_LCDMODE
 deprecated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
 deprecated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
 deprecated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
@@ -804,40 +768,44 @@ deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
 
 deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
 deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
-deprecated.writeBotAnnuns               =  writeBotAnnuns           
-deprecated.writeTopAnnuns               = writeTopAnnuns
+deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
+deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
+deprecated.setBitsTopAnnuns             = setBitsTopAnnuns
+deprecated.clrBitsTopAnnuns             = clrBitsTopAnnuns
+deprecated.setBitsBotAnnuns             = setAnnunicators
+deprecated.clrBitsBotAnnuns             = clearAnnunicators
 
-deprecated.BATTERY                      = BATTERY
-deprecated.CLOCK                        = CLOCK
-deprecated.BAT_LO                       = BAT_LO
-deprecated.BAT_MIDL                     = BAT_MIDL
-deprecated.BAT_MIDH                     = BAT_MIDH
-deprecated.BAT_HI                       = BAT_HI
-deprecated.BAT_FULL                     = BAT_FULL
-deprecated.WAIT                         = WAIT
-deprecated.WAIT45                       = WAIT45
-deprecated.WAIT90                       = WAIT90
-deprecated.WAIT135                      = WAIT135
-deprecated.WAITALL                      = WAITALL
-deprecated.SIGMA                        = SIGMA
-deprecated.BALANCE                      = BALANCE
-deprecated.COZ                          = COZ
-deprecated.HOLD                         = HOLD
-deprecated.MOTION                       = MOTION
-deprecated.NET                          = NET
-deprecated.RANGE                        = RANGE
-deprecated.ZERO                         = ZERO
-deprecated.BAL_SEGA                     = BAL_SEGA
-deprecated.BAL_SEGB                     = BAL_SEGB
-deprecated.BAL_SEGC                     = BAL_SEGC
-deprecated.BAL_SEGD                     = BAL_SEGD
-deprecated.BAL_SEGE                     = BAL_SEGE
-deprecated.BAL_SEGF                     = BAL_SEGF
-deprecated.BAL_SEGG                     = BAL_SEGG
-deprecated.RANGE_SEGADG                 = RANGE_SEGADG
-deprecated.RANGE_SEGC                   = RANGE_SEGC
-deprecated.RANGE_SEGE                   = RANGE_SEGE
+deprecated.BATTERY                      = annunicatorMap.battery.v
+deprecated.CLOCK                        = annunicatorMap.clock.v
+deprecated.BAT_LO                       = annunicatorMap.bat_lo.v
+deprecated.BAT_MIDL                     = annunicatorMap.bat_midl.v
+deprecated.BAT_MIDH                     = annunicatorMap.bat_midh.v
+deprecated.BAT_HI                       = annunicatorMap.bat_hi.v
+deprecated.BAT_FULL                     = annunicatorMap.bat_full.v
+deprecated.WAIT                         = annunicatorMap.wait.v
+deprecated.WAIT45                       = annunicatorMap.wait45.v
+deprecated.WAIT90                       = annunicatorMap.wait90.v
+deprecated.WAIT135                      = annunicatorMap.wait135.v
+deprecated.WAITALL                      = annunicatorMap.waitall.v
+deprecated.SIGMA                        = annunicatorMap.sigma.v
+deprecated.BALANCE                      = annunicatorMap.balance.v
+deprecated.COZ                          = annunicatorMap.coz.v
+deprecated.HOLD                         = annunicatorMap.hold.v
+deprecated.MOTION                       = annunicatorMap.motion.v
+deprecated.NET                          = annunicatorMap.net.v
+deprecated.RANGE                        = annunicatorMap.range.v
+deprecated.ZERO                         = annunicatorMap.zero.v
+deprecated.BAL_SEGA                     = annunicatorMap.bal_sega.v
+deprecated.BAL_SEGB                     = annunicatorMap.bal_segb.v
+deprecated.BAL_SEGC                     = annunicatorMap.bal_segc.v
+deprecated.BAL_SEGD                     = annunicatorMap.bal_segd.v
+deprecated.BAL_SEGE                     = annunicatorMap.bal_sege.v
+deprecated.BAL_SEGF                     = annunicatorMap.bal_segf.v
+deprecated.BAL_SEGG                     = annunicatorMap.bal_segg.v
+deprecated.RANGE_SEGADG                 = annunicatorMap.range_segadg.v
+deprecated.RANGE_SEGC                   = annunicatorMap.range_segc.v
+deprecated.RANGE_SEGE                   = annunicatorMap.range_sege.v
 deprecated.UNITS_NONE                   = UNITS_NONE
 deprecated.UNITS_KG                     = UNITS_KG
 deprecated.UNITS_LB                     = UNITS_LB
