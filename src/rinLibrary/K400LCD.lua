@@ -574,6 +574,51 @@ local annunicatorMap = {
     wait135         = { v=WAIT135,  locn='bottom' },
     waitall         = { v=WAITALL,  locn='bottom' }
 }
+--- Main Units
+--@table Units
+-- @field none No annuciator selected (won't clear or set)
+-- @field kg Kilogram annuciator
+-- @field lb Pound  annuciator
+-- @field t Ton/Tonne  annuciator
+-- @field g Gramme  annuciator
+-- @field oz Ounce annuciator
+-- @field n
+-- @field arrow_l
+-- @field p
+-- @field l
+-- @field arrow_h
+local unitAnnunicators = {
+    none      = 0,
+    kg        = 0x01,
+    lb        = 0x02,
+    t         = 0x03,
+    g         = 0x04,
+    oz        = 0x05,
+    n         = 0x06,
+    arrow_l   = 0x07,
+    p         = 0x08,
+    l         = 0x09,
+    arrow_h   = 0x0A
+}
+
+--- Additional modifiers on bottom display
+--@table Other
+-- @field none No annuciator selected (won't clear or set)
+-- @field per_h Per hour annunicator
+-- @field per_m Per meter annunicator
+-- @field per_s Per second annuicator
+-- @field percent Percent annunicator
+-- @field total Total annunicator
+local otherAunnunictors = {
+    none    = 0,
+    per_h   = 0x14,
+    per_m   = 0x11,
+    per_s   = 0x12,
+    percent = 0x30,     pc  = 0x30,
+    total   = 0x08,     tot = 0x08
+}
+
+
 
 -------------------------------------------------------------------------------
 -- Convert the annunciator bit maps to a list of values
@@ -648,74 +693,13 @@ function _M.rotWAIT(dir)
     writeBotAnnuns()
 end
 
---- Main Units
---@table Units
--- @field UNITS_NONE
--- @field UNITS_KG
--- @field UNITS_LB
--- @field UNITS_T
--- @field UNITS_G
--- @field UNITS_OZ
--- @field UNITS_N
--- @field UNITS_ARROW_L
--- @field UNITS_P
--- @field UNITS_L
--- @field UNITS_ARROW_H
--- REG_DISP UNITS BIT SETTINGS
-local UNITS_NONE    = 0x00
-local UNITS_KG      = 0x01
-local UNITS_LB      = 0x02
-local UNITS_T       = 0x03
-local UNITS_G       = 0x04
-local UNITS_OZ      = 0x05
-local UNITS_N       = 0x06
-local UNITS_ARROW_L = 0x07
-local UNITS_P       = 0x08
-local UNITS_L       = 0x09
-local UNITS_ARROW_H = 0x0A
-
-local unitAnnunicators = {
-    none      = UNITS_NONE,
-    kg        = UNITS_KG,
-    lb        = UNITS_LB,
-    t         = UNITS_T,
-    g         = UNITS_G,
-    oz        = UNITS_OZ,
-    n         = UNITS_N,
-    arrow_l   = UNITS_ARROW_L,
-    p         = UNITS_P,
-    l         = UNITS_L,
-    arrow_h   = UNITS_ARROW_H
-}
-
---- Additional modifiers on bottom display
---@table Other
--- @field UNITS_OTHER_PER_H
--- @field UNITS_OTHER_PER_M
--- @field UNITS_OTHER_PER_S
--- @field UNITS_OTHER_PC
--- @field UNITS_OTHER_TOT
-local UNITS_OTHER_PER_H   = 0x14
-local UNITS_OTHER_PER_M   = 0x11
-local UNITS_OTHER_PER_S   = 0x12
-local UNITS_OTHER_PC      = 0x30
-local UNITS_OTHER_TOT     = 0x08
-
-local otherAunnunictors = {
-    per_h   = UNITS_OTHER_PER_H,
-    per_m   = UNITS_OTHER_PER_M,
-    per_s   = UNITS_OTHER_PER_S,
-    pc      = UNITS_OTHER_PC,
-    tot     = UNITS_OTHER_TOT
-}
-
 -------------------------------------------------------------------------------
 -- Set top units
--- @param units (.UNITS_NONE etc)
+-- @param units Unit to display
 -- @usage
 -- device.writeTopUnits('kg')
 function _M.writeTopUnits (units)
-    local u = naming.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
+    local u = naming.convertNameToValue(units, unitAnnunicators, 0)
 
     private.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
@@ -723,13 +707,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Set bottom units
--- @param units (.UNITS_NONE etc)
--- @param other (.UNITS_OTHER_PER_H etc)
+-- @param units Unit to display
+-- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
 function _M.writeBotUnits (units, other)
-    local u = naming.convertNameToValue(units, unitAnnunicators, UNITS_NONE)
-    local o = naming.convertNameToValue(other, otherAunnunictors, UNITS_NONE)
+    local u = naming.convertNameToValue(units, unitAnnunicators, 0x00)
+    local o = naming.convertNameToValue(other, otherAunnunictors, 0x00)
 
     private.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u
@@ -806,22 +790,22 @@ deprecated.BAL_SEGG                     = annunicatorMap.bal_segg.v
 deprecated.RANGE_SEGADG                 = annunicatorMap.range_segadg.v
 deprecated.RANGE_SEGC                   = annunicatorMap.range_segc.v
 deprecated.RANGE_SEGE                   = annunicatorMap.range_sege.v
-deprecated.UNITS_NONE                   = UNITS_NONE
-deprecated.UNITS_KG                     = UNITS_KG
-deprecated.UNITS_LB                     = UNITS_LB
-deprecated.UNITS_T                      = UNITS_T
-deprecated.UNITS_G                      = UNITS_G
-deprecated.UNITS_OZ                     = UNITS_OZ
-deprecated.UNITS_N                      = UNITS_N
-deprecated.UNITS_ARROW_L                = UNITS_ARROW_L
-deprecated.UNITS_P                      = UNITS_P
-deprecated.UNITS_L                      = UNITS_L
-deprecated.UNITS_ARROW_H                = UNITS_ARROW_H
-deprecated.UNITS_OTHER_PER_H            = UNITS_OTHER_PER_H
-deprecated.UNITS_OTHER_PER_M            = UNITS_OTHER_PER_M
-deprecated.UNITS_OTHER_PER_S            = UNITS_OTHER_PER_S
-deprecated.UNITS_OTHER_PC               = UNITS_OTHER_PC
-deprecated.UNITS_OTHER_TOT              = UNITS_OTHER_TOT
+deprecated.UNITS_NONE                   = unitAnnunicators.none
+deprecated.UNITS_KG                     = unitAnnunicators.kg
+deprecated.UNITS_LB                     = unitAnnunicators.lb
+deprecated.UNITS_T                      = unitAnnunicators.t
+deprecated.UNITS_G                      = unitAnnunicators.g
+deprecated.UNITS_OZ                     = unitAnnunicators.oz
+deprecated.UNITS_N                      = unitAnnunicators.n
+deprecated.UNITS_ARROW_L                = unitAnnunicators.arrow_l
+deprecated.UNITS_P                      = unitAnnunicators.p
+deprecated.UNITS_L                      = unitAnnunicators.l
+deprecated.UNITS_ARROW_H                = unitAnnunicators.arrow_h
+deprecated.UNITS_OTHER_PER_H            = otherAunnunictors.per_h
+deprecated.UNITS_OTHER_PER_M            = otherAunnunictors.per_m
+deprecated.UNITS_OTHER_PER_S            = otherAunnunictors.per_s
+deprecated.UNITS_OTHER_PC               = otherAunnunictors.pc
+deprecated.UNITS_OTHER_TOT              = otherAunnunictors.tot
 
 end
 
