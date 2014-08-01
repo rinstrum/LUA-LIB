@@ -14,17 +14,49 @@ local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
 local dbg = require "rinLibrary.rinDebug"
 
+local strLenR400Cache = setmetatable({}, { __mode = "kv" })
+
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
 -- @param s The string to assess
 -- @return The number of display characters
 -- @local
 local function strLenR400(s)
+    if strLenR400Cache[s] == nil then
+        local len = 0
+        local dotFound = true
+        for i = 1, #s do
+            local ch = string.sub(s, i, i)
+            if not dotFound and  ch == '.' then
+                dotFound = true
+            else
+                if ch ~= '.' then
+                    dotFound = false
+                end
+                len = len + 1
+            end
+        end
+        strLenR400Cache[s] = len
+    end
+    return strLenR400Cache[s]
+end
+
+-------------------------------------------------------------------------------
+-- @local
+local function strSubR400(s, stPos, endPos)
     local len = 0
     local dotFound = true
+    local substr = ''
+    if stPos < 1 then
+        stPos = #s + stPos + 1
+    end
+    if endPos < 1 then
+        endPos = #s + endPos + 1
+    end
+
     for i = 1,#s do
         local ch = string.sub(s,i,i)
-        if not dotFound and  ch == '.' then
+        if not dotFound and ch == '.' then
             dotFound = true
         else
             if ch ~= '.' then
@@ -32,38 +64,11 @@ local function strLenR400(s)
             end
             len = len + 1
         end
-    end
-    return len
-end
-
--------------------------------------------------------------------------------
--- @local
-local function strSubR400(s,stPos,endPos)
-   local len = 0
-   local dotFound = true
-   local substr = ''
-   if stPos < 1 then
-       stPos = #s + stPos + 1
-   end
-   if endPos < 1 then
-       endPos = #s + endPos + 1
-   end
-
-   for i = 1,#s do
-     local ch = string.sub(s,i,i)
-     if not dotFound and  ch == '.' then
-         dotFound = true
-     else
-        if ch ~= '.' then
-           dotFound = false
+        if len >= stPos and len <= endPos then
+            substr = substr .. ch
         end
-        len = len + 1
-     end
-     if (len >= stPos) and (len <= endPos) then
-          substr = substr .. ch
-     end
-   end
-  return substr
+    end
+    return substr
 end
 
 -------------------------------------------------------------------------------
@@ -97,7 +102,7 @@ local function splitWords(s, len)
     local len = len or 8
 
     if strLenR400(s) <= len then
-        table.insert(t,s)
+        table.insert(t, s)
         return t
     end
 
@@ -109,8 +114,8 @@ local function splitWords(s, len)
                 p = p .. ' '..w
             end
         elseif strLenR400(p) > len then
-            table.insert(t,strSubR400(p,1,len))
-            p = strSubR400(p,len+1,-1)
+            table.insert(t, strSubR400(p, 1, len))
+            p = strSubR400(p, len+1, -1)
             if strLenR400(p) + strLenR400(w) < len then
                 p = p .. ' ' .. w
             else
@@ -126,11 +131,11 @@ local function splitWords(s, len)
     end
 
     while strLenR400(p) > len do
-        table.insert(t,strSubR400(p,1,len))
-        p = strSubR400(p,len+1,-1)
+        table.insert(t, strSubR400(p, 1, len))
+        p = strSubR400(p, len+1, -1)
     end
     if #p > 0 or #t == 0 then
-        table.insert(t,p)
+        table.insert(t, p)
     end
     return t
 end
@@ -278,7 +283,7 @@ local function slideTopLeft()
        slideTopLeftPos = 1
     end
     private.writeRegHexAsync(REG_DISP_TOP_LEFT,
-         string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
+         string.format('%-6s', padDots(slideTopLeftWords[slideTopLeftPos])))
 end
 
 -------------------------------------------------------------------------------
@@ -297,11 +302,11 @@ function _M.writeTopLeft(s,t)
         if s ~= curTopLeft then
             _M.writeAutoTopLeft(0)
             curTopLeft = s
-            slideTopLeftWords = splitWords(s,6)
+            slideTopLeftWords = splitWords(s, 6)
             slideTopLeftPos = 1
             timers.removeTimer(slideTopLeftTimer)
             private.writeRegHexAsync(REG_DISP_TOP_LEFT,
-                 string.format('%-6s',padDots(slideTopLeftWords[slideTopLeftPos])))
+                 string.format('%-6s', padDots(slideTopLeftWords[slideTopLeftPos])))
             if #slideTopLeftWords > 1 then
                 slideTopLeftTimer = timers.addTimer(t, t, slideTopLeft)
             end
@@ -332,7 +337,7 @@ local function slideBotLeft()
        slideBotLeftPos = 1
     end
     private.writeRegHexAsync(REG_DISP_BOTTOM_LEFT,
-         string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
+         string.format('%-9s', padDots(slideBotLeftWords[slideBotLeftPos])))
 end
 
 -------------------------------------------------------------------------------
@@ -352,11 +357,11 @@ function _M.writeBotLeft(s, t)
         if s ~= curBotLeft then
             _M.writeAutoBotLeft(0)
             curBotLeft = s
-            slideBotLeftWords = splitWords(s,9)
+            slideBotLeftWords = splitWords(s, 9)
             slideBotLeftPos = 1
             timers.removeTimer(slideBotLeftTimer)
             private.writeRegHexAsync(REG_DISP_BOTTOM_LEFT,
-                 string.format('%-9s',padDots(slideBotLeftWords[slideBotLeftPos])))
+                 string.format('%-9s', padDots(slideBotLeftWords[slideBotLeftPos])))
             if #slideBotLeftWords > 1 then
                 slideBotLeftTimer = timers.addTimer(t, t, slideBotLeft)
             end
