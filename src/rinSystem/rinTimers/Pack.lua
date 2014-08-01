@@ -6,6 +6,7 @@
 -------------------------------------------------------------------------------
 
 local socket = require "socket"
+local utils = require 'rinSystem.utilities'
 
 local unpack = unpack
 local floor = math.floor
@@ -102,7 +103,11 @@ end
 -- @return Timer key which should be considered a read only object
 -- @local
 local function internalAddTimer(time, delay, reg, callback, extraargs)
-	if callback == nil then
+	if not utils.callable(callback) then
+        if callback ~= nil then
+            print('rinTimers: callback specified is not a function')
+            rinTimerCallbackNotFunction[nil] = nil
+        end
     	return nil
     end
     local evt = {

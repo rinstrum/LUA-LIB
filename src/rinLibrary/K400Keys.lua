@@ -12,6 +12,7 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -417,6 +418,7 @@ end
 -- end
 -- device.setIdleCallback(idle, 15) -- call idle if 15 seconds elapses between keys
 function _M.setIdleCallback(f,t)
+    utils.checkCallback(f)
     idleCallback = f
     idleTimeout = t or 10
 end
@@ -436,6 +438,7 @@ end
 -- end
 -- device.setKeyCallback('f1', F1Pressed)
 function _M.setKeyCallback(keyName, callback, ...)
+    utils.checkCallback(callback)
     local key = naming.convertNameToValue(keyName, keyMap)
     if key then
         local events = {...}
@@ -474,6 +477,7 @@ end
 -- device.setKeyGroupCallback('all', handleKey, 'long')
 -- device.setKeyGroupCallback('numpad', handleKey, 'short')
 function _M.setKeyGroupCallback(keyGroupName, callback, ...)
+    utils.checkCallback(callback)
     local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
     local events = {...}
     if #events == 0 then

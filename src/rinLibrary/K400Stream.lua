@@ -14,6 +14,7 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -137,6 +138,7 @@ end
 -- end
 -- device.addStream('grossnet', handleWeight, 'change')
 function _M.addStream(streamReg, callback, onChange)
+    utils.checkCallback(callback)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
 
@@ -237,6 +239,7 @@ end
 -- @return error message
 -- @local
 function private.addStreamLib(streamReg, callback, onChange)
+    utils.checkCallback(callback)
     local reg = private.getRegisterNumber(streamReg)
     local availReg = nil
 

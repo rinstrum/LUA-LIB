@@ -11,6 +11,7 @@ local timers = require 'rinSystem.rinTimers.Pack'
 local bit32 = require "bit"
 local rinMsg = require "rinLibrary.rinMessage"
 local dbg = require "rinLibrary.rinDebug"
+local utils = require 'rinSystem.utilities'
 
 local str = string
 local table = table
@@ -351,6 +352,7 @@ end
 -- end
 -- device.setSerBCallback(serialBCallback)
 function _M.setSerBCallback(f)
+    utils.checkCallback(f)
     SerBCallback = f
 end
 

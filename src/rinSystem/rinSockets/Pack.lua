@@ -8,6 +8,7 @@
 
 local _M = {}
 local dbg = require "rinLibrary.rinDebug"
+local utils = require 'rinSystem.utilities'
 
 local table = table
 local pairs = pairs
@@ -84,6 +85,7 @@ end
 --
 -- sockets.createServerSocket(666, myAccept)
 function _M.addSocket(sock, callback)
+    utils.checkCallback(callback)
     sockets[sock] = callback
     return sock
 end

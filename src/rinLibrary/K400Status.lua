@@ -13,6 +13,7 @@ local bit32 = require "bit"
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -348,6 +349,7 @@ end
 -- @usage
 -- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(status, callback)
+    utils.checkCallback(callback)
     local stat = naming.convertNameToValue(status, statusMap)
     if stat then
         statBinds[stat] = {
@@ -407,6 +409,7 @@ end
 -- end
 -- device.setIOCallback(1, handleIO1)
 function _M.setIOCallback(IO, callback)
+    utils.checkCallback(callback)
     local status = bit32.lshift(0x00000001, IO-1)
     if callback then
         IOBinds[status] = {}
@@ -434,6 +437,7 @@ end
 -- end
 -- device.setAllIOCallback(handleIO)
 function _M.setAllIOCallback(callback)
+    utils.checkCallback(callback)
     if callback ~= nil then
         IOBinds[0] = {}   -- setup a callback for all SETP changes
         IOBinds[0]['IO'] = 'All'
@@ -494,6 +498,7 @@ end
 -- end
 -- device.setSETPCallback(1, handleSETP1)
 function _M.setSETPCallback(SETP, callback)
+    utils.checkCallback(callback)
     if SETP < 1 or SETP > _M.setPointCount() then
         dbg.error('setSETPCallback setpoint Invalid:', setp)
     else
@@ -519,6 +524,7 @@ end
 -- end
 -- device.setAllSETPCallback(handleSETP)
 function _M.setAllSETPCallback(callback)
+    utils.checkCallback(callback)
     SETPBinds[0] = {}   -- setup a callback for all SETP changes
     SETPBinds[0]['SETP'] = 'All'
     SETPBinds[0]['f'] = callback
@@ -564,6 +570,7 @@ end
 -- @see luaextendedstatus
 -- @see setEStatusMainCallback
 function _M.setEStatusCallback(eStatus, callback)
+    utils.checkCallback(callback)
     local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}
@@ -579,6 +586,7 @@ end
 -- @see luaextendedstatus
 -- @see setEStatusCallback
 function _M.setEStatusMainCallback(eStatus, callback)
+    utils.checkCallback(callback)
     local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}

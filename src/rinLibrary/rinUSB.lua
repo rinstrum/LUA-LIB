@@ -14,6 +14,7 @@ local dbg = require "rinLibrary.rinDebug"
 local rs232 = require "luars232"
 local ev_lib = require "ev_lib"
 local kb_lib = require "kb_lib"
+local utils = require 'rinSystem.utilities'
 
 local userUSBRegisterCallback = nil
 local userUSBEventCallback = nil
@@ -37,6 +38,7 @@ local eventDevices = {}
 -- end
 -- usb.setUSBRegisterCallback(registerCB)
 function _M.setUSBRegisterCallback(f)
+    utils.checkCallback(f)
     local r = userUSBRegisterCallback
     userUSBRegisterCallback = f
     return r
@@ -82,6 +84,7 @@ end
 -- end
 -- usb.setUSBEventCallback(eventCB)
 function _M.setUSBEventCallback(f)
+    utils.checkCallback(f)
     local r = userUSBEventCallback
     userUSBEventCallback = f
     return r
@@ -109,6 +112,7 @@ end
 --
 -- usb.setUSBKBDCallback(function(key) print(key, 'pressed') end)
 function _M.setUSBKBDCallback(f)
+    utils.checkCallback(f)
     local r = userUSBKBDCallback
     userUSBKBDCallback = f
     return r
@@ -194,6 +198,7 @@ end
 -- end
 -- usb.serialUSBdeviceHandler(usbSerialHandler)
 function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
+    utils.checkCallback(cb)
     local b = baud or rs232.RS232_BAUD_9600
     local d = data or rs232.RS232_DATA_8
     local p = parity or rs232.RS232_PARITY_NONE

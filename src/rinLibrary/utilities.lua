@@ -136,10 +136,6 @@ return function(mod, private, deprecated)
         end
     end
 
-    if _TEST then
-        mod.getPrivate = function() return private end
-    end
-
 -------------------------------------------------------------------------------
 -- Return our argument
 -- @param v Value to return
@@ -193,4 +189,7 @@ return function(mod, private, deprecated)
         end
     end
 
+    if _TEST then
+        mod.getPrivate = function() return private end
+    end
 end

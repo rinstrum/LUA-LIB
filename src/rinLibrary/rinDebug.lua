@@ -19,6 +19,7 @@ local math = math
 
 local logging = require "logging"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 -- Local variables
 local secondaryLogFunction = nil
@@ -229,6 +230,7 @@ end
 -- local dbg = require 'rinLibrary.rinDebug'
 -- dbg.setDebugCallback(function(s) print('see this twice: ', s) end)
 function _M.setDebugCallback(logfunction)
+    utils.checkCallback(logfunction)
 	secondaryLogFunction = logfunction
 end
 
