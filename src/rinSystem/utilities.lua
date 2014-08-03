@@ -11,7 +11,7 @@ local _M = {}
 -------------------------------------------------------------------------------
 -- Check that an object is callable
 -- @param obj
--- @return true if object is callable
+-- @return boolean true if object is callable, false otherwise
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -26,7 +26,7 @@ end
 -- Check that a callback argument is really a function or nil
 -- @function checkCallback
 -- @param cb Callback argument
--- @return boolean true if the argument is a callback or nil
+-- @return boolean true if the argument is a callback or nil, false otherwise
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
