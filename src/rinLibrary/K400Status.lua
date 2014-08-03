@@ -324,16 +324,18 @@ end
 local function statusCallback(data, err)
     curStatus = data
     for k,v in pairs(statBinds) do
-       local status = bit32.band(data,k)
-       if status ~= v.lastStatus  then
-           if v.running then
-               dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
-           else
-              v.running = true
-              v.lastStatus = status
-              v.f(naming.convertValueToName(k, statusUnmap), status ~= 0)
-              v.running = false
-           end
+        local status = bit32.band(data,k)
+        if status ~= v.lastStatus  then
+            if v.running then
+                dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
+            else
+                v.lastStatus = status
+                if utils.callable(v.f) then
+                    v.running = true
+                    v.f(naming.convertValueToName(k, statusUnmap), status ~= 0)
+                    v.running = false
+                end
+            end
         end
     end
 end
@@ -367,27 +369,29 @@ end
 local function IOCallback(data, err)
     curIO = data
     for k,v in pairs(IOBinds) do
-       local status = bit32.band(data,k)
-       if k == 0 then  --handle the all IO case
-          status = curIO
-       end
-       if status ~= v.lastStatus  then
-           if v.running then
-               if k == 0 then
-                   dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
-               else
-                   dbg.warn('IO Event lost: ',v.IO,status ~=0)
-               end
-           else
-              v.running = true
-              v.lastStatus = status
-              if k == 0 then
-                  v.f(status)
-              else
-                  v.f(v.IO, status ~= 0)
-              end
-              v.running = false
-           end
+        local status = bit32.band(data,k)
+        if k == 0 then  --handle the all IO case
+            status = curIO
+        end
+        if status ~= v.lastStatus  then
+            if v.running then
+                if k == 0 then
+                    dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
+                else
+                    dbg.warn('IO Event lost: ',v.IO,status ~=0)
+                end
+            else
+                v.lastStatus = status
+                if utils.callable(v.f) then
+                    v.running = true
+                    if k == 0 then
+                        v.f(status)
+                    else
+                        v.f(v.IO, status ~= 0)
+                    end
+                    v.running = false
+                end
+            end
         end
     end
 end
@@ -457,27 +461,29 @@ end
 local function SETPCallback(data, err)
     curSETP = bit32.band(data, 0xFFFF)
     for k,v in pairs(SETPBinds) do
-       local status = bit32.band(data, k)
-       if k == 0 then  --handle the all setp case
-          status = curSETP
-       end
-       if status ~= v.lastStatus  then
-           if v.running then
-               if k == 0 then
-                   dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
-               else
-                   dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
-               end
-           else
-              v.running = true
-              v.lastStatus = status
-              if k == 0 then
-                  v.f(status)
-              else
-                  v.f(v.SETP, status ~= 0)
-              end
-              v.running = false
-           end
+        local status = bit32.band(data, k)
+        if k == 0 then  --handle the all setp case
+            status = curSETP
+        end
+        if status ~= v.lastStatus  then
+            if v.running then
+                if k == 0 then
+                    dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
+                else
+                    dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
+                end
+            else
+                v.lastStatus = status
+                if utils.callable(v.f) then
+                    v.running = true
+                    if k == 0 then
+                        v.f(status)
+                    else
+                        v.f(v.SETP, status ~= 0)
+                    end
+                    v.running = false
+                end
+            end
         end
     end
 end
@@ -549,12 +555,12 @@ local function eStatusCallback(data, err)
                 dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
             else
                 local estatName = naming.convertValueToName(k, estatusUnmap, nil)
-                v.running = true
                 v.lastStatus = status
-                if v.mainf then
+                v.running = true
+                if utils.callable(v.mainf) then
                     v.mainf(estatName, status ~= 0)
                 end
-                if v.f then
+                if utils.callable(v.f) then
                     v.f(estatName, status ~= 0)
                 end
                 v.running = false
@@ -911,7 +917,7 @@ function _M.setupStatus()
     curStatus = 0
     statID  = private.addStreamLib(REG_LUA_STATUS, statusCallback,  'change')
     eStatID = private.addStreamLib(REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = private.addStreamLib('io_status',  IOCallback,      'change')
+    IOID    = private.addStreamLib('io_status',    IOCallback,      'change')
     SETPID  = private.addStreamLib(REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
     _M.setEStatusMainCallback('rtc',  handleRTC)

@@ -271,7 +271,7 @@ function _M.print(prompt, ...)
 
     s = string.format("%s%s",header, s)
     logger:log(level, s)
-    if secondaryLogFunction ~= nil then
+    if utils.callable(secondaryLogFunction) then
         secondaryLogFunction(s)
     end
     _M.tempLevel = nil

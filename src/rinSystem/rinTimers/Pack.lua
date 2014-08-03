@@ -90,7 +90,7 @@ end
 -- @return true iff the timer is still active
 -- @local
 local function active(timer)
-    return timer ~= nil and timer.cb ~= nil
+    return timer ~= nil and utils.callable(timer.cb)
 end
 
 -------------------------------------------------------------------------------

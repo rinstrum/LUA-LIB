@@ -139,11 +139,11 @@ end
 local function eventCallback(sock)
     local ev = ev_lib.getEvent(sock)
     if ev then
-        if userUSBEventCallback then
+        if utils.callable(userUSBEventCallback) then
             userUSBEventCallback(ev)
         end
         local key = kb_lib.getR400Keys(ev)
-        if key and userUSBKBDCallback then
+        if key and utils.callable(userUSBKBDCallback) then
             userUSBKBDCallback(key)
         end
     end
@@ -168,10 +168,10 @@ local function usbCallback(t)
         end
     end
 
-    if libUSBSerialCallback then
+    if utils.callable(libUSBSerialCallback) then
         libUSBSerialCallback(t)
     end
-    if userUSBRegisterCallback then
+    if utils.callable(userUSBRegisterCallback) then
         userUSBRegisterCallback(t)
     end
 end

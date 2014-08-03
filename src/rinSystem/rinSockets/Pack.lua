@@ -253,7 +253,7 @@ end
 -- sockets.processReadSocket(mySocket)
 function _M.processReadSocket(sock)
 	local callback = sockets[sock]
-    if callback then
+    if utils.callable(callback) then
         local call, err = callback(sock)
         if err == "closed" or err == "Transport endpoint is not connected" then
 		    _M.removeSocket(sock)

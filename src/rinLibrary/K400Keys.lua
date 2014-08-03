@@ -225,7 +225,7 @@ local keyCallback       -- Forward declaration
 -- @local
 function private.bumpIdleTimer()
     timers.removeTimer(idleTimerID)
-    if idleCallback then
+    if utils.callable(idleCallback) then
         idleTimerID = timers.addTimer(0, idleTimeout, idleCallback)
     else
         idleTimerID = nil
@@ -314,7 +314,7 @@ keyCallback = function(data, err)
             keyHandler.repeatInterval = nil
         end
 
-        if keyHandler[state] ~= nil then
+        if utils.callable(keyHandler[state]) then
             local function handler()
                 dbg.warn('Attempt to call key event handler recursively : ', keyName)
                 return true
@@ -332,7 +332,7 @@ keyCallback = function(data, err)
 
         if not handled then
             for i = 1, #keyHandler do
-                if keyHandler[i][state] ~= nil then
+                if utils.callable(keyHandler[i][state]) then
                     local function handler()
                         dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
                         return true
