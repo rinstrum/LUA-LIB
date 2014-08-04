@@ -13,8 +13,11 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
 local dbg = require "rinLibrary.rinDebug"
+local lpeg = require 'lpeg'
+local Cs, P = lpeg.Cs, lpeg.P
 
 local strLenR400Cache = setmetatable({}, { __mode = "kv" })
+local pasDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -77,15 +80,7 @@ end
 -- @return Padded string
 -- @local
 local function padDots(s)
-    if #s == 0 then
-        return s
-    end
-    local str = string.gsub(s,'%.%.','%. %.')
-    str = string.gsub(str,'%.%.','%. %.')
-    if string.sub(str,1,1) == '.' then
-        str = ' '..str
-    end
-    return str
+    return pasDotsPat:match(s)
 end
 
 -------------------------------------------------------------------------------
@@ -811,6 +806,13 @@ deprecated.UNITS_OTHER_PER_M            = otherAunnunictors.per_m
 deprecated.UNITS_OTHER_PER_S            = otherAunnunictors.per_s
 deprecated.UNITS_OTHER_PC               = otherAunnunictors.pc
 deprecated.UNITS_OTHER_TOT              = otherAunnunictors.tot
+
+if _TEST then
+    _M.strLenR400 = strLenR400
+    _M.strSubR400 = strSubR400
+    _M.padDots    = padDots
+    _M.splitWords = splitWords
+end
 
 end
 
