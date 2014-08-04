@@ -20,7 +20,7 @@ local Cs, P = lpeg.Cs, lpeg.P
 -- Lpeg patterns for greatly simplify the parsing in the string length and
 -- string dot padding functions.
 local strLenPat = Cs(((1 - P'.') * P('.')^-1 / ' ' + P'.')^0)
-local padDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
+local padDotsPat = Cs(((1 - P'.') * P('.')^-1 + P'.' / ' .')^0)
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
