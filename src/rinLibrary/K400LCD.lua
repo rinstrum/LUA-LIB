@@ -16,6 +16,9 @@ local dbg = require "rinLibrary.rinDebug"
 local lpeg = require 'lpeg'
 local Cs, P = lpeg.Cs, lpeg.P
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Lpeg patterns for greatly simplify the parsing in the string length and
+-- string dot padding functions.
 local strLenN
 local strLenPat = (#P'.' / function() strLenN = 1 end)^-1 *
                     (   (P'.' * #P'.') / function() strLenN = strLenN + 1 end +
@@ -33,6 +36,15 @@ local function strLenR400(s)
     strLenN = 0
     strLenPat:match(s)
     return strLenN
+end
+
+-------------------------------------------------------------------------------
+-- Takes a string and pads ... with . . . for R420 to handle.
+-- @param s String
+-- @return Padded string
+-- @local
+local function padDots(s)
+    return padDotsPat:match(s)
 end
 
 -------------------------------------------------------------------------------
@@ -63,15 +75,6 @@ local function strSubR400(s, stPos, endPos)
         end
     end
     return substr
-end
-
--------------------------------------------------------------------------------
--- Takes a string and pads ... with . . . for R420 to handle.
--- @param s String
--- @return Padded string
--- @local
-local function padDots(s)
-    return padDotsPat:match(s)
 end
 
 -------------------------------------------------------------------------------
