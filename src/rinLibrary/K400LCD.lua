@@ -13,12 +13,9 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
 local dbg = require "rinLibrary.rinDebug"
+
 local lpeg = require 'lpeg'
 local Cs, P = lpeg.Cs, lpeg.P
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Lpeg patterns for greatly simplify the parsing in the string length and
--- string dot padding functions.
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
 
