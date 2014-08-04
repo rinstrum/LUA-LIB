@@ -19,12 +19,7 @@ local Cs, P = lpeg.Cs, lpeg.P
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Lpeg patterns for greatly simplify the parsing in the string length and
 -- string dot padding functions.
-local strLenN
-local strLenPat = (#P'.' / function() strLenN = 1 end)^-1 *
-                    (   (P'.' * #P'.') / function() strLenN = strLenN + 1 end +
-                        P'.' +
-                        (1-P'.')^1 / function(s) strLenN = strLenN + #s end
-                    )^0
+local strLenPat = Cs(((1 - P'.') * P('.')^-1 / ' ' + P'.')^0)
 local padDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
 
 -------------------------------------------------------------------------------
@@ -33,9 +28,7 @@ local padDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
 -- @return The number of display characters
 -- @local
 local function strLenR400(s)
-    strLenN = 0
-    strLenPat:match(s)
-    return strLenN
+    return #strLenPat:match(s)
 end
 
 -------------------------------------------------------------------------------
