@@ -41,10 +41,10 @@ describe("Digital #digital", function ()
         lower.delay(.1)     lower.setAllIOCallback(cb)
         upper.delay(.15)    upper.turnOn(4)
                             upper.turnOn(2)
-        upper.delay(.2)     assert.spy(cb).was.called_with(10)
+        upper.delay(.3)     assert.spy(cb).was.called_with(10)
                             upper.turnOn(3)
 
-        lower.delay(.2)     assert.spy(cb).was.called_with(14)
+        lower.delay(.3)     assert.spy(cb).was.called_with(14)
     end)
 
     it("toggle", function()
