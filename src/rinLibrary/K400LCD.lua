@@ -28,6 +28,8 @@ local padDotsPat = Cs((scdot + sdot / ' .')^0)
 -- Return the number of LCD characters a string will consume.
 -- @param s The string to assess
 -- @return The number of display characters
+-- @see padDots
+-- @see strSubR400
 -- @local
 local function strLenR400(s)
     return #strLenPat:match(s)
@@ -37,6 +39,8 @@ end
 -- Takes a string and pads ... with . . . for R420 to handle.
 -- @param s String
 -- @return Padded string
+-- @see strSubR400
+-- @see strLenR400
 -- @local
 local function padDots(s)
     return padDotsPat:match(s)
@@ -48,6 +52,8 @@ end
 -- @param stPos Starting position
 -- @param endPos Ending position, nil for end of string
 -- @return The substring between display positions stPos and endPos
+-- @see padDots
+-- @see strLenR400
 -- @local
 local function strSubR400(s, stPos, endPos)
     if endPos == nil then
@@ -68,6 +74,9 @@ end
 -- @param s String
 -- @param len Length of display field
 -- @return list of fragments of the string formatted to fit the field width
+-- @see strSubR400
+-- @see padDots
+-- @see strLenR400
 -- @local
 local function splitWords(s, len)
     s = tostring(s)
