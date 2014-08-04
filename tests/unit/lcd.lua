@@ -31,9 +31,65 @@ describe("LCD #lcd", function ()
 
     describe("deprecated registers", function()
         local _, _, d = makeModule()
-            for k, v in pairs(dregs) do
+        for k, v in pairs(dregs) do
             it("test "..k, function()
                 assert.equal(v, d["REG_" .. string.upper(k)])
+            end)
+        end
+    end)
+
+    describe("deprecated enumerations", function()
+        local _, _, d = makeModule()
+        for k, v in pairs{
+            battery           = 0x0001,
+            clock             = 0x0002,
+            bat_lo            = 0x0004,
+            bat_midl          = 0x0008,
+            bat_midh          = 0x0010,
+            bat_hi            = 0x0020,
+            bat_full          = 0x003D,
+            wait              = 0x0040,
+            wait45            = 0x0100,
+            wait90            = 0x0200,
+            wait135           = 0x0080,
+            waitall           = 0x03C0,
+            sigma             = 0x00001,
+            balance           = 0x00002,
+            coz               = 0x00004,
+            hold              = 0x00008,
+            motion            = 0x00010,
+            net               = 0x00020,
+            range             = 0x00040,
+            zero              = 0x00080,
+            bal_sega          = 0x00100,
+            bal_segb          = 0x00200,
+            bal_segc          = 0x00400,
+            bal_segd          = 0x00800,
+            bal_sege          = 0x01000,
+            bal_segf          = 0x02000,
+            bal_segg          = 0x04000,
+            range_segadg      = 0x08000,
+            range_segc        = 0x10000,
+            range_sege        = 0x20000,
+            units_none        = 0,
+            units_kg          = 0x01,
+            units_lb          = 0x02,
+            units_t           = 0x03,
+            units_g           = 0x04,
+            units_oz          = 0x05,
+            units_n           = 0x06,
+            units_arrow_l     = 0x07,
+            units_p           = 0x08,
+            units_l           = 0x09,
+            units_arrow_h     = 0x0A,
+            units_other_per_h = 0x14,
+            units_other_per_m = 0x11,
+            units_other_per_s = 0x12,
+            units_other_pc    = 0x30,
+            units_other_tot   = 0x08
+        } do
+            it("test "..k, function()
+                assert.equal(v, d[string.upper(k)])
             end)
         end
     end)
