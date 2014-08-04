@@ -19,8 +19,10 @@ local Cs, P = lpeg.Cs, lpeg.P
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Lpeg patterns for greatly simplify the parsing in the string length and
 -- string dot padding functions.
-local strLenPat = Cs(((1 - P'.') * P('.')^-1 / ' ' + P'.')^0)
-local padDotsPat = Cs(((1 - P'.') * P('.')^-1 + P'.' / ' .')^0)
+local sdot = P'.'
+local scdot = (1 - sdot) * sdot^-1
+local strLenPat = Cs((scdot / ' ' + sdot)^0)
+local padDotsPat = Cs((scdot + sdot / ' .')^0)
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -41,33 +43,23 @@ local function padDots(s)
 end
 
 -------------------------------------------------------------------------------
+-- Extract a substring based on the LCD width.
+-- @param s String to substring
+-- @param stPos Starting position
+-- @param endPos Ending position, nil for end of string
+-- @return The substring between display positions stPos and endPos
 -- @local
 local function strSubR400(s, stPos, endPos)
-    local len = 0
-    local dotFound = true
-    local substr = ''
-    if stPos < 1 then
-        stPos = #s + stPos + 1
-    end
-    if endPos < 1 then
-        endPos = #s + endPos + 1
+    if endPos == nil then
+        endPos = #s
     end
 
-    for i = 1,#s do
-        local ch = string.sub(s,i,i)
-        if not dotFound and ch == '.' then
-            dotFound = true
-        else
-            if ch ~= '.' then
-                dotFound = false
-            end
-            len = len + 1
-        end
-        if len >= stPos and len <= endPos then
-            substr = substr .. ch
-        end
+    local n = 0
+    local function process(s)
+        n = n + 1
+        return n >= stPos and n <= endPos and s or ''
     end
-    return substr
+    return Cs(((scdot + sdot) / process)^0):match(s)
 end
 
 -------------------------------------------------------------------------------
@@ -97,7 +89,7 @@ local function splitWords(s, len)
             end
         elseif strLenR400(p) > len then
             table.insert(t, strSubR400(p, 1, len))
-            p = strSubR400(p, len+1, -1)
+            p = strSubR400(p, len+1)
             if strLenR400(p) + strLenR400(w) < len then
                 p = p .. ' ' .. w
             else
@@ -114,7 +106,7 @@ local function splitWords(s, len)
 
     while strLenR400(p) > len do
         table.insert(t, strSubR400(p, 1, len))
-        p = strSubR400(p, len+1, -1)
+        p = strSubR400(p, len+1)
     end
     if #p > 0 or #t == 0 then
         table.insert(t, p)
