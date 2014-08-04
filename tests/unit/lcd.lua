@@ -111,34 +111,58 @@ describe("LCD #lcd", function ()
             { r= 7, s=".a.b.c.d.e.f."       }
         }
         for i = 1, #tc do
-            it("test"..i, function()
+            it("test "..i, function()
                 assert.equal(tc[i].r, m.strLenR400(tc[i].s))
             end)
         end
     end)
 
     describe("strSub", function()
-        pending("unimplemented test case")
+        local m = makeModule()
+        local tc = {
+            { a={'.', 1, 1 },                   r='.'               },
+            { a={'a', 1, 1 },                   r='a'               },
+            { a={'', 1, 1 },                    r=''                },
+            { a={'.a.', 1, 1 },                 r='.'               },
+            { a={'.a.', 2, 2 },                 r='a.'              },
+            { a={'a.b.c.d.e.f.g.h.i.', 2, 2 },  r='b.'              },
+            { a={'a.b.c.d.e.f.g.h.i.', 2, 6 },  r='b.c.d.e.f.'      },
+            { a={'..........', 2, 6 },          r='.....'           },
+            { a={'abcdefg', 4, 5 },             r='de'              },
+            { a={'.a.', 1, 5 },                 r='.a.'             },
+            { a={'.a..', 1, 5 },                r='.a..'            },
+            { a={'..a.', 1, 5 },                r='..a.'            },
+            { a={'.', 4, 5 },                   r=''                },
+            { a={'a', 4, 5 },                   r=''                },
+            { a={'', 4, 5 },                    r=''                },
+            { a={"a.b.c.d.e.f.g.h.i.", 4, 9 },  r="d.e.f.g.h.i."    },
+            { a={"a.b.c.d.e.f.g.h.i.", 5 },     r="e.f.g.h.i."      }
+        }
+        for i = 1, #tc do
+            it("test "..i, function()
+                assert.equal(tc[i].r, m.strSubR400(unpack(tc[i].a)))
+            end)
+        end
     end)
 
     describe("padDots", function()
         local m = makeModule()
         local tc = {
-            { r=" .",                   s="."                   },
-            { r="a",                    s="a"                   },
-            { r="",                     s=""                    },
-            { r=" .a.",                 s=".a."                 },
-            { r=" .a. .",               s=".a.."                },
-            { r=" . .a.",               s="..a."                },
-            { r=" . .",                 s=".."                  },
-            { r=" . . .",               s="..."                 },
-            { r="abcdefg",              s="abcdefg"             },
-            { r=" . . . . . . . . . .", s=".........."          },
-            { r="a.b.c.d.e.f.g.h.i.",   s="a.b.c.d.e.f.g.h.i."  },
-            { r=" .a.b.c.d.e.f.",       s=".a.b.c.d.e.f."       }
+            { r=' .',                   s='.'                   },
+            { r='a',                    s='a'                   },
+            { r='',                     s=''                    },
+            { r=' .a.',                 s='.a.'                 },
+            { r=' .a. .',               s='.a..'                },
+            { r=' . .a.',               s='..a.'                },
+            { r=' . .',                 s='..'                  },
+            { r=' . . .',               s='...'                 },
+            { r='abcdefg',              s='abcdefg'             },
+            { r=' . . . . . . . . . .', s='..........'          },
+            { r='a.b.c.d.e.f.g.h.i.',   s='a.b.c.d.e.f.g.h.i.'  },
+            { r=' .a.b.c.d.e.f.',       s='.a.b.c.d.e.f.'       }
         }
         for i = 1, #tc do
-            it("test"..i, function()
+            it("test "..i, function()
                 assert.equal(tc[i].r, m.padDots(tc[i].s))
             end)
         end
