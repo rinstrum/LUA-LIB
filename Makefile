@@ -75,7 +75,7 @@ install:
 	find $(DEST_DIR)/home/lualib_examples -type f -exec chmod 755 {} \;
 	
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
-	lua /usr/local/share/lua/5.1/ldoc.lua src --dir $(DEST_DIR)/$(WWW_DIR)/libdocs
+	lua /usr/local/share/lua/5.1/ldoc.lua src $(LDOC_OPTS) --dir $(DEST_DIR)/$(WWW_DIR)/libdocs
 	
 	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
