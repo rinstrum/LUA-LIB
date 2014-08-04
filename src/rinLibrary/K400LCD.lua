@@ -275,11 +275,8 @@ end
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
 function _M.writeTopLeft(s,t)
-    local t = t or 0.8
+    t = math.max(t or 0.8, 0.2)
 
-    if t < 0.2 then
-       t = 0.2
-    end
     if s then
         if s ~= curTopLeft then
             _M.writeAutoTopLeft(0)
@@ -329,11 +326,7 @@ end
 -- @usage
 -- device.writeBotLeft('AARDVARK BOTHER HORSES')
 function _M.writeBotLeft(s, t)
-    local t = t or 0.8
-
-    if t < 0.2 then
-       t = 0.2
-    end
+    t = math.max(t or 0.8, 0.2)
 
     if s then
         if s ~= curBotLeft then
@@ -372,11 +365,7 @@ end
 -- @usage
 -- device.writeBotRight('AARDVARK BOTHER HORSES')
 function _M.writeBotRight(s, t)
-    local t = t or 0.8
-
-    if t < 0.2 then
-       t = 0.2
-    end
+    t = math.max(t or 0.8, 0.2)
 
     if s then
         if s ~= curBotRight then
