@@ -16,8 +16,13 @@ local dbg = require "rinLibrary.rinDebug"
 local lpeg = require 'lpeg'
 local Cs, P = lpeg.Cs, lpeg.P
 
-local strLenR400Cache = setmetatable({}, { __mode = "kv" })
-local pasDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
+local strLenN
+local strLenPat = (#P'.' / function() strLenN = 1 end)^-1 *
+                    (   (P'.' * #P'.') / function() strLenN = strLenN + 1 end +
+                        P'.' +
+                        (1-P'.')^1 / function(s) strLenN = strLenN + #s end
+                    )^0
+local padDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -25,23 +30,9 @@ local pasDotsPat = Cs((#P'.' / ' ')^-1 * ((P'.' * #P'.') / '. ' + P(1)) ^0)
 -- @return The number of display characters
 -- @local
 local function strLenR400(s)
-    if strLenR400Cache[s] == nil then
-        local len = 0
-        local dotFound = true
-        for i = 1, #s do
-            local ch = string.sub(s, i, i)
-            if not dotFound and  ch == '.' then
-                dotFound = true
-            else
-                if ch ~= '.' then
-                    dotFound = false
-                end
-                len = len + 1
-            end
-        end
-        strLenR400Cache[s] = len
-    end
-    return strLenR400Cache[s]
+    strLenN = 0
+    strLenPat:match(s)
+    return strLenN
 end
 
 -------------------------------------------------------------------------------
@@ -80,7 +71,7 @@ end
 -- @return Padded string
 -- @local
 local function padDots(s)
-    return pasDotsPat:match(s)
+    return padDotsPat:match(s)
 end
 
 -------------------------------------------------------------------------------

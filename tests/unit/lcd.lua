@@ -41,18 +41,18 @@ describe("LCD #lcd", function ()
     describe("strLen", function()
         local m = makeModule()
         local tc = {
-            { r =  1,   s="."                   },
-            { r =  1,   s="a"                   },
-            { r =  0,   s=""                    },
-            { r =  2,   s=".a."                 },
-            { r =  3,   s=".a.."                },
-            { r =  3,   s="..a."                },
-            { r =  2,   s=".."                  },
-            { r =  3,   s="..."                 },
-            { r =  7,   s="tuvwxyz"             },
-            { r = 10,   s=".........."          },
-            { r =  9,   s="a.b.c.d.e.f.g.h.i."  },
-            { r =  7,   s=".a.b.c.d.e.f."       }
+            { r= 1, s="."                   },
+            { r= 1, s="a"                   },
+            { r= 0, s=""                    },
+            { r= 2, s=".a."                 },
+            { r= 3, s=".a.."                },
+            { r= 3, s="..a."                },
+            { r= 2, s=".."                  },
+            { r= 3, s="..."                 },
+            { r= 7, s="tuvwxyz"             },
+            { r=10, s=".........."          },
+            { r= 9, s="a.b.c.d.e.f.g.h.i."  },
+            { r= 7, s=".a.b.c.d.e.f."       }
         }
         for i = 1, #tc do
             it("test"..i, function()
