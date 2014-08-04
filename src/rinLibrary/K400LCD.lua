@@ -21,27 +21,29 @@ local Cs, P = lpeg.Cs, lpeg.P
 -- string dot padding functions.
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
-local strLenPat = Cs((scdot / ' ' + sdot)^0)
-local padDotsPat = Cs((scdot + sdot / ' .')^0)
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
+-- @function strLenR400
 -- @param s The string to assess
 -- @return The number of display characters
 -- @see padDots
 -- @see strSubR400
 -- @local
+local strLenPat = Cs((scdot / ' ' + sdot)^0)
 local function strLenR400(s)
     return #strLenPat:match(s)
 end
 
 -------------------------------------------------------------------------------
 -- Takes a string and pads ... with . . . for R420 to handle.
+-- @function padDots
 -- @param s String
 -- @return Padded string
 -- @see strSubR400
 -- @see strLenR400
 -- @local
+local padDotsPat = Cs((scdot + sdot / ' .')^0)
 local function padDots(s)
     return padDotsPat:match(s)
 end
