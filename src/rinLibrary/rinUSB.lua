@@ -24,7 +24,7 @@ local eventDevices = {}
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
--- @param f  Callback function takes event table as a parameter
+-- @param callback Callback function takes event table as a parameter
 -- @return The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
@@ -37,10 +37,10 @@ local eventDevices = {}
 --     end
 -- end
 -- usb.setUSBRegisterCallback(registerCB)
-function _M.setUSBRegisterCallback(f)
-    utils.checkCallback(f)
+function _M.setUSBRegisterCallback(callback)
+    utils.checkCallback(callback)
     local r = userUSBRegisterCallback
-    userUSBRegisterCallback = f
+    userUSBRegisterCallback = callback
     return r
 end
 
@@ -59,7 +59,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
--- @param f  Callback function takes event table as a parameter
+-- @param callback Callback function takes event table as a parameter
 -- @return The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
@@ -83,10 +83,10 @@ end
 --     end
 -- end
 -- usb.setUSBEventCallback(eventCB)
-function _M.setUSBEventCallback(f)
-    utils.checkCallback(f)
+function _M.setUSBEventCallback(callback)
+    utils.checkCallback(callback)
     local r = userUSBEventCallback
-    userUSBEventCallback = f
+    userUSBEventCallback = callback
     return r
 end
 
@@ -105,16 +105,16 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB Keyboard event is processed
--- @param f  Callback function takes key string as a parameter
+-- @param callback Callback function takes key string as a parameter
 -- @return The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
 -- usb.setUSBKBDCallback(function(key) print(key, 'pressed') end)
-function _M.setUSBKBDCallback(f)
-    utils.checkCallback(f)
+function _M.setUSBKBDCallback(callback)
+    utils.checkCallback(callback)
     local r = userUSBKBDCallback
-    userUSBKBDCallback = f
+    userUSBKBDCallback = callback
     return r
 end
 
@@ -178,36 +178,40 @@ end
 
 -------------------------------------------------------------------------------
 -- Setup a serial handler
--- @param cb Callback function that accepts data byte at a time
+-- @param callback Callback function that accepts data byte at a time
 -- @param baud Baud rate to use (default RS232_BAUD_9600)
 -- @param data Number of data bits per byte (default RS232_DATA_8)
 -- @param parity Type of parity bit used (default RS232_PARITY_NONE)
 -- @param stopbits Number of stop bits used (default RS232_STOP_1)
 -- @param flow Flavour of flow control used (default RS232_FLOW_OFF)
 -- @usage
--- Refer to the myUSBApp example provided.
+-- -- Refer to the myUSBApp example provided.
 --
 -- local usb = require 'rinLibrary.rinUSB'
 --
 -- -- The call back takes three arguments:
 -- --     c The character just read from the serial device
--- --     err The error indication if c is nil (on creation, "open" is passed as a pseudo-error)
+-- --     err The error indication if c is nil
 -- --     port The incoming serial port
+-- -- The call back is called on open, close and when a character is read.  For the
+-- -- open and close calls, the character argument is nil and the error argument is
+-- -- either "open" or "close".  The call back is not invoked when writing to the
+-- -- serial deivce.
 -- local function usbSerialHandler(c, err, port)
 --     print("USB serial", c, err)
 -- end
 -- usb.serialUSBdeviceHandler(usbSerialHandler)
-function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
-    utils.checkCallback(cb)
+function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
     local b = baud or rs232.RS232_BAUD_9600
     local d = data or rs232.RS232_DATA_8
     local p = parity or rs232.RS232_PARITY_NONE
     local s = stopbits or rs232.RS232_STOP_1
     local f = flow or rs232.RS232_FLOW_OFF
 
-    if cb == nil then
+    if callback == nil then
         libUSBSerialCallback = nil
     else
+        utils.checkCallback(callback)
         libUSBSerialCallback = function (t)
             for k, v in pairs(t) do
                 if v[1] == "serial" then
@@ -225,12 +229,12 @@ function _M.serialUSBdeviceHandler(cb, baud, data, parity, stopbits, flow)
                                                   local e, c, s = port:read(1, 10)
                                                   if s == 0 then
                                                       socks.removeSocket(port)
-                                                      cb(nil, "close", port)
+                                                      callback(nil, "close", port)
                                                   else
-                                                      cb(c, e, port)
+                                                      callback(c, e, port)
                                                   end
                                               end)
-                        cb(nil, "open", port)
+                        callback(nil, "open", port)
                     end
                 end
             end
