@@ -157,7 +157,7 @@ local msgpat = P({
 -- @param msg Message to be processed
 -- @param err Error in receive (nil if none)
 -- @return address (0x00 to 0x1F)
--- @return command  (CMD_*)
+-- @return command (CMD_*)
 -- @return register (REG_*)
 -- @return data (string)
 -- @return error (nil if not error, string otherwise)
