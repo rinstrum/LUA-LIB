@@ -21,3 +21,6 @@ opkg/*
 !*/CONTROL*
 
 /examples/rinApp.ini
+rinApp.ini
+
+src/rinLibrary/checksum-file-list.lua

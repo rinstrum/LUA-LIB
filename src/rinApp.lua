@@ -355,6 +355,7 @@ socks.createServerSocket(2224, socketBidirectionalAccept)
 socks.createServerSocket(2225, socketUnidirectionalAccept)
 _M.running = true
 dbg.info('','------   Application Started %LATEST% -----')
+dbg.info("integrity:", require('rinLibrary.autochecksum'))
 
 setmetatable(_M, {
     __index =

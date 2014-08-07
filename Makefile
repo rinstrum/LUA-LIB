@@ -1,7 +1,7 @@
 #Directories
 BUILDDIR := $(shell pwd)
-LUA_MOD_DIR = usr/local/share/lua/5.1
-STAGE_DIR = opkg
+export LUA_MOD_DIR = usr/local/share/lua/5.1
+export STAGE_DIR = opkg
 M01_DIR = M01
 WWW_DIR = usr/local/www/html
 
@@ -28,10 +28,14 @@ PKGARCH := $(shell sed -n -r "s/Architecture: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/
 PKGNAMEVERS=$(PKGNAME)-$(PKGVERS)
 RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
 PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-M01.pdf
+CHECKSUM_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-checksum
 
 SRC_BASE = *.lua
 
 SRC_LOC_BASE = src
+
+CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
+CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
 .PHONY: clean install $(RELEASE_M01_TARGET)
 
@@ -39,7 +43,7 @@ all: $(RELEASE_M01_TARGET)
 
 clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
-	rm -rf $(M01_DIR)
+	rm -rf $(M01_DIR) $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
 
 unit test:
 	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
@@ -63,6 +67,11 @@ install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinSockets
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
 	$(MKDIR) $(DEST_DIR)/home/lualib_examples
+	rm -f $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
+	echo 'return {' >$(CHECKSUM_TEMP)
+	find src -name '*.lua' | sed -e 's:^src/:    ":' -e 's:[.]lua$$:",:'| sort >>$(CHECKSUM_TEMP)
+	echo '}' >>$(CHECKSUM_TEMP)
+	mv $(CHECKSUM_TEMP) $(CHECKSUM_FILES)
 	$(INSTALL_EXEC) src/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(INSTALL_EXEC) src/IOSocket/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
 	$(INSTALL_EXEC) src/rinLibrary/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary	
@@ -86,3 +95,4 @@ $(RELEASE_M01_TARGET): install pdf
 	$(MKDIR) $(M01_DIR)
 	./opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
+	lua checksum.lua >$(CHECKSUM_M01_TARGET)
