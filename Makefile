@@ -4,6 +4,7 @@ export LUA_MOD_DIR = usr/local/share/lua/5.1
 export STAGE_DIR = opkg
 M01_DIR = M01
 WWW_DIR = usr/local/www/html
+DEST_DIR ?=$(BUILDDIR)/$(STAGE_DIR)
 
 # Test hosts
 #export UPPER_HOST := m4223testbox-upper.rinstrumau.local
@@ -37,7 +38,7 @@ SRC_LOC_BASE = src
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
-.PHONY: clean install $(RELEASE_M01_TARGET)
+.PHONY: clean install pdf checksum $(RELEASE_M01_TARGET)
 
 all: $(RELEASE_M01_TARGET)
 
@@ -58,6 +59,10 @@ pdf: install
 	htmldoc -f $(PDF_M01_TARGET) --webpage --size universal --no-title --no-toc \
 		--numbered --links --format pdf11 --book --color \
 		`find opkg/usr/local/www/html/libdocs -type f -name '*.html'`
+
+checksum: install
+	$(MKDIR) $(M01_DIR)
+	lua checksum.lua >$(CHECKSUM_M01_TARGET)
 
 install:
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
@@ -89,10 +94,8 @@ install:
 	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
 # Rule to create M01 release target
-$(RELEASE_M01_TARGET): override DEST_DIR=$(BUILDDIR)/$(STAGE_DIR)
-$(RELEASE_M01_TARGET): install pdf
+$(RELEASE_M01_TARGET): install checksum pdf
 #Opkg it....
 	$(MKDIR) $(M01_DIR)
 	./opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
-	lua checksum.lua >$(CHECKSUM_M01_TARGET)
