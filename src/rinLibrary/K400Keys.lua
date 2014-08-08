@@ -206,10 +206,10 @@ local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 -- @field up A release of a key
 
 local keyMode = {
-    short = true,
-    long = true,
-    up = true,
-    ['repeat'] = true
+    short = 'group',
+    long = 'group',
+    up = 'group',
+    ['repeat'] = 'key'
 }
 
 local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
@@ -427,9 +427,9 @@ end
 -- Set the callback function for an existing key
 -- @param keyName to monitor
 -- @param callback Function to run when there is an event for that key.
--- @param ... Events for which this callback should be used
+-- @param ... Events for which this callback should be used ('short', 'long', 'up', 'repeat')
 -- @usage
--- -- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
+-- -- Callback function parameters are key ('ok' etc) and state ('short', 'long', 'up' or 'repeat')
 -- local function F1Pressed(key, state)
 --     if state == 'short' then
 --         dbg.info('F1 pressed')
@@ -446,7 +446,7 @@ function _M.setKeyCallback(keyName, callback, ...)
             events = { 'short', 'long' }
         end
         for _, e in pairs(events) do
-            if keyMode[e] then
+            if keyMode[e] ~= nil then
                 keyBinds[key][e] = callback
             else
                 dbg.error('Attempt to add unknown key event: ', e)
@@ -462,7 +462,7 @@ end
 -- encompassing.
 -- @param keyGroupName A keygroup name
 -- @param callback Function to run when there is an event on the keygroup
--- @param ... Events for which this callback should be used
+-- @param ... Events for which this callback should be used ('short', 'long', 'up')
 -- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
 -- Return true in the callback to prevent the handling from being passed along to the next keygroup
 -- @usage
@@ -484,7 +484,7 @@ function _M.setKeyGroupCallback(keyGroupName, callback, ...)
         events = { 'short', 'long' }
     end
     for _, e in pairs(events) do
-        if keyMode[e] then
+        if keyMode[e] == 'group' then
             kg[e] = callback
         else
             dbg.error('Attempt to add unknown key group event: ', e)
