@@ -21,6 +21,7 @@ for _, file in pairs(allfiles) do
         if stat(try) ~= nil then
             insert(files, try)
             insert(files, ' ')
+            break
         end
     end
 end
