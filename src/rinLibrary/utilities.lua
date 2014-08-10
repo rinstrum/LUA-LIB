@@ -155,39 +155,48 @@ return function(mod, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
--- Filter a value based on a batching device
--- @function batching
--- @param v Value to return if batching
--- @return v or nil
--- @local
-
--------------------------------------------------------------------------------
--- Filter a value based on a nonbatching device
--- @function nonbatching
--- @param v Value to return if non-batching
--- @return v or nil
--- @local
-    if private.deviceType == 'k410' then
-        private.batching = willy
-        private.nonbatching = nilly
-    else
-        private.batching = nilly
-        private.nonbatching = willy
-    end
-
--------------------------------------------------------------------------------
 -- Filter a value based on a specific device
 -- @function k401 k402 k410 k491
 -- @param v Value to return if we're the specified device
 -- @return v or nil
 -- @local
     for _, d in pairs{'k401', 'k402', 'k410', 'k491'} do
-        if private.deviceType == d then
-            private[d] = willy
-        else
-            private[d] = nilly
-        end
+        private[d] = (private.deviceType == d) and willy or nilly
     end
+
+-------------------------------------------------------------------------------
+-- Look up our device type in the list and return the associated code
+-- @function valueByDevice
+-- @param l List of device, value pairs
+-- @return associated value
+-- @see batching
+-- @see nonbatching
+-- @local
+-- @usage
+-- local code = valueByDevice{ k401 = 3, k491 = 2, default = 6 }
+    function private.valueByDevice(l)
+        return l[private.deviceType] or l.default
+    end
+
+-------------------------------------------------------------------------------
+-- Filter a value based on a batching device
+-- @function batching
+-- @param v Value to return if batching
+-- @return v or nil
+-- @see nonbatching
+-- @see valueByDevice
+-- @local
+    private.batching = private.valueByDevice{ k410 = willy, default = nilly }
+
+-------------------------------------------------------------------------------
+-- Filter a value based on a nonbatching device
+-- @function nonbatching
+-- @param v Value to return if non-batching
+-- @return v or nil
+-- @see batching
+-- @see valueByDevice
+-- @local
+    private.nonbatching = private.valueByDevice{ default = willy, k410 = nilly }
 
     if _TEST then
         mod.getPrivate = function() return private end
