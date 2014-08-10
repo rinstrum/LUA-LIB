@@ -148,6 +148,7 @@ function _M.getKey(keyGroup)
         function(key, state)
             getKeyPressed = key
             getKeyState = state
+            return true
         end, 'short', 'long')
 
     _M.startDialog()
