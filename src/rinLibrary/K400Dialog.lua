@@ -646,7 +646,7 @@ end
 -- @param loop If true, top option loops to the bottom option and vice versa
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
--- @return selected string  if OK pressed or nil if CANCEL pressed
+-- @return selected string if OK pressed or nil if CANCEL pressed
 -- @usage
 -- local opt = selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
