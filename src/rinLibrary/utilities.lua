@@ -173,9 +173,11 @@ return function(mod, private, deprecated)
 -- @see nonbatching
 -- @local
 -- @usage
--- local code = valueByDevice{ k401 = 3, k491 = 2, default = 6 }
+-- local code = valueByDevice{ k401 = 3, k491 = 2, k410 = 'nil', default = 6 }
     function private.valueByDevice(l)
-        return l[private.deviceType] or l.default
+        local r = l[private.deviceType] or l.default
+        if r == 'nil' then return nil end
+        return r
     end
 
 -------------------------------------------------------------------------------
