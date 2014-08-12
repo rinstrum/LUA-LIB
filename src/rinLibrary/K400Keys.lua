@@ -538,11 +538,11 @@ end
 function private.saveKeyCallbacks(keep)
     local saved = { g=keyGroup, k=keyBinds }
     if keep then
-        keyGroup = newKeyGroup(allKeyGroups)
-        keyBinds = newKeyBinds()
-    else
         keyGroup = deepcopy(keyGroup)
         keyBinds = deepcopy(keyBinds)
+    else
+        keyGroup = newKeyGroup(allKeyGroups)
+        keyBinds = newKeyBinds()
     end
     return saved
 end
