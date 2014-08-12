@@ -136,9 +136,15 @@ return function(mod, private, deprecated)
         end
     end
 
+-------------------------------------------------------------------------------
 -- Add a value to an index modulo a size
--- @param
--- @return
+-- @function addModBase1
+-- @param value Value to modify
+-- @param inc Increment to add to value
+-- @param size Maximum number to reture
+-- @param wrap Should the increment wrap around the ends
+-- @return Updated value
+-- @local
     function private.addModBase1(value, inc, size, wrap)
         if wrap then
             value = value + inc % size
