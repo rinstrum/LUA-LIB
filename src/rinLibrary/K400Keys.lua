@@ -601,8 +601,6 @@ deprecated.REG_FLUSH_KEYS       = REG_FLUSH_KEYS
 deprecated.REG_APP_DO_KEYS      = REG_APP_DO_KEYS
 deprecated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
 
-deprecated.keyGroup             = keyGroup
-
 -- Use names not code here so comparison outside are possible.
 deprecated.KEY_0            = 0
 deprecated.KEY_1            = 1
