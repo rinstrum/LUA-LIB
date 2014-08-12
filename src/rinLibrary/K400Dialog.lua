@@ -599,42 +599,26 @@ function _M.askOK(prompt, q, units, unitsOther)
     local askOKWaiting = true
     local askOKResult = 'cancel'
 
-    local function askOKCallback(key, state)
-        if key == 'ok' then
-            askOKWaiting = false
-            askOKResult = 'ok'
-        elseif key == 'cancel' then
-            askOKWaiting = false
-            askOKResult = 'cancel'
-        end
-
-        return true
-    end
-
-    local prompt = prompt or ''
-    local q = q or ''
-    local u = units or 0
-    local uo = unitsOther or 0
-
-    local f = private.getKeyGroupCallback('keypad', 'short')
-    _M.setKeyGroupCallback('keypad', askOKCallback)
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotRight(prompt)
-    _M.writeBotLeft(q)
-    _M.writeBotUnits(0,0)
-    _M.writeBotUnits(u,uo)
+    _M.writeBotRight(prompt or '')
+    _M.writeBotLeft(q or '')
+    _M.writeBotUnits('none', 'none')
 
-   _M.startDialog()
-    while _M.dialogRunning() and askOKWaiting and _M.app.running do
-        system.handleEvents()
+    _M.startDialog()
+    while askOKWaiting and _M.app.running do
+        local key = _M.getKey('cursor')
+
+        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
+            askOKWaiting = false
+        elseif key == 'ok' then
+            askOKWaiting = false
+            askOKResult = 'ok'
+        end
     end
     _M.abortDialog()
-    _M.setKeyGroupCallback('keypad', f, 'short')
-
     _M.restoreBot()
     return askOKResult
-
 end
 
 -------------------------------------------------------------------------------
@@ -684,9 +668,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
         end
     end
     _M.abortDialog()
-
     _M.restoreBot()
-
     return sel
 end
 
@@ -746,7 +728,6 @@ function _M.selectFromOptions(prompt, options, loop)
     end
     _M.abortDialog()
     _M.restoreBot()
-
     return options.getSelected()
 end
 
