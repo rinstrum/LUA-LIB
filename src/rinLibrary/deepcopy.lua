@@ -7,8 +7,27 @@
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
--- Return a full deep copy of an original object.  Doesn't deal with looping
--- and self referntial data structures.
+-- Return a full deep copy of an original object.
+-- @param o Object to copy
+-- @param s Tables we've already seen
+-- @return A copy of o
+-- @local
+local function dc(o, s)
+    if type(o) == 'table' then
+        if s[o] ~= nil then return s[o] end
+        local c = {}
+        s[o] = c
+
+        for k, v in next, o, nil do
+            c[dc(k, s)] = dc(v, s)
+        end
+        return setmetatable(c, dc(getmetatable(o), s))
+    end
+    return o
+end
+
+-------------------------------------------------------------------------------
+-- Return a full deep copy of an original object.
 -- @function deepcopy
 -- @param o Object to copy
 -- @return A copy of o that shares no data but is otherwise identical
@@ -20,15 +39,4 @@
 --
 -- assert.not_equal(t, u)
 -- assert.same(t, u)
-local function deepcopy(o)
-    if type(o) == 'table' then
-        local c = {}
-        for k, v in next, o, nil do
-            c[deepcopy(k)] = deepcopy(v)
-        end
-        return setmetatable(c, deepcopy(getmetatable(o)))
-    end
-    return o
-end
-
-return deepcopy
+return function(o) return dc(o, {}) end
