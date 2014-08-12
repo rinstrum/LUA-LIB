@@ -46,6 +46,8 @@ return function()
 -------------------------------------------------------------------------------
 -- Return a list of all the options currently in the table
 -- @return List of option names
+-- @see set
+-- @see getSelected
 -- @usage
 -- local t = options.get()
     function _M.get()
@@ -57,6 +59,9 @@ return function()
 -------------------------------------------------------------------------------
 -- Set the options, without removing any existing options
 -- @param ... Option names
+-- @see get
+-- @see clear
+-- @see setAll
 -- @usage
 -- options.set('hello', 'good bye', 'meow')
     function _M.set(...)
@@ -70,6 +75,9 @@ return function()
 -------------------------------------------------------------------------------
 -- Clear the specified options
 -- @param ... Option names
+-- @see get
+-- @see set
+-- @see clearAll
 -- @usage
 -- options.clear('hello')
     function _M.clear(...)
@@ -80,6 +88,9 @@ return function()
 
 -------------------------------------------------------------------------------
 -- Clear all options
+-- @see clear
+-- @see set
+-- @see setAll
 -- @usage
 -- options.clearAll()
     function _M.clearAll()
@@ -89,6 +100,9 @@ return function()
 -------------------------------------------------------------------------------
 -- Set the specified options, all existing options are removed
 -- @param ... Option names
+-- @see clear
+-- @see set
+-- @see clearAll
 -- @usage
 -- options.setAll('hello', 'good bye', 'meow')
     function _M.setAll(...)
@@ -99,6 +113,7 @@ return function()
 -------------------------------------------------------------------------------
 -- Return a list of all the selected options currently in the table
 -- @return List of selected option names
+-- @see get
 -- @usage
 -- local t = options.getSelected()
     function _M.getSelected()
@@ -117,6 +132,7 @@ return function()
 
 -------------------------------------------------------------------------------
 -- Select all options in the table
+-- @see deselectAll
 -- @usage
 -- options.selectAll()
     function _M.selectAll()
@@ -125,6 +141,7 @@ return function()
 
 -------------------------------------------------------------------------------
 -- Deselect all options in the table
+-- @see selectAll
 -- @usage
 -- options.deselectAll()
     function _M.deselectAll()
@@ -134,6 +151,10 @@ return function()
 -------------------------------------------------------------------------------
 -- Select sepcifiec options in the table
 -- @param ... Names of options to select
+-- @see selectAll
+-- @see selectOnly
+-- @see deselect
+-- @see toggle
 -- @usage
 -- options.select('hello', 'meow')
     function _M.select(...)
@@ -143,6 +164,10 @@ return function()
 -------------------------------------------------------------------------------
 -- Select sepcifiec options in the table, deselecting all others
 -- @param ... Names of options to select
+-- @see select
+-- @see selectAll
+-- @see deselect
+-- @see toggle
 -- @usage
 -- options.selectOnly('meow')
     function _M.selectOnly(...)
@@ -153,6 +178,10 @@ return function()
 -------------------------------------------------------------------------------
 -- Deselect sepcifiec options in the table
 -- @param ... Names of options to deselect
+-- @see select
+-- @see selectAll
+-- @see selectOnly
+-- @see toggle
 -- @usage
 -- options.deselect('hello')
     function _M.deselect(...)
@@ -162,6 +191,10 @@ return function()
 -------------------------------------------------------------------------------
 -- Flip the selected state of the given options
 -- @param ... Names of options to deselect
+-- @see select
+-- @see selectAll
+-- @see selectOnly
+-- @see deselect
 -- @usage
 -- options.toggle('good bye')
     function _M.toggle(...)
@@ -169,9 +202,20 @@ return function()
     end
 
 -------------------------------------------------------------------------------
+-- Load a multiselect from the specified file, replacing all current contents
+-- @param filename Name of the file to load
+-- @see save
+-- @usage
+-- options.load('myOptions.txt')
     function _M.load(filename)
     end
 
+-------------------------------------------------------------------------------
+-- Save a multiselect description to the specified file.
+-- @param filename Name of the file to save to, it will be replaced
+-- @see load
+-- @usage
+-- options.save('myOptions.txt')
     function _M.save(filename)
     end
 
