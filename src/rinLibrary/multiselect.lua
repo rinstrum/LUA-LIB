@@ -117,7 +117,9 @@ return function()
 -- @usage
 -- local t = options.getSelected()
     function _M.getSelected()
-        return filter(function(v) return v.selected end)
+        local r = filter(function(v) return v.selected end)
+        table.sort(r)
+        return r
     end
 
 -------------------------------------------------------------------------------
@@ -127,7 +129,7 @@ return function()
 -- @usage
 -- if options.isSelected('hello') then ... end
     function _M.isSelected(opt)
-        return optionList[opt] ~= nil and optionList[opt].selected
+        return opt ~= nil and optionList[opt] ~= nil and optionList[opt].selected
     end
 
 -------------------------------------------------------------------------------
