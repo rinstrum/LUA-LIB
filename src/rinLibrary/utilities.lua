@@ -136,6 +136,19 @@ return function(mod, private, deprecated)
         end
     end
 
+-- Add a value to an index modulo a size
+-- @param
+-- @return
+    function private.addModBase1(value, inc, size, wrap)
+        if wrap then
+            value = value + inc % size
+            if value > size then value = value - size end
+        else
+            value = math.min(size, math.max(1, value + inc))
+        end
+        return value
+    end
+
 -------------------------------------------------------------------------------
 -- Return our argument
 -- @param v Value to return

@@ -650,16 +650,12 @@ end
 -- @usage
 -- local opt = selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
-    loop = loop or false
-    local options = options or {'cancel'}
-    local u = units or 0
-    local uo = unitsOther or 0
-    local key = 0
+    local opts = options or {'cancel'}
     local sel = nil
 
     local index = 1
     if def then
-        for k,v in ipairs(options) do
+        for k,v in ipairs(opts) do
             if v == def then
                 index = k
             end
@@ -670,46 +666,88 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     endDisplayMessage()
     _M.saveBot()
     _M.writeBotRight(string.upper(prompt))
-    _M.writeBotLeft(string.upper(options[index]))
-    _M.writeBotUnits(u,uo)
+    _M.writeBotUnits(units or 'none', unitsOther or 'none')
 
-   _M.startDialog()
+    _M.startDialog()
     while editing and _M.app.running do
-        key = _M.getKey('keypad')
-        if not _M.dialogRunning() then    -- editing aborted so return default
-           editing = false
-        elseif key == 'down' then
-            index = index + 1
-            if index > #options then
-              if loop then
-                 index = 1
-               else
-                  index = #options
-               end
-            end
-        elseif key == 'up' then
-            index = index - 1
-            if index <= 0 then
-               if loop then
-                   index = #options
-               else
-                  index = 1
-               end
-            end
-        elseif key == 'ok' then
-            sel = options[index]
+        _M.writeBotLeft(string.upper(opts[index]))
+        local key = _M.getKey('keypad')
+        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
-        elseif key == 'cancel' then
-          editing = false
-      end
-      _M.writeBotLeft(string.upper(options[index]))
-
+        elseif key == 'down' then
+            index = private.addModBase1(index, 1, #opts, loop)
+        elseif key == 'up' then
+            index = private.addModBase1(index, -1, #opts, loop)
+        elseif key == 'ok' then
+            sel = opts[index]
+            editing = false
+        end
     end
     _M.abortDialog()
 
     _M.restoreBot()
 
     return sel
+end
+
+-------------------------------------------------------------------------------
+-- Prompts operator to select from a multiselect object.  The legal selections
+-- are displayed in alphabetic order and any number of items can be selected.
+-- Keys uses are up and down to navigate, +/- to select or deselect, zero to
+-- select none, decimal point to select all, ok to accept the current selections
+-- and cancel to exit and revert to the original selections.
+-- @param prompt string to put on bottom right LCD, this is preceeded by an
+-- asterik or a space to indicate selection.
+-- @param options multiselect object
+-- @param loop If true, top option loops to the bottom option and vice versa
+-- @return array containing selected item names
+-- @usage
+-- local multiselect = require 'rinLibrary.multiselect'
+-- local options = multiselect()
+-- options.set('cement', 'sand', 'putty', 'oil', 'gravel')
+-- local selections = device.selectFromOptions('mix', options)
+-- for i = 1, #selections do
+--     print('selection ' .. i .. ' is ' .. selections[i])
+-- end
+function _M.selectFromOptions(prompt, options, loop)
+    prompt = string.upper(prompt)
+    local index = 1
+    local opts = options.get()
+    local origSelected = options.getSelected()
+
+    editing = true
+    endDisplayMessage()
+    _M.saveBot()
+    _M.writeBotUnits('none', 'none')
+
+    _M.startDialog()
+    while editing and _M.app.running do
+        _M.writeBotLeft(string.upper(opts[index]))
+        _M.writeBotRight((options.isSelected(opts[index]) and "*" or " ")..prompt)
+
+        local key = _M.getKey('keypad')
+
+        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
+            options.selectOnly(unpack(origSelected))
+            editing = false
+        elseif key == 'down' then
+            index = private.addModBase1(index, 1, #opts, loop)
+        elseif key == 'up' then
+            index = private.addModBase1(index, -1, #opts, loop)
+        elseif key == 'plusminus' then
+            options.toggle(opts[index])
+        elseif key == 'ok' then
+            editing = false
+        elseif key == 0 then
+            options.deselectAll()
+        elseif key == 'dp' then
+            options.selectAll()
+        end
+    end
+    _M.abortDialog()
+    _M.restoreBot()
+
+    return options.getSelected()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
