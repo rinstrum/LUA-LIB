@@ -13,6 +13,7 @@ local timers = require 'rinSystem.rinTimers.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
+local deepcopy = require 'rinLibrary.deepcopy'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -536,9 +537,12 @@ end
 -- @local
 function private.saveKeyCallbacks(keep)
     local saved = { g=keyGroup, k=keyBinds }
-    if not keep then
+    if keep then
         keyGroup = newKeyGroup(allKeyGroups)
         keyBinds = newKeyBinds()
+    else
+        keyGroup = deepcopy(keyGroup)
+        keyBinds = deepcopy(keyBinds)
     end
     return saved
 end
