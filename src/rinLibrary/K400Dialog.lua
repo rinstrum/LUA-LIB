@@ -131,17 +131,18 @@ end
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default
--- @param ... Kinds of key presses of interest
+-- @param keep True if the existing callbacks should be maintained, this can
+-- cause some interference issues unless used prudently.
 -- @return key
 -- @return state ('short' or 'long')
 -- @usage
 -- device.displayMessage('Press key', 3)
 -- print('key pressed was:', device.getKey())
-function _M.getKey(keyGroup)
+function _M.getKey(keyGroup, keep)
     keyGroup = keyGroup or 'all'
     local getKeyState, getKeyPressed
 
-    local saved = private.saveKeyCallbacks()
+    local saved = private.saveKeyCallbacks(keep)
 
     _M.setKeyGroupCallback(keyGroup,
         function(key, state)
