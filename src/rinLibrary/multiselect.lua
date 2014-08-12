@@ -115,7 +115,7 @@ return function()
         return optionList[opt] ~= nil and optionList[opt].selected
     end
 
--------------------------------------------------------------------------------\
+-------------------------------------------------------------------------------
 -- Select all options in the table
 -- @usage
 -- options.selectAll()

@@ -99,8 +99,6 @@ end
 -- -- Program will continue operation immediately.
 -- device.displayMessage('joy', 1.5)
 function _M.displayMessage(msg, t, units, unitsOther)
-	local u = units or 0			-- optional units defaults to none
-	local uo = unitsOther or 0		-- optional other units defaults to none
     local t = t or 0.5
 
     endDisplayMessage()
@@ -108,7 +106,7 @@ function _M.displayMessage(msg, t, units, unitsOther)
 		msgDisp = true
 		_M.saveBot()
 		_M.writeBotLeft(msg)			-- display message
-		_M.writeBotUnits(u,uo)			-- display optional units
+		_M.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 		msgTimer = timers.addTimer(0, t, endDisplayMessage)
 	end
 end
@@ -133,31 +131,34 @@ end
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default
+-- @param ... Kinds of key presses of interest
 -- @return key
 -- @return state ('short' or 'long')
 -- @usage
 -- device.displayMessage('Press key', 3)
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup)
-    local keyGroup = keyGroup or 'all'
+    keyGroup = keyGroup or 'all'
     local getKeyState, getKeyPressed
 
-    local short = private.getKeyGroupCallback(keyGroup, 'short')
-    local long = private.getKeyGroupCallback(keyGroup, 'long')
+    local saved = private.saveKeyCallbacks()
+
     _M.setKeyGroupCallback(keyGroup,
         function(key, state)
             getKeyPressed = key
             getKeyState = state
             return true
         end, 'short', 'long')
+    if keyGroup ~= 'all' then
+        _M.setKeyGroupCallback('all', function() return true end)
+    end
 
     _M.startDialog()
     while _M.dialogRunning() and _M.app.running and not getKeyState do
         system.handleEvents()
     end
     _M.abortDialog()
-    _M.setKeyGroupCallback(keyGroup, short, 'short')
-    _M.setKeyGroupCallback(keyGroup, long, 'long')
+    private.restoreKeyCallbacks(saved)
 
     return getKeyPressed, getKeyState
 end
@@ -305,8 +306,6 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     local ok = false                -- OK button was pressed to accept editing
     local strTab = {}               -- temporary table holding edited string characters
     local blink = false             -- cursor display variable
-    local u = units or 0            -- optional units defaults to none
-    local uo = unitsOther or 0      -- optional other units defaults to none
 
     endDisplayMessage()             -- abort any existing display prompt
     local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
@@ -326,7 +325,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     _M.writeBotRight(prompt)        -- write the prompt
     _M.writeBotLeft(sEditVal)    -- write the default string to edit
-    _M.writeBotUnits(u,uo)          -- display optional units
+    _M.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 
     _M.startDialog()
     while editing and _M.app.running do
@@ -457,9 +456,6 @@ function _M.edit(prompt, def, typ, units, unitsOther)
          def = tostring(def)
      end
 
-    local u = units or 0
-    local uo = unitsOther or 0
-
     local editVal = def
     local editType = typ or 'integer'
     editing = true
@@ -471,7 +467,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     else
        _M.writeBotLeft(editVal)
     end
-    _M.writeBotUnits(u, uo)
+    _M.writeBotUnits(units or 'none', unitsOther or 'none')
 
     local first = true
 
@@ -563,7 +559,7 @@ function _M.editReg(register, prompt)
         end
         _M.delay(0.050)
         if not _M.dialogRunning() or not _M.app.running then
-            _M.sendKey('cancel','long')
+            _M.sendKey('cancel', 'long')
         end
     end
     _M.abortDialog()
@@ -603,7 +599,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     _M.saveBot()
     _M.writeBotRight(prompt or '')
     _M.writeBotLeft(q or '')
-    _M.writeBotUnits('none', 'none')
+    _M.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while askOKWaiting and _M.app.running do
@@ -655,7 +651,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     _M.startDialog()
     while editing and _M.app.running do
         _M.writeBotLeft(string.upper(opts[index]))
-        local key = _M.getKey('keypad')
+        local key = _M.getKey('cursor')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
         elseif key == 'down' then
@@ -682,6 +678,8 @@ end
 -- asterik or a space to indicate selection.
 -- @param options multiselect object
 -- @param loop If true, top option loops to the bottom option and vice versa
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
 -- @return array containing selected item names
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
@@ -691,7 +689,7 @@ end
 -- for i = 1, #selections do
 --     print('selection ' .. i .. ' is ' .. selections[i])
 -- end
-function _M.selectFromOptions(prompt, options, loop)
+function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     prompt = string.upper(prompt)
     local index = 1
     local opts = options.get()
@@ -700,7 +698,7 @@ function _M.selectFromOptions(prompt, options, loop)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotUnits('none', 'none')
+    _M.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while editing and _M.app.running do

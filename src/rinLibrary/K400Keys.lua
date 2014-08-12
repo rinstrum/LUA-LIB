@@ -141,6 +141,59 @@ local REG_APP_KEY_HANDLER  = 0x0325
 
 local keyID = nil
 
+-------------------------------------------------------------------------------
+-- Create a table of keygroup callbacks
+-- @param g The group names
+-- @return Populated table suitable for group addition
+-- @local
+local function newKeyGroup(g)
+    local r = {}
+    for _, g in pairs(g) do
+        r[g] = { --[[ short = nil, long = nil, up = nil, repeat = nil --]] }
+    end
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Create a table of key callbacks
+-- @return Populated table suitable for group addition
+-- @local
+local function newKeyBinds()
+    return {
+        [KEY_0]          = { 'numpad',  'keypad',       'all' },
+        [KEY_1]          = { 'numpad',  'keypad',       'all' },
+        [KEY_2]          = { 'numpad',  'keypad',       'all' },
+        [KEY_3]          = { 'numpad',  'keypad',       'all' },
+        [KEY_4]          = { 'numpad',  'keypad',       'all' },
+        [KEY_5]          = { 'numpad',  'keypad',       'all' },
+        [KEY_6]          = { 'numpad',  'keypad',       'all' },
+        [KEY_7]          = { 'numpad',  'keypad',       'all' },
+        [KEY_8]          = { 'numpad',  'keypad',       'all' },
+        [KEY_9]          = { 'numpad',  'keypad',       'all' },
+        [KEY_POWER]      = { 'primary',                 'all' },
+        [KEY_ZERO]       = { 'primary',                 'all' },
+        [KEY_TARE]       = { 'primary',                 'all' },
+        [KEY_SEL]        = { 'primary',                 'all' },
+        [KEY_F1]         = { 'primary', 'functions',    'all' },
+        [KEY_F2]         = { 'primary', 'functions',    'all' },
+        [KEY_F3]         = { 'primary', 'functions',    'all' },
+        [KEY_PLUSMINUS]  = { 'cursor',  'keypad',       'all' },
+        [KEY_DP]         = { 'cursor',  'keypad',       'all' },
+        [KEY_CANCEL]     = { 'cursor',  'keypad',       'all' },
+        [KEY_UP]         = { 'cursor',  'keypad',       'all' },
+        [KEY_DOWN]       = { 'cursor',  'keypad',       'all' },
+        [KEY_OK]         = { 'cursor',  'keypad',       'all' },
+        [KEY_SETUP]      = { 'primary',                 'all' },
+        [KEY_PWR_ZERO]   = { 'extended',                'all' },
+        [KEY_PWR_TARE]   = { 'extended',                'all' },
+        [KEY_PWR_SEL ]   = { 'extended',                'all' },
+        [KEY_PWR_F1  ]   = { 'extended',                'all' },
+        [KEY_PWR_F2  ]   = { 'extended',                'all' },
+        [KEY_PWR_F3  ]   = { 'extended',                'all' },
+        [KEY_PWR_CANCEL] = { 'extended',                'all' }
+    }
+end
+
 -- Be sure to update the ldoc table to match the defined keyGroups
 --- Key Groups.
 --@table keygroups
@@ -152,47 +205,12 @@ local keyID = nil
 -- @field cursor
 -- @field extended
 
-local keyGroup = {}
-for _, g in pairs({
-            'all',      'cursor',   'extended',  'functions',
-            'keypad',   'numpad',   'primary'
-        }) do
-    keyGroup[g] = { --[[ short = nil, long = nil, up = nil, repeat = nil --]] }
-end
-
-local keyBinds = {
-    [KEY_0]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_1]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_2]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_3]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_4]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_5]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_6]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_7]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_8]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_9]          = { keyGroup.numpad,    keyGroup.keypad,    keyGroup.all },
-    [KEY_POWER]      = { keyGroup.primary,                       keyGroup.all },
-    [KEY_ZERO]       = { keyGroup.primary,                       keyGroup.all },
-    [KEY_TARE]       = { keyGroup.primary,                       keyGroup.all },
-    [KEY_SEL]        = { keyGroup.primary,                       keyGroup.all },
-    [KEY_F1]         = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
-    [KEY_F2]         = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
-    [KEY_F3]         = { keyGroup.primary,   keyGroup.functions, keyGroup.all },
-    [KEY_PLUSMINUS]  = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_DP]         = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_CANCEL]     = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_UP]         = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_DOWN]       = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_OK]         = { keyGroup.cursor,    keyGroup.keypad,    keyGroup.all },
-    [KEY_SETUP]      = { keyGroup.primary,                       keyGroup.all },
-    [KEY_PWR_ZERO]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_TARE]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_SEL ]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_F1  ]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_F2  ]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_F3  ]   = { keyGroup.extended,                      keyGroup.all },
-    [KEY_PWR_CANCEL] = { keyGroup.extended,                      keyGroup.all }
+local allKeyGroups = {
+    'all',      'cursor',   'extended',  'functions',
+    'keypad',   'numpad',   'primary'
 }
+local keyGroup = newKeyGroup(allKeyGroups)
+local keyBinds = newKeyBinds()
 
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 
@@ -206,10 +224,10 @@ local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 -- @field up A release of a key
 
 local keyMode = {
-    short = 'group',
-    long = 'group',
-    up = 'group',
-    ['repeat'] = 'key'
+    short = true,
+    long = true,
+    up = true,
+    ['repeat'] = true
 }
 
 local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
@@ -256,6 +274,23 @@ local function keyRepeater(keyHandler, key)
 end
 
 -------------------------------------------------------------------------------
+-- Check if a given key from the binding table has a repeat handler installed
+-- @param k Key from binding table
+-- @return True iff there is a repeat handler installed for this key
+-- @local
+local function hasRepeatHandler(k)
+    if utils.callable(k['repeat']) then
+        return true
+    end
+    for i = 1, #k do
+        if utils.callable(keyGroup[k[i]]['repeat']) then
+            return true
+        end
+    end
+    return false
+end
+
+-------------------------------------------------------------------------------
 -- Called when keys are streamed, send the keys to each group it is bound to
 -- in order of priority, until one of them returns true.
 -- key states are 'short', 'long', 'up' and 'repeat'
@@ -298,7 +333,7 @@ keyCallback = function(data, err)
             return
         end
 
-        if keyHandler['repeat'] ~= nil then
+        if hasRepeatHandler(keyHandler) then
             if state == 'long' then
                 timers.removeTimer(keyHandler.repeatTimer)
                 keyHandler.repeatTimer = timers.addTimer(0, 0, keyRepeater, keyHandler, key)
@@ -332,16 +367,17 @@ keyCallback = function(data, err)
 
         if not handled then
             for i = 1, #keyHandler do
-                if utils.callable(keyHandler[i][state]) then
+                local group = keyGroup[keyHandler[i]]
+                if utils.callable(group[state]) then
                     local function handler()
                         dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
                         return true
                     end
-                    local cb = keyHandler[i][state]
-                    keyHandler[i][state] = handler
+                    local cb = group[state]
+                    group[state] = handler
                     local r = cb(keyName, state)
-                    if keyHandler[i][state] == handler then
-                        keyHandler[i][state] = cb
+                    if group[state] == handler then
+                        group[state] = cb
                     end
                     if r == true then
                         handled = true
@@ -446,7 +482,7 @@ function _M.setKeyCallback(keyName, callback, ...)
             events = { 'short', 'long' }
         end
         for _, e in pairs(events) do
-            if keyMode[e] ~= nil then
+            if keyMode[e] then
                 keyBinds[key][e] = callback
             else
                 dbg.error('Attempt to add unknown key event: ', e)
@@ -484,7 +520,7 @@ function _M.setKeyGroupCallback(keyGroupName, callback, ...)
         events = { 'short', 'long' }
     end
     for _, e in pairs(events) do
-        if keyMode[e] == 'group' then
+        if keyMode[e] then
             kg[e] = callback
         else
             dbg.error('Attempt to add unknown key group event: ', e)
@@ -493,15 +529,28 @@ function _M.setKeyGroupCallback(keyGroupName, callback, ...)
 end
 
 -------------------------------------------------------------------------------
--- Get the callback function for an existing key group for the specified event
--- @param keyGroupName A keygroup name
--- @param event Event to check for
--- @return callback
+-- Save all key call backs, optionally deleting all existing callbacks
+-- @function saveKeyCallbacks
+-- @param keep True if the existing callbacks should be maintained
+-- @return Saved state that can be restored later
 -- @local
-function private.getKeyGroupCallback(keyGroupName, event)
-    local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
+function private.saveKeyCallbacks(keep)
+    local saved = { g=keyGroup, k=keyBinds }
+    if not keep then
+        keyGroup = newKeyGroup(allKeyGroups)
+        keyBinds = newKeyBinds()
+    end
+    return saved
+end
 
-    return kg[event]
+-------------------------------------------------------------------------------
+-- Restore all key call backs from a saved state
+-- @function restoreKeyCallbacks
+-- @param saved Saved call back state
+-- @local
+function private.restoreKeyCallbacks(saved)
+    keyGroup = saved.g
+    keyBinds = saved.k
 end
 
 -------------------------------------------------------------------------------
