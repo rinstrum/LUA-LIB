@@ -154,8 +154,8 @@ local allKeyGroups = {
 --
 -- By default, both short and long presses are seen
 --@table keyEvents
--- @field short A short press of a key
 -- @field long A long press of a key
+-- @field short A short press of a key
 -- @field repeat A continued repeating press of a key (preceeded by a long event)
 -- @field up A release of a key
 
