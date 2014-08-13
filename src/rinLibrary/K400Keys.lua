@@ -149,10 +149,22 @@ local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
     'keypad',   'numpad',   'primary',  'arrow'
 }
-local keyGroup = newKeyGroup(allKeyGroups)
-local keyBinds = newKeyBinds()
 
-local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
+--- Key events are grouped into a number of different types.
+--
+-- By default, both short and long presses are seen
+--@table keyEvents
+-- @field short A short press of a key
+-- @field long A long press of a key
+-- @field repeat A continued repeating press of a key (preceeded by a long event)
+-- @field up A release of a key
+
+local keyMode = {
+    short = true,
+    long = true,
+    up = true,
+    ['repeat'] = true
+}
 
 --Lua key handling
 local REG_GET_KEY          = 0x0321
@@ -215,21 +227,10 @@ local function newKeyBinds()
     }
 end
 
---- Key events are grouped into a number of different types.
---
--- By default, both short and long presses are seen
---@table keyEvents
--- @field short A short press of a key
--- @field long A long press of a key
--- @field repeat A continued repeating press of a key (preceeded by a long event)
--- @field up A release of a key
+local keyGroup = newKeyGroup(allKeyGroups)
+local keyBinds = newKeyBinds()
 
-local keyMode = {
-    short = true,
-    long = true,
-    up = true,
-    ['repeat'] = true
-}
+local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 
 local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
 local KEYF_MASK = 0x3F
