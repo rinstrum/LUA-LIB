@@ -652,7 +652,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     _M.startDialog()
     while editing and _M.app.running do
         _M.writeBotLeft(string.upper(opts[index]))
-        local key = _M.getKey('cursor')
+        local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
         elseif key == 'down' then
