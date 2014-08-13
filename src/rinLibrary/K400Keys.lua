@@ -137,16 +137,17 @@ end
 --- Key Groups are defined as follows.
 --@table keygroups
 -- @field all All keys.
--- @field primary The six buttong below the display plus on and setup.
+-- @field arrow Up, down, okay and cancel.
+-- @field cursor The non-digit keys to the right of the display.
+-- @field extended Power + key combination keys (pwr_...)
 -- @field functions The three function buttons below the display.
 -- @field keypad The sixteen buttons to the right of the display.
 -- @field numpad The ten digits.
--- @field cursor The non-digit keys to the right of the display.
--- @field extended Power + key combination keys.
+-- @field primary The six buttong below the display plus on and setup.
 
 local allKeyGroups = {
-    'all',      'cursor',   'extended',  'functions',
-    'keypad',   'numpad',   'primary'
+    'all',      'cursor',   'extended', 'functions',
+    'keypad',   'numpad',   'primary',  'arrow'
 }
 local keyGroup = newKeyGroup(allKeyGroups)
 local keyBinds = newKeyBinds()
@@ -180,37 +181,37 @@ end
 -- @local
 local function newKeyBinds()
     return {
-        [KEY_0]          = { 'numpad',  'keypad',       'all' },
-        [KEY_1]          = { 'numpad',  'keypad',       'all' },
-        [KEY_2]          = { 'numpad',  'keypad',       'all' },
-        [KEY_3]          = { 'numpad',  'keypad',       'all' },
-        [KEY_4]          = { 'numpad',  'keypad',       'all' },
-        [KEY_5]          = { 'numpad',  'keypad',       'all' },
-        [KEY_6]          = { 'numpad',  'keypad',       'all' },
-        [KEY_7]          = { 'numpad',  'keypad',       'all' },
-        [KEY_8]          = { 'numpad',  'keypad',       'all' },
-        [KEY_9]          = { 'numpad',  'keypad',       'all' },
-        [KEY_POWER]      = { 'primary',                 'all' },
-        [KEY_ZERO]       = { 'primary',                 'all' },
-        [KEY_TARE]       = { 'primary',                 'all' },
-        [KEY_SEL]        = { 'primary',                 'all' },
-        [KEY_F1]         = { 'primary', 'functions',    'all' },
-        [KEY_F2]         = { 'primary', 'functions',    'all' },
-        [KEY_F3]         = { 'primary', 'functions',    'all' },
-        [KEY_PLUSMINUS]  = { 'cursor',  'keypad',       'all' },
-        [KEY_DP]         = { 'cursor',  'keypad',       'all' },
-        [KEY_CANCEL]     = { 'cursor',  'keypad',       'all' },
-        [KEY_UP]         = { 'cursor',  'keypad',       'all' },
-        [KEY_DOWN]       = { 'cursor',  'keypad',       'all' },
-        [KEY_OK]         = { 'cursor',  'keypad',       'all' },
-        [KEY_SETUP]      = { 'primary',                 'all' },
-        [KEY_PWR_ZERO]   = { 'extended',                'all' },
-        [KEY_PWR_TARE]   = { 'extended',                'all' },
-        [KEY_PWR_SEL ]   = { 'extended',                'all' },
-        [KEY_PWR_F1  ]   = { 'extended',                'all' },
-        [KEY_PWR_F2  ]   = { 'extended',                'all' },
-        [KEY_PWR_F3  ]   = { 'extended',                'all' },
-        [KEY_PWR_CANCEL] = { 'extended',                'all' }
+        [KEY_0]          = { 'numpad',  'keypad',               'all' },
+        [KEY_1]          = { 'numpad',  'keypad',               'all' },
+        [KEY_2]          = { 'numpad',  'keypad',               'all' },
+        [KEY_3]          = { 'numpad',  'keypad',               'all' },
+        [KEY_4]          = { 'numpad',  'keypad',               'all' },
+        [KEY_5]          = { 'numpad',  'keypad',               'all' },
+        [KEY_6]          = { 'numpad',  'keypad',               'all' },
+        [KEY_7]          = { 'numpad',  'keypad',               'all' },
+        [KEY_8]          = { 'numpad',  'keypad',               'all' },
+        [KEY_9]          = { 'numpad',  'keypad',               'all' },
+        [KEY_POWER]      = { 'primary',                         'all' },
+        [KEY_ZERO]       = { 'primary',                         'all' },
+        [KEY_TARE]       = { 'primary',                         'all' },
+        [KEY_SEL]        = { 'primary',                         'all' },
+        [KEY_F1]         = { 'primary', 'functions',            'all' },
+        [KEY_F2]         = { 'primary', 'functions',            'all' },
+        [KEY_F3]         = { 'primary', 'functions',            'all' },
+        [KEY_PLUSMINUS]  = { 'cursor',  'keypad',               'all' },
+        [KEY_DP]         = { 'cursor',  'keypad',               'all' },
+        [KEY_CANCEL]     = { 'arrow',   'cursor',  'keypad',    'all' },
+        [KEY_UP]         = { 'arrow',   'cursor',  'keypad',    'all' },
+        [KEY_DOWN]       = { 'arrow',   'cursor',  'keypad',    'all' },
+        [KEY_OK]         = { 'arrow',   'cursor',  'keypad',    'all' },
+        [KEY_SETUP]      = { 'primary',                         'all' },
+        [KEY_PWR_ZERO]   = { 'extended',                        'all' },
+        [KEY_PWR_TARE]   = { 'extended',                        'all' },
+        [KEY_PWR_SEL ]   = { 'extended',                        'all' },
+        [KEY_PWR_F1  ]   = { 'extended',                        'all' },
+        [KEY_PWR_F2  ]   = { 'extended',                        'all' },
+        [KEY_PWR_F3  ]   = { 'extended',                        'all' },
+        [KEY_PWR_CANCEL] = { 'extended',                        'all' }
     }
 end
 
