@@ -593,7 +593,6 @@ end
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
-    local askOKWaiting = true
     local askOKResult = 'cancel'
 
     endDisplayMessage()
@@ -603,14 +602,14 @@ function _M.askOK(prompt, q, units, unitsOther)
     _M.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
-    while askOKWaiting and _M.app.running do
-        local key = _M.getKey('cursor')
+    while _M.app.running do
+        local key = _M.getKey('arrow')
 
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
-            askOKWaiting = false
+            break
         elseif key == 'ok' then
-            askOKWaiting = false
             askOKResult = 'ok'
+            break
         end
     end
     _M.abortDialog()
