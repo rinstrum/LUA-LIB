@@ -134,6 +134,25 @@ for k, v in pairs(keyMap) do
     keyUnmap[v] = k
 end
 
+--- Key Groups are defined as follows.
+--@table keygroups
+-- @field all All keys.
+-- @field primary The six buttong below the display plus on and setup.
+-- @field functions The three function buttons below the display.
+-- @field keypad The sixteen buttons to the right of the display.
+-- @field numpad The ten digits.
+-- @field cursor The non-digit keys to the right of the display.
+-- @field extended Power + key combination keys.
+
+local allKeyGroups = {
+    'all',      'cursor',   'extended',  'functions',
+    'keypad',   'numpad',   'primary'
+}
+local keyGroup = newKeyGroup(allKeyGroups)
+local keyBinds = newKeyBinds()
+
+local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
+
 --Lua key handling
 local REG_GET_KEY          = 0x0321
 local REG_FLUSH_KEYS       = 0x0322
@@ -194,26 +213,6 @@ local function newKeyBinds()
         [KEY_PWR_CANCEL] = { 'extended',                'all' }
     }
 end
-
--- Be sure to update the ldoc table to match the defined keyGroups
---- Key Groups.
---@table keygroups
--- @field all
--- @field primary
--- @field functions
--- @field keypad
--- @field numpad
--- @field cursor
--- @field extended
-
-local allKeyGroups = {
-    'all',      'cursor',   'extended',  'functions',
-    'keypad',   'numpad',   'primary'
-}
-local keyGroup = newKeyGroup(allKeyGroups)
-local keyBinds = newKeyBinds()
-
-local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 
 --- Key events are grouped into a number of different types.
 --
