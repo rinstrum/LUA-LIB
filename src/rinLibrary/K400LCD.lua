@@ -137,9 +137,9 @@ local REG_DISP_TOP_UNITS       = private.valueByDevice{ k422='nil', default=0x00
 local REG_DISP_BOTTOM_ANNUN    = private.valueByDevice{ k422='nil', default=0x00B4 }
 local REG_DISP_BOTTOM_UNITS    = private.valueByDevice{ k422='nil', default=0x00B5 }
 
-local REG_DISP_AUTO_TOP_ANNUN  = private.valueByDevice{ k422='nil', default=0x00B6 }    -- Register number  REG_*
-local REG_DISP_AUTO_TOP_LEFT   = private.valueByDevice{ k422='nil', default=0x00B7 }    -- Register number  REG_*
-local REG_DISP_AUTO_BOTTOM_LEFT= private.valueByDevice{ k422='nil', default=0x00B8 }    -- Register number  REG_*
+local REG_DISP_AUTO_TOP_ANNUN  = private.valueByDevice{ k422='nil', default=0x00B6 }    -- Register
+local REG_DISP_AUTO_TOP_LEFT   = private.valueByDevice{ k422='nil', default=0x00B7 }    -- Register
+local REG_DISP_AUTO_BOTTOM_LEFT= private.valueByDevice{ k422='nil', default=0x00B8 }    -- Register
 
 --local REG_DEFAULTMODE          = 0x0166
 
