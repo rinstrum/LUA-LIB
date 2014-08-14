@@ -130,16 +130,16 @@ return function (_M, private, deprecated)
 local REG_LCDMODE              = 0x000D
 local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-local REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
-local REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
-local REG_DISP_TOP_ANNUN       = 0x00B2
-local REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
-local REG_DISP_BOTTOM_ANNUN    = 0x00B4
-local REG_DISP_BOTTOM_UNITS    = 0x00B5
+local REG_DISP_TOP_LEFT        = private.valueByDevice{ k422='nil', default=0x00B0 }    -- Takes string
+local REG_DISP_TOP_RIGHT       = private.valueByDevice{ k422='nil', default=0x00B1 }    -- Takes string
+local REG_DISP_TOP_ANNUN       = private.valueByDevice{ k422='nil', default=0x00B2 }
+local REG_DISP_TOP_UNITS       = private.valueByDevice{ k422='nil', default=0x00B3 }    -- Takes string
+local REG_DISP_BOTTOM_ANNUN    = private.valueByDevice{ k422='nil', default=0x00B4 }
+local REG_DISP_BOTTOM_UNITS    = private.valueByDevice{ k422='nil', default=0x00B5 }
 
-local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register number  REG_*
-local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register number  REG_*
-local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register number  REG_*
+local REG_DISP_AUTO_TOP_ANNUN  = private.valueByDevice{ k422='nil', default=0x00B6 }    -- Register number  REG_*
+local REG_DISP_AUTO_TOP_LEFT   = private.valueByDevice{ k422='nil', default=0x00B7 }    -- Register number  REG_*
+local REG_DISP_AUTO_BOTTOM_LEFT= private.valueByDevice{ k422='nil', default=0x00B8 }    -- Register number  REG_*
 
 --local REG_DEFAULTMODE          = 0x0166
 
@@ -167,6 +167,11 @@ local saveBotUnitsOther = 0
 local slideBotLeftPos, slideBotLeftWords, slideBotLeftTimer
 local slideBotRightPos, slideBotRightWords, slideBotRightTimer
 local slideTopLeftPos, slideTopLeftWords, slideTopLeftTimer
+
+local writeTopLeft, writeTopRight
+local writeAutoTopLeft, readAutoTopLeft, writeAutoTopAnnun
+local writeAutoBotLeft, readAutoBotLeft
+local writeTopUnits
 
 --- LCD Control Modes.
 --@table lcdControlModes
@@ -242,9 +247,9 @@ end
 -- device.writeBotLeft('fnord')
 -- device.restoreBot()
 function _M.restoreBot()
-    _M.writeBotLeft(saveBotLeft)
-    _M.writeBotRight(saveBotRight)
-    _M.writeBotUnits(saveBotUnits, saveBotUnitsOther)
+    private.writeBotLeft(saveBotLeft)
+    private.writeBotRight(saveBotRight)
+    private.writeBotUnits(saveBotUnits, saveBotUnitsOther)
 end
 
 -------------------------------------------------------------------------------
@@ -252,8 +257,8 @@ end
 -- @usage
 -- device.saveAutoLeft()
 function _M.saveAutoLeft()
-    saveAutoTopLeft = _M.readAutoTopLeft()
-    saveAutoBotLeft = _M.readAutoBotLeft()
+    saveAutoTopLeft = readAutoTopLeft()
+    saveAutoBotLeft = readAutoBotLeft()
 end
 
 -------------------------------------------------------------------------------
@@ -270,16 +275,17 @@ end
 
 -------------------------------------------------------------------------------
 -- Write string to Top Left of LCD, curTopLeft is set to s
+-- @function writeTopLeft
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
-function _M.writeTopLeft(s,t)
+writeTopLeft = private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, t)
     t = math.max(t or 0.8, 0.2)
 
     if s then
         if s ~= curTopLeft then
-            _M.writeAutoTopLeft(0)
+            writeAutoTopLeft(0)
             curTopLeft = s
             slideTopLeftWords = splitWords(s, 6)
             slideTopLeftPos = 1
@@ -291,21 +297,23 @@ function _M.writeTopLeft(s,t)
             end
         end
     elseif curAutoTopLeft == 0 then
-       _M.writeAutoTopLeft(saveAutoTopLeft)
+       writeAutoTopLeft(saveAutoTopLeft)
     end
-end
+end)
 
 -------------------------------------------------------------------------------
 -- Write string to Top Right of LCD, curTopRight is set to s
+-- @function writeTopRight
 -- @param s string to display
 -- @usage
 -- device.writeTopRight('ABCD')
-function _M.writeTopRight(s)
+writeTopRight = private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s)
     if s and s ~= curTopRight then
         private.writeRegHexAsync(REG_DISP_TOP_RIGHT, s)
         curTopRight = s
     end
-end
+end)
+
 
 -------------------------------------------------------------------------------
 -- Shift the bottom left display section one position
@@ -321,16 +329,17 @@ end
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD, curBotLeft is set to s
+-- @function writeBotLeft
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
 -- @usage
 -- device.writeBotLeft('AARDVARK BOTHER HORSES')
-function _M.writeBotLeft(s, t)
+private.writeBotLeft = private.exposeFunction('writeBotLeft', REG_DISP_BOTTOM_LEFT, function(s, t)
     t = math.max(t or 0.8, 0.2)
 
     if s then
         if s ~= curBotLeft then
-            _M.writeAutoBotLeft(0)
+            writeAutoBotLeft(0)
             curBotLeft = s
             slideBotLeftWords = splitWords(s, 9)
             slideBotLeftPos = 1
@@ -342,9 +351,9 @@ function _M.writeBotLeft(s, t)
             end
         end
     elseif curAutoBotLeft == 0 then
-       _M.writeAutoBotLeft(saveAutoBotLeft)
+       writeAutoBotLeft(saveAutoBotLeft)
     end
-end
+end)
 
 -------------------------------------------------------------------------------
 -- Shift the bottom right display section one position
@@ -360,11 +369,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Right of LCD, curBotRight is set to s
+-- @function writeBotRight
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
 -- @usage
 -- device.writeBotRight('AARDVARK BOTHER HORSES')
-function _M.writeBotRight(s, t)
+private.writeBotRight = private.exposeFunction('writeBotRight', REG_DISP_BOTTOM_RIGHT, function(s, t)
     t = math.max(t or 0.8, 0.2)
 
     if s then
@@ -380,14 +390,16 @@ function _M.writeBotRight(s, t)
             end
         end
     end
-end
-
+end)
 
 -----------------------------------------------------------------------------
 -- Set the bottom annunciators directly.
 -- @local
 local function writeBotAnnuns()
     private.writeRegHexAsync(REG_DISP_BOTTOM_ANNUN, botAnnunState)
+end
+if REG_DISP_BOTTOM_ANNUN == nil then
+    writeBotAnnuns = function() end
 end
 
 -----------------------------------------------------------------------------
@@ -396,26 +408,31 @@ end
 local function writeTopAnnuns()
     private.writeRegHexAsync(REG_DISP_TOP_ANNUN, topAnnunState)
 end
+if REG_DISP_TOP_ANNUN == nil then
+    writeTopAnnuns = function() end
+end
+    
 
 -----------------------------------------------------------------------------
 -- Link register address with Top annunciators to update automatically
--- @param reg address of register to link Top Annunciator state to.
+-- @function writeAutoTopAnnun
+-- @param register address of register to link Top Annunciator state to.
 -- Set to 0 to enable direct control of the area.
 -- @usage
 -- device.writeAutoTopAnnun(0)
-function _M.writeAutoTopAnnun(reg)
-    local r = private.getRegisterNumber(reg)
+writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', REG_DISP_AUTO_TOP_ANNUN, function(register)
+    local r = private.getRegisterNumber(register)
     private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
-end
-
+end)
 
 -----------------------------------------------------------------------------
 -- Link register address with Top Left display to update automatically
+-- @function writeAutoTopLeft
 -- @param register address of register to link Top Left display to.
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoTopLeft('grossnet')
-function _M.writeAutoTopLeft(register)
+writeAutoTopLeft = private.exposeFunction('writeAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function(register)
     local reg = private.getRegisterNumber(register)
 
     if reg ~= curAutoTopLeft then
@@ -425,30 +442,32 @@ function _M.writeAutoTopLeft(register)
         saveAutoTopLeft = curAutoTopLeft
         curAutoTopLeft = reg
     end
-end
+end)
 
 -----------------------------------------------------------------------------
 -- Reads the current Top Left auto update register
+-- @function readAutoTopLeft
 -- @return register that is being used for auto update, 0 if none
 -- @usage
 -- local old = device.readAutoTopLeft()
 -- device.writeAutoTopLeft(0)
 -- ...
 -- device.writeAutoTopLeft(old)
-function _M.readAutoTopLeft()
+readAutoTopLeft = private.exposeFunction('readAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function()
     local reg = private.readRegDec(REG_DISP_AUTO_TOP_LEFT)
     reg = tonumber(reg)
     curAutoTopLeft = reg
     return private.getRegisterName(reg)
-end
+end)
 
 -----------------------------------------------------------------------------
 -- Link register address with Bottom Left display to update automatically
+-- @function writeAutoBotLeft
 -- @param register address of register to link Bottom Left display to.
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoBotLeft('grossnet')
-function _M.writeAutoBotLeft(register)
+writeAutoBotLeft = private.exposeFunction('writeAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function(register)
     local reg = private.getRegisterNumber(register)
 
     if reg ~= curAutoBotLeft then
@@ -458,22 +477,23 @@ function _M.writeAutoBotLeft(register)
         saveAutoBotLeft = curAutoBotLeft
         curAutoBotLeft = reg
     end
-end
+end)
 
 -----------------------------------------------------------------------------
--- reads the current Bottom Left auto update register
+-- Reads the current Bottom Left auto update register
+-- @function readAutoBotLeft
 -- @return register that is being used for auto update, 0 if none
 -- @usage
 -- local old = device.readAutoBotLeft()
 -- device.writeAutoBotLeft(0)
 -- ...
 -- device.writeAutoBotLeft(old)
-function _M.readAutoBotLeft()
+readAutoBotLeft = private.exposeFunction('readAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function()
     local reg = private.readRegDec(REG_DISP_AUTO_BOTTOM_LEFT)
     reg = tonumber(reg)
     curAutoBotLeft = reg
     return private.getRegisterName(reg)
-end
+end)
 
 --- LCD Annunciators
 -- These are the definitions of all the annunicators top and bottom.
@@ -594,8 +614,6 @@ local otherAunnunictors = {
     total   = 0x08,     tot = 0x08
 }
 
-
-
 -------------------------------------------------------------------------------
 -- Convert the annunciator bit maps to a list of values
 -- @param l List of annunciators
@@ -671,44 +689,46 @@ end
 
 -------------------------------------------------------------------------------
 -- Set top units
+-- @function writeTopUnits
 -- @param units Unit to display
 -- @usage
 -- device.writeTopUnits('kg')
-function _M.writeTopUnits (units)
+writeTopUnits = private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(units)
     local u = naming.convertNameToValue(units, unitAnnunicators, 0)
 
     private.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
-end
+end)
 
 -------------------------------------------------------------------------------
 -- Set bottom units
+-- @function writeBotUnits
 -- @param units Unit to display
 -- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
-function _M.writeBotUnits (units, other)
+private.writeBotUnits = private.exposeFunction('writeBotUnits', REG_DISP_BOTTOM_UNITS, function(units, other)
     local u = naming.convertNameToValue(units, unitAnnunicators, 0x00)
     local o = naming.convertNameToValue(other, otherAunnunictors, 0x00)
 
     private.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u
     curBotUnitsOther = o
-end
+end)
 
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 -- @usage
 -- device.restoreLcd()
 function _M.restoreLcd()
-    _M.writeAutoTopAnnun(0)
-    _M.writeAutoTopLeft('grossnet')
-    _M.writeAutoBotLeft(0)
-    _M.writeTopRight('')
-    _M.writeBotLeft('')
-    _M.writeBotRight('')
+    writeAutoTopAnnun(0)
+    writeAutoTopLeft('grossnet')
+    writeAutoBotLeft(0)
+    writeTopRight('')
+    private.writeBotLeft('')
+    private.writeBotRight('')
     writeBotAnnuns(0)
-    _M.writeBotUnits()
+    private.writeBotUnits()
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

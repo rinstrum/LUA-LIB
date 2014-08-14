@@ -102,11 +102,11 @@ function _M.displayMessage(msg, t, units, unitsOther)
     local t = t or 0.5
 
     endDisplayMessage()
-	if msg and (t > 0) then		
+	if msg and t > 0 then
 		msgDisp = true
 		_M.saveBot()
-		_M.writeBotLeft(msg)			-- display message
-		_M.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
+		private.writeBotLeft(msg)			-- display message
+		private.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 		msgTimer = timers.addTimer(0, t, endDisplayMessage)
 	end
 end
@@ -122,7 +122,7 @@ end
 -- -- Program will pause operation immediately.
 -- device.displayMessageWait('unhappy', 1.5)
 function _M.displayMessageWait(msg, t, units, unitsOther)
-   _M.displayMessage(msg,t,units,unitsOther)
+   _M.displayMessage(msg, t, units, unitsOther)
    while msgDisp do
        system.handleEvents()
    end
@@ -276,7 +276,7 @@ local function blinkCursor()
         str = sEditVal
     end
 --  print(str)  -- debug
-    _M.writeBotLeft(str)
+    private.writeBotLeft(str)
 end
 
 -------------------------------------------------------------------------------
@@ -324,9 +324,9 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
         pKey = 'def'    -- give pKey a value so we start editing from the end
     end
 
-    _M.writeBotRight(prompt)        -- write the prompt
-    _M.writeBotLeft(sEditVal)    -- write the default string to edit
-    _M.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
+    private.writeBotRight(prompt)        -- write the prompt
+    private.writeBotLeft(sEditVal)    -- write the default string to edit
+    private.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 
     _M.startDialog()
     while editing and _M.app.running do
@@ -462,13 +462,13 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotRight(prompt)
+    private.writeBotRight(prompt)
     if hide then
-       _M.writeBotLeft(string.rep('+',#editVal))
+       private.writeBotLeft(string.rep('+',#editVal))
     else
-       _M.writeBotLeft(editVal)
+       private.writeBotLeft(editVal)
     end
-    _M.writeBotUnits(units or 'none', unitsOther or 'none')
+    private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     local first = true
 
@@ -520,9 +520,9 @@ function _M.edit(prompt, def, typ, units, unitsOther)
             end
         end
         if hide then
-           _M.writeBotLeft(string.rep('+',#editVal))
+           private.writeBotLeft(string.rep('+',#editVal))
         else
-           _M.writeBotLeft(editVal..' ')
+           private.writeBotLeft(editVal..' ')
         end
     end
     _M.abortDialog()
@@ -545,9 +545,9 @@ function _M.editReg(register, prompt)
     if (prompt) then
         _M.saveBot()
         if type(prompt) == 'string' then
-            _M.writeBotRight(prompt)
+            private.writeBotRight(prompt)
         else
-            _M.writeBotRight(private.getRegName(reg))
+            private.writeBotRight(private.getRegName(reg))
         end
     end
     private.writeReg(REG_EDIT_REG, reg)
@@ -597,9 +597,9 @@ function _M.askOK(prompt, q, units, unitsOther)
 
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotRight(prompt or '')
-    _M.writeBotLeft(q or '')
-    _M.writeBotUnits(units or 'none', unitsOther or 'none')
+    private.writeBotRight(prompt or '')
+    private.writeBotLeft(q or '')
+    private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while _M.app.running do
@@ -645,12 +645,12 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotRight(string.upper(prompt))
-    _M.writeBotUnits(units or 'none', unitsOther or 'none')
+    private.writeBotRight(string.upper(prompt))
+    private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while editing and _M.app.running do
-        _M.writeBotLeft(string.upper(opts[index]))
+        private.writeBotLeft(string.upper(opts[index]))
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
@@ -698,12 +698,12 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    _M.writeBotUnits(units or 'none', unitsOther or 'none')
+    private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while editing and _M.app.running do
-        _M.writeBotLeft(string.upper(opts[index]))
-        _M.writeBotRight((options.isSelected(opts[index]) and "*" or " ")..prompt)
+        private.writeBotLeft(string.upper(opts[index]))
+        private.writeBotRight((options.isSelected(opts[index]) and "*" or " ")..prompt)
 
         local key = _M.getKey('keypad')
 
