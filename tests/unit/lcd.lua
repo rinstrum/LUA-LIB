@@ -38,6 +38,20 @@ describe("LCD #lcd", function ()
         end
     end)
 
+    describe("K422 missing registers", function()
+        local m, p, d = {}, { deviceType = 'k422' }, {}
+        require("rinLibrary.utilities")(m, p, d)
+        require("rinLibrary.K400LCD")(m, p, d)
+
+        for k, v in pairs(dregs) do
+            if v >= 16 then
+                it("test "..k, function()
+                    assert.is_nil(d["REG_" .. string.upper(k)])
+                end)
+            end
+        end
+    end)
+
     describe("deprecated enumerations", function()
         local _, _, d = makeModule()
         for k, v in pairs{
