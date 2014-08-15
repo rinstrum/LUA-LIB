@@ -142,8 +142,10 @@ local dpPattern = S('+-')^-1 * locale.space^0 * locale.digit^0 * (P'.' * (locale
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @local
 local function sendReg(cmd, reg, data, crc)
-    local r = private.getRegisterNumber(reg)
-    private.send(nil, cmd, r, data, "noReply", crc)
+    if reg ~= nil then
+        local r = private.getRegisterNumber(reg)
+        private.send(nil, cmd, r, data, "noReply", crc)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -157,9 +159,6 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 local function sendRegWait(cmd, reg, data, t, crc)
-
-    local t = t or 2.0
-
     if reg == nil then
           return nil, 'Nil Register'
     end
@@ -181,7 +180,7 @@ local function sendRegWait(cmd, reg, data, t, crc)
     local f = private.getDeviceRegister(r)
     private.bindRegister(r, waitf)
     private.send(nil, cmd, r, data, "reply", crc)
-    local tmr = timers.addTimer(0, t, waitf, nil, 'Timeout')
+    local tmr = timers.addTimer(0, t or 2.0, waitf, nil, 'Timeout')
 
     while waiting do
         system.handleEvents()
