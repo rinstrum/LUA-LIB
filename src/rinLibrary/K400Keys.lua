@@ -302,7 +302,10 @@ end
 -- @param err Potential error message
 -- @local
 keyCallback = function(data, err)
-    if data == KEY_IDLE then return end
+    if type(data) ~= 'number' then
+        data = tonumber(data, 16)
+    end
+    if data == KEY_IDLE or data == nil then return end
 
     local state = "short"
     local key = bit32.band(data, 0x3F)
@@ -418,6 +421,14 @@ end
 -- Note: this function generally does not need to be called as the application
 -- framework takes care of this.
 function _M.setupKeys()
+    -- Gross hack here that needs to be removed MORE TODO
+    if private.k422(true) then
+        private.writeRegHexAsync(0x41, 5)
+        private.writeRegAsync(0x42, 0x13)
+        private.exRegAsync(0x40, 1)
+        private.bindRegister(0x40, keyCallback)
+        return
+    end
     _M.flushKeys()
     private.writeRegHex(REG_APP_KEY_HANDLER, 1)
     keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
