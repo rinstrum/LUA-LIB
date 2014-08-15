@@ -139,32 +139,34 @@ end
 -- device.addStream('grossnet', handleWeight, 'change')
 function _M.addStream(streamReg, callback, onChange)
     utils.checkCallback(callback)
-    local reg = private.getRegisterNumber(streamReg)
-    local availReg = nil
+    if streamReg ~= nil then
+        local reg = private.getRegisterNumber(streamReg)
+        local availReg = nil
 
-    for k,v in pairs(availRegistersUser) do
-        if v.reg == 0 and (availReg == nil or k < availReg) then
-            availReg = k
+        for k,v in pairs(availRegistersUser) do
+            if v.reg == 0 and (availReg == nil or k < availReg) then
+                availReg = k
+            end
         end
+
+        if availReg == nil then
+            return nil, "no more registers available"
+        end
+
+        availRegistersUser[availReg].dp = private.getRegDecimalPlaces(reg)
+        availRegistersUser[availReg].reg = reg
+        availRegistersUser[availReg].callback = callback
+        availRegistersUser[availReg].onChange = onChange or 'change'
+        availRegistersUser[availReg].lastData = ''
+        availRegistersUser[availReg].typ = private.getRegType(reg)
+        streamRegistersUser[reg] = availReg
+
+        private.writeRegHexAsync(REG_USER_STREAMMODE, convertFrequency(freqUser))
+        private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
+        private.exRegAsync(REG_USER_STREAMDATA, STM_START)
+
+        private.bindRegister(REG_USER_STREAMDATA, streamCallback)
     end
-
-    if availReg == nil then
-        return nil, "no more registers available"
-    end
-
-    availRegistersUser[availReg].dp = private.getRegDecimalPlaces(reg)
-    availRegistersUser[availReg].reg = reg
-    availRegistersUser[availReg].callback = callback
-    availRegistersUser[availReg].onChange = onChange or 'change'
-    availRegistersUser[availReg].lastData = ''
-    availRegistersUser[availReg].typ = private.getRegType(reg)
-    streamRegistersUser[reg] = availReg
-
-    private.writeRegHexAsync(REG_USER_STREAMMODE, convertFrequency(freqUser))
-    private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
-    private.exRegAsync(REG_USER_STREAMDATA, STM_START)
-
-    private.bindRegister(REG_USER_STREAMDATA, streamCallback)
     return streamReg
 end
 
@@ -240,32 +242,34 @@ end
 -- @local
 function private.addStreamLib(streamReg, callback, onChange)
     utils.checkCallback(callback)
-    local reg = private.getRegisterNumber(streamReg)
-    local availReg = nil
+    if streamReg ~= nil then
+        local reg = private.getRegisterNumber(streamReg)
+        local availReg = nil
 
-    for k,v in pairs(availRegistersLib) do
-        if v.reg == 0 and (availReg == nil or k < availReg) then
-            availReg = k
+        for k,v in pairs(availRegistersLib) do
+            if v.reg == 0 and (availReg == nil or k < availReg) then
+                availReg = k
+            end
         end
+
+        if availReg == nil then
+            return nil, "no more registers available"
+        end
+
+        availRegistersLib[availReg].dp = private.getRegDecimalPlaces(reg)
+        availRegistersLib[availReg].reg = reg
+        availRegistersLib[availReg].callback = callback
+        availRegistersLib[availReg].onChange = onChange or 'change'
+        availRegistersLib[availReg].lastData = ''
+
+        streamRegistersLib[reg] = availReg
+
+        private.writeRegHexAsync(REG_LIB_STREAMMODE, convertFrequency(freqLib))
+        private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
+        private.exRegAsync(REG_LIB_STREAMDATA, STM_START)
+
+        private.bindRegister(REG_LIB_STREAMDATA, streamCallbackLib)
     end
-
-    if availReg == nil then
-        return nil, "no more registers available"
-    end
-
-    availRegistersLib[availReg].dp = private.getRegDecimalPlaces(reg)
-    availRegistersLib[availReg].reg = reg
-    availRegistersLib[availReg].callback = callback
-    availRegistersLib[availReg].onChange = onChange or 'change'
-    availRegistersLib[availReg].lastData = ''
-
-    streamRegistersLib[reg] = availReg
-
-    private.writeRegHexAsync(REG_LIB_STREAMMODE, convertFrequency(freqLib))
-    private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
-    private.exRegAsync(REG_LIB_STREAMDATA, STM_START)
-
-    private.bindRegister(REG_LIB_STREAMDATA, streamCallbackLib)
     return streamReg
 end
 
