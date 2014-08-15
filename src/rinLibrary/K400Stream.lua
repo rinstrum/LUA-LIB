@@ -28,13 +28,12 @@ local REG_STREAMREG2    = 0x0043
 local REG_STREAMREG3    = 0x0044
 local REG_STREAMREG4    = 0x0045
 local REG_STREAMREG5    = 0x0046
-local REG_LUALIB        = 0x0300    -- Should be bor'd with other stream regs
-local REG_LUAUSER       = 0x0310    -- should be bor'd with base stream regs
 
-local REG_LIB_STREAMDATA    = bit32.bor(REG_LUALIB, REG_STREAMDATA)
-local REG_LIB_STREAMMODE    = bit32.bor(REG_LUALIB, REG_STREAMMODE)
-local REG_USER_STREAMDATA   = bit32.bor(REG_LUAUSER, REG_STREAMDATA)
-local REG_USER_STREAMMODE   = bit32.bor(REG_LUAUSER, REG_STREAMMODE)
+-- Define the available stream register blocks.  These are either nil or should
+-- be binary ORed into the above register values.
+local REG_LUALIB        = private.valueByDevice{ k422='nil', default=0x0300 }
+local REG_LUAUSER       = private.valueByDevice{ k422='nil', default=0x0310 }
+local REG_STANDARD      = private.valueByDevice{ k422=0x0000, default='nil' }
 
 local STM_START         = 1
 local STM_STOP          = 0
@@ -54,31 +53,41 @@ local frequencyTable = {
     onchange = STM_FREQ_ONCHANGE,
 }
 
-local freqLib = 'onchange'
-local freqUser = 'onchange'
+local freq = 'onchange'
+local availRegisters, streamRegisters = {}, {}
 
-local availRegistersUser, streamRegistersUser = {}, {}
-local availRegistersLib, streamRegistersLib = {}, {}
+-----------------------------------------------------------------------------
+-- Add a group of streaming registers to the available register list
+-- @param base Stream registers base location
+-- @local
+local function addStreamingRegisters(base)
+    if base ~= nil then
+        local data = bit32.bor(base, REG_STREAMDATA)
+        local mode = bit32.bor(base, REG_STREAMMODE)
 
-for _, r in pairs({
-    REG_STREAMREG1, REG_STREAMREG2, REG_STREAMREG3,
-    REG_STREAMREG4, REG_STREAMREG5
-}) do
-    availRegistersUser[r] = {   reg = 0,
-                                callback = nil,
-                                onChange = 'change',
-                                lastData = '',
-                                dp = 0,
-                                typ = 'long'
-                              }
-    availRegistersLib[r] = {    reg = 0,
-                                callback = nil,
-                                onChange = 'change',
-                                lastData = '',
-                                dp = 0
-                              }
+        for _, r in pairs{
+            REG_STREAMREG1, REG_STREAMREG2, REG_STREAMREG3,
+            REG_STREAMREG4, REG_STREAMREG5
+        } do
+            table.insert(availRegisters, {
+                reg = 0,
+                callback = nil,
+                onChange = 'change',
+                lastData = '',
+                dp = 0,
+                typ = 'long',
+                data = data,
+                mode = mode,
+                stream = bit32.bor(base, r),
+                position = (r - REG_STREAMREG1) * 8
+            })
+        end
+    end
 end
 
+addStreamingRegisters(REG_LUALIB)
+addStreamingRegisters(REG_LUAUSER)
+addStreamingRegisters(REG_STANDARD)
 
 -----------------------------------------------------------------------------
 -- Convert a frequency string to a frequency value
@@ -95,27 +104,27 @@ end
 -- @param data Data received from register
 -- @param err Potential error message
 -- @local
-local function streamCallback(data, err)
-
+local function streamCallback(reg, data, err)
     if err then return end
     if (string.len(data) % 8 ~= 0) or
        (string.find(data,'%X')) then
-          dbg.error('Corrupt Stream Data: ',data)
+          dbg.error('Corrupt Stream Data: ', data)
           return
     end
 
-    for k,v in pairs(availRegistersUser) do
-        if v.reg ~= 0 then
-            local ind = (k - REG_STREAMREG1) * 8
-            local substr = string.sub(data,ind+1,ind+8)
+    for k = 1, #availRegisters do
+        local v = availRegisters[k]
+        if v.data == reg and v.reg ~= 0 then
+            local ind = v.position
+            local substr = string.sub(data, ind+1, ind+8)
 
             if substr and substr ~= "" then
-                if (v.onChange == 'always') or (v.lastData ~= substr) then
+                if v.onChange == 'always' or v.lastData ~= substr then
                      v.lastData = substr
                      if v.typ == 'weight' and _M.isHiRes() then
-                         timers.addEvent(v.callback, private.toFloat(substr,v.dp+1), err)
+                         timers.addEvent(v.callback, private.toFloat(substr, v.dp+1), err)
                      else
-                         timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
+                         timers.addEvent(v.callback, private.toFloat(substr, v.dp), err)
                      end
                 end
             end
@@ -143,9 +152,11 @@ function _M.addStream(streamReg, callback, onChange)
         local reg = private.getRegisterNumber(streamReg)
         local availReg = nil
 
-        for k,v in pairs(availRegistersUser) do
-            if v.reg == 0 and (availReg == nil or k < availReg) then
-                availReg = k
+        for k = 1, #availRegisters do
+            local v = availRegisters[k]
+            if v.reg == 0 then
+                availReg = v
+                break
             end
         end
 
@@ -153,19 +164,21 @@ function _M.addStream(streamReg, callback, onChange)
             return nil, "no more registers available"
         end
 
-        availRegistersUser[availReg].dp = private.getRegDecimalPlaces(reg)
-        availRegistersUser[availReg].reg = reg
-        availRegistersUser[availReg].callback = callback
-        availRegistersUser[availReg].onChange = onChange or 'change'
-        availRegistersUser[availReg].lastData = ''
-        availRegistersUser[availReg].typ = private.getRegType(reg)
-        streamRegistersUser[reg] = availReg
+        availReg.dp = private.getRegDecimalPlaces(reg)
+        availReg.reg = reg
+        availReg.callback = callback
+        availReg.onChange = onChange or 'change'
+        availReg.lastData = ''
+        availReg.typ = private.getRegType(reg)
+        streamRegisters[reg] = availReg
 
-        private.writeRegHexAsync(REG_USER_STREAMMODE, convertFrequency(freqUser))
-        private.writeRegAsync(bit32.bor(REG_LUAUSER, availReg), reg)
-        private.exRegAsync(REG_USER_STREAMDATA, STM_START)
+        private.writeRegHexAsync(availReg.mode, convertFrequency(freqUser))
+        private.writeRegAsync(availReg.stream, reg)
+        private.exRegAsync(availReg.data, STM_START)
 
-        private.bindRegister(REG_USER_STREAMDATA, streamCallback)
+        private.bindRegister(availReg.data, function(data, err)
+            streamCallback(availReg.data, data, err)
+        end)
     end
     return streamReg
 end
@@ -178,126 +191,25 @@ end
 function _M.removeStream(streamReg)
     if streamReg ~= nil then
         local reg = private.getRegisterNumber(streamReg)
-        local availReg = streamRegistersUser[reg]
+        local availReg = streamRegisters[reg]
 
         if availReg ~= nil then
-            availRegistersUser[availReg].reg = 0
+            availReg.reg = 0
             streamRegistersUser[reg] = nil
 
             local stop = true
-            for k, v in pairs(availRegistersUser) do
-                if v.reg ~= 0 then
+            for k = 1, #availRegisters do
+                v = availRegisters[k]
+                if v.data == availReg.data and v.reg ~= 0 then
                     stop = false
                 end
             end
             if stop then
-                private.exReg(REG_USER_STREAMDATA, STM_STOP)
+                private.exReg(availReg.data, STM_STOP)
             end
 
-            private.writeReg(bit32.bor(REG_LUAUSER, availReg), 0)
-            private.unbindRegister(bit32.bor(REG_LUAUSER, availReg))
-        end
-    end
-end
-
------------------------------------------------------------------------------
--- Divide the data stream up and run the callbacks for Library streams
--- @param data Data received from register
--- @param err Potential error message
--- @local
-local function streamCallbackLib(data, err)
-    if err then return end
-    if (string.len(data) % 8 ~= 0) or (string.find(data,'%X')) then
-        dbg.error('Corrupt Lib Stream Data: ',data)
-        return
-    end
-
-    for k,v in pairs(availRegistersLib) do
-        if v.reg ~= 0 then
-            local ind = (k - REG_STREAMREG1) * 8
-            local substr = string.sub(data,ind+1,ind+8)
-
-            if substr and substr ~= "" then
-                if (v.onChange == 'always') or (v.lastData ~= substr) then
-                     v.lastData = substr
-                     timers.addEvent(v.callback, private.toFloat(substr,v.dp), err)
-                end
-            end
-        end
-    end
-end
-
--------------------------------------------------------------------------------
--- Add a stream to the device (must be connected)
--- Takes parameter 'change' (default) to run callback only if data
--- received changed, 'always' otherwise
--- These stream registers are used by standard library functions so
--- not all of the 5 registers will be available for general use.
--- In other words, don't use this function.
--- @param streamReg Register to stream from
--- @param callback Function to bind to streaming register
--- @param onChange Change parameter ('change' or 'always')
--- @return streamReg identity
--- @return error message
--- @local
-function private.addStreamLib(streamReg, callback, onChange)
-    utils.checkCallback(callback)
-    if streamReg ~= nil then
-        local reg = private.getRegisterNumber(streamReg)
-        local availReg = nil
-
-        for k,v in pairs(availRegistersLib) do
-            if v.reg == 0 and (availReg == nil or k < availReg) then
-                availReg = k
-            end
-        end
-
-        if availReg == nil then
-            return nil, "no more registers available"
-        end
-
-        availRegistersLib[availReg].dp = private.getRegDecimalPlaces(reg)
-        availRegistersLib[availReg].reg = reg
-        availRegistersLib[availReg].callback = callback
-        availRegistersLib[availReg].onChange = onChange or 'change'
-        availRegistersLib[availReg].lastData = ''
-
-        streamRegistersLib[reg] = availReg
-
-        private.writeRegHexAsync(REG_LIB_STREAMMODE, convertFrequency(freqLib))
-        private.writeRegAsync(bit32.bor(REG_LUALIB, availReg), reg)
-        private.exRegAsync(REG_LIB_STREAMDATA, STM_START)
-
-        private.bindRegister(REG_LIB_STREAMDATA, streamCallbackLib)
-    end
-    return streamReg
-end
-
--------------------------------------------------------------------------------
--- Remove a stream from the library set of streams
--- @param streamReg Register to be removed
--- @local
-function private.removeStreamLib(streamReg)
-    if streamReg ~= nil then
-        local reg = private.getRegisterNumber(streamReg)
-        local availReg = streamRegistersLib[reg]
-
-        if availReg ~= nil then
-            availRegistersLib[availReg].reg = 0
-            streamRegistersLib[reg] = nil
-
-            local stop = true
-            for k,v in pairs(availRegistersLib) do
-                if v.reg ~= 0 then
-                    stop = false
-                end
-            end
-            if stop then
-                private.exReg(REG_LIB_STREAMDATA, STM_STOP)
-            end
-
-            private.writeReg(bit32.bor(REG_LUALIB, availReg), 0)
-            private.unbindRegister(bit32.bor(REG_LUALIB, availReg))
+            private.writeReg(availReg.stream, 0)
+            private.unbindRegister(availReg.stream)
         end
     end
 end
@@ -308,20 +220,20 @@ end
 -- @usage
 -- device.streamCleanup()
 function _M.streamCleanup()
-    private.exReg(REG_USER_STREAMDATA, STM_STOP) -- stop streaming first
-    private.exReg(REG_LIB_STREAMDATA, STM_STOP)  -- stop streaming first
-
-    for k,v in pairs(availRegistersUser) do
-        private.writeReg(bit32.bor(REG_LUAUSER, k), 0)
-        v.reg = 0
+    local function stop(r)
+        if r ~= nil then
+            private.exReg(bit32.bor(r, REG_STREAMDATA), STM_STOP)
+        end
     end
-    for k,v in pairs(availRegistersLib) do
-        private.writeReg(bit32.bor(REG_LUALIB, k), 0)
-        v.reg = 0
-    end
+    stop(REG_STANDARD)
+    stop(REG_LUALIB)
+    stop(REG_LUAUSER)
 
-    streamRegistersUser = {}
-    streamRegistersLib = {}
+    for k = 1, #availRegisters do
+        private.writeRegAsync(availRegisters[k].stream, 0)
+        availRegisters[k].reg = 0
+    end
+    streamRegisters = {}
 end
 
 -------------------------------------------------------------------------------
@@ -337,40 +249,23 @@ function _M.setStreamFreq(freq)
 end
 
 -------------------------------------------------------------------------------
--- Set the frequency used for library streaming.
--- @param freq Frequency of streaming
--- @return The previous frequency
--- @usage
--- device.setStreamFreqLib('onchange')
--- @local
-function private.setStreamFreqLib(freq)
-    local f = freqLib
-    freqLib = freq or f
-    return f
-end
-
--------------------------------------------------------------------------------
 -- Called to force all stream registers to resend current state.
 -- @usage
 -- device.renewStreamData()
 function _M.renewStreamData()
-    local streamUser = false
-    for _,v in pairs(availRegistersLib) do
-            v.lastData = ''
-    end
-    for _,v in pairs(availRegistersUser) do
-        if v.reg ~= 0 then
-            streamUser = true
+    local cleanup = {}
+
+    for k = 1, #availRegisters do
+        availRegisters[k].lastData = ''
+        if availRegisters[k].reg ~= 0 then
+            table.insert(cleanup, availRegisters[k].data)
         end
-        v.lastData = ''
     end
     private.renewStatusBinds()
 
-
-    if streamUser then
-        private.readRegHex(REG_USER_STREAMDATA)
+    for k = 1, #cleanup do
+        private.readRegHex(cleanup[k])
     end
-    private.readRegHex(REG_LIB_STREAMDATA)
 end
 
 
@@ -405,8 +300,8 @@ deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
 deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
 deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
 
-deprecated.addStreamLib      = private.addStreamLib
-deprecated.removeStreamLib   = private.removeStreamLib
-deprecated.setStreamFreqLib  = private.setStreamFreqLib
+deprecated.addStreamLib      = _M.addStream
+deprecated.removeStreamLib   = _M.removeStream
+deprecated.setStreamFreqLib  = _M.setStreamFreq
 
 end

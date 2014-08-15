@@ -167,7 +167,7 @@ local keyMode = {
 }
 
 --Lua key handling
-local REG_GET_KEY          = 0x0321
+local REG_GET_KEY          = private.k422(0x13) or 0x0321
 local REG_FLUSH_KEYS       = 0x0322
 local REG_APP_DO_KEYS      = 0x0324
 local REG_APP_KEY_HANDLER  = 0x0325
@@ -421,17 +421,9 @@ end
 -- Note: this function generally does not need to be called as the application
 -- framework takes care of this.
 function _M.setupKeys()
-    -- Gross hack here that needs to be removed MORE TODO
-    if private.k422(true) then
-        private.writeRegHexAsync(0x41, 5)
-        private.writeRegAsync(0x42, 0x13)
-        private.exRegAsync(0x40, 1)
-        private.bindRegister(0x40, keyCallback)
-        return
-    end
     _M.flushKeys()
     private.writeRegHex(REG_APP_KEY_HANDLER, 1)
-    keyID = private.addStreamLib(REG_GET_KEY, keyCallback, 'change')
+    keyID = _M.addStream(REG_GET_KEY, keyCallback, 'change')
 end
 
 -------------------------------------------------------------------------------
