@@ -177,7 +177,7 @@ local writeTopUnits
 --@table lcdControlModes
 -- @field default Set to a default setting (currently dual)
 -- @field dual Change to dual display mode
--- @field lua Commuication mode, necessary for LUA control
+-- @field lua Communication mode, necessary for LUA control
 -- @field master Change to master display mode
 -- @field product Change to product display mode
 local lcdModes = {
@@ -496,7 +496,7 @@ readAutoBotLeft = private.exposeFunction('readAutoBotLeft', REG_DISP_AUTO_BOTTOM
 end)
 
 --- LCD Annunciators
--- These are the definitions of all the annunicators top and bottom.
+-- These are the definitions of all the annunciators top and bottom.
 --@table Annunicators
 -- @field sigma (top)
 -- @field balance (top)
@@ -572,12 +572,12 @@ local annunicatorMap = {
 }
 --- Main Units
 --@table Units
--- @field none No annuciator selected (won't clear or set)
--- @field kg Kilogram annuciator
--- @field lb Pound  annuciator
--- @field t Ton/Tonne  annuciator
--- @field g Gramme  annuciator
--- @field oz Ounce annuciator
+-- @field none No annunciator selected (won't clear or set)
+-- @field kg Kilogram annunciator
+-- @field lb Pound  annunciator
+-- @field t Ton/Tonne  annunciator
+-- @field g Gramme  annunciator
+-- @field oz Ounce annunciator
 -- @field n
 -- @field arrow_l
 -- @field p
@@ -632,7 +632,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns the annunciators on
--- @param ... holds annunicator names
+-- @param ... holds annunciator names
 -- @usage
 -- device.setAnnunicators('battery', 'clock', 'balance')
 function _M.setAnnunicators(...)
@@ -651,9 +651,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns the annunciators off
--- @param ... holds annunicator names
+-- @param ... holds annunciator names
 -- @usage
--- device.setAnnunicators('net', 'battery', 'hold')
+-- device.clearAnnunicators('net', 'battery', 'hold')
 function _M.clearAnnunicators(...)
     local bits = convertAnnunicatorBits{...}
 
