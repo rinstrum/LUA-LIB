@@ -751,8 +751,8 @@ deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
 deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
 deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
-deprecated.setBitsTopAnnuns             = setBitsTopAnnuns
-deprecated.clrBitsTopAnnuns             = clrBitsTopAnnuns
+deprecated.setBitsTopAnnuns             = setAnnunicators
+deprecated.clrBitsTopAnnuns             = clearAnnunicators
 deprecated.setBitsBotAnnuns             = setAnnunicators
 deprecated.clrBitsBotAnnuns             = clearAnnunicators
 
