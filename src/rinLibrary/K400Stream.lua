@@ -247,7 +247,7 @@ function _M.removeStream(streamReg)
 
         if availReg ~= nil then
             availReg.reg = 0
-            streamRegistersUser[reg] = nil
+            streamRegisters[reg] = nil
 
             local stop = true
             for k = 1, #availRegisters do
