@@ -13,6 +13,7 @@ local powersOfTen = require "rinLibrary.powersOfTen"
 local timers = require 'rinSystem.rinTimers.Pack'
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
+local rinMsg = require 'rinLibrary.rinMessage'
 
 local lpeg = require "lpeg"
 local locale, P, S = lpeg.locale(), lpeg.P, lpeg.S
