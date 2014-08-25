@@ -206,7 +206,7 @@ local function keyCharSelect(s, p)
     return s:sub(z, z)
 end
 
------------------------------------------------------------------------------------------------
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- This table defines the mapping from the numeric keys to alpha characters.
 -- The first press results in the first character, the second the second and
 -- so forth.
