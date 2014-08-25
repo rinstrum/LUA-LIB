@@ -123,7 +123,7 @@ end
 -- @usage
 -- print(device.getDispModeDP('primary')..' decimal places in the primary display')
 function _M.getDispModeDP(display)
-    local d = naming.convertStringToValue(display, displayModeMap, nil,
+    local d = naming.convertNameToValue(display, displayModeMap, nil,
                                             DISPMODE_PRIMARY, DISPMODE_SECONDARY)
 
     if d ~= nil then
