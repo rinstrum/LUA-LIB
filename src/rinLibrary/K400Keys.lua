@@ -167,7 +167,7 @@ local keyMode = {
 }
 
 --Lua key handling
-local REG_GET_KEY          = private.k422(0x13) or 0x0321
+local REG_GET_KEY          = 0x0321
 local REG_FLUSH_KEYS       = 0x0322
 local REG_APP_DO_KEYS      = 0x0324
 local REG_APP_KEY_HANDLER  = 0x0325

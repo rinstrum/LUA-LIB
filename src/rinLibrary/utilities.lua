@@ -91,15 +91,16 @@ return function(mod, private, deprecated)
 -- Convert a string register name to the associated register number.
 -- @function getRegisterNumber
 -- @param r Register name or number
+-- @param silent Don't error out on an unknown register (optional, default noisy)
 -- @return Register number
 -- @see getRegisterName
 -- @usage
 -- -- Find out what register number the gross weight is stored in
 -- print(private.getRegisterNumber('gross')
 -- @local
-    function private.getRegisterNumber(r)
+    function private.getRegisterNumber(r, silent)
         local n = naming.convertNameToValue(r, regMap)
-        if n == nil then
+        if n == nil and not silent then
             dbg.error('rinLibrary: ', 'bad register '..tostring(r))
             local unknown_register unknown_register[nil] = nil
         end

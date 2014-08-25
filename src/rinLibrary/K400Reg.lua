@@ -60,6 +60,7 @@ private.addRegisters{
     altnet                  = private.nonbatching(0x002E),
     fullscale               = 0x002F,
     piececount              = private.nonbatching(0x0053),
+    unfiltered_weight       = private.k422(0x0055),
 
 --- Product Registers.
 --@table productRegisters

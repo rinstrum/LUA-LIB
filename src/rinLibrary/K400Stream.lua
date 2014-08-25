@@ -33,7 +33,7 @@ local REG_STREAMREG5    = 0x0046
 -- be binary ORed into the above register values.
 local REG_LUALIB        = private.valueByDevice{ k422='nil', default=0x0300 }
 local REG_LUAUSER       = private.valueByDevice{ k422='nil', default=0x0310 }
-local REG_STANDARD      = private.valueByDevice{ k422=0x0000, default='nil' }
+local REG_STANDARD      = 0x0000
 
 local STM_START         = 1
 local STM_STOP          = 0
@@ -56,11 +56,50 @@ local frequencyTable = {
 local freq = 'onchange'
 local availRegisters, streamRegisters = {}, {}
 
+local standardMap = { initialised = false }
+
+-----------------------------------------------------------------------------
+-- Initialise the mapping
+-- @param map Mapping (myself)
+-- @local
+local function initialiseStreamMaps()
+    if not standardMap.initialised then
+        for k, v in pairs{              -- conditioning these on platform isn't
+            adcsample           = 1,    -- strictly necessary, if a register
+            sysstatus           = 2,    -- isn't found, no entry is added
+            syserr              = 3,
+            absmvv              = 4,
+            grossnet            = 5,
+            --dispUser            = 6,
+            gross               = 7,
+            net                 = 8,
+            tare                = 9,
+            peakhold            = private.nonbatching(10),
+            manhold             = private.nonbatching(11),
+            grandtotal          = 12,
+            altgross            = private.nonbatching(13),
+            altnet              = private.nonbatching(14),
+            fullscale           = 15,
+            io_status           = 16,
+            piececount          = private.nonbatching(17),
+            unfiltered_weight   = private.k422(18),
+            get_key             = private.k422(19)
+        } do
+            local reg = private.getRegisterNumber(k, true)
+            if reg ~= nil then
+                standardMap[reg] = v
+            end
+        end
+        standardMap.initialised = true
+    end
+end
+
 -----------------------------------------------------------------------------
 -- Add a group of streaming registers to the available register list
 -- @param base Stream registers base location
+-- @param mapping Mapping from register numbers to stream IDs
 -- @local
-local function addStreamingRegisters(base)
+local function addStreamingRegisters(base, mapping)
     if base ~= nil then
         local data = bit32.bor(base, REG_STREAMDATA)
         local mode = bit32.bor(base, REG_STREAMMODE)
@@ -79,7 +118,8 @@ local function addStreamingRegisters(base)
                 data = data,
                 mode = mode,
                 stream = bit32.bor(base, r),
-                position = (r - REG_STREAMREG1) * 8
+                position = (r - REG_STREAMREG1) * 8,
+                map = mapping
             })
         end
     end
@@ -87,7 +127,7 @@ end
 
 addStreamingRegisters(REG_LUALIB)
 addStreamingRegisters(REG_LUAUSER)
-addStreamingRegisters(REG_STANDARD)
+addStreamingRegisters(REG_STANDARD, standardMap)
 
 -----------------------------------------------------------------------------
 -- Convert a frequency string to a frequency value
@@ -106,8 +146,7 @@ end
 -- @local
 local function streamCallback(reg, data, err)
     if err then return end
-    if (string.len(data) % 8 ~= 0) or
-       (string.find(data,'%X')) then
+    if string.len(data) % 8 ~= 0 or string.find(data,'%X') then
           dbg.error('Corrupt Stream Data: ', data)
           return
     end
@@ -147,16 +186,29 @@ end
 -- end
 -- device.addStream('grossnet', handleWeight, 'change')
 function _M.addStream(streamReg, callback, onChange)
+    initialiseStreamMaps()
     utils.checkCallback(callback)
     if streamReg ~= nil then
         local reg = private.getRegisterNumber(streamReg)
-        local availReg = nil
+        if streamRegisters[reg] ~= nil then
+            return nil, "already streaming that register"
+        end
 
+        local regid, availReg
         for k = 1, #availRegisters do
             local v = availRegisters[k]
             if v.reg == 0 then
-                availReg = v
-                break
+                if v.map ~= nil then
+                    if v.map[reg] ~= nil then
+                        regid = v.map[reg]
+                        availReg = v
+                        break
+                    end
+                else
+                    regid = reg
+                    availReg = v
+                    break
+                end
             end
         end
 
@@ -173,7 +225,7 @@ function _M.addStream(streamReg, callback, onChange)
         streamRegisters[reg] = availReg
 
         private.writeRegHexAsync(availReg.mode, convertFrequency(freqUser))
-        private.writeRegAsync(availReg.stream, reg)
+        private.writeRegAsync(availReg.stream, regid)
         private.exRegAsync(availReg.data, STM_START)
 
         private.bindRegister(availReg.data, function(data, err)
