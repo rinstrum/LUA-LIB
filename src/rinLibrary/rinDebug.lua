@@ -57,7 +57,7 @@ local varString, tableString
 -- @return the numeric coded level corresponding to the specified level
 -- @local
 local function checkLevel(level)
-    return naming.convertNameToValue(levels, levelNames, INFO)
+    return naming.convertNameToValue(level, levelNames, INFO)
 end
 
 -------------------------------------------------------------------------------
