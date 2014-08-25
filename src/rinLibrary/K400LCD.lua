@@ -497,7 +497,7 @@ end)
 
 --- LCD Annunciators
 -- These are the definitions of all the annunciators top and bottom.
---@table Annunicators
+--@table Annunciators
 -- @field sigma (top)
 -- @field balance (top)
 -- @field coz (top)
@@ -538,7 +538,7 @@ local WAITALL   = 0x03C0
 local WAIT_SEGS = { WAIT, WAIT45, WAIT90, WAIT135 }
 
 -- REG_DISP_TOP_ANNUN BIT SETTINGS
-local annunicatorMap = {
+local annunciatorMap = {
     sigma           = { v=0x00001,  locn='top' },
     balance         = { v=0x00002,  locn='top' },
     coz             = { v=0x00004,  locn='top' },
@@ -583,7 +583,7 @@ local annunicatorMap = {
 -- @field p
 -- @field l
 -- @field arrow_h
-local unitAnnunicators = {
+local unitAnnunciators = {
     none      = 0,
     kg        = 0x01,
     lb        = 0x02,
@@ -600,12 +600,12 @@ local unitAnnunicators = {
 --- Additional modifiers on bottom display
 --@table Other
 -- @field none No annuciator selected (won't clear or set)
--- @field per_h Per hour annunicator
--- @field per_m Per meter annunicator
+-- @field per_h Per hour annunciator
+-- @field per_m Per meter annunciator
 -- @field per_s Per second annuicator
--- @field percent Percent annunicator
--- @field total Total annunicator
-local otherAunnunictors = {
+-- @field percent Percent annunciator
+-- @field total Total annunciator
+local otherAunnuncitors = {
     none    = 0,
     per_h   = 0x14,
     per_m   = 0x11,
@@ -619,12 +619,12 @@ local otherAunnunictors = {
 -- @param l List of annunciators
 -- @return table of bit mask values for 'top' and 'bottom'
 -- @local
-local function convertAnnunicatorBits(l)
+local function convertAnnunciatorBits(l)
     local res = { top = 0, bottom = 0, unknown = 0 }
     local missing = { v=1, locn='unknown' }
 
     for _, v in pairs(l) do
-        local bit = naming.convertNameToValue(v, annunicatorMap, missing)
+        local bit = naming.convertNameToValue(v, annunciatorMap, missing)
         res[bit.locn] = bit32.bor(res[bit.locn], bit.v)
     end
     return res
@@ -634,9 +634,9 @@ end
 -- Turns the annunciators on
 -- @param ... holds annunciator names
 -- @usage
--- device.setAnnunicators('battery', 'clock', 'balance')
-function _M.setAnnunicators(...)
-    local bits = convertAnnunicatorBits{...}
+-- device.setAnnunciators('battery', 'clock', 'balance')
+function _M.setAnnunciators(...)
+    local bits = convertAnnunciatorBits{...}
 
     if bits.bottom ~= 0 then
         botAnnunState = bit32.bor(botAnnunState, bits.bottom)
@@ -653,9 +653,9 @@ end
 -- Turns the annunciators off
 -- @param ... holds annunciator names
 -- @usage
--- device.clearAnnunicators('net', 'battery', 'hold')
-function _M.clearAnnunicators(...)
-    local bits = convertAnnunicatorBits{...}
+-- device.clearAnnunciators('net', 'battery', 'hold')
+function _M.clearAnnunciators(...)
+    local bits = convertAnnunciatorBits{...}
 
     if bits.bottom ~= 0 then
         botAnnunState = bit32.band(botAnnunState, bit32.bnot(bits.bottom))
@@ -694,7 +694,7 @@ end
 -- @usage
 -- device.writeTopUnits('kg')
 writeTopUnits = private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(units)
-    local u = naming.convertNameToValue(units, unitAnnunicators, 0)
+    local u = naming.convertNameToValue(units, unitAnnunciators, 0)
 
     private.writeReg(REG_DISP_TOP_UNITS, u)
     curTopUnits = u
@@ -708,8 +708,8 @@ end)
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
 private.writeBotUnits = private.exposeFunction('writeBotUnits', REG_DISP_BOTTOM_UNITS, function(units, other)
-    local u = naming.convertNameToValue(units, unitAnnunicators, 0x00)
-    local o = naming.convertNameToValue(other, otherAunnunictors, 0x00)
+    local u = naming.convertNameToValue(units, unitAnnunciators, 0x00)
+    local o = naming.convertNameToValue(other, otherAunnuncitors, 0x00)
 
     private.writeReg(REG_DISP_BOTTOM_UNITS, bit32.bor(bit32.lshift(o, 8), u))
     curBotUnits = u
@@ -751,57 +751,61 @@ deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
 deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
 deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
-deprecated.setBitsTopAnnuns             = setAnnunicators
-deprecated.clrBitsTopAnnuns             = clearAnnunicators
-deprecated.setBitsBotAnnuns             = setAnnunicators
-deprecated.clrBitsBotAnnuns             = clearAnnunicators
+deprecated.setBitsTopAnnuns             = setAnnunciators
+deprecated.clrBitsTopAnnuns             = clearAnnunciators
+deprecated.setBitsBotAnnuns             = setAnnunciators
+deprecated.clrBitsBotAnnuns             = clearAnnunciators
 
-deprecated.BATTERY                      = annunicatorMap.battery.v
-deprecated.CLOCK                        = annunicatorMap.clock.v
-deprecated.BAT_LO                       = annunicatorMap.bat_lo.v
-deprecated.BAT_MIDL                     = annunicatorMap.bat_midl.v
-deprecated.BAT_MIDH                     = annunicatorMap.bat_midh.v
-deprecated.BAT_HI                       = annunicatorMap.bat_hi.v
-deprecated.BAT_FULL                     = annunicatorMap.bat_full.v
-deprecated.WAIT                         = annunicatorMap.wait.v
-deprecated.WAIT45                       = annunicatorMap.wait45.v
-deprecated.WAIT90                       = annunicatorMap.wait90.v
-deprecated.WAIT135                      = annunicatorMap.wait135.v
-deprecated.WAITALL                      = annunicatorMap.waitall.v
-deprecated.SIGMA                        = annunicatorMap.sigma.v
-deprecated.BALANCE                      = annunicatorMap.balance.v
-deprecated.COZ                          = annunicatorMap.coz.v
-deprecated.HOLD                         = annunicatorMap.hold.v
-deprecated.MOTION                       = annunicatorMap.motion.v
-deprecated.NET                          = annunicatorMap.net.v
-deprecated.RANGE                        = annunicatorMap.range.v
-deprecated.ZERO                         = annunicatorMap.zero.v
-deprecated.BAL_SEGA                     = annunicatorMap.bal_sega.v
-deprecated.BAL_SEGB                     = annunicatorMap.bal_segb.v
-deprecated.BAL_SEGC                     = annunicatorMap.bal_segc.v
-deprecated.BAL_SEGD                     = annunicatorMap.bal_segd.v
-deprecated.BAL_SEGE                     = annunicatorMap.bal_sege.v
-deprecated.BAL_SEGF                     = annunicatorMap.bal_segf.v
-deprecated.BAL_SEGG                     = annunicatorMap.bal_segg.v
-deprecated.RANGE_SEGADG                 = annunicatorMap.range_segadg.v
-deprecated.RANGE_SEGC                   = annunicatorMap.range_segc.v
-deprecated.RANGE_SEGE                   = annunicatorMap.range_sege.v
-deprecated.UNITS_NONE                   = unitAnnunicators.none
-deprecated.UNITS_KG                     = unitAnnunicators.kg
-deprecated.UNITS_LB                     = unitAnnunicators.lb
-deprecated.UNITS_T                      = unitAnnunicators.t
-deprecated.UNITS_G                      = unitAnnunicators.g
-deprecated.UNITS_OZ                     = unitAnnunicators.oz
-deprecated.UNITS_N                      = unitAnnunicators.n
-deprecated.UNITS_ARROW_L                = unitAnnunicators.arrow_l
-deprecated.UNITS_P                      = unitAnnunicators.p
-deprecated.UNITS_L                      = unitAnnunicators.l
-deprecated.UNITS_ARROW_H                = unitAnnunicators.arrow_h
-deprecated.UNITS_OTHER_PER_H            = otherAunnunictors.per_h
-deprecated.UNITS_OTHER_PER_M            = otherAunnunictors.per_m
-deprecated.UNITS_OTHER_PER_S            = otherAunnunictors.per_s
-deprecated.UNITS_OTHER_PC               = otherAunnunictors.pc
-deprecated.UNITS_OTHER_TOT              = otherAunnunictors.tot
+-- Support the released function names with spelling errors :(
+deprecated.setAnnunicators              = setAnnunciators
+deprecated.clearAnnunicators            = clearAnnunciators
+
+deprecated.BATTERY                      = annunciatorMap.battery.v
+deprecated.CLOCK                        = annunciatorMap.clock.v
+deprecated.BAT_LO                       = annunciatorMap.bat_lo.v
+deprecated.BAT_MIDL                     = annunciatorMap.bat_midl.v
+deprecated.BAT_MIDH                     = annunciatorMap.bat_midh.v
+deprecated.BAT_HI                       = annunciatorMap.bat_hi.v
+deprecated.BAT_FULL                     = annunciatorMap.bat_full.v
+deprecated.WAIT                         = annunciatorMap.wait.v
+deprecated.WAIT45                       = annunciatorMap.wait45.v
+deprecated.WAIT90                       = annunciatorMap.wait90.v
+deprecated.WAIT135                      = annunciatorMap.wait135.v
+deprecated.WAITALL                      = annunciatorMap.waitall.v
+deprecated.SIGMA                        = annunciatorMap.sigma.v
+deprecated.BALANCE                      = annunciatorMap.balance.v
+deprecated.COZ                          = annunciatorMap.coz.v
+deprecated.HOLD                         = annunciatorMap.hold.v
+deprecated.MOTION                       = annunciatorMap.motion.v
+deprecated.NET                          = annunciatorMap.net.v
+deprecated.RANGE                        = annunciatorMap.range.v
+deprecated.ZERO                         = annunciatorMap.zero.v
+deprecated.BAL_SEGA                     = annunciatorMap.bal_sega.v
+deprecated.BAL_SEGB                     = annunciatorMap.bal_segb.v
+deprecated.BAL_SEGC                     = annunciatorMap.bal_segc.v
+deprecated.BAL_SEGD                     = annunciatorMap.bal_segd.v
+deprecated.BAL_SEGE                     = annunciatorMap.bal_sege.v
+deprecated.BAL_SEGF                     = annunciatorMap.bal_segf.v
+deprecated.BAL_SEGG                     = annunciatorMap.bal_segg.v
+deprecated.RANGE_SEGADG                 = annunciatorMap.range_segadg.v
+deprecated.RANGE_SEGC                   = annunciatorMap.range_segc.v
+deprecated.RANGE_SEGE                   = annunciatorMap.range_sege.v
+deprecated.UNITS_NONE                   = unitAnnunciators.none
+deprecated.UNITS_KG                     = unitAnnunciators.kg
+deprecated.UNITS_LB                     = unitAnnunciators.lb
+deprecated.UNITS_T                      = unitAnnunciators.t
+deprecated.UNITS_G                      = unitAnnunciators.g
+deprecated.UNITS_OZ                     = unitAnnunciators.oz
+deprecated.UNITS_N                      = unitAnnunciators.n
+deprecated.UNITS_ARROW_L                = unitAnnunciators.arrow_l
+deprecated.UNITS_P                      = unitAnnunciators.p
+deprecated.UNITS_L                      = unitAnnunciators.l
+deprecated.UNITS_ARROW_H                = unitAnnunciators.arrow_h
+deprecated.UNITS_OTHER_PER_H            = otherAunnuncitors.per_h
+deprecated.UNITS_OTHER_PER_M            = otherAunnuncitors.per_m
+deprecated.UNITS_OTHER_PER_S            = otherAunnuncitors.per_s
+deprecated.UNITS_OTHER_PC               = otherAunnuncitors.pc
+deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
 
 if _TEST then
     _M.strLenR400 = strLenR400
