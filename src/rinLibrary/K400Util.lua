@@ -30,8 +30,8 @@ local REG_SOFTMODEL         = 0x0003
 local REG_SOFTVER           = 0x0004
 private.REG_SERIALNO        = 0x0005
 
-local REG_PRIMARY_DISPMODE   = private.valueByDevice{ k422='nil', default=0x0306 }
-local REG_SECONDARY_DISPMODE = private.valueByDevice{ k422='nil', default=0x0307 }
+local REG_PRIMARY_DISPMODE   = 0x0306
+local REG_SECONDARY_DISPMODE = 0x0307
 
 local DISPMODE_PRIMARY      = 1
 local DISPMODE_PIECES       = 2
