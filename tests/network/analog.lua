@@ -51,12 +51,12 @@ describe("Analog #analog", function ()
 
             count = count + 1
             if count >= 2 then
-                app.running = false
+                rinApp.finish()
             end
         end)
 
         -- Finally, put a timer in place so we don't run forever
-        timers.addTimer(0, 20, function() app.running = false error("timed out") end)
+        timers.addTimer(0, 20, function() rinApp.finish() error("timed out") end)
         app.run()
         assert.is_true(count > 0)
     end)

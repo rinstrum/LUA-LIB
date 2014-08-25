@@ -169,12 +169,6 @@ local function setjackpot(on)
 end
 
 -------------------------------------------------------------------------------
--- Schedule the termination of this application
-local function termination()
-    rinApp.running = false
-end
-
--------------------------------------------------------------------------------
 -- Schedule the game over flashing message
 local function beginGameOver()
     flashMessage({ "GAME", JustifyRight("OVER", 8) }, dwi.writeBotLeft)
@@ -201,7 +195,7 @@ local function updateBalance(delta)
         beginGameOver()
         state = "win"
         setjackpot(false)
-        timers.addTimer(0, 4, termination)
+        timers.addTimer(0, 4, rinApp.finish)
     end
 end
 
@@ -273,7 +267,7 @@ local function scoringCallback()
         beginGameOver()
         state = "lose"
         setjackpot(false)
-        timers.addTimer(0, 4, termination)
+        timers.addTimer(0, 4, rinApp.finish)
     end
 end
 
@@ -326,7 +320,7 @@ dwi.setKeyCallback('ok', playOkay, 'short')
 -- Add key to stop the program
 -- @param key Key code pressed (always okay)
 -- @param state Type of key press
-dwi.setKeyCallback('cancel', function() termination() return true end, 'long')
+dwi.setKeyCallback('cancel', rinApp.finish, 'long')
 
 
 -------------------------------------------------------------------------------

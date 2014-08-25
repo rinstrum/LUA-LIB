@@ -155,7 +155,7 @@ function _M.getKey(keyGroup, keep)
     end
 
     _M.startDialog()
-    while _M.dialogRunning() and _M.app.running and not getKeyState do
+    while _M.dialogRunning() and _M.app.isRunning() and not getKeyState do
         system.handleEvents()
     end
     _M.abortDialog()
@@ -329,7 +329,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     private.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 
     _M.startDialog()
-    while editing and _M.app.running do
+    while editing and _M.app.isRunning() do
         key, state = _M.getKey('keypad')  -- wait for a key press
         if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
@@ -474,7 +474,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
 
     local ok = false
     _M.startDialog()
-    while editing and _M.app.running do
+    while editing and _M.app.isRunning() do
         key, state = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
@@ -559,7 +559,7 @@ function _M.editReg(register, prompt)
             break
         end
         _M.delay(0.050)
-        if not _M.dialogRunning() or not _M.app.running then
+        if not _M.dialogRunning() or not _M.app.isRunning() then
             _M.sendKey('cancel', 'long')
         end
     end
@@ -602,7 +602,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
-    while _M.app.running do
+    while _M.app.isRunning() do
         local key = _M.getKey('arrow')
 
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
@@ -649,7 +649,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
-    while editing and _M.app.running do
+    while editing and _M.app.isRunning() do
         private.writeBotLeft(string.upper(opts[index]))
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
@@ -701,7 +701,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
-    while editing and _M.app.running do
+    while editing and _M.app.isRunning() do
         private.writeBotLeft(string.upper(opts[index]))
         private.writeBotRight((options.isSelected(opts[index]) and "*" or " ")..prompt)
 

@@ -17,7 +17,7 @@ if not silent then
         end)
 
         after_each(function()
-            timers.addEvent(function() app.running = false end)
+            timers.addEvent(rinApp.finish)
             app.run()
             net.closeDevices(app)
 

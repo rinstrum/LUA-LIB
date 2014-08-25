@@ -49,7 +49,7 @@ function _M.checkPasscode(pc, code, tries)
     local count = 1
 
     _M.startDialog()
-    while _M.dialogRunning() and _M.app.running do
+    while _M.dialogRunning() and _M.app.isRunning() do
         local m, err = private.readRegHex(pcode, 1.0)
         if not m then
             if count > tries then

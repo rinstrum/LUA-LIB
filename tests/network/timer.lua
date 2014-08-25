@@ -18,7 +18,7 @@ describe("Timer #timer", function ()
                                 timers.addTimer(0, sec, on_timeout)
                             end,
             step =          function()
-                                if app.running then
+                                if app.isRunning() then
                                     app.step()
                                 end
                             end
@@ -26,7 +26,7 @@ describe("Timer #timer", function ()
     end)
 
     teardown(function()
-        timers.addEvent(function() app.running = false end)
+        timers.addEvent(app.finish)
         app.run()
         net.closeDevices(app)
     end)

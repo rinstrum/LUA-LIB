@@ -511,7 +511,7 @@ end
 -- local function handleKey(key, state)
 --     showMarquee(string.format("%s Pressed ", key))
 --     if key == 'cancel' and state == 'long' then 
---         rinApp.running = false
+--         rinApp.finish()
 --     end
 --     return true     -- key handled so don't send back to instrument
 -- end

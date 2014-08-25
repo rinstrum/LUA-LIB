@@ -824,7 +824,7 @@ end
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
     local mask = bit32.lshift(0x00000001, IO-1)
-    while _M.app.running do
+    while _M.app.isRunning() do
         local data = bit32.band(curIO, mask)
         if (state and data ~= 0) or (not state and data == 0) then
             break
@@ -851,7 +851,7 @@ function _M.waitSETP(SETP, state)
         return false
     end
     local mask = bit32.lshift(0x00000001, SETP-1)
-    while _M.app.running do
+    while _M.app.isRunning() do
         local data = bit32.band(curSETP, mask)
         if (state and data ~= 0) or (not state and data == 0) then
             break

@@ -15,7 +15,7 @@ local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', function() rinApp.running = false return true end, 'long')
+dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================

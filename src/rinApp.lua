@@ -15,6 +15,9 @@ local dofile = dofile
 local bit32 = require "bit"
 local io = io
 
+local lpeg = require "lpeg"
+local P, V = lpeg.P, lpeg.V
+
 local system = require 'rinSystem.Pack'
 local socks = require "rinSystem.rinSockets.Pack"
 local timers = require 'rinSystem.rinTimers.Pack'
@@ -27,12 +30,28 @@ local deprecatedFields, warned = {
     dbg = dbg
 }, {}
 
+-------------------------------------------------------------------------------
+-- Define a lpeg pattern to match a string case insensitively
+-- @param str String to match
+-- @return pattern
+-- @local
+local function Pi(str)
+    if type(str) == 'string' then
+        local patt = lpeg.P(true)
+        for c in str:gmatch(".") do
+            patt = patt * (lpeg.P(c:lower()) + lpeg.P(c:upper()))
+        end
+        return patt
+    end
+    local Pi_argument_is_not_a_string; Pi_argument_is_not_a_string[nil] = nil
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 local function createRinApp()
 local _M = {}
 
-_M.running = false
+local running = false
 _M.config = {
     '; level can be DEBUG,INFO,WARN,ERROR,FATAL',
     '; logger can be any of the supported groups - eg console or file',
@@ -60,6 +79,27 @@ local userMainLoop = nil
 local userCleanup = nil
 
 -------------------------------------------------------------------------------
+-- Check if the application is still running
+-- @return boolean, true if running
+-- @usage
+-- if not rinApp.isRunning() then
+--     ...
+-- end
+function _M.isRunning()
+    return running
+end
+
+-------------------------------------------------------------------------------
+-- Tell the application to stop running
+-- @return true
+-- @usage
+-- device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+function _M.finish()
+    running = false
+    return true
+end
+
+-------------------------------------------------------------------------------
 -- Called to register application's callback for keys pressed in the terminal.
 -- Nothing is called unless the user hits <Enter>.  The callback function is
 -- called with the data entered by the user.  Have the callback return true
@@ -70,6 +110,14 @@ local userCleanup = nil
 function _M.setUserTerminal(f)
    userTerminalCallback = f
 end
+
+-- Define our input processing grammar
+local userioGrammar = P{
+                V"exit" + V"debug" + V"unknown",
+    exit = Pi"exit" / _M.finish,
+    debug = (Pi'debug' + Pi'info' + Pi'warn' + Pi'error' + Pi'fatal') / dbg.setLevel,
+    unknown = P(1)^0 / function(s) print('unknown instruction:', s) end
+}
 
 -------------------------------------------------------------------------------
 -- captures input from terminal to change debug level
@@ -87,14 +135,8 @@ local function userioCallback(sock)
     if data == nil then
         sock.close()
         socks.removeSocket(sock)
-    elseif data == 'exit' then
-        _M.running = false
     else
-        dbg.setLevel(data)
-          -- Set the level in all devices connected
-        for k,v in pairs(_M.devices) do
-            dbg.setLevel(data)
-        end
+        userioGrammar:match(data)
     end
 end
 
@@ -317,7 +359,7 @@ function _M.cleanup()
     system.reset()
 
     _M.initialised = false
-    _M.running = true
+    running = true
     dbg.info('','------   Application Finished  ------')
 end
 
@@ -340,7 +382,7 @@ end
 -- rinApp.run()
 function _M.run()
     _M.init()
-    while _M.running do
+    while running do
         step()
     end
    _M.cleanup()
@@ -353,14 +395,20 @@ io.output():setvbuf('no')
 socks.addSocket(_M.userio.connectDevice(), userioCallback)
 socks.createServerSocket(2224, socketBidirectionalAccept)
 socks.createServerSocket(2225, socketUnidirectionalAccept)
-_M.running = true
+running = true
 dbg.info('','------   Application Started %LATEST% -----')
 dbg.info("integrity:", require('rinLibrary.autochecksum'))
 
 setmetatable(_M, {
     __index =
         function(t, k)
-            if deprecatedFields[k] ~= nil then
+            if k == 'running' then
+                if not warned[k] then
+                    dbg.warn('rinApp:', 'attempt to access deprecated field: '..k)
+                    warned[k] = true
+                end
+                return running
+            elseif deprecatedFields[k] ~= nil then
                 if not warned[k] then
                     dbg.warn('rinApp:', 'attempt to access deprecated field: '..k)
                     warned[k] = true
@@ -371,7 +419,10 @@ setmetatable(_M, {
         end,
 
     __newindex = function(t, k, v)
-            if deprecatedFields[k] ~= nil then
+            if k == 'running' then
+                dbg.error("rinApp:", 'write to deprecated field: '..k)
+                running = v
+            elseif deprecatedFields[k] ~= nil then
                 dbg.error("rinApp:", 'attempt to overwrite deprecated field: '..k)
             else
                 rawset(t, k, v)

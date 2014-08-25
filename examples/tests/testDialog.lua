@@ -58,9 +58,9 @@ dwi.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 -- Handler to capture PWR+ABORT key and end program
 -------------------------------------------------------------------------------
-dwi.setKeyCallback('pwr_cancel', function() rinApp.running = false return true end, 'long')
+dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 
-while rinApp.running do
+while rinApp.isRunning() do
   local k = dwi.getKey()
   if k == 'ok' then
      dwi.buzz(2)
