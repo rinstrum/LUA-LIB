@@ -93,7 +93,7 @@ local function userioCallback(sock)
         dbg.setLevel(data)
           -- Set the level in all devices connected
         for k,v in pairs(_M.devices) do
-            dbg.setLevel(dbg.level)
+            dbg.setLevel(data)
         end
     end
 end
