@@ -9,6 +9,33 @@ describe("CSV tests #csv", function()
     local csv = require "rinLibrary.rinCSV"
     local path = "tests/unit/"
 
+    -- test canonical form
+    describe("canonical form #canonical", function()
+        local canTests = {
+            { res = "",         val = "" },
+            { res = "",         val = " " },
+            { res = "",         val = "  " },
+            { res = "a",        val = "a" },
+            { res = "a",        val = " a" },
+            { res = "a",        val = "a " },
+            { res = "a",        val = " a " },
+            { res = "a",        val = "  a  " },
+            { res = "a b",      val = "a  b" },
+            { res = "ab cd",    val = "  ab cd  " },
+            { res = "ab cd",    val = "  ab   cd  " },
+            { res = "ab cd",    val = "ab    cd" },
+            { res = "a\000b",   val = " \t\r\n\f\va\000b \r\t\n\f\v" },
+            { res = "abc",      val = '  AbC  ' }
+        }
+
+        for i = 1, #canTests do
+            it("test "..i, function()
+                local r = canTests[i]
+                assert.equal(r.res, csv.canonical(r.val))
+            end)
+        end
+    end)
+
     -- test escapeCSV
     describe("escapeCSV #escapecsv", function()
         local escapeTests = {
@@ -350,7 +377,21 @@ describe("CSV tests #csv", function()
 
     -- test getLineCSV
     describe("getLineCSV #getlinecsv", function()
-        pending("unimplemented test case")
+        local getLineCsvTests = {
+            { v = 1, c = 1,    n = 1,   r = { 1, 2 },    t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+            { v = 5, c = "a",  n = 2,   r = { 5, 6 },    t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6} } } },
+            { v = 2, c = 2,    n = 1,   r = { 1, 2 },    t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { v = 6, c = "b",  n = 3,   r = { 5, 6 },    t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+        }
+
+        for i = 1, #getLineCsvTests do
+            it("test "..i, function()
+                local r = getLineCsvTests[i]
+                local n, row = csv.getLineCSV(r.t, r.v, r.c)
+                assert.equal(r.n, n)
+                assert.same(r.r, row)
+            end)
+        end
     end)
 
     -- test logLineCSV

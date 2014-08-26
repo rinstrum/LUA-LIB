@@ -22,10 +22,25 @@ local dbg       = require "rinLibrary.rinDebug"
 -- LPEG pattern for parsing a CSV file
 local lpeg = require 'lpeg'
 local C, Cs, Ct, P, S = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.S
+local spc = lpeg.locale().space
+local nspc = 1 - spc
+
+local canonicalisation = spc^0 * Cs(nspc^0 * (spc^1 / ' ' * nspc^1)^0) * spc^0
 
 local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +
                     C((1 - S',\r\n"')^0)
 local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
+
+-------------------------------------------------------------------------------
+-- Convert a field value into its canonical matching form.
+-- This means lower case and without leading and trailing space and only single
+-- internal spaces.
+-- @param s String to convert
+-- @return Canonical form for string
+-- @local
+local function canonical(s)
+    return string.lower(canonicalisation:match(tostring(s)))
+end
 
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
@@ -124,9 +139,8 @@ local function equalCSV(labels, check)
     end
 
     for col,s in ipairs(labels) do
-       -- remove space and convert labels to all lowercase for checking
-       s = string.lower(string.gsub(s,'%s',''))
-       local chk = string.lower(string.gsub(check[col],'%s',''))
+       s = canonical(s)
+       local chk = canonical(check[col],'%s','')
        if s ~= chk then
            return false
        end
@@ -183,12 +197,12 @@ local function checkCommonFields(a, b)
 
     -- Cache the converted field names for the second table to speed things a little
     for j = 1, #b do
-        table.insert(bname, string.lower(string.gsub(b[j],'%s','')))
+        table.insert(bname, canonical(b[j]))
     end
 
     for i = 1, #a do
         map[i] = ''
-        local fname = string.lower(string.gsub(a[i],'%s',''))
+        local fname = canonical(a[i])
         for j = 1, #b do
             if fname == bname[j] then
                 bname[j] = nil
@@ -447,6 +461,23 @@ function _M.remLineCSV(t, row)
 end
 
 -------------------------------------------------------------------------------
+-- Look up a column in the passed CSV file
+-- @param t CSV table
+-- @param c Column number or name
+-- @return Column index
+-- @local
+local function lookupColumn(t, c)
+    if type(c) == 'string' then
+        return _M.labelCol(t, c)
+    end
+    c = c or 1
+    if c > _M.numColsCSV(t) or c < 1 then
+        return nil
+    end
+    return c
+end
+    
+-------------------------------------------------------------------------------
 -- Returns a line of data from the table with matching val in column col
 -- @param t is table holding CSV data
 -- @param val is value of the cell to find
@@ -464,20 +495,14 @@ end
 -- print('3.14159 is in the third column in row '..row)
 -- print('That row is: ' .. csv.tostringLine(data))
 function _M.getLineCSV(t, val, col)
-    local line = {}
-    local col = col or 1
-    local row = 0
-    for k,v in ipairs(t.data) do
-        if string.lower(tostring(v[col])) == string.lower(tostring(val)) then
-            line = v
-            row = k
+    col = lookupColumn(t, col)
+    val = canonical(val)
+    for k, v in ipairs(t.data) do
+        if canonical(v[col]) == val then
+            return k, v
         end
     end
-    if row == 0 then
-        return nil, line
-    else
-        return row, line
-    end
+    return nil, line
 end
 
 -------------------------------------------------------------------------------
@@ -497,19 +522,9 @@ end
 -- sel = dwi.selectOption('SELECT', names, names[1], true)  -- chose a material
 function _M.getColCSV(csvtbl, col)
     local column = {}
-    local t, c = csvtbl, col
+    local t, c = csvtbl, lookupColumn(csvtbl, col)
 
-    if not hasData(t) then
-        return nil
-    end
-
-    if c == nil then
-        c = 1
-    elseif type(c) == "string" then
-        c = _M.labelCol(t, c)
-        if c == nil then return nil end
-    end
-    if c > _M.numColsCSV(t) or c < 1 then
+    if not hasData(t) or c == nil then
         return nil
     end
 
@@ -554,10 +569,10 @@ end
 -- print('The materials column is ' .. csv.labelCol(csvfile, 'material'))
 function _M.labelCol(t, label)
     if label ~= nil and isCSV(t) then
-        local label = string.lower(tostring(label))
+        local label = canonical(label)
 
         for k,v in pairs(t.labels) do
-            if string.lower(v) == label then
+            if canonical(v) == label then
                 return k
             end
         end
@@ -801,6 +816,7 @@ if _TEST then
     _M.fromCSV = fromCSV
     _M.padCSV = padCSV
     _M.toCSV = toCSV
+    _M.canonical = canonical
 end
 
 return _M
