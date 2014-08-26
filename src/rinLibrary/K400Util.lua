@@ -32,6 +32,7 @@ private.REG_SERIALNO        = 0x0005
 
 local REG_PRIMARY_DISPMODE   = 0x0306
 local REG_SECONDARY_DISPMODE = 0x0307
+local REG_INSTRUMENT_BEGIN   = 0x032D
 
 local DISPMODE_PRIMARY      = 1
 local DISPMODE_PIECES       = 2
@@ -83,6 +84,9 @@ function _M.connect(model, sockA, sockB, app)
     _M.socketB = sockB
     _M.app = app
     local ip, port = sockA:getpeername()
+
+    -- Force the instrument to a known initial state
+    private.exRegAsync(REG_INSTRUMENT_BEGIN)
 end
 
 -------------------------------------------------------------------------------
