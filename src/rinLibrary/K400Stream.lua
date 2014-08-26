@@ -141,6 +141,7 @@ end
 
 -----------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
+-- @param reg Register being streamed
 -- @param data Data received from register
 -- @param err Potential error message
 -- @local
