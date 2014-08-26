@@ -25,7 +25,7 @@ return function (_M, private, deprecated)
 
 local REG_RESTART           = 0x0016
 local REG_SAVESETTING       = 0x0010
-local REG_COMMS_START       = private.valueByDevice{ k422='nil', default=0x0309 }
+local REG_COMMS_START       = 0x0309
 local REG_SOFTMODEL         = 0x0003
 local REG_SOFTVER           = 0x0004
 private.REG_SERIALNO        = 0x0005
@@ -194,7 +194,7 @@ function _M.configure(model)
 
     readSettings()
 
-    private.exReg(REG_COMMS_START)  -- clear start message
+    private.exRegAsync(REG_COMMS_START)  -- clear start message
 
     if err then
         instrumentModel = ''
