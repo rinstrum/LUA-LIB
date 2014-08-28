@@ -44,6 +44,7 @@ private.addRegisters{
 -- @field altnet Net weight in secondary units
 -- @field fullscale Fullscale weight
 -- @field piececount Piece count
+-- @field unfiltered_weight Raw weight readings
 
     adcsample               = 0x0020,
     sysstatus               = 0x0021,
