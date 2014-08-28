@@ -338,20 +338,40 @@ function private.RTCtick()
         end
     end
 end
+-------------------------------------------------------------------------------
+-- Returns formated date string
+-- @return Formatted date string
+-- @see RTCtime
+-- @see RTCdateFormat
+-- @see RTCtostring
+-- @usage
+-- print(device.RTCdate())
+function _M.RTCdate()
+    return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
+end
+
+-------------------------------------------------------------------------------
+-- Returns formated time string
+-- @return Formatted time string
+-- @see RTCdate
+-- @see RTCtostring
+-- @usage
+-- print(device.RTCtime())
+function _M.RTCtime()
+    return string.format("%02d/%02d/%02d", RTC[RTC.first], RTC[RTC.second], RTC[RTC.third])
+end
+
 
 -------------------------------------------------------------------------------
 -- Returns formated date/time string
+-- @return Formatted date and time string
+-- @see RTCtime
+-- @see RTCdate
 -- @see RTCdateFormat
 -- @usage
 -- print(device.RTCtostring())
 function _M.RTCtostring()
-    return string.format("%02d/%02d/%02d %02d:%02d:%02d",
-                        RTC[RTC.first],
-                        RTC[RTC.second],
-                        RTC[RTC.third],
-                        RTC.hour,
-                        RTC.min,
-                        RTC.sec)
+    return _M.RTCdate() .. ' ' .. _M.RTCtime()
 end
 
 -------------------------------------------------------------------------------
