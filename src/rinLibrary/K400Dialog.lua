@@ -122,10 +122,10 @@ end
 -- -- Program will pause operation immediately.
 -- device.displayMessageWait('unhappy', 1.5)
 function _M.displayMessageWait(msg, t, units, unitsOther)
-   _M.displayMessage(msg, t, units, unitsOther)
-   while msgDisp do
-       system.handleEvents()
-   end
+    _M.displayMessage(msg, t, units, unitsOther)
+    while msgDisp do
+        system.handleEvents()
+    end
 end
 
 -------------------------------------------------------------------------------
