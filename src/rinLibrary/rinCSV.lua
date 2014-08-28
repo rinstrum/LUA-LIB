@@ -17,30 +17,16 @@ local error     = error
 local xeq       = os.execute
 
 local dbg       = require "rinLibrary.rinDebug"
+local canonical = require 'rinLibrary.canonicalisation'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- LPEG pattern for parsing a CSV file
 local lpeg = require 'lpeg'
 local C, Cs, Ct, P, S = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.S
-local spc = lpeg.locale().space
-local nspc = 1 - spc
-
-local canonicalisation = spc^0 * Cs(nspc^0 * (spc^1 / ' ' * nspc^1)^0) * spc^0
 
 local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +
                     C((1 - S',\r\n"')^0)
 local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
-
--------------------------------------------------------------------------------
--- Convert a field value into its canonical matching form.
--- This means lower case and without leading and trailing space and only single
--- internal spaces.
--- @param s String to convert
--- @return Canonical form for string
--- @local
-local function canonical(s)
-    return string.lower(canonicalisation:match(tostring(s)))
-end
 
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
