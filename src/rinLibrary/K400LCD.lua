@@ -376,7 +376,7 @@ end
 -- @param t delay in seconds between display of sections of a large message
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
-local writeTopLeft = private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, t)
+private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, t)
     write(display.tl, s, t)
 end)
 
@@ -386,7 +386,7 @@ end)
 -- @param s string to display
 -- @usage
 -- device.writeTopRight('ABCD')
-local writeTopRight = private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s)
+private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s)
     write(display.tr, s)
 end)
 
@@ -451,7 +451,7 @@ end)
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoTopLeft('grossnet')
-local writeAutoTopLeft = private.exposeFunction('writeAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function(register)
+private.exposeFunction('writeAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function(register)
     writeAuto(display.tl, register)
 end)
 
@@ -464,7 +464,7 @@ end)
 -- device.writeAutoTopLeft(0)
 -- ...
 -- device.writeAutoTopLeft(old)
-local readAutoTopLeft = private.exposeFunction('readAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function()
+private.exposeFunction('readAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function()
     return readAuto(display.tl)
 end)
 
@@ -475,7 +475,7 @@ end)
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoBotLeft('grossnet')
-local writeAutoBotLeft = private.exposeFunction('writeAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function(register)
+private.exposeFunction('writeAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function(register)
     writeAuto(display.bl, register)
 end)
 
@@ -488,7 +488,7 @@ end)
 -- device.writeAutoBotLeft(0)
 -- ...
 -- device.writeAutoBotLeft(old)
-local readAutoBotLeft = private.exposeFunction('readAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function()
+private.exposeFunction('readAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function()
     return readAuto(display.bl)
 end)
 
@@ -698,7 +698,7 @@ end
 -- @param unts Unit to display
 -- @usage
 -- device.writeTopUnits('kg')
-local writeTopUnits = private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(unts)
+private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(unts)
     local u = naming.convertNameToValue(unts, unitAnnunciators, 0)
 
     units(display.tl, u)
