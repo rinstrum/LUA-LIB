@@ -858,7 +858,6 @@ if _TEST then
     _M.fromCSV = fromCSV
     _M.padCSV = padCSV
     _M.toCSV = toCSV
-    _M.canonical = canonical
 end
 
 return _M

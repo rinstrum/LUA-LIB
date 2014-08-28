@@ -9,33 +9,6 @@ describe("CSV tests #csv", function()
     local csv = require "rinLibrary.rinCSV"
     local path = "tests/unit/"
 
-    -- test canonical form
-    describe("canonical form #canonical", function()
-        local canTests = {
-            { res = "",         val = "" },
-            { res = "",         val = " " },
-            { res = "",         val = "  " },
-            { res = "a",        val = "a" },
-            { res = "a",        val = " a" },
-            { res = "a",        val = "a " },
-            { res = "a",        val = " a " },
-            { res = "a",        val = "  a  " },
-            { res = "a b",      val = "a  b" },
-            { res = "ab cd",    val = "  ab cd  " },
-            { res = "ab cd",    val = "  ab   cd  " },
-            { res = "ab cd",    val = "ab    cd" },
-            { res = "a\000b",   val = " \t\r\n\f\va\000b \r\t\n\f\v" },
-            { res = "abc",      val = '  AbC  ' }
-        }
-
-        for i = 1, #canTests do
-            it("test "..i, function()
-                local r = canTests[i]
-                assert.equal(r.res, csv.canonical(r.val))
-            end)
-        end
-    end)
-
     -- test escapeCSV
     describe("escapeCSV #escapecsv", function()
         local escapeTests = {
