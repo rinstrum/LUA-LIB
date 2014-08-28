@@ -371,7 +371,7 @@ function _M.saveAutoLeft()
 end
 
 -------------------------------------------------------------------------------
--- Write string to Top Left of LCD, curTopLeft is set to s
+-- Write string to Top Left of LCD
 -- @function writeTopLeft
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
@@ -382,7 +382,7 @@ private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, t)
 end)
 
 -------------------------------------------------------------------------------
--- Write string to Top Right of LCD, curTopRight is set to s
+-- Write string to Top Right of LCD
 -- @function writeTopRight
 -- @param s string to display
 -- @usage
@@ -392,7 +392,7 @@ private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s)
 end)
 
 -------------------------------------------------------------------------------
--- Write string to Bottom Left of LCD, curBotLeft is set to s
+-- Write string to Bottom Left of LCD
 -- @function writeBotLeft
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
@@ -403,12 +403,12 @@ private.writeBotLeft = private.exposeFunction('writeBotLeft', REG_DISP_BOTTOM_LE
 end)
 
 -------------------------------------------------------------------------------
--- Write string to Bottom Right of LCD, curBotRight is set to s
+-- Write string to Bottom Right of LCD
 -- @function writeBotRight
 -- @param s string to display
 -- @param t delay in seconds between display of sections of a large message
 -- @usage
--- device.writeBotRight('AARDVARK BOTHER HORSES')
+-- device.writeBotRight('HORSES BOTHER AARDVARK')
 private.writeBotRight = private.exposeFunction('writeBotRight', REG_DISP_BOTTOM_RIGHT, function(s, t)
     write(display.br, s, t)
 end)
