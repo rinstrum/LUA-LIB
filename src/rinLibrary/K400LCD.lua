@@ -235,6 +235,7 @@ function _M.rightJustify(s, w)
     if l >= w then
         return s
     end
+    if s:sub(1,1) == '.' then l = l - 1 end
     return string.rep(" ", w-l) .. s
 end
 
