@@ -597,6 +597,10 @@ local unitAnnunciators = {
 --- Additional modifiers on bottom display
 --@table Other
 -- @field none No annuciator selected (won't clear or set)
+-- @field hour Hour annunciator
+-- @field minute Minute annunciator
+-- @field second Second annunicator
+-- @field slash Slash line
 -- @field per_h Per hour annunciator
 -- @field per_m Per meter annunciator
 -- @field per_s Per second annuicator
@@ -608,7 +612,11 @@ local otherAunnuncitors = {
     per_m   = 0x11,
     per_s   = 0x12,
     percent = 0x30,     pc  = 0x30,
-    total   = 0x08,     tot = 0x08
+    total   = 0x08,     tot = 0x08,
+    second  = 0x02,     s = 0x02,
+    minute  = 0x01,     m = 0x01,
+    hour    = 0x04,     h = 0x04,
+    slash   = 0x10
 }
 
 -------------------------------------------------------------------------------
