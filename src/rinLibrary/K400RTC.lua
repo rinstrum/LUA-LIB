@@ -347,7 +347,7 @@ end
 -- @usage
 -- print(device.RTCdate())
 function _M.RTCdate()
-    return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
+    return string.format("%02d/%02d/%02d", RTC[RTC.first], RTC[RTC.second], RTC[RTC.third])
 end
 
 -------------------------------------------------------------------------------
@@ -358,7 +358,7 @@ end
 -- @usage
 -- print(device.RTCtime())
 function _M.RTCtime()
-    return string.format("%02d/%02d/%02d", RTC[RTC.first], RTC[RTC.second], RTC[RTC.third])
+    return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
 end
 
 
