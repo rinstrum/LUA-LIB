@@ -13,11 +13,24 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
 local dbg = require "rinLibrary.rinDebug"
+local system = require "rinSystem.Pack"
+local deepcopy = require 'rinLibrary.deepcopy'
 
 local lpeg = require 'lpeg'
-local Cs, P = lpeg.Cs, lpeg.P
+local C, Cg, Cs, Ct, P, R, S, V = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Define a pattern to match the display options and produce an option table.
+local digits, mpm = R'09'^1, S'+-'^-1
+local float = mpm * (digits * (P'.'*R'09'^0)^-1 + P'.'*digits) * (S'eE'*mpm*digits)^-1
+local function boolArg(s) return Cg(P(s), s) end
+local writeArgPat = P{
+            Ct((V'opt' * (S', '^1 * V'opt')^0)^-1) * P(-1),
+    opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once',
+    time =  P'time=' * Cg(float / tonumber, 'time')
+}
 
 -------------------------------------------------------------------------------
 -- Return the number of LCD characters a string will consume.
@@ -184,6 +197,33 @@ local display = {
     }
 }
 
+--- Display Control Modes.
+--
+-- The control parameter for the write to display functions is reasonably
+-- complex.
+--
+-- If this parameter is left nil, defaults are used for all settings (see below).
+--
+-- If this parameter is a number, it is treated as the time between segments
+-- of the message to display.  The other settings default as below.
+--
+-- The this parameter is a string, it is considered to be a space or comma separated list
+-- of values.  For example, the string <i>"time=2, once, clear"</i>
+-- specified a two second display between elements, clear the field after wards and only display
+-- the message once.
+--
+-- If this parameter is a table, it contains a number of fields which fine tune
+-- the display behaviour.  These fields are described below.
+--
+-- @table displayControl
+-- @field time The time parameter is the number of second between the display being updated (default 0.8).
+-- @field once Once is a boolean that forces the message to be shown once rather
+-- than repeating (default: repeat/display forever).
+-- @field wait Wait is a boolean for causes the display call to not return until after
+-- the message has been fully displayed (default: don't wait).  The wait implies the once option.
+-- @field clear Clear is a boolean, that clears the message from the display once it has been
+-- shown (default: don't clear).  The clear implies the once option.
+
 --- LCD Control Modes.
 --@table lcdControlModes
 -- @field default Set to a default setting (currently dual)
@@ -240,6 +280,14 @@ function _M.rightJustify(s, w)
 end
 
 -------------------------------------------------------------------------------
+-- Remove the timer associated with sliding the display, if present and
+-- clean up
+local function removeSlideTimer(f)
+    timers.removeTimer(f.slideTimer)
+    f.slideTimer = nil
+end
+
+-------------------------------------------------------------------------------
 -- Query the auto register for a display field
 -- @param f Display field
 -- @return Register name
@@ -261,7 +309,7 @@ local function writeAuto(f, register)
     local reg = private.getRegisterNumber(register)
 
     if f.regAuto ~= nil and reg ~= f.auto then
-        timers.removeTimer(f.slideTimer)
+        removeSlideTimer(f)
         f.current = nil
         private.writeRegHexAsync(f.regAuto, reg)
         f.saveAuto = f.auto
@@ -270,17 +318,51 @@ local function writeAuto(f, register)
 end
 
 -------------------------------------------------------------------------------
+-- Decode the time argument to the write function.
+-- The input argument can be a number which is interpreted as a time,
+-- it can be nil for all defaults or it can be a table which is returned
+-- unchanged.
+-- @param t Input time/param value
+-- @local
+local function writeArgs(t)
+    if t == nil then
+        return {}
+    elseif type(t) == 'number' then
+        return { time = t }
+    elseif type(t) == 'string' then
+        local r = writeArgPat:match(t)
+        if r == nil then
+            dbg.error("K400LCD: unparsable display parameter: ", t)
+            return {}
+        end
+        return r
+    elseif type(t) == 'table' then
+        return deepcopy(t)
+    end
+    dbg.error("K400LCD: unknown display parameter: ", tostring(t))
+    return {}
+end
+
+-------------------------------------------------------------------------------
 -- Write a message to the given display field.
 -- @param f Display field.
 -- @param s String to write
--- @param t Time between sections (default 0.8 seconds)
+-- @param params Display parameters
 -- @local
-local function write(f, s, t)
+local function write(f, s, params)
     if f and f.reg ~= nil then
         if s then
+            local t = writeArgs(params)
+            local wait = t.wait
+            local clear = t.clear
+            local once = t.once or wait or clear
+            local time = math.max(t.time or 0.8, 0.2)
+
+            f.time = nil
             s = tostring(s)
-            if s ~= f.current then
+            if s ~= f.current or clear or wait or once then
                 writeAuto(f, 0)
+                removeSlideTimer(f)
                 f.current = s
                 if f.format ~= nil then
                     local function disp()
@@ -289,18 +371,39 @@ local function write(f, s, t)
 
                     f.slideWords = splitWords(s, f.length)
                     f.slidePos = 1
-                    timers.removeTimer(f.slideTimer)
                     disp()
                     if #f.slideWords > 1 then
-                        t = math.max(t or 0.8, 0.2)
-                        f.slideTimer = timers.addTimer(t, t, function()
-                            f.slidePos = private.addModBase1(f.slidePos, 1, #f.slideWords, true)
-                            disp()
-                        end)
                         f.time = t
+                        f.slideTimer = timers.addTimer(time, time, function()
+                            f.slidePos = private.addModBase1(f.slidePos, 1, #f.slideWords, true)
+                            if f.slidePos == 1 and once then
+                                removeSlideTimer(f)
+                                wait = false
+                                if clear then
+                                    write(f, '')
+                                end
+                            else
+                                disp()
+                            end
+                        end)
+                        time = nil
+                    elseif clear then
+                        f.slideTimer = timers.addTimer(0, time, write, f, '')
                     end
                 else
                     private.writeRegHexAsync(f.reg, s)
+                    if clear then
+                        f.slideTimer = timers.addTimer(0, time, write, f, '')
+                    end
+                end
+            end
+            if wait then
+                if time ~= nil then
+                    _M.delay(time)
+                else
+                    while wait do
+                        system.handleEvents()
+                    end
                 end
             end
         elseif f.auto == 0 then
@@ -374,43 +477,48 @@ end
 -- Write string to Top Left of LCD
 -- @function writeTopLeft
 -- @param s string to display
--- @param t delay in seconds between display of sections of a large message
+-- @param params displayControl parameter
+-- @see displayControl
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
-private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, t)
-    write(display.tl, s, t)
+private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, params)
+    write(display.tl, s, params)
 end)
 
 -------------------------------------------------------------------------------
 -- Write string to Top Right of LCD
 -- @function writeTopRight
 -- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
 -- @usage
 -- device.writeTopRight('ABCD')
-private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s)
-    write(display.tr, s)
+private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s, params)
+    write(display.tr, s, params)
 end)
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Left of LCD
 -- @function writeBotLeft
 -- @param s string to display
--- @param t delay in seconds between display of sections of a large message
+-- @param params displayControl parameter
+-- @see displayControl
 -- @usage
 -- device.writeBotLeft('AARDVARK BOTHER HORSES')
-private.writeBotLeft = private.exposeFunction('writeBotLeft', REG_DISP_BOTTOM_LEFT, function(s, t)
-    write(display.bl, s, t)
+private.writeBotLeft = private.exposeFunction('writeBotLeft', REG_DISP_BOTTOM_LEFT, function(s, params)
+    write(display.bl, s, params)
 end)
 
 -------------------------------------------------------------------------------
 -- Write string to Bottom Right of LCD
 -- @function writeBotRight
 -- @param s string to display
--- @param t delay in seconds between display of sections of a large message
+-- @param params deldisplayControl parameterssage
+-- @see displayControl
 -- @usage
 -- device.writeBotRight('HORSES BOTHER AARDVARK')
-private.writeBotRight = private.exposeFunction('writeBotRight', REG_DISP_BOTTOM_RIGHT, function(s, t)
-    write(display.br, s, t)
+private.writeBotRight = private.exposeFunction('writeBotRight', REG_DISP_BOTTOM_RIGHT, function(s, params)
+    write(display.br, s, params)
 end)
 
 -----------------------------------------------------------------------------
