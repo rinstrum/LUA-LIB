@@ -80,7 +80,7 @@ dwi.setIdleCallback(dwi.abortDialog, 30)
 local function prompt(msg)
     msg = msg or '        '
     dwi.writeBotLeft(msg)
-    dwi.delay(1.5)
+    rinApp.delay(1.5)
 end
 
 --=============================================================================

@@ -54,9 +54,9 @@ return function (_M, private, deprecated)
 -- -- The delays are required since execution continues
 -- -- before the buzzer is finished.
 -- device.buzz(3, 'short')
--- device.delay(1.4)
+-- rinApp.delay(1.4)
 -- device.buzz(3, 'medium')
--- device.delay(2.2)
+-- rinApp.delay(2.2)
 -- device.buzz(3, 'short')
     function _M.buzz(times, len)
         

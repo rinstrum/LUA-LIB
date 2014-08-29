@@ -39,7 +39,7 @@ describe("Analog #analog", function ()
 
         local function check(volts, target, fuzz)
             lower.setAnalogVolt(volts)
-            upper.delay(0.4)
+            app.delay(0.4)
             upper.waitStatus('notmotion')
             assert.approximately(curWeight, target, fuzz)
         end
@@ -70,7 +70,7 @@ describe("Analog #analog", function ()
         local data = require("tests.regression")()
         for i = 0, 5 do
             upper.setAnalogVolt(i * 2)
-            lower.delay(0.4)
+            app.delay(0.4)
             lower.waitStatus('notmotion')
             data.add(i, curWeight)
         end

@@ -377,6 +377,28 @@ if _TEST then
 end
 
 -------------------------------------------------------------------------------
+-- Delay until the specified condition occurs
+-- @param cond Condition function
+-- @usage
+-- rinApp.delayUntil(function() return finished end)
+function _M.delayUntil(cond)
+    while _M.isRunning() and not cond() do
+        system.handleEvents()
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Called to delay for t sec while keeping event handlers running
+-- @param t delay time in sec
+-- @usage
+-- rinApp.delay(0.1)    -- pause for 100 ms
+function _M.delay(t)
+    local finished = false
+    local tmr = timers.addTimer(0, t, function () finished = true end)
+    _M.delayUntil(function() return finished end)
+end
+
+-------------------------------------------------------------------------------
 -- Main rinApp program loop until the program terminates.
 -- @usage
 -- rinApp.run()

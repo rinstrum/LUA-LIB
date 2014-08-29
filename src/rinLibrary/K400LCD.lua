@@ -399,7 +399,7 @@ local function write(f, s, params)
             end
             if wait then
                 if time ~= nil then
-                    _M.delay(time)
+                    _M.app.delay(time)
                 else
                     while wait do
                         system.handleEvents()
@@ -788,7 +788,7 @@ end
 -- @usage
 -- while true do
 --     device.rotWAIT(-1)
---     device.delay(0.7)
+--     rinApp.delay(0.7)
 -- end
 function _M.rotWAIT(dir)
     if dir ~= 0 then

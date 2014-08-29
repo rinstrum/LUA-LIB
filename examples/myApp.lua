@@ -154,7 +154,7 @@ local function mainLoop()
          dwi.writeAutoBotLeft('usernum3')
          dwi.writeBotRight('CAPTURED')
          dwi.buzz(2)
-         dwi.delay(1)
+         rinApp.delay(1)
          dwi.writeBotRight('...')
          mode = 'wait'
       end
@@ -162,7 +162,7 @@ local function mainLoop()
        if dwi.anyStatusSet('motion') then
            dwi.writeBotRight('')
            dwi.buzz(1)
-           dwi.delay(0.5)
+           rinApp.delay(0.5)
            mode = 'run'
        end
     end

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- This example demonstrates a complete take over of the console.
 -- Lots of timers are used to slow things down so the user can see
--- what is going on.  These could be replaced by calls to dwi.delay
+-- what is going on.  These could be replaced by calls to rinApp.delay
 -- in many cases (which itself uses a timer).
 --
 -- @author Pauli
