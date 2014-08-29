@@ -59,8 +59,7 @@ local availRegisters, streamRegisters = {}, {}
 local standardMap = { initialised = false }
 
 -----------------------------------------------------------------------------
--- Initialise the mapping
--- @param map Mapping (myself)
+-- Initialise the mappings
 -- @local
 local function initialiseStreamMaps()
     if not standardMap.initialised then
