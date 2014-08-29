@@ -49,9 +49,7 @@ function _M.getKey()
     end
     usb.setUSBKBDCallback(kbdHandler)
 
-    while rinApp.isRunning() and keypressed == '' do
-        system.handleEvents()
-    end
+    rinApp.delayUntil(function() return keypressed ~= '' end)
     usb.setUSBKBDCallback(f)
 
     return keypressed

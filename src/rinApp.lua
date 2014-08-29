@@ -21,6 +21,7 @@ local P, V = lpeg.P, lpeg.V
 local system = require 'rinSystem.Pack'
 local socks = require "rinSystem.rinSockets.Pack"
 local timers = require 'rinSystem.rinTimers.Pack'
+local utils = require 'rinSystem.utilities'
 local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
 local dbg = require "rinLibrary.rinDebug"
@@ -382,8 +383,13 @@ end
 -- @usage
 -- rinApp.delayUntil(function() return finished end)
 function _M.delayUntil(cond)
-    while _M.isRunning() and not cond() do
-        system.handleEvents()
+    if utils.callable(cond) then
+        while _M.isRunning() and not cond() do
+            system.handleEvents()
+        end
+    else
+        dbg.error('rinApp:', 'not a callable function for delayUntil')
+        local fatal fatal[nil] = nil
     end
 end
 

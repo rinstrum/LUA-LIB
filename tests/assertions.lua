@@ -65,7 +65,7 @@ local function between(state, args)
     return value >= low and value <= high
 end
 
-s:set("assertion.between.positive", "Expected number to be in range.\Passed in:\n%s\nShould be between:\n%s\nand\n%s\n")
+s:set("assertion.between.positive", "Expected number to be in range.\nPassed in:\n%s\nShould be between:\n%s\nand\n%s\n")
 s:set("assertion.between.negative", "Expected number to be not range.\nPassed in:\n%s\nShould be between:\n%s\nand\n%s\n")
 
 assert:register("assertion", "between", between, "assertion.between.positive", "assertion.between.negative")

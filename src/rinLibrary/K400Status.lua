@@ -786,7 +786,7 @@ end
 --     device.turnOff(1)
 -- end
 function _M.allSETPSet(...)
-    return(allBitSet(curSETP,...))
+    return allBitSet(curSETP,...)
 end
 
 -------------------------------------------------------------------------------
@@ -806,9 +806,7 @@ function _M.waitStatus(...)
     for _, v in pairs({...}) do
         stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
     end
-    while bit32.band(curStatus, stat) ~= stat do
-        system.handleEvents()
-    end
+    _M.app.delayUntil(function() return bit32.band(curStatus, stat) == stat end)
 end
 
 -------------------------------------------------------------------------------
@@ -824,13 +822,10 @@ end
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
     local mask = bit32.lshift(0x00000001, IO-1)
-    while _M.app.isRunning() do
+    _M.app.delayUntil(function()
         local data = bit32.band(curIO, mask)
-        if (state and data ~= 0) or (not state and data == 0) then
-            break
-        end
-        system.handleEvents()
-    end
+        return state and data ~= 0 or not state and data == 0
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -851,13 +846,10 @@ function _M.waitSETP(SETP, state)
         return false
     end
     local mask = bit32.lshift(0x00000001, SETP-1)
-    while _M.app.isRunning() do
+    _M.app.delayUntil(function()
         local data = bit32.band(curSETP, mask)
-        if (state and data ~= 0) or (not state and data == 0) then
-            break
-        end
-        system.handleEvents()
-    end
+        return state and data ~= 0 or not state and data == 0
+    end)
     return true
 end
 

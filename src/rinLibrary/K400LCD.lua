@@ -401,9 +401,7 @@ local function write(f, s, params)
                 if time ~= nil then
                     _M.app.delay(time)
                 else
-                    while wait do
-                        system.handleEvents()
-                    end
+                    _M.app.delayUntil(function() return not wait end)
                 end
             end
         elseif f.auto == 0 then
