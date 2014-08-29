@@ -332,14 +332,14 @@ local function writeArgs(t)
     elseif type(t) == 'string' then
         local r = writeArgPat:match(t)
         if r == nil then
-            dbg.error("K400LCD: unparsable display parameter: ", t)
+            dbg.error("K400LCD: unparsable display parameter:", t)
             return {}
         end
         return r
     elseif type(t) == 'table' then
         return deepcopy(t)
     end
-    dbg.error("K400LCD: unknown display parameter: ", tostring(t))
+    dbg.error("K400LCD: unknown display parameter:", tostring(t))
     return {}
 end
 
