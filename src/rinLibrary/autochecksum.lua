@@ -9,7 +9,7 @@ local allfiles = require 'rinLibrary.checksum-file-list'
 local stat = require('posix').stat
 local gsub = string.gsub
 local insert = table.insert
-local lpeg = require 'lpeg'
+local lpeg = require 'rinLibrary.lpeg'
 local C, Ct, P = lpeg.C, lpeg.Ct, lpeg.P
 
 local dirs = Ct(((C((1-P';')^1) * P';')^0) * C((1-P';')^1)):match(package.path)

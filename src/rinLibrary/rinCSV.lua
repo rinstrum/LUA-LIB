@@ -21,7 +21,7 @@ local canonical = require 'rinLibrary.canonicalisation'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- LPEG pattern for parsing a CSV file
-local lpeg = require 'lpeg'
+local lpeg = require 'rinLibrary.lpeg'
 local C, Cs, Ct, P, S = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.S
 
 local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +

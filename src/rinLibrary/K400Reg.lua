@@ -15,8 +15,8 @@ local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local rinMsg = require 'rinLibrary.rinMessage'
 
-local lpeg = require "lpeg"
-local locale, P, S = lpeg.locale(), lpeg.P, lpeg.S
+local lpeg = require "rinLibrary.lpeg"
+local space, digit, P, S = lpeg.space, lpeg.digit, lpeg.P, lpeg.S
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -135,7 +135,7 @@ local typeMap = {
 
 -- Pattern to ease the computation of the number of decimal places in a value
 local dpCount
-local dpPattern = S('+-')^-1 * locale.space^0 * locale.digit^0 * (P'.' * (locale.digit^0 / function(s) dpCount = #s end))^-1
+local dpPattern = S('+-')^-1 * space^0 * digit^0 * (P'.' * (digit^0 / function(s) dpCount = #s end))^-1
 
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response

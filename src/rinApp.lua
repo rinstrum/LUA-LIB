@@ -15,8 +15,8 @@ local dofile = dofile
 local bit32 = require "bit"
 local io = io
 
-local lpeg = require "lpeg"
-local P, V = lpeg.P, lpeg.V
+local lpeg = require "rinLibrary.lpeg"
+local P, Pi, V = lpeg.P, lpeg.Pi, lpeg.V
 
 local system = require 'rinSystem.Pack'
 local socks = require "rinSystem.rinSockets.Pack"
@@ -30,22 +30,6 @@ local deprecatedFields, warned = {
     system = system,
     dbg = dbg
 }, {}
-
--------------------------------------------------------------------------------
--- Define a lpeg pattern to match a string case insensitively
--- @param str String to match
--- @return pattern
--- @local
-local function Pi(str)
-    if type(str) == 'string' then
-        local patt = lpeg.P(true)
-        for c in str:gmatch(".") do
-            patt = patt * (lpeg.P(c:lower()) + lpeg.P(c:upper()))
-        end
-        return patt
-    end
-    local Pi_argument_is_not_a_string; Pi_argument_is_not_a_string[nil] = nil
-end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here

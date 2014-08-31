@@ -6,7 +6,7 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local dbg = require "rinLibrary.rinDebug"
-local lpeg = require "lpeg"
+local lpeg = require "rinLibrary.lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

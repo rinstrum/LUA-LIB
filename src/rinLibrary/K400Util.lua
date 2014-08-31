@@ -16,7 +16,7 @@ local powersOfTen   = require "rinLibrary.powersOfTen"
 local system        = require 'rinSystem.Pack'
 local dbg           = require "rinLibrary.rinDebug"
 local naming        = require 'rinLibrary.namings'
-local lpeg          = require 'lpeg'
+local lpeg          = require 'rinLibrary.lpeg'
 local system        = require 'rinSystem.Pack'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

@@ -7,8 +7,8 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-local lpeg = require 'lpeg'
-local Cs, spc = lpeg.Cs, lpeg.locale().space
+local lpeg = require 'rinLibrary.lpeg'
+local Cs, spc = lpeg.Cs, lpeg.space
 local nspc = 1 - spc
 
 local canonicalisation = spc^0 * Cs(nspc^0 * (spc^1 / ' ' * nspc^1)^0) * spc^0

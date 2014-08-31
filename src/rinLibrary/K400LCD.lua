@@ -16,20 +16,19 @@ local dbg = require "rinLibrary.rinDebug"
 local system = require "rinSystem.Pack"
 local deepcopy = require 'rinLibrary.deepcopy'
 
-local lpeg = require 'lpeg'
-local C, Cg, Cs, Ct, P, R, S, V = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.R, lpeg.S, lpeg.V
+local lpeg = require 'rinLibrary.lpeg'
+local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
+local P, Pi, R, S, V, spc = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V, lpeg.space
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Define a pattern to match the display options and produce an option table.
-local digits, mpm = R'09'^1, S'+-'^-1
-local float = mpm * (digits * (P'.'*R'09'^0)^-1 + P'.'*digits) * (S'eE'*mpm*digits)^-1
-local function boolArg(s) return Cg(P(s), s) end
+local function boolArg(s) return Cg(Pi(s), s) end
 local writeArgPat = P{
-            Ct((V'opt' * (S', '^1 * V'opt')^0)^-1) * P(-1),
+            spc^0 * Ct((V'opt' * ((spc + P',')^1 * V'opt')^0)^-1) * spc^0 * P(-1),
     opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once',
-    time =  P'time=' * Cg(float / tonumber, 'time')
+    time =  (Pi'time' * spc^0 * P'=' *spc^0)^-1 * Cg(lpeg.float / tonumber, 'time')
 }
 
 -------------------------------------------------------------------------------
@@ -210,7 +209,8 @@ local display = {
 -- The this parameter is a string, it is considered to be a space or comma separated list
 -- of values.  For example, the string <i>"time=2, once, clear"</i>
 -- specified a two second display between elements, clear the field after wards and only display
--- the message once.
+-- the message once.  For the <i>time</i> parameter, the <i>time=</i> can be omitted.  Thus,
+-- "once 2 clear" has the same meaning as the previous example.
 --
 -- If this parameter is a table, it contains a number of fields which fine tune
 -- the display behaviour.  These fields are described below.
