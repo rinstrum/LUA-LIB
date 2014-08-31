@@ -80,7 +80,7 @@ end
 local function toCSV(t)
     local s = { }
     if t ~= nil then
-        for _,p in pairs(t) do
+        for _, p in pairs(t) do
             table.insert(s, ",")
             table.insert(s, escapeCSV(p))
         end
@@ -160,7 +160,7 @@ end
 -- @local
 local function appendrow(t, s)
     local f = io.open(t.fname, "a+")
-    writerow(f, line)
+    writerow(f, s)
     f:close()
     sync()
 end
