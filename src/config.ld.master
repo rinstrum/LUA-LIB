@@ -1,4 +1,4 @@
-project="rinLIB"
+project="rinLIB <font size=\"-1\">version %LATEST%</font>"
 title="Rinstrum Lua Library API"
 format='markdown'   -- 'discount' is faster but isn't available on the device.
 readme= { 'src/topics' }
@@ -21,7 +21,9 @@ examples={          -- We should be able to wildcard this.
 full_description=[[
 # rinLIB: API for programming the M4223 in Lua 
 
-Copyright (C) 2013-2014 Rinstrum.
+Copyright &copy; 2013-2014 Rinstrum.
+
+This reference is correct for library version %LATEST% only.
 
 If you do not know where to begin, please start with the <a href="topics/overview.md.html">introduction</a>.
 

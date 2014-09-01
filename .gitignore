@@ -24,3 +24,4 @@ opkg/*
 rinApp.ini
 
 src/rinLibrary/checksum-file-list.lua
+src/config.ld
