@@ -15,6 +15,8 @@ local ipairs    = ipairs
 local tostring  = tostring
 local error     = error
 local xeq       = os.execute
+local rename    = os.rename
+local stat      = require('posix').stat
 
 local dbg       = require "rinLibrary.rinDebug"
 local canonical = require 'rinLibrary.canonicalisation'
@@ -236,8 +238,10 @@ function _M.saveCSV(t)
         dbg.error("saveCSV: ", string.format("unable to write %s", t.fname))
     else
         writerow(f, t.labels)
-        for _, row in ipairs(t.data) do
-            writerow(f, row)
+        if t.data ~= nil then
+            for _, row in ipairs(t.data) do
+                writerow(f, row)
+            end
         end
         f:close()
         sync()
@@ -353,6 +357,28 @@ end
 -- @field immiscable File had no common fields, returned an empty CSV table
 
 -------------------------------------------------------------------------------
+-- Set the maximum log size before log cycling
+-- @param t CSV table
+-- @param s Maximum log file size
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- csv.setLogSize(csvTable, 10000)
+function _M.setLogSize(t, s)
+    t.logMaxSize = math.max(s, 2 + #toCSV(t.labels))
+end
+
+-------------------------------------------------------------------------------
+-- Query the maximum log size before log cycling occurs
+-- @param t CSV table
+-- @return Log cycle size
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- print('cycle size is ' .. csv.getLogSize(csvTable))
+function _M.getLogSize(t)
+    return t.logMaxSize or 100000
+end
+
+-------------------------------------------------------------------------------
 -- Adds line of data to a CSV file but does not update local data in table
 -- @param t is table describing CSV data
 -- @param line is a row of data (1d array) to save
@@ -370,6 +396,15 @@ function _M.logLineCSV(t, line)
             dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
         else
             appendrow(t, line)
+
+            if stat(t.fname, 'size') > _M.getLogSize(t) then
+                for i = 9, 1, -1 do
+                    rename(t.fname .. '.' .. (i-1), t.fname .. '.' .. i)
+                end
+                rename(t.fname, t.fname .. '.0')
+                _M.saveCSV(t)
+            end
+            t.data = nil
         end
     end
 end
@@ -633,7 +668,7 @@ end
 --
 -- csv.loadCSV(csvfile)
 -- print(csv.tostringCSV(csvtile))
-function _M.tostringCSV(t,w)
+function _M.tostringCSV(t, w)
     local csvtab = {}
     local w = w or 10
 
