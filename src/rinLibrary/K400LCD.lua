@@ -441,10 +441,10 @@ end
 -- device.restoreBot()
 function _M.saveBot()
     map(function(v) return v.bottom end,
-        function(f)
-            f.saveCurrent = f.current
-            f.saveTime = f.time
-            f.saveUnits = f.units
+        function(v)
+            v.saveCurrent = v.current
+            v.saveTime = v.time
+            v.saveUnits = v.units
         end)
 end
 
@@ -456,9 +456,9 @@ end
 -- device.restoreBot()
 function _M.restoreBot()
     map(function(v) return v.bottom end,
-        function(f)
-            write(f, f.saveCurrent, f.saveTime)
-            units(f, f.saveUnits)
+        function(v)
+            write(v, v.saveCurrent, v.saveTime)
+            units(v, v.saveUnits)
         end)
 end
 
