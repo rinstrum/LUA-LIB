@@ -386,7 +386,7 @@ describe("CSV tests #csv", function()
     end)
 
     -- test cleanCSV
-    describe("cleanCSV @cleancsv", function()
+    describe("cleanCSV #cleancsv", function()
         local cleanCsvTests = {
             {   t = { labels = { 'a', ' AA ', ' B  B  C ' }, data = { { ' fNoRd ', 'aBC  def  GHi', 32 } } },
                 r = { labels = { 'a', 'aa', 'b b c' }, data = { { 'fnord', 'abc def ghi', 32 } } }
@@ -398,6 +398,28 @@ describe("CSV tests #csv", function()
                 local r = cleanCsvTests[i]
                 csv.cleanCSV(r.t)
                 assert.same(r.r, r.t)
+            end)
+        end
+    end)
+
+    -- test toTableCSV
+    describe("toTableCSV #totablecsv", function()
+        local toTableCSVTests = {
+            {   t = {}, r = nil },
+            {   t = { labels = { 'a', 'b' }, data = {} }, r = {} },
+            {   t = { labels = { 'a', 'b' }, data = { { 'd', 'e' }, { 'f', 'g' }, { 'x', 'y' } } },
+                r = { d = { a='d', b='e' }, f = { a='f', b='g' }, x = { a='x', b='y' } }
+            },
+            {   t = { labels = { 'b', 'a' }, data = { { 'd', 'e' }, { 'f', 'g' }, { 'x', 'y' } } },
+                r = { e = { b='d', a='e' }, g = { b='f', a='g' }, y = { b='x', a='y' } }
+            }
+        }
+
+        for i = 1, #toTableCSVTests do
+            it("test "..i, function()
+                local r = toTableCSVTests[i]
+                local z = csv.toTableCSV(r.t, 'a')
+                assert.same(r.r, z)
             end)
         end
     end)

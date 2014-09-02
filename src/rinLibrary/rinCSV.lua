@@ -20,6 +20,7 @@ local stat      = require('posix').stat
 
 local dbg       = require "rinLibrary.rinDebug"
 local canonical = require 'rinLibrary.canonicalisation'
+local deepcopy  = require 'rinLibrary.deepcopy'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- LPEG pattern for parsing a CSV file
@@ -625,6 +626,41 @@ function _M.cleanCSV(t)
             end
         end
     end
+end
+
+-------------------------------------------------------------------------------
+-- Convert a CSV file into a table indexed by the specified column names.
+-- No uniqueness checks are performed for the key field.
+-- @param csvtbl CSV table to extract
+-- @param column Column name for the key field
+-- @return Table containing the rows indexed by the key field.  Each row is
+-- indexed by the label names not the label numbers.
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- local t = csv.toTableCSV(csvTable, 'truck')
+-- print('The big red truck's tare is: ' .. t.bigred.tare)
+function _M.toTableCSV(csvtbl, column)
+    if hasData(csvtbl) then
+        local c = lookupColumn(csvtbl, column)
+        local r, l = {}, {}
+
+        for i = 1, #csvtbl.labels do
+            l[i] = canonical(csvtbl.labels[i])
+        end
+
+        for _, v in ipairs(csvtbl.data) do
+            local z = {}
+            r[canonical(v[c])] = z
+            for i = 1, #l do
+                z[l[i]] = v[i]
+            end
+        end
+        return r
+    elseif isCSV(csvtbl) then
+        return {}
+    end
+    return nil
 end
 
 -------------------------------------------------------------------------------
