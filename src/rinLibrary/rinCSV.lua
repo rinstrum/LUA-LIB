@@ -564,7 +564,7 @@ function _M.getRecordCSV(t, val, col)
         local ret, line = {}
 
         _, line = _M.getLineCSV(t, val, col)
-        for i = 1, #t.labels do
+        for i = 1, _M.numColsCSV(t) do
             ret[canonical(t.labels[i])] = line[i]
         end
         return ret
@@ -614,11 +614,11 @@ end
 -- csv.saveCSV(csvfile)
 function _M.cleanCSV(t)
     if isCSV(t) then
-        local d = hasData(t)
-        for i = 1, #t.labels do
+        local d, rowCount = hasData(t), _M.numRowsCSV(t)
+        for i = 1, _M.numColsCSV(t) do
             t.labels[i] = canonical(t.labels[i])
             if d then
-                for j = 1, #t.data do
+                for j = 1, rowCount do
                     if type(t.data[j][i]) == 'string' then
                         t.data[j][i] = canonical(t.data[j][i])
                     end
@@ -645,7 +645,7 @@ function _M.toTableCSV(csvtbl, column)
         local c = lookupColumn(csvtbl, column)
         local r, l = {}, {}
 
-        for i = 1, #csvtbl.labels do
+        for i = 1, _M.numColsCSV(csvtbl) do
             l[i] = canonical(csvtbl.labels[i])
         end
 
