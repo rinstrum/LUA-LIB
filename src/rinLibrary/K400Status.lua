@@ -862,7 +862,8 @@ end
 -- @usage
 -- device.writeRTCStatus(true)  -- enable RTC monitoring
 -- device.writeRTCStatus(false) -- disable RTC monitoring
-function _M.writeRTCStatus(s)
+-- @local
+local function writeRTCStatus(s)
     private.writeRegHex(REG_LUA_STAT_RTC, s == false and 0 or 1)
 end
 
@@ -881,11 +882,11 @@ end
 -- @param active Active?
 -- @local
 local function handleINIT(status, active)
---   dbg.info('INIT',string.format('%08X',status),active)
---   if active then
---       private.readSettings()
---       _M.RTCread()
---   end
+    dbg.info('INIT', status, active)
+    if active then
+        private.readSettings()
+        private.RTCread('all')
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -911,10 +912,10 @@ function _M.setupStatus()
     eStatID = _M.addStream(REG_LUA_ESTAT,  eStatusCallback, 'change')
     IOID    = _M.addStream('io_status',    IOCallback,      'change')
     SETPID  = _M.addStream(REG_SETPSTATUS, SETPCallback,    'change')
-    _M.RTCread()
+    private.RTCread('all')
     setEStatusMainCallback('rtc',  handleRTC)
     setEStatusMainCallback('init', handleINIT)
-    _M.writeRTCStatus(true)
+    writeRTCStatus(true)
 end
 
 -------------------------------------------------------------------------------
@@ -923,6 +924,9 @@ end
 -- @usage
 -- device.endStatus()
 function _M.endStatus()
+    writeRTCStatus(false)
+    setEStatusMainCallback('rtc',  nil)
+    setEStatusMainCallback('init', nil)
     _M.removeStream(statID)
     _M.removeStream(eStatID)
     _M.removeStream(IOID)
@@ -1016,6 +1020,8 @@ deprecated.ESTAT_INIT        = 'init'
 deprecated.ESTAT_RTC         = 'rtc'
 deprecated.ESTAT_SER1        = 'ser1'
 deprecated.ESTAT_SER2        = 'ser2'
+
+deprecated.writeRTCStatus   = writeRTCStatus
 
 -------------------------------------------------------------------------------
 -- Called to get current instrument status

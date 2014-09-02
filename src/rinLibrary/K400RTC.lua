@@ -176,7 +176,7 @@ end
 --
 -- -- Load the RTC settings from the display device
 -- device.RTCread('all')
-function _M.RTCread(d)
+function private.RTCread(d)
   local d = d or 'all'
 
   _M.readDateFormat()
@@ -439,8 +439,8 @@ deprecated.TM_MMDDYYYY      = TM_MMDDYYYY
 deprecated.TM_YYMMDD        = TM_YYMMDD
 deprecated.TM_YYYYMMDD      = TM_YYYYMMDD
 
-deprecated.RTC = RTC
-
+deprecated.RTC              = RTC
+deprecated.RTCread          = private.RTCread
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Expose some internals for testing purposes
