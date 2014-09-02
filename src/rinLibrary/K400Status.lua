@@ -373,12 +373,12 @@ local function IOCallback(data, err)
         if k == 0 then  --handle the all IO case
             status = curIO
         end
-        if status ~= v.lastStatus  then
+        if status ~= v.lastStatus then
             if v.running then
                 if k == 0 then
-                    dbg.warn('IO Event lost: ',v.IO,string.format('%08X',status))
+                    dbg.warn('IO Event lost: ', v.IO, string.format('%08X',status))
                 else
-                    dbg.warn('IO Event lost: ',v.IO,status ~=0)
+                    dbg.warn('IO Event lost: ', v.IO, status ~=0)
                 end
             else
                 v.lastStatus = status
@@ -465,10 +465,10 @@ local function SETPCallback(data, err)
         if k == 0 then  --handle the all setp case
             status = curSETP
         end
-        if status ~= v.lastStatus  then
+        if status ~= v.lastStatus then
             if v.running then
                 if k == 0 then
-                    dbg.warn('SETP Event lost: ', v.SETP,string.format('%04X', status))
+                    dbg.warn('SETP Event lost: ', v.SETP, string.format('%04X', status))
                 else
                     dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
                 end
