@@ -22,9 +22,7 @@ local utils = require 'rinSystem.utilities'
 -- @return true iff one of the bits is set.
 -- @local
 local function anyBitSet(data, ...)
-    local args = {...}
-
-    for i,v in ipairs(args) do
+    for i,v in ipairs{...} do
         if bit32.band(bit32.lshift(0x01, v-1), data) ~= 0 then
             return true
         end
@@ -617,9 +615,7 @@ end
 --     device.turnOff(5)
 -- end
 function _M.anyStatusSet(...)
-    local args = {...}
-
-    for i, v in pairs(args) do
+    for i, v in pairs{...} do
         local b = naming.convertNameToValue(v, statusMap, 0)
         if bit32.band(curStatus, b) ~= 0 then
             return true
