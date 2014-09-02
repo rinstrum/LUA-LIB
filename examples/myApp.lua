@@ -112,7 +112,7 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -- Callback to handle changes in instrument settings
 local function settingsChanged(status, active)
 end
-dwi.setEStatusCallback('init', settingsChanged)
+dwi.setStatusCallback('init', settingsChanged)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------

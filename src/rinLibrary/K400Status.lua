@@ -315,6 +315,71 @@ function private.renewStatusBinds()
 end
 
 -------------------------------------------------------------------------------
+-- Called when extended status changes are streamed
+-- @param data Data on status streamed
+-- @param err Potential error message
+-- @local
+local function eStatusCallback(data, err)
+    private.updateSettings(
+        bit32.band(data, ESTAT_HIRES) > 0,
+        1 + bit32.rshift(bit32.band(data, ESTAT_DISPMODE), ESTAT_DISPMODE_RS),
+        1 + bit32.rshift(bit32.band(data, ESTAT_RANGE), ESTAT_RANGE_RS))
+
+    for k, v in pairs(eStatBinds) do
+        local status = bit32.band(data,k)
+        if status ~= v.lastStatus  then
+            if v.running then
+                dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
+            else
+                local estatName = naming.convertValueToName(k, estatusUnmap, nil)
+                v.lastStatus = status
+                v.running = true
+                if utils.callable(v.mainf) then
+                    v.mainf(estatName, status ~= 0)
+                end
+                if utils.callable(v.f) then
+                    v.f(estatName, status ~= 0)
+                end
+                v.running = false
+            end
+         end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for an extended status bit
+-- @param eStatus Extended status bit
+-- @param callback Function to run when there is an event on change in status
+-- @see luaextendedstatus
+-- @see setEStatusMainCallback
+local function setEStatusCallback(eStatus, callback)
+    utils.checkCallback(callback)
+    local eStat = naming.convertNameToValue(eStatus, estatusMap)
+    if eStat then
+        eStatBinds[eStat] = eStatBinds[eStat] or {}
+        eStatBinds[eStat]['f'] = callback
+        eStatBinds[eStat]['lastStatus'] = 0xFF
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the main library callback function for an extended status bit
+-- @param eStatus Extended status bit
+-- @param callback Function to run when there is an event on change in status
+-- @see luaextendedstatus
+-- @see setEStatusCallback
+-- @local
+local function setEStatusMainCallback(eStatus, callback)
+    utils.checkCallback(callback)
+    local eStat = naming.convertNameToValue(eStatus, estatusMap)
+    if eStat then
+        eStatBinds[eStat] = eStatBinds[eStat] or {}
+        eStatBinds[eStat]['mainf'] = callback
+        eStatBinds[eStat]['lastStatus'] = 0xFF
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Called when status changes are streamed
 -- @param data Data on status streamed
 -- @param err Potential error message
@@ -350,12 +415,15 @@ end
 -- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(status, callback)
     utils.checkCallback(callback)
+
     local stat = naming.convertNameToValue(status, statusMap)
     if stat then
         statBinds[stat] = {
             f = callback,
             lastStatus = 0xFF
         }
+    else
+        setEStatusCallback(status, callback)
     end
 end
 
@@ -533,70 +601,6 @@ function _M.setAllSETPCallback(callback)
     SETPBinds[0]['SETP'] = 'All'
     SETPBinds[0]['f'] = callback
     SETPBinds[0]['lastStatus'] = 0xFFFFFF
-end
-
--------------------------------------------------------------------------------
--- Called when extended status changes are streamed
--- @param data Data on status streamed
--- @param err Potential error message
--- @local
-local function eStatusCallback(data, err)
-    private.updateSettings(
-        bit32.band(data, ESTAT_HIRES) > 0,
-        1 + bit32.rshift(bit32.band(data, ESTAT_DISPMODE), ESTAT_DISPMODE_RS),
-        1 + bit32.rshift(bit32.band(data, ESTAT_RANGE), ESTAT_RANGE_RS))
-
-    for k, v in pairs(eStatBinds) do
-        local status = bit32.band(data,k)
-        if status ~= v.lastStatus  then
-            if v.running then
-                dbg.warn('Ext Status Event lost: ',string.format('%08X',k),status ~= 0)
-            else
-                local estatName = naming.convertValueToName(k, estatusUnmap, nil)
-                v.lastStatus = status
-                v.running = true
-                if utils.callable(v.mainf) then
-                    v.mainf(estatName, status ~= 0)
-                end
-                if utils.callable(v.f) then
-                    v.f(estatName, status ~= 0)
-                end
-                v.running = false
-            end
-         end
-    end
-end
-
--------------------------------------------------------------------------------
--- Set the callback function for an extended status bit
--- @param eStatus Extended status bit
--- @param callback Function to run when there is an event on change in status
--- @see luaextendedstatus
--- @see setEStatusMainCallback
-function _M.setEStatusCallback(eStatus, callback)
-    utils.checkCallback(callback)
-    local eStat = naming.convertNameToValue(eStatus, estatusMap)
-    if eStat then
-        eStatBinds[eStat] = eStatBinds[eStat] or {}
-        eStatBinds[eStat]['f'] = callback
-        eStatBinds[eStat]['lastStatus'] = 0xFF
-    end
-end
-
--------------------------------------------------------------------------------
--- Set the main library callback function for an extended status bit
--- @param eStatus Extended status bit
--- @param callback Function to run when there is an event on change in status
--- @see luaextendedstatus
--- @see setEStatusCallback
-function _M.setEStatusMainCallback(eStatus, callback)
-    utils.checkCallback(callback)
-    local eStat = naming.convertNameToValue(eStatus, estatusMap)
-    if eStat then
-        eStatBinds[eStat] = eStatBinds[eStat] or {}
-        eStatBinds[eStat]['mainf'] = callback
-        eStatBinds[eStat]['lastStatus'] = 0xFF
-    end
 end
 
 -------------------------------------------------------------------------------
@@ -908,8 +912,8 @@ function _M.setupStatus()
     IOID    = _M.addStream('io_status',    IOCallback,      'change')
     SETPID  = _M.addStream(REG_SETPSTATUS, SETPCallback,    'change')
     _M.RTCread()
-    _M.setEStatusMainCallback('rtc',  handleRTC)
-    _M.setEStatusMainCallback('init', handleINIT)
+    setEStatusMainCallback('rtc',  handleRTC)
+    setEStatusMainCallback('init', handleINIT)
     _M.writeRTCStatus(true)
 end
 
@@ -998,6 +1002,8 @@ deprecated.STAT_PULSE       = 'pulse'
 deprecated.STAT_START       = 'start'
 deprecated.STAT_NO_TYPE     = 'no_type'
 
+deprecated.setEStatusCallback = setEStatusCallback
+deprecated.setEStatusMainCallback = setEStatusMainCallback
 deprecated.ESTAT_HIRES       = 'hires'
 deprecated.ESTAT_DISPMODE    = 'dispmode'
 deprecated.ESTAT_DISPMODE_RS = 'dispmode_rs'

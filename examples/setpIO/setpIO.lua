@@ -124,7 +124,7 @@ local function handleRTC(status, active)
    end
    dbg.info('Clock : ',dwi.RTCtostring())
 end
-dwi.setEStatusCallback('rtc', handleRTC)
+dwi.setStatusCallback('rtc', handleRTC)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
