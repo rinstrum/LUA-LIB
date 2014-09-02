@@ -6,7 +6,7 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local lpeg = require 'lpeg'
-local P, R, S, locale = lpeg.P, lpeg.R, lpeg.S, lpeg.locale()
+local P, S = lpeg.P, lpeg.S
 
 -- Load the locale definitons into the lpeg table itself
 lpeg.locale(lpeg)
@@ -17,8 +17,8 @@ lpeg.locale(lpeg)
 -- @usage
 -- local lpeg = require 'rinLibrary.lpeg'
 -- (lpeg.float / tonumber):match('+1.234E-21')
-local digits, mpm = lpeg.digit^1, S'+-'^-1
-lpeg.float = mpm * (digits * (P'.'*R'09'^0)^-1 + P'.'*digits) * (S'eE'*mpm*digits)^-1
+local digits, pm = lpeg.digit^1, S'+-'^-1
+lpeg.float = pm * (digits * (P'.'*lpeg.digit^0)^-1 + P'.'*digits) * (S'eE'*pm*digits)^-1
 
 -------------------------------------------------------------------------------
 -- Define a lpeg pattern to match a string case insensitively
