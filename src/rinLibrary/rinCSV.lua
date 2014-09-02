@@ -29,6 +29,7 @@ local C, Cs, Ct, P, S = lpeg.C, lpeg.Cs, lpeg.Ct, lpeg.P, lpeg.S
 local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +
                     C((1 - S',\r\n"')^0)
 local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
+local sizings = nil
 
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
@@ -359,12 +360,27 @@ end
 -------------------------------------------------------------------------------
 -- Set the maximum log size before log cycling
 -- @param t CSV table
--- @param s Maximum log file size
+-- @param s Maximum log file size, this can be a number or a sting that can
+-- include a suffix 'k' or 'm' for kilobytes and megabytes.
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- csv.setLogSize(csvTable, 10000)
 function _M.setLogSize(t, s)
-    t.logMaxSize = math.max(s, 2 + #toCSV(t.labels))
+    if t ~= nil then
+        if type(s) == 'string' then
+            if sizings == nil then
+                -- Only build this if required but cache it.
+                local r = lpeg.float
+                local function m(s, f)
+                    return r / function(s) return s*f end * (lpeg.Pi(s) / '')
+                end
+                sizings = Cs(m('k', 1024) + m('m', 1048576) + C(r))
+            end
+            s = sizings:match(s)
+        end
+
+        t.logMaxSize = math.max(s, 2 + #toCSV(t.labels))
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -375,7 +391,7 @@ end
 -- local csv = require('rinLibrary.rinCSV')
 -- print('cycle size is ' .. csv.getLogSize(csvTable))
 function _M.getLogSize(t)
-    return t.logMaxSize or 100000
+    return t and t.logMaxSize or 100000
 end
 
 -------------------------------------------------------------------------------
