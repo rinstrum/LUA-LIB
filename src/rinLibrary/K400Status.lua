@@ -1003,7 +1003,6 @@ deprecated.STAT_START       = 'start'
 deprecated.STAT_NO_TYPE     = 'no_type'
 
 deprecated.setEStatusCallback = setEStatusCallback
-deprecated.setEStatusMainCallback = setEStatusMainCallback
 deprecated.ESTAT_HIRES       = 'hires'
 deprecated.ESTAT_DISPMODE    = 'dispmode'
 deprecated.ESTAT_DISPMODE_RS = 'dispmode_rs'
