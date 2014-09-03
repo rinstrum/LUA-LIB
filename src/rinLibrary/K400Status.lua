@@ -218,13 +218,26 @@ local statID = nil
 local eStatBinds = {}
 local eStatID = nil
 
-local IOBinds = {}
-local IOID = nil
+local ioTable = {
+    name = 'IO',
+    max = function() return 32 end,
+    current = 0,
+    running = false,
+    active = {}
+}
 
-local SETPBinds = {}
+local setpointTable = {
+    name = 'setpoint',
+    max = function() return _M.setPointCount() end,
+    current = 0,
+    running = false,
+    active = {}
+}
+
+local IOID = nil
 local SETPID = nil
 
-local curStatus, curIO, curSETP
+local curStatus
 
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
@@ -300,11 +313,11 @@ end
 -- Called when stream data is being renewed
 -- @local
 function private.renewStatusBinds()
-    for _, v in pairs(IOBinds) do
-        v.lastStatus = 0xFFFFFFFF
+    for _, v in pairs(ioTable.active) do
+        v.lastStatus = nil
     end
-    for _, v in pairs(SETPBinds) do
-        v.lastStatus = 0xFFFFFFFF
+    for _, v in pairs(setpointTable.active) do
+        v.lastStatus = nil
     end
     for _, v in pairs(statBinds) do
         v.lastStatus = 0xFFFFFFFF
@@ -428,182 +441,6 @@ function _M.setStatusCallback(status, callback)
 end
 
 -------------------------------------------------------------------------------
--- Called when IO status changes are streamed
--- @param data Data on SETP status streamed
--- @param err Potential error message
--- @local
-local function IOCallback(data, err)
-    curIO = data
-    for k,v in pairs(IOBinds) do
-        local status = bit32.band(data,k)
-        if k == 0 then  --handle the all IO case
-            status = curIO
-        end
-        if status ~= v.lastStatus then
-            if v.running then
-                if k == 0 then
-                    dbg.warn('IO Event lost: ', v.IO, string.format('%08X',status))
-                else
-                    dbg.warn('IO Event lost: ', v.IO, status ~=0)
-                end
-            else
-                v.lastStatus = status
-                if utils.callable(v.f) then
-                    v.running = true
-                    if k == 0 then
-                        v.f(status)
-                    else
-                        v.f(v.IO, status ~= 0)
-                    end
-                    v.running = false
-                end
-            end
-        end
-    end
-end
-
--------------------------------------------------------------------------------
--- Set the callback function for a IO
--- @param IO 1..32
--- @param callback Function taking IO and on/off status as parameters
--- @see setAllIOCallback
--- @see getCurIO
--- @see anyIOSet
--- @see allIOSet
--- @see waitIO
--- @usage
--- function handleIO1(IO, active)
---     if (active) then
---         print (IO,' is on!')
---     end
--- end
--- device.setIOCallback(1, handleIO1)
-function _M.setIOCallback(IO, callback)
-    utils.checkCallback(callback)
-    local status = bit32.lshift(0x00000001, IO-1)
-    if callback then
-        IOBinds[status] = {}
-        IOBinds[status]['IO'] = IO
-        IOBinds[status]['f'] = callback
-        IOBinds[status]['lastStatus'] = 0xFFFFFFFF
-    else
-        IOBinds[status] = nil
-        dbg.debug('','setIOCallback:  nil value for callback function')
-    end
-end
-
--------------------------------------------------------------------------------
--- Set a callback function that is called whenever any IO status changes
--- @param callback Function taking current IO status as a parameter
--- @see setIOCallback
--- @see getCurIO
--- @see anyIOSet
--- @see allIOSet
--- @see waitIO
--- @usage
--- function handleIO(data)
---     -- 4 bits of status information for IO 3..6 turned into a grading indication
---     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
--- end
--- device.setAllIOCallback(handleIO)
-function _M.setAllIOCallback(callback)
-    utils.checkCallback(callback)
-    if callback ~= nil then
-        IOBinds[0] = {}   -- setup a callback for all SETP changes
-        IOBinds[0]['IO'] = 'All'
-        IOBinds[0]['f'] = callback
-        IOBinds[0]['lastStatus'] = 0xFFFFFF
-    else
-        IOBinds[0] = nil
-        dbg.debug('','setAllIOCallback:  nil value for all callback function')
-    end
-end
-
--------------------------------------------------------------------------------
--- Called when SETP status changes are streamed
--- @param data Data on SETP status streamed
--- @param err Potential error message
--- @local
-local function SETPCallback(data, err)
-    curSETP = bit32.band(data, 0xFFFF)
-    for k,v in pairs(SETPBinds) do
-        local status = bit32.band(data, k)
-        if k == 0 then  --handle the all setp case
-            status = curSETP
-        end
-        if status ~= v.lastStatus then
-            if v.running then
-                if k == 0 then
-                    dbg.warn('SETP Event lost: ', v.SETP, string.format('%04X', status))
-                else
-                    dbg.warn('SETP Event lost: ', v.SETP, status ~=0)
-                end
-            else
-                v.lastStatus = status
-                if utils.callable(v.f) then
-                    v.running = true
-                    if k == 0 then
-                        v.f(status)
-                    else
-                        v.f(v.SETP, status ~= 0)
-                    end
-                    v.running = false
-                end
-            end
-        end
-    end
-end
-
--------------------------------------------------------------------------------
--- Set the callback function for a SETP
--- @param SETP 1 .. setPointCount()
--- @param callback Function taking SETP and on/off status as parameters
--- @see setAllSETPCallback
--- @see anySETPSet
--- @see allSETPSet
--- @see waitSETP
--- @usage
--- function handleSETP1(SETP, active)
---     if (active) then
---         print (SETP,' is on!')
---     end
--- end
--- device.setSETPCallback(1, handleSETP1)
-function _M.setSETPCallback(SETP, callback)
-    utils.checkCallback(callback)
-    if SETP < 1 or SETP > _M.setPointCount() then
-        dbg.error('setSETPCallback setpoint Invalid:', setp)
-    else
-        local status = bit32.lshift(0x00000001, SETP-1)
-        SETPBinds[status] = {}
-        SETPBinds[status]['SETP'] = SETP
-        SETPBinds[status]['f'] = callback
-        SETPBinds[status]['lastStatus'] = 0xFF
-    end
-end
-
--------------------------------------------------------------------------------
--- Set a callback function that is called whenever any SETP status changes
--- @param callback Function taking current SETP status as a parameter
--- @see setSETPCallback
--- @see anySETPSet
--- @see allSETPSet
--- @see waitSETP
--- @usage
--- function handleSETP(data)
---     -- 4 bits of status information for SETP 3..6 turned into a grading indication
---     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
--- end
--- device.setAllSETPCallback(handleSETP)
-function _M.setAllSETPCallback(callback)
-    utils.checkCallback(callback)
-    SETPBinds[0] = {}   -- setup a callback for all SETP changes
-    SETPBinds[0]['SETP'] = 'All'
-    SETPBinds[0]['f'] = callback
-    SETPBinds[0]['lastStatus'] = 0xFFFFFF
-end
-
--------------------------------------------------------------------------------
 -- Called to check state of current instrument status
 -- @param ... Status bits to check
 -- @return true if any of the status bits are set in current instrument status
@@ -659,6 +496,167 @@ function _M.allStatusSet(...)
 end
 
 -------------------------------------------------------------------------------
+-- Wait until selected status bits are true
+-- @param ... Status bits to wait for
+-- @see luastatus
+-- @see setStatusCallback
+-- @see anyStatusSet
+-- @see allStatusSet
+-- @see waitStatus
+-- @usage
+-- device.waitStatus('notmotion')           -- wait for no motion
+-- device.waitStatus('coz')                 -- wait for Centre of zero
+-- device.waitStatus('zero', 'notmotion')   -- wait for no motion and zero
+function _M.waitStatus(...)
+    local stat = 0
+    for _, v in pairs({...}) do
+        stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
+    end
+    _M.app.delayUntil(function() return bit32.band(curStatus, stat) == stat end)
+end
+
+-------------------------------------------------------------------------------
+-- Called when IO status changes are streamed
+-- @param t Table defining the type of bit event
+-- @param data Data on SETP status streamed
+-- @param err Potential error message
+-- @local
+local function IOsCallback(t, data, err)
+    t.current = data
+    for k, v in pairs(t.active) do
+        local status = v.status(data)
+        if status ~= v.last then
+            if v.running then
+                dbg.warn(type.name .. ' event lost:', k, v.warnlost(status))
+            else
+                v.last = status
+                v.running = true
+                v.cb(status)
+                v.running = false
+            end
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for a IO
+-- @param t Table defining the type of bit event
+-- @param which The bit number we're interested in
+-- @param callback Function taking IO and on/off status as parameters
+-- @local
+local function addIOsCallback(t, which, callback)
+    utils.checkCallback(callback)
+
+    if which < 1 or which > t.max() then
+        dbg.error('addCallback ' .. t.name .. ' Invalid:', which)
+    else
+        local bit = bit32.lshift(0x00000001, which-1)
+        if callback then
+            t.active[bit] = {
+                status = function(s) return bit32.band(s, bit) end,
+                warnlost = function(s) return s ~= 0 end,
+                cb = function(s) return callback(which, s ~= 0) end
+            }
+        else
+            t.active[bit] = nil
+            dbg.debug('addCallback:', 'nil value for '..t.name..' callback function')
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set a callback function that is called whenever any IO status changes
+-- @param t Table defining the type of bit event
+-- @param callback Function taking current IO status as a parameter
+-- @local
+local function addIOsAllCallback(t, callback)
+    utils.checkCallback(callback)
+    if callback then
+        t.active.all = {
+            status = function(s) return s end,
+            warnlost = function(s) return string.format('%08X', s) end,
+            cb = function(s) return callback(s) end
+        }
+    else
+        t.active.all = nil
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for a IO
+-- @param IO 1..32
+-- @param callback Function taking IO and on/off status as parameters
+-- @see setAllIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see allIOSet
+-- @see waitIO
+-- @usage
+-- function handleIO1(IO, active)
+--     if (active) then
+--         print (IO,' is on!')
+--     end
+-- end
+-- device.setIOCallback(1, handleIO1)
+function _M.setIOCallback(io, callback)
+    return addIOsCallback(ioTable, io, callback)
+end
+
+-------------------------------------------------------------------------------
+-- Set a callback function that is called whenever any IO status changes
+-- @param callback Function taking current IO status as a parameter
+-- @see setIOCallback
+-- @see getCurIO
+-- @see anyIOSet
+-- @see allIOSet
+-- @see waitIO
+-- @usage
+-- function handleIO(data)
+--     -- 4 bits of status information for IO 3..6 turned into a grading indication
+--     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
+-- end
+-- device.setAllIOCallback(handleIO)
+function _M.setAllIOCallback(callback)
+    return addIOsAllCallback(ioTable, callback)
+end
+
+-------------------------------------------------------------------------------
+-- Set the callback function for a SETP
+-- @param SETP 1 .. setPointCount()
+-- @param callback Function taking SETP and on/off status as parameters
+-- @see setAllSETPCallback
+-- @see anySETPSet
+-- @see allSETPSet
+-- @see waitSETP
+-- @usage
+-- function handleSETP1(SETP, active)
+--     if (active) then
+--         print (SETP,' is on!')
+--     end
+-- end
+-- device.setSETPCallback(1, handleSETP1)
+function _M.setSETPCallback(setpoint, callback)
+    return addIOsCallback(setpointTable, setpoint, callback)
+end
+
+-------------------------------------------------------------------------------
+-- Set a callback function that is called whenever any SETP status changes
+-- @param callback Function taking current SETP status as a parameter
+-- @see setSETPCallback
+-- @see anySETPSet
+-- @see allSETPSet
+-- @see waitSETP
+-- @usage
+-- function handleSETP(data)
+--     -- 4 bits of status information for SETP 3..6 turned into a grading indication
+--     curGrade = bit32.rshift(bit32.band(data,0x03C),2)
+-- end
+-- device.setAllSETPCallback(handleSETP)
+function _M.setAllSETPCallback(callback)
+    return addIOsAllCallback(setpointTable, callback)
+end
+
+-------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO
 -- @return 32 bits of IO data
 -- @see setIOCallback
@@ -670,7 +668,7 @@ end
 -- @usage
 -- print('current IO bits are', device.getCurIO())
 function _M.getCurIO()
-    return curIO
+    return ioTable.current
 end
 
 -------------------------------------------------------------------------------
@@ -699,7 +697,7 @@ end
 -- @usage
 -- print('current IO bits are: ' .. device.getCurIOStr())
 function _M.getCurIOStr()
-    return getBitStr(curIO, 32)
+    return getBitStr(ioTable.current, 32)
 end
 
 -------------------------------------------------------------------------------
@@ -719,7 +717,7 @@ end
 --     device.turnOff(3)
 -- end
 function _M.anyIOSet(...)
-    return anyBitSet(curIO,...)
+    return anyBitSet(ioTable.current, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -739,7 +737,7 @@ end
 --     device.turnOff(3)
 -- end
 function _M.allIOSet(...)
-    return allBitSet(curIO,...)
+    return allBitSet(ioTable.current, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -748,7 +746,7 @@ end
 -- @usage
 -- print('current setpoint bits are', device.getCurSETP())
 function _M.getCurSETP()
-    return curSETP
+    return setpointTable.current
 end
 
 -------------------------------------------------------------------------------
@@ -767,11 +765,12 @@ end
 --     device.turnOff(1)
 -- end
 function _M.anySETPSet(...)
-    return anyBitSet(curSETP,...)
+    return anyBitSet(setpointTable.current,...)
 end
 
 -------------------------------------------------------------------------------
 -- Called to check state of SETP
+-- @param t Table defining the type of bit event
 -- @param ... Set points to check
 -- @return true if all of the listed IO are active
 -- @see setSETPCallback
@@ -786,27 +785,26 @@ end
 --     device.turnOff(1)
 -- end
 function _M.allSETPSet(...)
-    return allBitSet(curSETP,...)
+    return allBitSet(setpointTable.current,...)
 end
 
 -------------------------------------------------------------------------------
--- Wait until selected status bits are true
--- @param ... Status bits to wait for
--- @see luastatus
--- @see setStatusCallback
--- @see anyStatusSet
--- @see allStatusSet
--- @see waitStatus
--- @usage
--- device.waitStatus('notmotion')           -- wait for no motion
--- device.waitStatus('coz')                 -- wait for Centre of zero
--- device.waitStatus('zero', 'notmotion')   -- wait for no motion and zero
-function _M.waitStatus(...)
-    local stat = 0
-    for _, v in pairs({...}) do
-        stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
+-- Wait until IO is in a particular state
+-- @param t Table defining the type of bit event
+-- @param IO 1..32
+-- @param state true to wait for IO to come on or false to wait for it to go off
+-- @local
+local function IOsWait(t, bit, state)
+    if bit < 1 or bit > t.max then
+        dbg.error('IOsWait '..t.name..' invalid:', bit)
+        return false
     end
-    _M.app.delayUntil(function() return bit32.band(curStatus, stat) == stat end)
+    local mask = bit32.lshift(0x00000001, bit-1)
+    _M.app.delayUntil(function()
+        local data = bit32.band(t.current, mask)
+        return state and data ~= 0 or not state and data == 0
+    end)
+    return true
 end
 
 -------------------------------------------------------------------------------
@@ -821,11 +819,7 @@ end
 -- @usage
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state)
-    local mask = bit32.lshift(0x00000001, IO-1)
-    _M.app.delayUntil(function()
-        local data = bit32.band(curIO, mask)
-        return state and data ~= 0 or not state and data == 0
-    end)
+    return IOsWait(ioTable, IO, state)
 end
 
 -------------------------------------------------------------------------------
@@ -841,16 +835,7 @@ end
 -- @usage
 -- device.waitSETP(1, true) -- wait until Setpoint 1 turns on
 function _M.waitSETP(SETP, state)
-    if SETP < 1 or SETP > _M.setPointCount() then
-        dbg.error('waitSETP setpoint Invalid:', setp)
-        return false
-    end
-    local mask = bit32.lshift(0x00000001, SETP-1)
-    _M.app.delayUntil(function()
-        local data = bit32.band(curSETP, mask)
-        return state and data ~= 0 or not state and data == 0
-    end)
-    return true
+    return IOsWait(setpointTable, IO, state)
 end
 
 -------------------------------------------------------------------------------
@@ -908,10 +893,10 @@ end
 -- device.setupStatus()
 function _M.setupStatus()
     curStatus = 0
-    statID  = _M.addStream(REG_LUA_STATUS, statusCallback,  'change')
+    statID  = _M.addStream(REG_LUA_STATUS, statusCallback, 'change')
     eStatID = _M.addStream(REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = _M.addStream('io_status',    IOCallback,      'change')
-    SETPID  = _M.addStream(REG_SETPSTATUS, SETPCallback,    'change')
+    IOID    = _M.addStream('io_status',    function(d, e) IOsCallback(ioTable, d, e) end, 'change')
+    SETPID  = _M.addStream(REG_SETPSTATUS, function(d, e) IOsCallback(setpointTable, d, e) end, 'change')
     private.RTCread('all')
     setEStatusMainCallback('rtc',  handleRTC)
     setEStatusMainCallback('init', handleINIT)
@@ -927,10 +912,10 @@ function _M.endStatus()
     writeRTCStatus(false)
     setEStatusMainCallback('rtc',  nil)
     setEStatusMainCallback('init', nil)
-    _M.removeStream(statID)
-    _M.removeStream(eStatID)
-    _M.removeStream(IOID)
-    _M.removeStream(SETPID)
+    _M.removeStream(statID)     statID = nil
+    _M.removeStream(eStatID)    eStatID = nil
+    _M.endIOStatus()
+    _M.endSETPStatus()
 end
 
 -------------------------------------------------------------------------------
@@ -940,6 +925,7 @@ end
 -- device.endIOStatus()
 function _M.endIOStatus()
     private.removeStreamLib(IOID)
+    IOID = nil
 end
 
 -------------------------------------------------------------------------------
@@ -949,6 +935,7 @@ end
 -- device.endSETPStatus()
 function _M.endSETPStatus()
     private.removeStreamLib(SETPID)
+    SETPID = nil
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
