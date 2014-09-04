@@ -140,7 +140,8 @@ end
 -- @param s String to format or table of strings
 -- @return Formatted string(s).
 -- @usage
--- 
+-- local params = { gross = 1.234 }
+-- print(device.formatPrintString(params, 'Gross is {gross}'))
 function _M.formatPrintString(subs, s)
     formatSubstitutions = subs
     local r = nil
