@@ -21,7 +21,8 @@ local params = {
 }
 
 describe("K400Print #print", function()
-    local function makeModule()
+        local dbg = require 'rinLibrary.rinDebug'
+        local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.rinCon")(m, p, d)
@@ -30,15 +31,12 @@ describe("K400Print #print", function()
         return m, p, d
     end
 
-    describe('formatPrintString', function()
+    describe('format string', function()
         local m = makeModule()
         local cases = {
             { i = 'hello world', o = 'hello world' },
             { i = 'QQ{width=12}A{align = right}BBCEE', o = "QQABBCEE" },
             { i = 'QQ{ width = 1 }A{ align =left}BBCEE', o = "QQABBCEE" },
-            { i = 'QQ{ bad = 1 }ABBCEE', o = nil },
-            { i = '{ align = middle }', o = nil },
-            { i = '{width = abc}', o = nil },
             { i = 'HEX{$Ac}{$01}', o = 'HEX\\\\AC\\\\01' },
             { i = 'T{truck}T', o = 'TTrUcKT' },
             { i = '{truck}T', o = 'TrUcKT' },
@@ -57,7 +55,32 @@ describe("K400Print #print", function()
         end
     end)
 
-    it('formatPrintTable', function()
+    describe('format errors', function()
+        local m = makeModule()
+        local cases = {
+            { i = 'QQ{ bad = 1 }ABBCEE',    e = { {'Error:', ' QQ{ bad = 1 }ABBCEE'},
+                                                  {'   at ', '_____|' } } },
+            { i = '{ align = middle }',     e = { {'Error:', ' { align = middle }'},
+                                                  {'   at ', '___|' } } },
+            { i = '{width = abc}',          e = { {'Error:', ' {width = abc}'},
+                                                  {'   at ', '__|' } } },
+        }
+
+        for i = 1, #cases do
+            it("test "..i, function()
+                stub(dbg, "error")
+
+                local r = cases[i]
+                assert.is_nil(m.formatPrintString(params, r.i))
+                for k, v in pairs(r.e) do
+                    assert.stub(dbg.error).was.called_with(unpack(v))
+                end
+                dbg.error:revert()
+            end)
+        end
+    end)
+
+    it('format table', function()
         local m = makeModule()
         assert.same({
             "hello",

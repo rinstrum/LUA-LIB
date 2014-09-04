@@ -57,6 +57,7 @@ end
 
 local name, num, value, s = C(lpeg.alpha * lpeg.alnum^0), C(lpeg.digit^1), C(lpeg.alnum^1), spc^0
 local POS = P(function(t, p) formatPosition = p return p end)
+local eql = s * P'=' * s
 
 local printFormatter = P{
             Cs((P'{'*s/'' * POS * V'cmd' * (s*P'}'/'') + (1-P'{')^1)^0) * P(-1),
@@ -64,10 +65,10 @@ local printFormatter = P{
     hex =   P'$' * lpeg.xdigit * lpeg.xdigit / function(x) return '\\\\' .. string.upper(x:sub(2)) end,
     sub =   Ct(name * ((S':.'+spc^1) * (name + num))^0) / substitute,
 -- This version accepts any name = value pairing, the later lines accept only legal ones
---  attr =  Ct(name * s*P'='*s * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
+--  attr =  Ct(name * eql * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end
     attr =  Ct(V'align' + V'width') / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
-    align = C(Pi'align') * s*'='*s * C(Pi'left' + Pi'right'),
-    width = C(Pi'width') * s*'='*s * C(num)
+    align = C(Pi'align') * eql * C(Pi'left' + Pi'right'),
+    width = C(Pi'width') * eql * C(num)
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -147,9 +148,8 @@ function _M.formatPrintString(subs, s)
         formatFailed = false
         local z = printFormatter:match(s)
         if z == nil then
-            print('Error parsing:')
-            print('  '..s)
-            print('_'..string.rep('_', formatPosition)..'|')
+            dbg.error('Error:', ' '..s)
+            dbg.error('   at ', string.rep('_', formatPosition)..'|')
         elseif not formatFailed then
             r = z
         end
