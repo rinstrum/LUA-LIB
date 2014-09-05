@@ -170,12 +170,7 @@ end
 -------------------------------------------------------------------------------
 -- Read Real Time Clock data from instrument into local RTC table
 -- @param d 'date' or 'time' to read these fields only, or 'all' for both
--- @usage
--- -- Load the RTC time settings from the display device
--- device.RTCread('time')
---
--- -- Load the RTC settings from the display device
--- device.RTCread('all')
+-- @local
 function private.RTCread(d)
   local d = d or 'all'
 
@@ -215,11 +210,11 @@ local function readRTC()
     local d, t = RTC.load_date, RTC.load_time
 
     if not d and not t then
-        _M.RTCread('all')
+        private.RTCread('all')
     elseif d and not t then
-        _M.RTCread('time')
+        private.RTCread('time')
     elseif not d and t then
-        _M.RTCread('date')
+        private.RTCread('date')
     end
 end
 
@@ -333,7 +328,7 @@ function private.RTCtick()
             RTC.hour = RTC.hour + 1
             if RTC.hour > 23 then
                 RTC.hour = 0
-                _M.RTCread()
+                private.RTCread()
             end
         end
     end
