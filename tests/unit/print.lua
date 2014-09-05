@@ -6,7 +6,8 @@
 
 local params = {
     axle = {
-        'a1', 'a2', 'a3', 'a4'
+        'a1', 'a2', 'a3', 'a4',
+        ["7"] = 'bogus'
     },
     truck = 'TrUcK',
     farm = {
@@ -45,6 +46,8 @@ describe("K400Print #print", function()
             { i = 'QQ{axle:1}EE', o = "QQa1EE" },
             { i = 'A{farm name}b{farm.location}c', o = 'AFarMblANdc' },
             { i = 'T{bucket}', o = nil },
+            { i = '{tRuCk}', o = 'TrUcK' },
+            { i = '{axle 7}', o = 'bogus' }
         }
 
         for i = 1, #cases do

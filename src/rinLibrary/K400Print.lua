@@ -44,12 +44,13 @@ local formatPosition, formatSubstitutions
 local function substitute(x)
     local p = formatSubstitutions
     for _, k in ipairs(x) do
-        local z = tonumber(k) or k
-        if type(p) ~= 'table' or p[z] == nil then
+        local cank = can(k)
+        local z = tonumber(k) or cank
+        if type(p) ~= 'table' or (p[z] == nil and p[cank] == nil) then
             formatFailed = true
             return ''
         end
-        p = p[z]
+        p = p[z] or p[cank]
     end
     -- TODO: format this based on current format attribute settings
     return tostring(p)
