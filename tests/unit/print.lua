@@ -67,6 +67,8 @@ describe("K400Print #print", function()
                                                   {'   at ', '___|' } } },
             { i = '{width = abc}',          e = { {'Error:', ' {width = abc}'},
                                                   {'   at ', '__|' } } },
+            { i = '{4}',                    e = { {'Error:', ' {4}'},
+                                                  {'   at ', '__|' } } }
         }
 
         for i = 1, #cases do
