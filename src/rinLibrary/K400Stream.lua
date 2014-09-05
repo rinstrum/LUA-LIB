@@ -94,6 +94,21 @@ local function initialiseStreamMaps()
 end
 
 -----------------------------------------------------------------------------
+-- Initialise/reset the volatile streaming fields in a stream register
+-- @param reg Streaming register to initialise
+-- @return The initialised streaming register
+-- @local
+local function initStreamRegister(reg)
+    reg.reg = 0
+    reg.callback = nil
+    reg.onChange = 'change'
+    reg.lastData = ''
+    reg.dp = 0
+    reg.typ = 'long'
+    return reg
+end
+
+-----------------------------------------------------------------------------
 -- Add a group of streaming registers to the available register list
 -- @param base Stream registers base location
 -- @param mapping Mapping from register numbers to stream IDs
@@ -107,13 +122,7 @@ local function addStreamingRegisters(base, mapping)
             REG_STREAMREG1, REG_STREAMREG2, REG_STREAMREG3,
             REG_STREAMREG4, REG_STREAMREG5
         } do
-            table.insert(availRegisters, {
-                reg = 0,
-                callback = nil,
-                onChange = 'change',
-                lastData = '',
-                dp = 0,
-                typ = 'long',
+            table.insert(availRegisters, initStreamRegister{
                 data = data,
                 mode = mode,
                 stream = bit32.bor(base, r),
@@ -246,7 +255,7 @@ function _M.removeStream(streamReg)
         local availReg = streamRegisters[reg]
 
         if availReg ~= nil then
-            availReg.reg = 0
+            initStreamRegister(availReg)
             streamRegisters[reg] = nil
 
             local stop = true
