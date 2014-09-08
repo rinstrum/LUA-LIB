@@ -257,7 +257,12 @@ function private.readReg(reg, timeout)
     if err then
         return nil, err
     end
-    return literalToFloat(data), nil
+    local num = literalToFloat(data)
+    if num then
+      return num, nil
+    else
+      return data, nil
+    end
 end
 
 -------------------------------------------------------------------------------
