@@ -42,7 +42,7 @@ local formatFailed = false
 local formatPosition, formatSubstitutions
 
 local function substitute(x)
-    local p = formatSubstitutions
+    local p, last = formatSubstitutions
     for _, k in ipairs(x) do
         local cank = can(k)
         local z = tonumber(k) or cank
@@ -50,7 +50,10 @@ local function substitute(x)
             formatFailed = true
             return ''
         end
-        p = p[z] or p[cank]
+        p, last = p[z] or p[cank], p[z] and z or cank
+    end
+    if type(p) == 'table' then
+        p = p[last]
     end
     -- TODO: format this based on current format attribute settings
     return tostring(p)
