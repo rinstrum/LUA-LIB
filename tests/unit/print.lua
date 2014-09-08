@@ -122,4 +122,25 @@ describe("K400Print #print", function()
             "fin"
         }))
     end)
+
+    it('nested table', function()
+        local m = makeModule()
+        assert.same({
+            { { { "hello",
+                    "ad" } },
+                'TrUcK        ' },
+            { "\\\\FF",
+                { { "fin" } } },
+            { { { { { { }, { } } } }, { { }, { }, { { } } } } }
+        }, m.formatPrintString(params, {
+            { { {   "hello",
+                    "a{width=13}d" } },
+                "{truck}" },
+            { "{$ff}",
+                { "{missing}",
+                    { "fin" } } },
+            { { { { { { }, { } } } }, { { }, { }, { { } } } } }
+        }))
+    end)
 end)
+
