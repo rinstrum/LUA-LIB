@@ -177,7 +177,9 @@ end
 -- stream.sendMsg(message, crc)
 -- @local
 local function sendMsg(msg, crc)
-    sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
+    if msg ~= nil then
+        sendRaw(rinMsg.encapsulateMsg(msg, crc or sendingCRC))
+    end
 end
 
 -------------------------------------------------------------------------------

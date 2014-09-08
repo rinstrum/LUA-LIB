@@ -214,15 +214,17 @@ end
 -- @param cmd Command (string)
 -- @param reg Register (numeric)
 -- @param data Data to be sent
--- @param reply - 'reply' (default) if reply required, sent with ADDR_NOREPLY otherwise
--- @return The formatted message suitable for formatMsg
+-- @param reply - 'reply' if reply required (default: reply)
+-- @return The formatted message suitable for formatMsg, nil is something is amiss
 -- @usage
 -- local msg = require "rinLibrary.rinMessage"
 --
 -- print('message is:', msg.buildMsg(0x01, 0x12, 0x0090, "ph'nglui mglw'nafh Cthulhu R'lyeh wgah'nagl fhtagn", 'no reply')
 function _M.buildMsg(addr, cmd, reg, data, reply)
-    local data = data or ""
-    local reply = reply or 'reply'
+    if cmd == nil or reg == nil then
+        dbg.error('rinMessage:', 'command or register is not defined')
+        return nil
+    end
 
     if type(addr) == 'string' and string.lower(addr) == 'broadcast' then
         addr = ADDR_BROADCAST
@@ -234,7 +236,7 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
         cmd = naming.convertNameToValue(cmd, commandMap, CMD_RDFINALHEX)
     end
 
-    if reply == 'reply' then
+    if reply == nil or reply == 'reply' then
         addr = bit32.bor(addr, ADDR_REPLY)
     end
 
@@ -244,7 +246,7 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
         end
     end
 
-    return string.format("%02X%02X%04X:%s", addr, cmd, reg, data)
+    return string.format("%02X%02X%04X:%s", addr, cmd, reg, data or "")
 end
 
 -------------------------------------------------------------------------------
