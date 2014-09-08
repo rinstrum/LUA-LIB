@@ -36,8 +36,10 @@ local sizings = nil
 -- Takes an escaped CSV string and returns a line (1d array)
 -- @param s CSV string
 -- @return table (1d array)
--- @local
-function fromCSV(s)
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local fields = csv.fromCSV('1,"hello, there!",14')
+function _M.fromCSV(s)
     return record:match(s)
 end
 
@@ -291,7 +293,7 @@ function _M.loadCSV(t)
              res = "empty"
         else
             -- Check the labels are equal
-            local fieldnames = fromCSV(s)
+            local fieldnames = _M.fromCSV(s)
             if t.labels == nil then
                 t.labels = fieldnames
             end
@@ -300,7 +302,7 @@ function _M.loadCSV(t)
                 -- Clear the current table and read in the existing data
                 t.data = {}
                 for s in f:lines() do
-                    table.insert(t.data, fromCSV(s))
+                    table.insert(t.data, _M.fromCSV(s))
                 end
                 f:close()
                 res = "load"
@@ -312,7 +314,7 @@ function _M.loadCSV(t)
                 if n ~= 0 then
                     t.data = {}
                     for s in f:lines() do
-                        local fields = fromCSV(s)
+                        local fields = _M.fromCSV(s)
                         local row = {}
                         for i = 1, #fieldmap do
                             if fieldmap[i] == '' then
@@ -942,7 +944,6 @@ end
 if _TEST then
     _M.equalCSV = equalCSV
     _M.escapeCSV = escapeCSV
-    _M.fromCSV = fromCSV
     _M.padCSV = padCSV
     _M.toCSV = toCSV
 end
