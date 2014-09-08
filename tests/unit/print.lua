@@ -85,12 +85,32 @@ describe("K400Print #print", function()
         end
     end)
 
+    describe('format directives', function()
+        local cases = {
+            { i = '{align=right}ab{truck}c', o = 'abTrUcKc' },
+            { i = '{align=right}a{width=7}b{truck}c', o = 'ab  TrUcKc' },
+            { i = '{align=left}a{width=7}b{truck}c', o = 'abTrUcK  c' },
+            { i = 'a{width=7}b{truck}c{width=-}', o = 'abTrUcK  c' },
+            { i = 'ab{truck}c{width=7}d', o = 'abTrUcKcd' },
+            { i = 'a{align=right}{width=7}b{truck}c{align=left}{truck}d{width=-}{truck}e', o = 'ab  TrUcKcTrUcK  dTrUcKe' },
+        }
+
+        for i = 1, #cases do
+            local m = makeModule()
+            it("test "..i, function()
+                local r = cases[i]
+
+                assert.equal(r.o, m.formatPrintString(params, r.i))
+            end)
+        end
+    end)
+
     it('format table', function()
         local m = makeModule()
         assert.same({
             "hello",
             "ad",
-            'TrUcK',
+            'TrUcK        ',
             "\\\\FF",
             "fin"
         }, m.formatPrintString(params, {

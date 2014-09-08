@@ -35,8 +35,8 @@ local portMap = setmetatable({
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Print string formatting setup
 local formatAttributes = {
-    width = 9,
-    align = left
+    width = '-',
+    align = 'left'
 }
 local formatFailed = false
 local formatPosition, formatSubstitutions
@@ -55,8 +55,12 @@ local function substitute(x)
     if type(p) == 'table' then
         p = p[last]
     end
-    -- TODO: format this based on current format attribute settings
-    return tostring(p)
+
+    local format = '%' .. (formatAttributes.align == 'left' and '-' or '')
+    if formatAttributes.width ~= '-' then
+        format = format .. formatAttributes.width
+    end
+    return string.format(format .. 's', tostring(p))
 end
 
 local name, num, value, s = C(lpeg.alpha * lpeg.alnum^0), C(lpeg.digit^1), C(lpeg.alnum^1), spc^0
@@ -72,7 +76,7 @@ local printFormatter = P{
 --  attr =  Ct(name * eql * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end
     attr =  Ct(V'align' + V'width') / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
     align = C(Pi'align') * eql * C(Pi'left' + Pi'right'),
-    width = C(Pi'width') * eql * C(num)
+    width = C(Pi'width') * eql * C(num + '-')
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
