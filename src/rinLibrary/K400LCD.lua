@@ -672,7 +672,8 @@ local annunciatorMap = {
     wait45          = { v=WAIT45,   locn='bottom' },
     wait90          = { v=WAIT90,   locn='bottom' },
     wait135         = { v=WAIT135,  locn='bottom' },
-    waitall         = { v=WAITALL,  locn='bottom' }
+    waitall         = { v=WAITALL,  locn='bottom' },
+    all             = { v=1,        locn='all'  }
 }
 --- Main Units
 --@table Units
@@ -732,12 +733,22 @@ local otherAunnuncitors = {
 -- @return table of bit mask values for 'top' and 'bottom'
 -- @local
 local function convertAnnunciatorBits(l)
-    local res = { top = 0, bottom = 0, unknown = 0 }
+    local res = { top = 0, bottom = 0, unknown = 0, all = 0 }
     local missing = { v=1, locn='unknown' }
 
     for _, v in pairs(l) do
         local bit = naming.convertNameToValue(v, annunciatorMap, missing)
         res[bit.locn] = bit32.bor(res[bit.locn], bit.v)
+    end
+    if res.all ~= 0 then
+        for k, _ in pairs(res) do
+            local a = 0
+            for b, v in pairs(annunciatorMap) do
+                if k == v.locn then
+                    res[k] = bit32.bor(res[k], v.v)
+                end
+            end
+        end
     end
     return res
 end
@@ -920,6 +931,7 @@ if _TEST then
     _M.strSubR400 = strSubR400
     _M.padDots    = padDots
     _M.splitWords = splitWords
+    _M.convertAnnunciatorBits = convertAnnunciatorBits
 end
 
 end
