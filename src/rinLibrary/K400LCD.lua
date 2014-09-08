@@ -632,6 +632,7 @@ end)
 -- @field wait90 (bottom)
 -- @field wait135 (bottom)
 -- @field waitall (bottom)
+-- @field all All annunciators top and bottom
 
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 local WAIT      = 0x0040
