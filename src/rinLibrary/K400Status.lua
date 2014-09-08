@@ -584,7 +584,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a IO
--- @param IO 1..32
+-- @param io 1..32
 -- @param callback Function taking IO and on/off status as parameters
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -622,7 +622,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a SETP
--- @param SETP 1 .. setPointCount()
+-- @param setpoint 1 .. setPointCount()
 -- @param callback Function taking SETP and on/off status as parameters
 -- @see setAllSETPCallback
 -- @see anySETPSet
@@ -791,7 +791,7 @@ end
 -------------------------------------------------------------------------------
 -- Wait until IO is in a particular state
 -- @param t Table defining the type of bit event
--- @param IO 1..32
+-- @param bit 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @local
 local function IOsWait(t, bit, state)
