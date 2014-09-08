@@ -199,7 +199,7 @@ end
 -- @param data returned from rdlit
 -- @return floating point number or data string
 -- @local
-function literalToFloat(data)
+local function literalToFloat(data)
     local a, b = string.find(data,'[+-]?%s*%d*%.?%d*')
     if not a then
         return data
