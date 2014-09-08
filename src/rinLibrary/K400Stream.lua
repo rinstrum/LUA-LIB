@@ -160,21 +160,19 @@ local function streamCallback(reg, data, err)
           return
     end
 
-    for k = 1, #availRegisters do
-        local v = availRegisters[k]
-        if v.data == reg and v.reg ~= 0 then
-            local ind = v.position
-            local substr = string.sub(data, ind+1, ind+8)
+    local v = streamRegisters[reg]
+    if v and v.data == reg and v.reg ~= 0 then
+        local ind = v.position
+        local substr = string.sub(data, ind+1, ind+8)
 
-            if substr and substr ~= "" then
-                if v.onChange == 'always' or v.lastData ~= substr then
-                     v.lastData = substr
-                     if v.typ == 'weight' and _M.isHiRes() then
-                         timers.addEvent(v.callback, private.toFloat(substr, v.dp+1), err)
-                     else
-                         timers.addEvent(v.callback, private.toFloat(substr, v.dp), err)
-                     end
-                end
+        if substr and substr ~= "" then
+            if v.onChange == 'always' or v.lastData ~= substr then
+                 v.lastData = substr
+                 if v.typ == 'weight' and _M.isHiRes() then
+                     timers.addEvent(v.callback, private.toFloat(substr, v.dp+1), err)
+                 else
+                     timers.addEvent(v.callback, private.toFloat(substr, v.dp), err)
+                 end
             end
         end
     end
