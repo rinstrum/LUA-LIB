@@ -38,7 +38,7 @@ describe("LCD #lcd", function ()
         end
     end)
 
-    describe("K422 missing registers", function()
+    describe("K422 non-longer missing registers", function()
         local m, p, d = {}, { deviceType = 'k422' }, {}
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.K400LCD")(m, p, d)
@@ -46,7 +46,7 @@ describe("LCD #lcd", function ()
         for k, v in pairs(dregs) do
             if v >= 16 then
                 it("test "..k, function()
-                    assert.is_nil(d["REG_" .. string.upper(k)])
+                    assert.is_not_nil(d["REG_" .. string.upper(k)])
                 end)
             end
         end

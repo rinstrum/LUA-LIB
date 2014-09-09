@@ -38,7 +38,7 @@ describe("K400Print #print", function()
             { i = 'hello world', o = 'hello world' },
             { i = 'QQ{width=12}A{align = right}BBCEE', o = "QQABBCEE" },
             { i = 'QQ{ width = 1 }A{ align =left}BBCEE', o = "QQABBCEE" },
-            { i = 'HEX{$Ac}{$01}', o = 'HEX\\\\AC\\\\01' },
+            { i = 'HEX{$Ac}{$01}', o = 'HEX\\AC\\01' },
             { i = 'T{truck}T', o = 'TTrUcKT' },
             { i = '{truck}T', o = 'TrUcKT' },
             { i = 'T{truck}', o = 'TTrUcK' },
@@ -111,7 +111,7 @@ describe("K400Print #print", function()
             "hello",
             "ad",
             'TrUcK        ',
-            "\\\\FF",
+            "\\FF",
             "fin"
         }, m.formatPrintString(params, {
             "hello",
@@ -129,7 +129,7 @@ describe("K400Print #print", function()
             { { { "hello",
                     "ad" } },
                 'TrUcK        ' },
-            { "\\\\FF",
+            { "\\FF",
                 { { "fin" } } },
             { { { { { { }, { } } } }, { { }, { }, { { } } } } }
         }, m.formatPrintString(params, {

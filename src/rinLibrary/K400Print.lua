@@ -74,7 +74,7 @@ local eql = s * P'=' * s
 local printFormatter = P{
             Cs((P'{'*s/'' * POS * V'cmd' * (s*P'}'/'') + (1-P'{'))^0) * P(-1),
     cmd =   Cs(V'attr' + V'sub' + V'hex'),
-    hex =   P'$' * lpeg.xdigit * lpeg.xdigit / function(x) return '\\\\' .. string.upper(x:sub(2)) end,
+    hex =   P'$' * lpeg.xdigit * lpeg.xdigit / function(x) return '\\' .. string.upper(x:sub(2)) end,
     sub =   Ct(name * ((S':.'+spc^1) * (name + num))^0) / substitute,
 -- This version accepts any name = value pairing, the later lines accept only legal ones
 --  attr =  Ct(name * eql * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end
