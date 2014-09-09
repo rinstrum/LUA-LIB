@@ -142,16 +142,16 @@ return function (_M, private, deprecated)
 local REG_LCDMODE              = 0x000D
 local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-local REG_DISP_TOP_LEFT        = private.valueByDevice{ k422='nil', default=0x00B0 }    -- Takes string
-local REG_DISP_TOP_RIGHT       = private.valueByDevice{ k422='nil', default=0x00B1 }    -- Takes string
-local REG_DISP_TOP_ANNUN       = private.valueByDevice{ k422='nil', default=0x00B2 }
-local REG_DISP_TOP_UNITS       = private.valueByDevice{ k422='nil', default=0x00B3 }    -- Takes string
-local REG_DISP_BOTTOM_ANNUN    = private.valueByDevice{ k422='nil', default=0x00B4 }
-local REG_DISP_BOTTOM_UNITS    = private.valueByDevice{ k422='nil', default=0x00B5 }
+local REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
+local REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
+local REG_DISP_TOP_ANNUN       = 0x00B2
+local REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
+local REG_DISP_BOTTOM_ANNUN    = 0x00B4
+local REG_DISP_BOTTOM_UNITS    = 0x00B5
 
-local REG_DISP_AUTO_TOP_ANNUN  = private.valueByDevice{ k422='nil', default=0x00B6 }    -- Register
-local REG_DISP_AUTO_TOP_LEFT   = private.valueByDevice{ k422='nil', default=0x00B7 }    -- Register
-local REG_DISP_AUTO_BOTTOM_LEFT= private.valueByDevice{ k422='nil', default=0x00B8 }    -- Register
+local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
+local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
+local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
 
 --local REG_DEFAULTMODE          = 0x0166
 
