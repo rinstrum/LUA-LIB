@@ -31,8 +31,8 @@ local REG_STREAMREG5    = 0x0046
 
 -- Define the available stream register blocks.  These are either nil or should
 -- be binary ORed into the above register values.
-local REG_LUALIB        = private.valueByDevice{ k422='nil', default=0x0300 }
-local REG_LUAUSER       = private.valueByDevice{ k422='nil', default=0x0310 }
+local REG_LUALIB        = 0x0300
+local REG_LUAUSER       = 0x0310
 local REG_STANDARD      = 0x0000
 
 local STM_START         = 1
