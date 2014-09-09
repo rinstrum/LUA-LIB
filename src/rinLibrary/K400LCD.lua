@@ -306,14 +306,16 @@ end
 -- @param register Register name
 -- @local
 local function writeAuto(f, register)
-    local reg = private.getRegisterNumber(register)
+    if register ~= nil then
+        local reg = private.getRegisterNumber(register)
 
-    if f.regAuto ~= nil and reg ~= f.auto then
-        removeSlideTimer(f)
-        f.current = nil
-        private.writeRegHexAsync(f.regAuto, reg)
-        f.saveAuto = f.auto
-        f.auto = reg
+        if f.regAuto ~= nil and reg ~= f.auto then
+            removeSlideTimer(f)
+            f.current = nil
+            private.writeRegHexAsync(f.regAuto, reg)
+            f.saveAuto = f.auto
+            f.auto = reg
+        end
     end
 end
 

@@ -89,11 +89,11 @@ local sysStatusMap = {
     tilty           = private.k491(0x00400000)
 }
 
-local REG_LUA_STATUS   = private.valueByDevice{ k422='nil', default=0x0329 }
-local REG_LUA_ESTAT    = private.valueByDevice{ k422='nil', default=0x0305 }
-local REG_LUA_STAT_RTC = private.valueByDevice{ k422='nil', default=0x032A }
-local REG_SETPSTATUS   = private.valueByDevice{ k422='nil', default=0x032E }
-local REG_LUA_STAT_NET = private.valueByDevice{ k422='nil', default=0x030A }
+local REG_LUA_STATUS   = 0x0329
+local REG_LUA_ESTAT    = 0x0305
+local REG_LUA_STAT_RTC = 0x032A
+local REG_SETPSTATUS   = 0x032E
+local REG_LUA_STAT_NET = 0x030A
 
 --- Status Bits for register lua_status.
 --@table luastatus
