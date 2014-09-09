@@ -484,7 +484,7 @@ end
 -- @usage
 -- device.write('TopLeft', 'HELLO WORLD', 0.6)
 function _M.write(where, s, params)
-    write(naming.convertNameToValue(where, display), s, param)
+    write(naming.convertNameToValue(where, display), s, params)
 end
 
 -----------------------------------------------------------------------------
@@ -869,7 +869,7 @@ deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
 -- @see displayControl
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
-deprecated.writeTopLeft = function(s, params)
+function deprecated.writeTopLeft(s, params)
     return _M.write('topleft', s, params)
 end
 
@@ -881,7 +881,7 @@ end
 -- @see displayControl
 -- @usage
 -- device.writeTopRight('ABCD')
-deprecated.writeTopRight = function(s, params)
+function deprecated.writeTopRight(s, params)
     return _M.write('topright', s, params)
 end
 
@@ -893,7 +893,7 @@ end
 -- @see displayControl
 -- @usage
 -- device.writeBotLeft('AARDVARK BOTHER HORSES')
-deprecated.writeBotLeft = function(s, params)
+function deprecated.writeBotLeft(s, params)
     return _M.write('bottomleft', s, params)
 end
 
@@ -905,7 +905,7 @@ end
 -- @see displayControl
 -- @usage
 -- device.writeBotRight('HORSES BOTHER AARDVARK')
-deprecated.writeBotRight = function(s, params)
+function deprecated.writeBotRight(s, params)
     return _M.write('bottomright', s, params)
 end
 
@@ -916,7 +916,7 @@ end
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoTopLeft('grossnet')
-deprecated.writeAutoTopLeft = function(param)
+function deprecated.writeAutoTopLeft(param)
     return _M.writeAuto('topLeft', param)
 end
 
@@ -929,7 +929,7 @@ end
 -- device.writeAutoTopLeft(0)
 -- ...
 -- device.writeAutoTopLeft(old)
-deprecated.readAutoTopLeft = function()
+function deprecated.readAutoTopLeft()
     return _M.readAuto('topLeft')
 end
 
@@ -940,7 +940,7 @@ end
 -- Set to 0 to enable direct control of the area
 -- @usage
 -- device.writeAutoBotLeft('grossnet')
-deprecated.writeAutoBotLeft = function(param)
+function deprecated.writeAutoBotLeft(param)
     return _M.writeAuto('bottomLeft', param)
 end
 
@@ -953,7 +953,7 @@ end
 -- device.writeAutoBotLeft(0)
 -- ...
 -- device.writeAutoBotLeft(old)
-deprecated.readAutoBotLeft = function()
+function deprecated.readAutoBotLeft()
     return _M.readAuto('bottomLeft')
 end
 -------------------------------------------------------------------------------
@@ -962,7 +962,7 @@ end
 -- @param unts Unit to display
 -- @usage
 -- device.writeTopUnits('kg')
-deprecated.writeTopUnits(unts)
+function deprecated.writeTopUnits(unts)
     return _M.writeUnits('topLeft', unts)
 end
 
@@ -973,7 +973,7 @@ end
 -- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
-deprecated.writeTopUnits(unts, other)
+function deprecated.writeTopUnits(unts, other)
     return _M.writeUnits('bottomLeft', unts, other)
 end
 
