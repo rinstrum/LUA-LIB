@@ -58,7 +58,7 @@ function _M.checkPasscode(pc, code, tries)
                 return false
             end
             if count > 1 and err then
-                private.write('bottomLeft', string.upper(err),1.0)
+                _M.write('bottomLeft', string.upper(err),1.0)
                 _M.buzz(1,_M.BUZZ_LONG)
                 _M.app.delay(2.0)
             end

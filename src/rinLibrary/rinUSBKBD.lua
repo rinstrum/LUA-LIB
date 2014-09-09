@@ -97,9 +97,9 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     editing = true
 
     dwi.saveBot()
-    dwi.write('BottomRight', prompt)
+    dwi.write('bottomRight', prompt)
     dwi.write('bottomLeft', editVal)
-    dwi.writeBotUnits(u, uo)
+    dwi.writeUnits('bottomLeft', u, uo)
     local first = true
 
     local ok = false

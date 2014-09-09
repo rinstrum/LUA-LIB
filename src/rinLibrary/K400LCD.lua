@@ -756,30 +756,17 @@ function _M.rotWAIT(dir)
 end
 
 -------------------------------------------------------------------------------
--- Set top units
--- @function writeTopUnits
+-- Set units for specified field
 -- @param unts Unit to display
 -- @usage
--- device.writeTopUnits('kg')
-private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(unts)
-    local u = naming.convertNameToValue(unts, unitAnnunciators, 0)
-
-    units(display.topleft, u)
-end)
-
--------------------------------------------------------------------------------
--- Set bottom units
--- @function writeBotUnits
--- @param unts Unit to display
--- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
--- @usage
--- device.writeBotUnits('oz', 'per_m')
-private.writeBotUnits = private.exposeFunction('writeBotUnits', REG_DISP_BOTTOM_UNITS, function(unts, other)
+-- device.writeUnits('topLeft', 'kg')
+function _M.writeUnits(where, unts, other)
     local u = naming.convertNameToValue(unts, unitAnnunciators, 0x00)
     local o = naming.convertNameToValue(other, otherAunnuncitors, 0x00)
+    local v = bit32.bor(bit32.lshift(o, 8), u)
 
-    units(display.bottomleft, bit32.bor(bit32.lshift(o, 8), u))
-end)
+    return units(naming.convertNameToValue(where, display), v)
+end
 
 -------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
@@ -965,6 +952,26 @@ end
 -- device.writeAutoBotLeft(old)
 deprecated.readAutoBotLeft = function()
     return _M.readAuto('bottomLeft')
+end
+-------------------------------------------------------------------------------
+-- Set top units
+-- @function writeTopUnits
+-- @param unts Unit to display
+-- @usage
+-- device.writeTopUnits('kg')
+deprecated.writeTopUnits(unts)
+    return _M.writeUnits('topLeft', unts)
+end
+
+-------------------------------------------------------------------------------
+-- Set bottom units
+-- @function writeBotUnits
+-- @param unts Unit to display
+-- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @usage
+-- device.writeBotUnits('oz', 'per_m')
+deprecated.writeTopUnits(unts, other)
+    return _M.writeUnits('bottomLeft', unts, other)
 end
 
 if _TEST then
