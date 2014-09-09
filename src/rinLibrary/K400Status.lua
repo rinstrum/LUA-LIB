@@ -129,6 +129,19 @@ local REG_LUA_STAT_NET = 0x030A
 -- @field pulse Batch is in a pulse stage, only available in batching firmware
 -- @field start Batch is in the start stage, only available in batching firmware
 -- @field no_type None of the 4 status bits above are true, only available in batching firmware
+-- @field belowmin the weight is below the minimum set for axle capture K422 only
+-- @field abovemin the wieght is above the minimum set for axle capture K422 only
+-- @field idle the instrument is idle (not weighing a truck) K422 only
+-- @field sampling the instrument is currently measuring an axle K422 only
+-- @field captured the instrument has captured an axle weight K422 only
+-- @field waiting the instrument is waiting for another axle K422 only
+-- @field nodynerror there have been no errors on the current truck K422 only
+-- @field fasterror the truck was moving too fast to weigh accurately K422 only
+-- @field slowerror the truck was moving too slowly K422 only
+-- @field traceerror the instrument could not get a traceable reading K422 only
+-- @field weighterror the captured axle weight was below the minimum set K422 only
+-- @field direrror the truck was travelling in the wrong direction K422 only
+-- @field ilockerror there was an interlock error on the current truck K422 only
 -- @see setStatusCallback
 -- @see anyStatusSet
 -- @see allStatusSet
@@ -169,7 +182,19 @@ local statusUnmap, statusMap = {}, {
     start       = private.batching(0x10000000),
     no_type     = private.batching(0x20000000),
 -- K422 specific status bits
-    name        = private.k422(0x00000000),
+    belowmin    = private.k422(0x00010000),
+    abovemin    = private.k422(0x00020000),
+    idle        = private.k422(0x00040000),
+    sampling    = private.k422(0x00080000),
+    captured    = private.k422(0x00100000),
+    waiting     = private.k422(0x00200000),
+    nodynerror  = private.k422(0x00400000),
+    fasterror   = private.k422(0x00800000),
+    slowerror   = private.k422(0x01000000),
+    traceerror  = private.k422(0x02000000),
+    weighterror = private.k422(0x04000000),
+    direrror    = private.k422(0x08000000),
+    ilockerror  = private.k422(0x10000000),
 }
 for k, v in pairs(statusMap) do
     statusUnmap[v] = k
