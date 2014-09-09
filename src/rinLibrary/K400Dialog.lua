@@ -106,7 +106,7 @@ function _M.displayMessage(msg, t, units, unitsOther)
 	if msg and t > 0 then
 		msgDisp = true
 		_M.saveBot()
-		private.writeBotLeft(msg)			-- display message
+		private.write('bottomLeft', msg)			-- display message
 		private.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 		msgTimer = timers.addTimer(0, t, endDisplayMessage)
 	end
@@ -275,7 +275,7 @@ local function blinkCursor()
         str = sEditVal
     end
 --  print(str)  -- debug
-    private.writeBotLeft(str)
+    private.write('bottomLeft', str)
 end
 
 -------------------------------------------------------------------------------
@@ -323,8 +323,8 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
         pKey = 'def'    -- give pKey a value so we start editing from the end
     end
 
-    private.writeBotRight(prompt)        -- write the prompt
-    private.writeBotLeft(sEditVal)    -- write the default string to edit
+    private.write('BottomRight', prompt)        -- write the prompt
+    private.write('bottomLeft', sEditVal)    -- write the default string to edit
     private.writeBotUnits(units or 'none', unitsOther or 'none') -- display optional units
 
     _M.startDialog()
@@ -461,11 +461,11 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    private.writeBotRight(prompt)
+    private.write('BottomRight', prompt)
     if hide then
-       private.writeBotLeft(string.rep('+',#editVal))
+       private.write('bottomLeft', string.rep('+',#editVal))
     else
-       private.writeBotLeft(editVal)
+       private.write('bottomLeft', editVal)
     end
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
@@ -519,9 +519,9 @@ function _M.edit(prompt, def, typ, units, unitsOther)
             end
         end
         if hide then
-           private.writeBotLeft(string.rep('+',#editVal))
+           private.write('bottomLeft', string.rep('+',#editVal))
         else
-           private.writeBotLeft(editVal..' ')
+           private.write('bottomLeft', editVal..' ')
         end
     end
     _M.abortDialog()
@@ -544,9 +544,9 @@ function _M.editReg(register, prompt)
     if (prompt) then
         _M.saveBot()
         if type(prompt) == 'string' then
-            private.writeBotRight(prompt)
+            private.write('BottomRight', prompt)
         else
-            private.writeBotRight(private.getRegName(reg))
+            private.write('BottomRight', private.getRegName(reg))
         end
     end
     private.writeReg(REG_EDIT_REG, reg)
@@ -583,8 +583,8 @@ function _M.askOK(prompt, q, units, unitsOther)
 
     endDisplayMessage()
     _M.saveBot()
-    private.writeBotRight(prompt or '')
-    private.writeBotLeft(q or '')
+    private.write('BottomRight', prompt or '')
+    private.write('bottomLeft', q or '')
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
@@ -631,12 +631,12 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     editing = true
     endDisplayMessage()
     _M.saveBot()
-    private.writeBotRight(string.upper(prompt))
+    private.write('BottomRight', string.upper(prompt))
     private.writeBotUnits(units or 'none', unitsOther or 'none')
 
     _M.startDialog()
     while editing and _M.app.isRunning() do
-        private.writeBotLeft(string.upper(opts[index]))
+        private.write('bottomLeft', string.upper(opts[index]))
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
@@ -688,8 +688,8 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
 
     _M.startDialog()
     while editing and _M.app.isRunning() do
-        private.writeBotLeft(string.upper(opts[index]))
-        private.writeBotRight((options.isSelected(opts[index]) and "*" or " ")..prompt)
+        private.write('bottomLeft', string.upper(opts[index]))
+        private.write('BottomRight', (options.isSelected(opts[index]) and "*" or " ")..prompt)
 
         local key = _M.getKey('keypad')
 

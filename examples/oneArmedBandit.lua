@@ -1,3 +1,6 @@
+package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
+package.cpath = "/home/pauli/m4223/L000-515/lua-linux-headers/?.so;" .. package.cpath
+package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 -- This example demonstrates a complete take over of the console.
 -- Lots of timers are used to slow things down so the user can see
@@ -71,12 +74,12 @@ local random = math.random
 math.randomseed(os.time())      -- shake things up a bit
 
 -- Add control of an dwi at the given IP and port
-local dwi = rinApp.addK400("K401")
+local dwi = rinApp.addK400("K401", '172.17.1.116')
 
 -- Write to the LCD screen -- turn off automatic updates on the left
 -- We want complete control here.
-dwi.writeAutoTopLeft(0)
-dwi.writeAutoBotLeft(0)
+dwi.writeAuto('topLeft', 0)
+dwi.writeAuto('bottomLeft', 0)
 
 -- The names of the faces of each wheel and the payouts for getting triples and pairs of
 -- cherries.  We implement two different poker machines fairly close to those specified
@@ -129,7 +132,7 @@ end
 -- Display a message in the top right position.  It will be right justified.
 -- @param msg The message to display
 local function promptTR(msg)
-    dwi.writeTopRight(JustifyRight(msg, 4))
+    dwi.write('TopRight', JustifyRight(msg, 4))
 end
 
 -------------------------------------------------------------------------------
@@ -162,7 +165,7 @@ local function setjackpot(on)
         timers.removeTimer(jackpottimer)
         jackpottimer = flashMessage(m, dwi.writeBotLeft)
     else
-        dwi.writeBotLeft("")
+        dwi.write('bottomLeft', "")
         timers.removeTimer(jackpottimer)
         jackpottimer = nil
     end
@@ -179,7 +182,7 @@ end
 local function setupWagerScreen()
     state = "bet"
     promptTR("$1-9")
-    dwi.writeTopLeft("WAGER?")
+    dwi.write('topLeft', "WAGER?")
     setjackpot(true)
 end
 
@@ -188,10 +191,10 @@ end
 -- @param delta The amount to add to the player's balance (can be zero or negative)
 local function updateBalance(delta)
     balance = balance + delta
-    dwi.writeBotRight(JustifyRight("$" .. balance, 8))
+    dwi.write('BottomRight', JustifyRight("$" .. balance, 8))
 
     if balance > 10000 then
-        dwi.writeTopLeft("WINNER")
+        dwi.write('topLeft', "WINNER")
         beginGameOver()
         state = "win"
         setjackpot(false)
@@ -248,10 +251,10 @@ local function scoringCallback()
             delay = 3
         end
         updateBalance(payout)
-        dwi.writeTopLeft("$" .. payout)
+        dwi.write('topLeft', "$" .. payout)
     else
         delay = 2
-        dwi.writeTopLeft("SORRY")
+        dwi.write('topLeft', "SORRY")
         promptTR("LOSE")
     end
     jackpot = jackpot + wager / 20
@@ -263,7 +266,7 @@ local function scoringCallback()
         end
         timers.addTimer(0, delay, backToWager)
     else
-        dwi.writeTopLeft("BROKE")
+        dwi.write('topLeft', "BROKE")
         beginGameOver()
         state = "lose"
         setjackpot(false)
@@ -282,8 +285,8 @@ local function beginPlaying(delay)
     timers.addTimer(0, delay, setPlayModeCallback)
 
     local function playCallback()
-        dwi.writeTopLeft(longNames[rng])
-        dwi.writeBotLeft(rolls[1] .. " " .. rolls[2])
+        dwi.write('topLeft', longNames[rng])
+        dwi.write('bottomLeft', rolls[1] .. " " .. rolls[2])
     end
     playtimer = timers.addTimer(0.06, delay, playCallback)
 end
@@ -299,9 +302,9 @@ local function playOkay(key, st)
         rolls[nroll] = shortNames[r]
 
         nroll = nroll + 1
-        dwi.writeBotLeft(rolls[1] .. " " .. rolls[2] .. " " .. rolls[3])
+        dwi.write('bottomLeft', rolls[1] .. " " .. rolls[2] .. " " .. rolls[3])
         timers.removeTimer(playtimer)
-        dwi.writeTopLeft(longNames[r])
+        dwi.write('topLeft', longNames[r])
         promptTR("HOLD")
         if nroll < 4 then
             state = "pause"
@@ -346,11 +349,11 @@ local function numberPressed(key, st)
         promptTR("")
         if key > balance then
             state = "error"
-            dwi.writeTopLeft("CAN'T")
+            dwi.write('topLeft', "CAN'T")
             dwi.buzz(1)
             scheduleWager(2)
         else
-            dwi.writeTopLeft("BET $" .. tostring(key))
+            dwi.write('topLeft', "BET $" .. tostring(key))
             wager = key
             updateBalance(-wager)
             local function startplay()
@@ -385,8 +388,8 @@ dwi.setKeyGroupCallback('all', function(k, s) return true end, 'short', 'long')
 local function weclomePlayer()
     local pos = 1
     local function show()
-        dwi.writeTopLeft(welcomeMessages[1][pos])
-        dwi.writeBotLeft(JustifyRight(welcomeMessages[2][pos], 8))
+        dwi.write('topLeft', welcomeMessages[1][pos])
+        dwi.write('bottomLeft', JustifyRight(welcomeMessages[2][pos], 8))
         pos = pos + 1
         if pos <= #(welcomeMessages[1]) then
             timers.addTimer(0, 1.5, show)
@@ -394,8 +397,8 @@ local function weclomePlayer()
             scheduleWager(1.5)
         end
     end
-    dwi.writeTopRight("")
-    dwi.writeBotRight("")
+    dwi.write('TopRight', "")
+    dwi.write('BottomRight', "")
     show()
 end
 weclomePlayer()
@@ -407,10 +410,10 @@ timers.addTimer(0.005, 0, function () rng = random(nSides) end)
 rinApp.run()
 
 -- Cleanup the application and exit
-dwi.writeTopLeft("")
-dwi.writeBotLeft("")
-dwi.writeTopRight("")
-dwi.writeBotRight("")
+dwi.write('topLeft', "")
+dwi.write('bottomLeft', "")
+dwi.write('TopRight', "")
+dwi.write('BottomRight', "")
 
 rinApp.cleanup()
 os.exit()

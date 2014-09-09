@@ -142,25 +142,25 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -- Main Application logic goes here
 local function mainLoop()
    if mode == 'idle' then
-      dwi.writeTopLeft('MY APP')
-      dwi.writeBotLeft('F1-START F2-FINISH',1.5)
-      dwi.writeBotRight('')
+      dwi.write('topLeft', 'MY APP')
+      dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
+      dwi.write('BottomRight', '')
    elseif mode == 'run' then
-      dwi.writeTopLeft()
-      dwi.writeBotLeft('')
-      dwi.writeBotRight('PLACE')
+      dwi.write('topLeft', )
+      dwi.write('bottomLeft', '')
+      dwi.write('BottomRight', 'PLACE')
       if dwi.allStatusSet('notzero', 'notmotion') then
          dwi.setUserNumber(3, dwi.toPrimary(curWeight))
-         dwi.writeAutoBotLeft('usernum3')
-         dwi.writeBotRight('CAPTURED')
+         dwi.writeAuto('bottomLeft', 'usernum3')
+         dwi.write('BottomRight', 'CAPTURED')
          dwi.buzz(2)
          rinApp.delay(1)
-         dwi.writeBotRight('...')
+         dwi.write('BottomRight', '...')
          mode = 'wait'
       end
     elseif mode == 'wait' then
        if dwi.anyStatusSet('motion') then
-           dwi.writeBotRight('')
+           dwi.write('BottomRight', '')
            dwi.buzz(1)
            rinApp.delay(0.5)
            mode = 'run'

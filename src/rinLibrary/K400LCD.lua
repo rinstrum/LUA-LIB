@@ -160,7 +160,7 @@ local topAnnunState = 0
 local waitPos = 1
 
 local display = {
-    tl = {
+    topleft = {
         top = true, left = true,
         length = 6,
         reg = REG_DISP_TOP_LEFT,
@@ -171,13 +171,13 @@ local display = {
         auto = nil,     saveAuto = 0
     },
     
-    tr = {
+    topright = {
         top = true, right = true,
         length = 4,
         reg = REG_DISP_TOP_RIGHT,
     },
 
-    bl = {
+    bottomleft = {
         bottom = true,  left = true,
         length = 8,
         reg = REG_DISP_BOTTOM_LEFT,
@@ -188,7 +188,7 @@ local display = {
         auto = nil,     saveAuto = 0
     },
 
-    br = {
+    bottomright = {
         bottom = true,  right = true,
         length = 8,
         reg = REG_DISP_BOTTOM_RIGHT,
@@ -293,7 +293,9 @@ end
 -- @return Register name
 -- @local
 local function readAuto(f)
-    if f.regAuto == nil then return nil end
+    if f == nil or f.regAuto == nil then
+        return nil
+    end
     local reg = private.readRegDec(f.regAuto)
     reg = tonumber(reg)
     f.auto = reg
@@ -306,7 +308,7 @@ end
 -- @param register Register name
 -- @local
 local function writeAuto(f, register)
-    if register ~= nil then
+    if f ~= nil and register ~= nil then
         local reg = private.getRegisterNumber(register)
 
         if f.regAuto ~= nil and reg ~= f.auto then
@@ -474,52 +476,40 @@ function _M.saveAutoLeft()
 end
 
 -------------------------------------------------------------------------------
--- Write string to Top Left of LCD
--- @function writeTopLeft
+-- Write string to thsi specified display section
+-- @param where which display section to write to
 -- @param s string to display
 -- @param params displayControl parameter
 -- @see displayControl
 -- @usage
--- device.writeTopLeft('HELLO WORLD', 0.6)
-private.exposeFunction('writeTopLeft', REG_DISP_TOP_LEFT, function(s, params)
-    write(display.tl, s, params)
-end)
+-- device.write('TopLeft', 'HELLO WORLD', 0.6)
+function _M.write(where, s, params)
+    write(naming.convertNameToValue(where, display), s, param)
+end
 
--------------------------------------------------------------------------------
--- Write string to Top Right of LCD
--- @function writeTopRight
--- @param s string to display
--- @param params displayControl parameter
--- @see displayControl
+-----------------------------------------------------------------------------
+-- Link register address with display field to update automatically.
+-- Not all fields support this functionality.
+-- @param where which display section to write to
+-- @param register address of register to link display to.
+-- Set to 0 to enable direct control of the area
 -- @usage
--- device.writeTopRight('ABCD')
-private.exposeFunction('writeTopRight', REG_DISP_TOP_RIGHT, function(s, params)
-    write(display.tr, s, params)
-end)
+-- device.writeAutoTopLeft('grossnet')
+function _M.writeAuto(where, register)
+    return writeAuto(naming.convertNameToValue(where, display), register)
+end
 
--------------------------------------------------------------------------------
--- Write string to Bottom Left of LCD
--- @function writeBotLeft
--- @param s string to display
--- @param params displayControl parameter
--- @see displayControl
+-----------------------------------------------------------------------------
+-- Reads the current auto update register for the specified field
+-- @return register that is being used for auto update, 0 if none
 -- @usage
--- device.writeBotLeft('AARDVARK BOTHER HORSES')
-private.writeBotLeft = private.exposeFunction('writeBotLeft', REG_DISP_BOTTOM_LEFT, function(s, params)
-    write(display.bl, s, params)
-end)
-
--------------------------------------------------------------------------------
--- Write string to Bottom Right of LCD
--- @function writeBotRight
--- @param s string to display
--- @param params deldisplayControl parameterssage
--- @see displayControl
--- @usage
--- device.writeBotRight('HORSES BOTHER AARDVARK')
-private.writeBotRight = private.exposeFunction('writeBotRight', REG_DISP_BOTTOM_RIGHT, function(s, params)
-    write(display.br, s, params)
-end)
+-- local old = device.readAutoTopLeft()
+-- device.writeAutoTopLeft(0)
+-- ...
+-- device.writeAutoTopLeft(old)
+function _M.readAuto(where)
+    return readAuto(naming.convertNameToValue(where, display))
+end
 
 -----------------------------------------------------------------------------
 -- Set the bottom annunciators directly.
@@ -551,54 +541,6 @@ end
 local writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', REG_DISP_AUTO_TOP_ANNUN, function(register)
     local r = private.getRegisterNumber(register)
     private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
-end)
-
------------------------------------------------------------------------------
--- Link register address with Top Left display to update automatically
--- @function writeAutoTopLeft
--- @param register address of register to link Top Left display to.
--- Set to 0 to enable direct control of the area
--- @usage
--- device.writeAutoTopLeft('grossnet')
-private.exposeFunction('writeAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function(register)
-    writeAuto(display.tl, register)
-end)
-
------------------------------------------------------------------------------
--- Reads the current Top Left auto update register
--- @function readAutoTopLeft
--- @return register that is being used for auto update, 0 if none
--- @usage
--- local old = device.readAutoTopLeft()
--- device.writeAutoTopLeft(0)
--- ...
--- device.writeAutoTopLeft(old)
-private.exposeFunction('readAutoTopLeft', REG_DISP_AUTO_TOP_LEFT, function()
-    return readAuto(display.tl)
-end)
-
------------------------------------------------------------------------------
--- Link register address with Bottom Left display to update automatically
--- @function writeAutoBotLeft
--- @param register address of register to link Bottom Left display to.
--- Set to 0 to enable direct control of the area
--- @usage
--- device.writeAutoBotLeft('grossnet')
-private.exposeFunction('writeAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function(register)
-    writeAuto(display.bl, register)
-end)
-
------------------------------------------------------------------------------
--- Reads the current Bottom Left auto update register
--- @function readAutoBotLeft
--- @return register that is being used for auto update, 0 if none
--- @usage
--- local old = device.readAutoBotLeft()
--- device.writeAutoBotLeft(0)
--- ...
--- device.writeAutoBotLeft(old)
-private.exposeFunction('readAutoBotLeft', REG_DISP_AUTO_BOTTOM_LEFT, function()
-    return readAuto(display.bl)
 end)
 
 --- LCD Annunciators
@@ -822,7 +764,7 @@ end
 private.exposeFunction('writeTopUnits', REG_DISP_TOP_UNITS, function(unts)
     local u = naming.convertNameToValue(unts, unitAnnunciators, 0)
 
-    units(display.tl, u)
+    units(display.topleft, u)
 end)
 
 -------------------------------------------------------------------------------
@@ -836,7 +778,7 @@ private.writeBotUnits = private.exposeFunction('writeBotUnits', REG_DISP_BOTTOM_
     local u = naming.convertNameToValue(unts, unitAnnunciators, 0x00)
     local o = naming.convertNameToValue(other, otherAunnuncitors, 0x00)
 
-    units(display.bl, bit32.bor(bit32.lshift(o, 8), u))
+    units(display.bottomleft, bit32.bor(bit32.lshift(o, 8), u))
 end)
 
 -------------------------------------------------------------------------------
@@ -845,8 +787,8 @@ end)
 -- device.restoreLcd()
 function _M.restoreLcd()
     map(function(v) return true end, function(v) write(v, '') end)
-    writeAuto(display.tl, 'grossnet')
-    writeAuto(display.bl, 0)
+    writeAuto(display.topleft, 'grossnet')
+    writeAuto(display.bottomright, 0)
 
     writeAutoTopAnnun(0)
     writeBotAnnuns(0)
@@ -928,6 +870,102 @@ deprecated.UNITS_OTHER_PER_M            = otherAunnuncitors.per_m
 deprecated.UNITS_OTHER_PER_S            = otherAunnuncitors.per_s
 deprecated.UNITS_OTHER_PC               = otherAunnuncitors.pc
 deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
+
+-------------------------------------------------------------------------------
+-- Write string to Top Left of LCD
+-- @function writeTopLeft
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeTopLeft('HELLO WORLD', 0.6)
+deprecated.writeTopLeft = function(s, params)
+    return _M.write('topleft', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Top Right of LCD
+-- @function writeTopRight
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeTopRight('ABCD')
+deprecated.writeTopRight = function(s, params)
+    return _M.write('topright', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Bottom Left of LCD
+-- @function writeBotLeft
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeBotLeft('AARDVARK BOTHER HORSES')
+deprecated.writeBotLeft = function(s, params)
+    return _M.write('bottomleft', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Bottom Right of LCD
+-- @function writeBotRight
+-- @param s string to display
+-- @param params deldisplayControl parameterssage
+-- @see displayControl
+-- @usage
+-- device.writeBotRight('HORSES BOTHER AARDVARK')
+deprecated.writeBotRight = function(s, params)
+    return _M.write('bottomright', s, params)
+end
+
+-----------------------------------------------------------------------------
+-- Link register address with Top Left display to update automatically
+-- @function writeAutoTopLeft
+-- @param register address of register to link Top Left display to.
+-- Set to 0 to enable direct control of the area
+-- @usage
+-- device.writeAutoTopLeft('grossnet')
+deprecated.writeAutoTopLeft = function(param)
+    return _M.writeAuto('topLeft', param)
+end
+
+-----------------------------------------------------------------------------
+-- Reads the current Top Left auto update register
+-- @function readAutoTopLeft
+-- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoTopLeft()
+-- device.writeAutoTopLeft(0)
+-- ...
+-- device.writeAutoTopLeft(old)
+deprecated.readAutoTopLeft = function()
+    return _M.readAuto('topLeft')
+end
+
+-----------------------------------------------------------------------------
+-- Link register address with Bottom Left display to update automatically
+-- @function writeAutoBotLeft
+-- @param register address of register to link Bottom Left display to.
+-- Set to 0 to enable direct control of the area
+-- @usage
+-- device.writeAutoBotLeft('grossnet')
+deprecated.writeAutoBotLeft = function(param)
+    return _M.writeAuto('bottomLeft', param)
+end
+
+-----------------------------------------------------------------------------
+-- Reads the current Bottom Left auto update register
+-- @function readAutoBotLeft
+-- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoBotLeft()
+-- device.writeAutoBotLeft(0)
+-- ...
+-- device.writeAutoBotLeft(old)
+deprecated.readAutoBotLeft = function()
+    return _M.readAuto('bottomLeft')
+end
 
 if _TEST then
     _M.strLenR400 = strLenR400

@@ -137,8 +137,8 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.writeBotLeft('  USB APP')
-dwi.writeBotRight(' .LUA')
+dwi.write('bottomLeft', '  USB APP')
+dwi.write('BottomRight', ' .LUA')
 
 --=============================================================================
 -- Main Application Loop

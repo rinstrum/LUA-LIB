@@ -79,7 +79,7 @@ dwi.setIdleCallback(dwi.abortDialog, 30)
 
 local function prompt(msg)
     msg = msg or '        '
-    dwi.writeBotLeft(msg)
+    dwi.write('bottomLeft', msg)
     rinApp.delay(1.5)
 end
 
@@ -94,12 +94,12 @@ local sel = 'ZERO'
 local function mainLoop()
 
    if mode == 'idle' then
-      dwi.writeTopLeft('CAL.APP')
-      dwi.writeBotLeft('F1-MENU',1.5)
-      dwi.writeBotRight('')
+      dwi.write('topLeft', 'CAL.APP')
+      dwi.write('bottomLeft', 'F1-MENU',1.5)
+      dwi.write('BottomRight', '')
    elseif mode == 'menu' then
-      dwi.writeTopLeft()
-      dwi.writeBotLeft('')
+      dwi.write('topLeft', )
+      dwi.write('bottomLeft', '')
       sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
       if not sel or sel == 'EXIT' then
          mode = 'idle'

@@ -36,13 +36,13 @@ local function slide()
     -- If there's nothing left to move, clear the screen
     -- and write the msg to false so we know we're done
     if msg == '' then
-        dwi.writeBotLeft('')
+        dwi.write('bottomLeft', '')
         msg = false
 
     -- If there's something left to write, write a substring of 9 characters
     -- to the device and remove a character from the message
     else
-        dwi.writeBotLeft(string.format('%-9s',string.upper(string.sub(msg,1,9))))
+        dwi.write('bottomLeft', string.format('%-9s',string.upper(string.sub(msg,1,9))))
         msg = string.sub(msg,2)
     end
 end

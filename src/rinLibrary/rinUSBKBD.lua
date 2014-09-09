@@ -62,8 +62,8 @@ end
 -- local usbKBD = require "rinLibrary.rinUSBKBD"
 --
 -- if not usbKBD.isEditing() then
---     device.writeTopLeft('Hello')
---     device.writeBotLeft('World')
+--     device.write('topLeft', 'Hello')
+--     device.write('bottomLeft', 'World')
 -- end
 function _M.isEditing()
     return editing
@@ -97,8 +97,8 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     editing = true
 
     dwi.saveBot()
-    dwi.writeBotRight(prompt)
-    dwi.writeBotLeft(editVal)
+    dwi.write('BottomRight', prompt)
+    dwi.write('bottomLeft', editVal)
     dwi.writeBotUnits(u, uo)
     local first = true
 
@@ -149,9 +149,9 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
             end
         end
         if #editVal > 9 then
-            dwi.writeBotLeft(string.format('%-9s',string.sub(editVal,#editVal-8,-1)))
+            dwi.write('bottomLeft', string.format('%-9s',string.sub(editVal,#editVal-8,-1)))
         else
-            dwi.writeBotLeft(editVal)
+            dwi.write('bottomLeft', editVal)
         end
     end
     dwi.restoreBot()

@@ -63,8 +63,8 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.writeBotLeft("PRINT")
-dwi.writeBotRight("COPY")
+dwi.write('bottomLeft', "PRINT")
+dwi.write('BottomRight', "COPY")
 
 --=============================================================================
 -- Main Application Loop

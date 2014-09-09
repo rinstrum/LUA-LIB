@@ -20,11 +20,11 @@ local dwiB = rinApp.addK400("K401", "10.0.0.2", 2222)
 --=============================================================================
 
 -- Write "Hello world" to the LCD screen.
-dwiA.writeBotLeft("Hello")
-dwiA.writeBotRight("A")
+dwiA.write('bottomLeft', "Hello")
+dwiA.write('BottomRight', "A")
 
-dwiB.writeBotLeft("Hello")
-dwiB.writeBotRight("B")
+dwiB.write('bottomLeft', "Hello")
+dwiB.write('BottomRight', "B")
 
 dwiA.getKey()  -- Wait for the user to press a key on the dwi
 

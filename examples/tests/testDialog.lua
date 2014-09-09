@@ -11,11 +11,11 @@ local system = require 'rinSystem.Pack'
 
 -------------------------------------------------------------------------------
 -- Put a message on LCD and remove after 2 second delay
-dwi.writeBotLeft("DIALOG")
-dwi.writeBotRight("TEST")
+dwi.write('bottomLeft', "DIALOG")
+dwi.write('BottomRight', "TEST")
 rinApp.delay(2.000)
-dwi.writeBotLeft("")
-dwi.writeBotRight("")
+dwi.write('bottomLeft', "")
+dwi.write('BottomRight', "")
 
 id = dwi.editReg('userid1', 'NAME')
 dbg.info(' Value: ', id)
@@ -35,12 +35,12 @@ end
 local sel = dwi.selectOption('SELECT',{'SMALL','MEDIUM','LARGE'},'SMALL',true)
 rinApp.delay(0.010)
 -- show selected option (on device and console) and wait until key pressed
-dwi.writeBotLeft(sel)
-dwi.writeBotRight('SELECTED')
+dwi.write('bottomLeft', sel)
+dwi.write('BottomRight', 'SELECTED')
 dbg.info('Selected value', sel)
 dwi.getKey()
-dwi.writeBotLeft(' ')
-dwi.writeBotRight(' ')
+dwi.write('bottomLeft', ' ')
+dwi.write('BottomRight', ' ')
 dbg.info('',dwi.editReg(0x1121,true))
 
 -------------------------------------------------------------------------------
