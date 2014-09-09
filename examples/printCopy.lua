@@ -64,7 +64,7 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -- (eg, setup outputs or put a message on the LCD etc)
 
 dwi.write('bottomLeft', "PRINT")
-dwi.write('BottomRight', "COPY")
+dwi.write('bottomRight', "COPY")
 
 --=============================================================================
 -- Main Application Loop

@@ -20,7 +20,7 @@ local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 
 -- Write "Hello world" to the LCD screen.
 dwi.write('bottomLeft', "Hello")
-dwi.write('BottomRight', "World")
+dwi.write('bottomRight', "World")
 
 dwi.getKey()  -- Wait for the user to press a key on the dwi
 

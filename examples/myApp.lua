@@ -144,23 +144,23 @@ local function mainLoop()
    if mode == 'idle' then
       dwi.write('topLeft', 'MY APP')
       dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
-      dwi.write('BottomRight', '')
+      dwi.write('bottomRight', '')
    elseif mode == 'run' then
       dwi.write('topLeft', )
       dwi.write('bottomLeft', '')
-      dwi.write('BottomRight', 'PLACE')
+      dwi.write('bottomRight', 'PLACE')
       if dwi.allStatusSet('notzero', 'notmotion') then
          dwi.setUserNumber(3, dwi.toPrimary(curWeight))
          dwi.writeAuto('bottomLeft', 'usernum3')
-         dwi.write('BottomRight', 'CAPTURED')
+         dwi.write('bottomRight', 'CAPTURED')
          dwi.buzz(2)
          rinApp.delay(1)
-         dwi.write('BottomRight', '...')
+         dwi.write('bottomRight', '...')
          mode = 'wait'
       end
     elseif mode == 'wait' then
        if dwi.anyStatusSet('motion') then
-           dwi.write('BottomRight', '')
+           dwi.write('bottomRight', '')
            dwi.buzz(1)
            rinApp.delay(0.5)
            mode = 'run'

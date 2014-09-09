@@ -138,7 +138,7 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -- (eg, setup outputs or put a message on the LCD etc)
 
 dwi.write('bottomLeft', '  USB APP')
-dwi.write('BottomRight', ' .LUA')
+dwi.write('bottomRight', ' .LUA')
 
 --=============================================================================
 -- Main Application Loop

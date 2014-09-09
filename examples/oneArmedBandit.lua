@@ -132,7 +132,7 @@ end
 -- Display a message in the top right position.  It will be right justified.
 -- @param msg The message to display
 local function promptTR(msg)
-    dwi.write('TopRight', JustifyRight(msg, 4))
+    dwi.write('topRight', JustifyRight(msg, 4))
 end
 
 -------------------------------------------------------------------------------
@@ -191,7 +191,7 @@ end
 -- @param delta The amount to add to the player's balance (can be zero or negative)
 local function updateBalance(delta)
     balance = balance + delta
-    dwi.write('BottomRight', JustifyRight("$" .. balance, 8))
+    dwi.write('bottomRight', JustifyRight("$" .. balance, 8))
 
     if balance > 10000 then
         dwi.write('topLeft', "WINNER")
@@ -397,8 +397,8 @@ local function weclomePlayer()
             scheduleWager(1.5)
         end
     end
-    dwi.write('TopRight', "")
-    dwi.write('BottomRight', "")
+    dwi.write('topRight', "")
+    dwi.write('bottomRight', "")
     show()
 end
 weclomePlayer()
@@ -412,8 +412,8 @@ rinApp.run()
 -- Cleanup the application and exit
 dwi.write('topLeft', "")
 dwi.write('bottomLeft', "")
-dwi.write('TopRight', "")
-dwi.write('BottomRight', "")
+dwi.write('topRight', "")
+dwi.write('bottomRight', "")
 
 rinApp.cleanup()
 os.exit()

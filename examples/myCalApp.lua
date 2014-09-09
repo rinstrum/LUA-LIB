@@ -96,7 +96,7 @@ local function mainLoop()
    if mode == 'idle' then
       dwi.write('topLeft', 'CAL.APP')
       dwi.write('bottomLeft', 'F1-MENU',1.5)
-      dwi.write('BottomRight', '')
+      dwi.write('bottomRight', '')
    elseif mode == 'menu' then
       dwi.write('topLeft', )
       dwi.write('bottomLeft', '')

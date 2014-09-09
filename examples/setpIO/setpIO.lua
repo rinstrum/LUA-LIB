@@ -196,7 +196,7 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -- (eg, setup outputs or put a message on the LCD etc)
 
 dwi.write('bottomLeft', '  SETP IO')
-dwi.write('BottomRight', ' .LUA')
+dwi.write('bottomRight', ' .LUA')
 dwi.enableOutput(OVER_OUTPUT,
                  PASS_OUTPUT,
                  CHIME_OUTPUT,
