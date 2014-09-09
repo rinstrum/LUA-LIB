@@ -167,7 +167,9 @@ local statusUnmap, statusMap = {}, {
     dump        = private.batching(0x04000000),
     pulse       = private.batching(0x08000000),
     start       = private.batching(0x10000000),
-    no_type     = private.batching(0x20000000)
+    no_type     = private.batching(0x20000000),
+-- K422 specific status bits
+    name        = private.k422(0x00000000),
 }
 for k, v in pairs(statusMap) do
     statusUnmap[v] = k
