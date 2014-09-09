@@ -756,8 +756,11 @@ function _M.rotWAIT(dir)
 end
 
 -------------------------------------------------------------------------------
--- Set units for specified field
+-- Set units for specified field.
+-- The other field isn't always supported.  Likewise, not all fields have units.
+-- @param where which display section to write to
 -- @param unts Unit to display
+-- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
