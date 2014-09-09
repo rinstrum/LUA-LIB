@@ -35,8 +35,9 @@ local portMap = setmetatable({
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Print string formatting setup
 local formatAttributes = {
-    width = '-',
-    align = 'left'
+    width = '-',        -- - or number
+    align = 'left',     -- left or right
+    supress = 'no'      -- no, field or line
 }
 local formatFailed, formatPosition, formatSubstitutions
 
@@ -51,8 +52,14 @@ local function substitute(x)
         local cank = can(k)
         local z = tonumber(k) or cank
         if type(p) ~= 'table' or (p[z] == nil and p[cank] == nil) then
-            formatFailed = true
-            return ''
+            if formatAttributes.supress == 'line' then
+                formatFailed = true
+                return ''
+            else
+                local w = formatAttributes.width == '-' and 1 or formatAttributes.width
+                local c = formatAttributes.supress == 'field' and ' ' or '?'
+                return string.rep(c, w)
+            end
         end
         p, last = p[z] or p[cank], p[z] and z or cank
     end
@@ -78,9 +85,10 @@ local printFormatter = P{
     sub =   Ct(name * ((S':.'+spc^1) * (name + num))^0) / substitute,
 -- This version accepts any name = value pairing, the later lines accept only legal ones
 --  attr =  Ct(name * eql * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end
-    attr =  Ct(V'align' + V'width') / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
+    attr =  Ct(V'align' + V'width' + V'sup') / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
     align = C(Pi'align') * eql * C(Pi'left' + Pi'right'),
-    width = C(Pi'width') * eql * C(num + '-')
+    width = C(Pi'width') * eql * C(num + '-'),
+    sup =   C(Pi'supress') *eql * C(Pi'no' + Pi'field' + Pi'line')
 }
 
 -------------------------------------------------------------------------------

@@ -45,7 +45,6 @@ describe("K400Print #print", function()
             { i = 'T{  truck  }', o = 'TTrUcK' },
             { i = 'QQ{axle:1}EE', o = "QQa1EE" },
             { i = 'A{farm name}b{farm.location}c', o = 'AFarMblANdc' },
-            { i = 'T{bucket}', o = nil },
             { i = '{tRuCk}', o = 'TrUcK' },
             { i = '{axle 7}', o = 'bogus' }
         }
@@ -68,6 +67,8 @@ describe("K400Print #print", function()
             { i = '{width = abc}',          e = { {'Error:', ' {width = abc}'},
                                                   {'   at ', '__|' } } },
             { i = '{4}',                    e = { {'Error:', ' {4}'},
+                                                  {'   at ', '__|' } } },
+            { i = '{supress=never}',        e = { {'Error:', ' {supress=never}'},
                                                   {'   at ', '__|' } } }
         }
 
@@ -105,6 +106,27 @@ describe("K400Print #print", function()
         end
     end)
 
+    describe('format suppression', function()
+        local cases = {
+            { i = 'T{bucket}', o = 'T?' },
+            { i = 'T{supress=field}{bucket}', o = 'T ' },
+            { i = 'T{supress=line}{bucket}', o = nil },
+            { i = 'T{supress=no}{bucket}', o = 'T?' },
+            { i = 'T{width=8}{supress=no}{bucket}', o = 'T????????' },
+            { i = 'T{width=8}{supress=field}{bucket}', o = 'T        ' },
+            { i = '{supress=no}', o = '' }  -- reset to default at end
+        }
+
+        for i = 1, #cases do
+            local m = makeModule()
+            it("test "..i, function()
+                local r = cases[i]
+
+                assert.equal(r.o, m.formatPrintString(params, r.i))
+            end)
+        end
+    end)
+
     it('format table', function()
         local m = makeModule()
         assert.same({
@@ -114,7 +136,7 @@ describe("K400Print #print", function()
             "\\FF",
             "fin"
         }, m.formatPrintString(params, {
-            "hello",
+            "{supress=line}hello",
             "a{width=13}d",
             "{truck}",
             "{$ff}",
@@ -135,7 +157,7 @@ describe("K400Print #print", function()
         }, m.formatPrintString(params, {
             { { {   "hello",
                     "a{width=13}d" } },
-                "{truck}" },
+                "{truck}{supress=line}" },
             { "{$ff}",
                 { "{missing}",
                     { "fin" } } },
