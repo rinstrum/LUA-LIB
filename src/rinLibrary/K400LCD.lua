@@ -511,6 +511,102 @@ function _M.readAuto(where)
     return readAuto(naming.convertNameToValue(where, display))
 end
 
+-------------------------------------------------------------------------------
+-- Write string to Top Left of LCD
+-- @function writeTopLeft
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeTopLeft('HELLO WORLD', 0.6)
+function _M.writeTopLeft(s, params)
+    return _M.write('topleft', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Top Right of LCD
+-- @function writeTopRight
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeTopRight('ABCD')
+function _M.writeTopRight(s, params)
+    return _M.write('topright', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Bottom Left of LCD
+-- @function writeBotLeft
+-- @param s string to display
+-- @param params displayControl parameter
+-- @see displayControl
+-- @usage
+-- device.writeBotLeft('AARDVARK BOTHER HORSES')
+function _M.writeBotLeft(s, params)
+    return _M.write('bottomleft', s, params)
+end
+
+-------------------------------------------------------------------------------
+-- Write string to Bottom Right of LCD
+-- @function writeBotRight
+-- @param s string to display
+-- @param params deldisplayControl parameterssage
+-- @see displayControl
+-- @usage
+-- device.writeBotRight('HORSES BOTHER AARDVARK')
+function _M.writeBotRight(s, params)
+    return _M.write('bottomright', s, params)
+end
+
+-----------------------------------------------------------------------------
+-- Link register address with Top Left display to update automatically
+-- @function writeAutoTopLeft
+-- @param register address of register to link Top Left display to.
+-- Set to 0 to enable direct control of the area
+-- @usage
+-- device.writeAutoTopLeft('grossnet')
+function _M.writeAutoTopLeft(param)
+    return _M.writeAuto('topLeft', param)
+end
+
+-----------------------------------------------------------------------------
+-- Reads the current Top Left auto update register
+-- @function readAutoTopLeft
+-- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoTopLeft()
+-- device.writeAutoTopLeft(0)
+-- ...
+-- device.writeAutoTopLeft(old)
+function _M.readAutoTopLeft()
+    return _M.readAuto('topLeft')
+end
+
+-----------------------------------------------------------------------------
+-- Link register address with Bottom Left display to update automatically
+-- @function writeAutoBotLeft
+-- @param register address of register to link Bottom Left display to.
+-- Set to 0 to enable direct control of the area
+-- @usage
+-- device.writeAutoBotLeft('grossnet')
+function _M.writeAutoBotLeft(param)
+    return _M.writeAuto('bottomLeft', param)
+end
+
+-----------------------------------------------------------------------------
+-- Reads the current Bottom Left auto update register
+-- @function readAutoBotLeft
+-- @return register that is being used for auto update, 0 if none
+-- @usage
+-- local old = device.readAutoBotLeft()
+-- device.writeAutoBotLeft(0)
+-- ...
+-- device.writeAutoBotLeft(old)
+function _M.readAutoBotLeft()
+    return _M.readAuto('bottomLeft')
+end
+
 -----------------------------------------------------------------------------
 -- Set the bottom annunciators directly.
 -- @local
@@ -772,6 +868,25 @@ function _M.writeUnits(where, unts, other)
 end
 
 -------------------------------------------------------------------------------
+-- Set top units
+-- @param unts Unit to display
+-- @usage
+-- device.writeTopUnits('kg')
+function _M.writeTopUnits(unts)
+    return _M.writeUnits('topLeft', unts)
+end
+
+-------------------------------------------------------------------------------
+-- Set bottom units
+-- @param unts Unit to display
+-- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @usage
+-- device.writeBotUnits('oz', 'per_m')
+function _M.writeBotUnits(unts, other)
+    return _M.writeUnits('bottomLeft', unts, other)
+end
+
+-------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 -- @usage
 -- device.restoreLcd()
@@ -782,7 +897,7 @@ function _M.restoreLcd()
 
     writeAutoTopAnnun(0)
     writeBotAnnuns(0)
-    private.writeBotUnits()
+    _M.writeUnits('bottomLeft')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -860,122 +975,6 @@ deprecated.UNITS_OTHER_PER_M            = otherAunnuncitors.per_m
 deprecated.UNITS_OTHER_PER_S            = otherAunnuncitors.per_s
 deprecated.UNITS_OTHER_PC               = otherAunnuncitors.pc
 deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
-
--------------------------------------------------------------------------------
--- Write string to Top Left of LCD
--- @function writeTopLeft
--- @param s string to display
--- @param params displayControl parameter
--- @see displayControl
--- @usage
--- device.writeTopLeft('HELLO WORLD', 0.6)
-function deprecated.writeTopLeft(s, params)
-    return _M.write('topleft', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Top Right of LCD
--- @function writeTopRight
--- @param s string to display
--- @param params displayControl parameter
--- @see displayControl
--- @usage
--- device.writeTopRight('ABCD')
-function deprecated.writeTopRight(s, params)
-    return _M.write('topright', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Bottom Left of LCD
--- @function writeBotLeft
--- @param s string to display
--- @param params displayControl parameter
--- @see displayControl
--- @usage
--- device.writeBotLeft('AARDVARK BOTHER HORSES')
-function deprecated.writeBotLeft(s, params)
-    return _M.write('bottomleft', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Bottom Right of LCD
--- @function writeBotRight
--- @param s string to display
--- @param params deldisplayControl parameterssage
--- @see displayControl
--- @usage
--- device.writeBotRight('HORSES BOTHER AARDVARK')
-function deprecated.writeBotRight(s, params)
-    return _M.write('bottomright', s, params)
-end
-
------------------------------------------------------------------------------
--- Link register address with Top Left display to update automatically
--- @function writeAutoTopLeft
--- @param register address of register to link Top Left display to.
--- Set to 0 to enable direct control of the area
--- @usage
--- device.writeAutoTopLeft('grossnet')
-function deprecated.writeAutoTopLeft(param)
-    return _M.writeAuto('topLeft', param)
-end
-
------------------------------------------------------------------------------
--- Reads the current Top Left auto update register
--- @function readAutoTopLeft
--- @return register that is being used for auto update, 0 if none
--- @usage
--- local old = device.readAutoTopLeft()
--- device.writeAutoTopLeft(0)
--- ...
--- device.writeAutoTopLeft(old)
-function deprecated.readAutoTopLeft()
-    return _M.readAuto('topLeft')
-end
-
------------------------------------------------------------------------------
--- Link register address with Bottom Left display to update automatically
--- @function writeAutoBotLeft
--- @param register address of register to link Bottom Left display to.
--- Set to 0 to enable direct control of the area
--- @usage
--- device.writeAutoBotLeft('grossnet')
-function deprecated.writeAutoBotLeft(param)
-    return _M.writeAuto('bottomLeft', param)
-end
-
------------------------------------------------------------------------------
--- Reads the current Bottom Left auto update register
--- @function readAutoBotLeft
--- @return register that is being used for auto update, 0 if none
--- @usage
--- local old = device.readAutoBotLeft()
--- device.writeAutoBotLeft(0)
--- ...
--- device.writeAutoBotLeft(old)
-function deprecated.readAutoBotLeft()
-    return _M.readAuto('bottomLeft')
-end
--------------------------------------------------------------------------------
--- Set top units
--- @function writeTopUnits
--- @param unts Unit to display
--- @usage
--- device.writeTopUnits('kg')
-function deprecated.writeTopUnits(unts)
-    return _M.writeUnits('topLeft', unts)
-end
-
--------------------------------------------------------------------------------
--- Set bottom units
--- @function writeBotUnits
--- @param unts Unit to display
--- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
--- @usage
--- device.writeBotUnits('oz', 'per_m')
-function deprecated.writeTopUnits(unts, other)
-    return _M.writeUnits('bottomLeft', unts, other)
-end
 
 if _TEST then
     _M.strLenR400 = strLenR400
