@@ -179,11 +179,11 @@ local display = {
 
     bottomleft = {
         bottom = true,  left = true,
-        length = 8,
+        length = 9,
         reg = REG_DISP_BOTTOM_LEFT,
         regUnits = REG_DISP_BOTTOM_UNITS,
         regAuto = REG_DISP_AUTO_BOTTOM_LEFT,
-        format = '%-8s',
+        format = '%-9s',
         units = nil,    saveUnits = 0,
         auto = nil,     saveAuto = 0
     },
