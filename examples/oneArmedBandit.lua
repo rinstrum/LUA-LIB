@@ -1,6 +1,3 @@
-package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
-package.cpath = "/home/pauli/m4223/L000-515/lua-linux-headers/?.so;" .. package.cpath
-package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
 -------------------------------------------------------------------------------
 -- This example demonstrates a complete take over of the console.
 -- Lots of timers are used to slow things down so the user can see
@@ -74,7 +71,7 @@ local random = math.random
 math.randomseed(os.time())      -- shake things up a bit
 
 -- Add control of an dwi at the given IP and port
-local dwi = rinApp.addK400("K401", '172.17.1.116')
+local dwi = rinApp.addK400("K401")
 
 -- Write to the LCD screen -- turn off automatic updates on the left
 -- We want complete control here.
