@@ -18,6 +18,7 @@ local dbg           = require "rinLibrary.rinDebug"
 local naming        = require 'rinLibrary.namings'
 local lpeg          = require 'rinLibrary.lpeg'
 local system        = require 'rinSystem.Pack'
+local deepcopy      = require 'rinLibrary.deepcopy'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -121,19 +122,53 @@ function _M.isHiRes()
 end
 
 -------------------------------------------------------------------------------
+-- Query the current setting of a given field in the specified display mode
+-- @param display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @param field 'dp', 'units' or 'countby'
+-- @param default default return value if something goes awry
+-- @return The given field.
+-- @usage
+-- print(device.getDispModeDP('primary')..' decimal places in the primary display')
+local function querySettings(display, field, default)
+    local d = naming.convertNameToValue(display, displayModeMap, nil,
+                                            DISPMODE_PRIMARY, DISPMODE_SECONDARY)
+    if d ~= nil then
+        return settings.dispmode[d][field] or default
+    end
+    return default
+end
+
+-------------------------------------------------------------------------------
 -- Query the current number of decimal places in the specified display mode
 -- @param display The display mode: 'primary', 'secondary' or 'pieces'.
 -- @return The number of decimal places.
 -- @usage
--- print(device.getDispModeDP('primary')..' decimal places in the primary display')
+-- print(device.getDispModeDP('primary')..' decimal places in the primary display.')
 function _M.getDispModeDP(display)
-    local d = naming.convertNameToValue(display, displayModeMap, nil,
-                                            DISPMODE_PRIMARY, DISPMODE_SECONDARY)
+    return querySettings(display, 'dp', 0)
+end
 
-    if d ~= nil then
-        return settings.dispmode[d].dp
-    end
-    return 0
+-------------------------------------------------------------------------------
+-- Query the current units in the specified display mode
+-- @param display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @return The units being used.
+-- @usage
+-- print(device.getDispModeUnits('primary')..' are the primary units.')
+function _M.getDispModeUnits(display)
+    return querySettings(display, 'units', nil)
+end
+
+-------------------------------------------------------------------------------
+-- Query the current count by setting in the specified display mode
+-- @param display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @return The countby setting as a vector.
+-- @usage
+-- local countby = device.getDispModeCountBy('primary')
+-- for i = 1, #countby do
+--     print(i, countby[i])
+-- end
+function _M.getDispModeCountBy(display)
+    return deepcopy(querySettings(display, 'countby', nil))
 end
 
 -------------------------------------------------------------------------------
