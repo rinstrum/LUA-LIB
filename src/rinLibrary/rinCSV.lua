@@ -524,6 +524,7 @@ end
 -- @param col is the column of data to match (default is col 1)
 -- @return row that val found in or nil if not found
 -- @return line of data found at that row with matching val data in column col
+-- @see getRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = { fname = '/tmp/temporary-file' }
@@ -535,11 +536,13 @@ end
 -- print('3.14159 is in the third column in row '..row)
 -- print('That row is: ' .. csv.tostringLine(data))
 function _M.getLineCSV(t, val, col)
-    col = lookupColumn(t, col)
-    val = canonical(val)
-    for k, v in ipairs(t.data) do
-        if canonical(v[col]) == val then
-            return k, v
+    if hasData(t) then
+        col = lookupColumn(t, col)
+        val = canonical(val)
+        for k, v in ipairs(t.data) do
+            if canonical(v[col]) == val then
+                return k, v
+            end
         end
     end
     return nil, nil
@@ -552,6 +555,7 @@ end
 -- @param val is value of the cell to find
 -- @param col is the column of data to match (default is col 1)
 -- @return table containing the fields index by their canonical names
+-- @see getLineCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = { fname = '/tmp/temporary-file', labels = { 'a', 'b', 'c' } }
@@ -572,6 +576,30 @@ function _M.getRecordCSV(t, val, col)
         return ret
     end
     return nil
+end
+
+-------------------------------------------------------------------------------
+-- Return a new CSV file that includes all records matching the given field
+-- value.
+-- @param t table holding CSV data
+-- @param val value to match against
+-- @param col column to match
+function _M.selectCSV(t, val, col)
+    if not isCSV(t) then
+        return nil
+    end
+    col = lookupColumn(t, col)
+    val = canonical(val)
+    local r = { labels = deepcopy(t.labels) }
+    if hasData(t) then
+        r.data = {}
+        for k, v in ipairs(t.data) do
+            if canonical(v[col]) == val then
+                table.insert(r.data, v)
+            end
+        end
+    end
+    return r
 end
 
 -------------------------------------------------------------------------------

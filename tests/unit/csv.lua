@@ -385,6 +385,26 @@ describe("CSV tests #csv", function()
         end
     end)
 
+    -- test selectCSV
+    describe("selectCSV #selectcsv", function()
+        local selectCsvTests = {
+            { v = 1, c = "a",   t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6}, {1, 3} } },
+                                r = { labels = { "a", "b" }, data = { {1, 2}, {1, 3} } } },
+            { v = 2, c = "a",   t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6}, {1, 3} } },
+                                r = { labels = { "a", "b" }, data = { } } },
+            { v = 6, c = "b",   t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6}, {1, 3} } },
+                                r = { labels = { "a", "b" }, data = { {5, 6} } } }
+        }
+
+        for i = 1, #selectCsvTests do
+            it("test "..i, function()
+                local r = selectCsvTests[i]
+                local row = csv.selectCSV(r.t, r.v, r.c)
+                assert.same(r.r, row)
+            end)
+        end
+    end)
+
     -- test cleanCSV
     describe("cleanCSV #cleancsv", function()
         local cleanCsvTests = {
