@@ -388,6 +388,9 @@ describe("CSV tests #csv", function()
     -- test selectCSV
     describe("selectCSV #selectcsv", function()
         local selectCsvTests = {
+            { v = 1, c = "a",   t = { }, r = nil },
+            { v = 1, c = "a",   t = { labels = { "a", "b" } },
+                                r = { labels = { "a", "b" } } },
             { v = 1, c = "a",   t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6}, {1, 3} } },
                                 r = { labels = { "a", "b" }, data = { {1, 2}, {1, 3} } } },
             { v = 2, c = "a",   t = { labels = { "a", "b" }, data = { {1, 2}, {5, 6}, {1, 3} } },
