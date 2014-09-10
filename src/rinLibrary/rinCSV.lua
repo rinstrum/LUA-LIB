@@ -584,6 +584,10 @@ end
 -- @param t table holding CSV data
 -- @param val value to match against
 -- @param col column to match
+-- @see getRecordCSV
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local newTable = csv.selectCSV(oldTable, 'fred', 'name')
 function _M.selectCSV(t, val, col)
     if not isCSV(t) then
         return nil
