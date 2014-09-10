@@ -512,10 +512,11 @@ function _M.readAuto(where)
 end
 
 -------------------------------------------------------------------------------
--- Write string to Top Left of LCD
+-- Write string to Top Left of LCD.  The write interface is preferred.
 -- @function writeTopLeft
 -- @param s string to display
 -- @param params displayControl parameter
+-- @see write
 -- @see displayControl
 -- @usage
 -- device.writeTopLeft('HELLO WORLD', 0.6)
@@ -524,10 +525,11 @@ function _M.writeTopLeft(s, params)
 end
 
 -------------------------------------------------------------------------------
--- Write string to Top Right of LCD
+-- Write string to Top Right of LCD.  The write interface is preferred.
 -- @function writeTopRight
 -- @param s string to display
 -- @param params displayControl parameter
+-- @see write
 -- @see displayControl
 -- @usage
 -- device.writeTopRight('ABCD')
@@ -536,10 +538,11 @@ function _M.writeTopRight(s, params)
 end
 
 -------------------------------------------------------------------------------
--- Write string to Bottom Left of LCD
+-- Write string to Bottom Left of LCD.  The write interface is preferred.
 -- @function writeBotLeft
 -- @param s string to display
 -- @param params displayControl parameter
+-- @see write
 -- @see displayControl
 -- @usage
 -- device.writeBotLeft('AARDVARK BOTHER HORSES')
@@ -548,10 +551,11 @@ function _M.writeBotLeft(s, params)
 end
 
 -------------------------------------------------------------------------------
--- Write string to Bottom Right of LCD
+-- Write string to Bottom Right of LCD.  The write interface is preferred.
 -- @function writeBotRight
 -- @param s string to display
 -- @param params deldisplayControl parameterssage
+-- @see write
 -- @see displayControl
 -- @usage
 -- device.writeBotRight('HORSES BOTHER AARDVARK')
@@ -560,10 +564,12 @@ function _M.writeBotRight(s, params)
 end
 
 -----------------------------------------------------------------------------
--- Link register address with Top Left display to update automatically
+-- Link register address with Top Left display to update automatically.
+-- The writeAuto interface is preferred.
 -- @function writeAutoTopLeft
 -- @param register address of register to link Top Left display to.
 -- Set to 0 to enable direct control of the area
+-- @see writeAuto
 -- @usage
 -- device.writeAutoTopLeft('grossnet')
 function _M.writeAutoTopLeft(param)
@@ -572,8 +578,10 @@ end
 
 -----------------------------------------------------------------------------
 -- Reads the current Top Left auto update register
+-- The readAuto interface is preferred.
 -- @function readAutoTopLeft
 -- @return register that is being used for auto update, 0 if none
+-- @see readAuto
 -- @usage
 -- local old = device.readAutoTopLeft()
 -- device.writeAutoTopLeft(0)
@@ -585,9 +593,11 @@ end
 
 -----------------------------------------------------------------------------
 -- Link register address with Bottom Left display to update automatically
+-- The writeAuto interface is preferred.
 -- @function writeAutoBotLeft
 -- @param register address of register to link Bottom Left display to.
 -- Set to 0 to enable direct control of the area
+-- @see writeAuto
 -- @usage
 -- device.writeAutoBotLeft('grossnet')
 function _M.writeAutoBotLeft(param)
@@ -596,8 +606,10 @@ end
 
 -----------------------------------------------------------------------------
 -- Reads the current Bottom Left auto update register
+-- The readAuto interface is preferred.
 -- @function readAutoBotLeft
 -- @return register that is being used for auto update, 0 if none
+-- @see readAuto
 -- @usage
 -- local old = device.readAutoBotLeft()
 -- device.writeAutoBotLeft(0)
@@ -868,8 +880,9 @@ function _M.writeUnits(where, unts, other)
 end
 
 -------------------------------------------------------------------------------
--- Set top units
+-- Set top units.  The writeUnits interface is preferred.
 -- @param unts Unit to display
+-- @see writeUnits
 -- @usage
 -- device.writeTopUnits('kg')
 function _M.writeTopUnits(unts)
@@ -877,9 +890,10 @@ function _M.writeTopUnits(unts)
 end
 
 -------------------------------------------------------------------------------
--- Set bottom units
+-- Set bottom units.  The writeUnits interface is preferred.
 -- @param unts Unit to display
 -- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @see writeUnits
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
 function _M.writeBotUnits(unts, other)
