@@ -208,13 +208,33 @@ describe("CSV tests #csv", function()
             { c = 0,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
             { c = 0,    r = nil,            t = { labels = { "a", "b" } } },
             { c = 0,    r = nil,            t = { data = { {1, 2} } } },
-            { c = 0,    r = nil },
+            { c = 0,    r = nil }
         }
 
         for i = 1, #getColCsvTests do
             it("test "..i, function()
                 local r = getColCsvTests[i]
                 assert.same(r.r, csv.getColCSV(r.t, r.c))
+            end)
+        end
+    end)
+
+    -- test getColCSV
+    describe("getUniqueColCSV #getuniquecolcsv", function()
+        local getUniqueColCsvTests = {
+            { c = "a",  r = { 1, 4, 5 },    t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+            { c = "a",  r = { 1, 4 },       t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {1, 6} } } },
+            { c = "a",  r = {'A', 'b' },    t = { labels = { "a", "b" }, data = { {'A', 3}, {'b', 6 }, { 'a', 2 }, {'  a  ', 19 } } } },
+            { c = 'c',  r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { c = 0,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { c = 'a',  r = nil,            t = { labels = { "a", "b" } } },
+            { c = 0,    r = nil },
+        }
+
+        for i = 1, #getUniqueColCsvTests do
+            it("test "..i, function()
+                local r = getUniqueColCsvTests[i]
+                assert.same(r.r, csv.getUniqueColCSV(r.t, r.c))
             end)
         end
     end)

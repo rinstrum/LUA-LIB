@@ -619,7 +619,7 @@ end
 --
 -- -- alternatively, columns can be specified numerically:
 --
--- names = csv.getColCSV(db.material, 2)                    -- gather all material names
+-- names = csv.getColCSV(db.material, 'material')           -- gather all material names
 -- sel = dwi.selectOption('SELECT', names, names[1], true)  -- chose a material
 function _M.getColCSV(csvtbl, col)
     local column = {}
@@ -633,6 +633,44 @@ function _M.getColCSV(csvtbl, col)
         table.insert(column, v[c])
     end
     return column
+end
+
+-------------------------------------------------------------------------------
+-- Returns the unique different values from a column of data in a 1-D table
+-- @param csvtbl is table holding CSV data
+-- @param col is the column of data to match (default is col 1), column names are allowed
+-- @return a column of data
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- names = csv.getColCSV(db.material, 'material')                       -- gather all material names
+-- sel = dwi.selectOption('SELECT', names, names[1], true)              -- chose a material
+--
+-- -- alternatively, columns can be specified numerically:
+--
+-- uniqueNames = csv.getUniqueColCSV(db.material, 'material')           -- gather all material names
+-- sel = dwi.selectOption('SELECT', uniqueNames, uniqueNames[1], true)  -- chose a material
+function _M.getUniqueColCSV(csvtbl, col)
+    local c = _M.getColCSV(csvtbl, col)
+    if c == nil then
+        return nil
+    elseif #c < 2 then
+        return c
+    end
+
+    local s, r = {}, {}
+    for _, v in ipairs(c) do
+        table.insert(s, { o = v, k = canonical(v) })
+    end
+    table.sort(s, function(a, b) return a.k < b.k end)
+    local i, prev = 0
+    for _, v in ipairs(s) do
+        if v.k ~= prev then
+            prev = v.k
+            table.insert(r, v.o)
+        end
+    end
+    return r
 end
 
 -------------------------------------------------------------------------------
