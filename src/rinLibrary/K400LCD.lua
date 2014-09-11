@@ -451,6 +451,8 @@ local function write(f, s, params)
                     if clear then
                         private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
                     end
+                elseif #f.slideWords == 1 then
+                    removeSlideTimer(f)
                 else
                     writeToDisplay(f)
                 end
