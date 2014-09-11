@@ -411,17 +411,6 @@ local function writeArgs(t)
 end
 
 -------------------------------------------------------------------------------
--- Write a properly formatted string fragment to the given display field
--- @param f Display field
--- @local
-local function writeToDisplay(f)
-    if f.currentReg ~= f.slideWords[f.slidePos] then
-        f.currentReg = f.slideWords[f.slidePos]
-        private.writeRegHexAsync(f.reg, f.currentReg)
-    end
-end
-
--------------------------------------------------------------------------------
 -- Write a message to the given display field.
 -- @param f Display field.
 -- @param s String to write
@@ -438,23 +427,29 @@ local function write(f, s, params)
             local time = math.max(t.time or 0.8, 0.2)
 
             writeAuto(f, 0)
-            f.slidePos, f.params, f.current = 1, t, tostring(s)
-            f.slideWords = splitWords(f, f.current, t.align)
+            f.params, f.current = t, tostring(s)
+            local slidePos, slideWords = 1, splitWords(f, f.current, t.align)
 
-            writeToDisplay(f)
+            local function writeToDisplay(s)
+                if f.currentReg ~= s then
+                    f.currentReg = s
+                    private.writeRegHexAsync(f.reg, s)
+                end
+            end
+            writeToDisplay(slideWords[1])
 
             f.slideTimer = timers.addTimer(time, time, function()
-                f.slidePos = private.addModBase1(f.slidePos, 1, #f.slideWords, true)
-                if f.slidePos == 1 and once then
+                slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
+                if slidePos == 1 and once then
                     removeSlideTimer(f)
                     wait = false
                     if clear then
                         private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
                     end
-                elseif #f.slideWords == 1 then
+                elseif #slideWords == 1 then
                     removeSlideTimer(f)
                 else
-                    writeToDisplay(f)
+                    writeToDisplay(slideWords[slidePos])
                 end
             end)
             _M.app.delayUntil(function() return not wait end)
