@@ -218,7 +218,7 @@ local display = {
         reg = REG_DISP_TOP_RIGHT,
         strlen = strLenR400,        -- need to fix these to match the weird display '8.8-8.8'
         finalFormat = padDots,
-        strsub = strSubR400,
+        strsub = strSubR400
     },
 
     bottomleft = {
@@ -242,8 +242,34 @@ local display = {
         reg = REG_DISP_BOTTOM_RIGHT,
         strlen = strLenR400,
         finalFormat = padDots,
-        strsub = strSubR400,
+        strsub = strSubR400
+    },
+--[[
+    pcmode = {
+        remote = true,
+        length = 7,
+        rightJustify = function(s)
+            if #s > 6 and s:sub(1,1) == '-' then
+                return s
+            end
+            return string.sub('       ' .. s, -7)
+        end,
+        reg = 0xA205,
+        strlen = function(s)
+            if #s > 0 and s:sub(1,1) == '-' then
+                return #s - 1
+            end
+            return #s
+        end,
+        finalFormat = function(s)
+            if #s > 1 and s:sub(1,1) ~= '-' then
+                s = ' ' .. s
+            end
+            return '\002' .. string.sub(s .. '        ', 1, 8) .. ' 00\003'
+        end,
+        strsub = function(s, stPos, endPos) return s:sub(stPos, endPos) end
     }
+--]]
 }
 
 --- Display Control Modes.
@@ -398,6 +424,7 @@ end
 -- @local
 local function write(f, s, params)
     if f and f.reg ~= nil then
+        removeSlideTimer(f)
         if s then
             local t = writeArgs(params)
             local wait = t.wait
@@ -406,7 +433,6 @@ local function write(f, s, params)
             local time = math.max(t.time or 0.8, 0.2)
 
             writeAuto(f, 0)
-            removeSlideTimer(f)
             f.slidePos, f.params, f.current = 1, t, tostring(s)
             f.slideWords = splitWords(f, f.current, t.align)
 
@@ -418,7 +444,7 @@ local function write(f, s, params)
                     removeSlideTimer(f)
                     wait = false
                     if clear then
-                        private.writeRegHexAsync(f.reg, '')
+                        private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
                     end
                 else
                     writeToDisplay(f)
