@@ -18,7 +18,6 @@ local dbg           = require "rinLibrary.rinDebug"
 local naming        = require 'rinLibrary.namings'
 local lpeg          = require 'rinLibrary.lpeg'
 local system        = require 'rinSystem.Pack'
-local deepcopy      = require 'rinLibrary.deepcopy'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -161,14 +160,14 @@ end
 -------------------------------------------------------------------------------
 -- Query the current count by setting in the specified display mode
 -- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @return The countby setting as a vector.
+-- @return The countby setting as an unpacked vector.
 -- @usage
 -- local countby = device.getDispModeCountBy('primary')
 -- for i = 1, #countby do
 --     print(i, countby[i])
 -- end
 function _M.getDispModeCountBy(display)
-    return deepcopy(querySettings(display, 'countby', nil))
+    return unpack(querySettings(display, 'countby', nil))
 end
 
 -------------------------------------------------------------------------------
