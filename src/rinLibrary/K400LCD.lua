@@ -267,7 +267,12 @@ local display = {
             end
             return '\002' .. string.sub(s .. '        ', 1, 8) .. ' 00\003'
         end,
-        strsub = function(s, stPos, endPos) return s:sub(stPos, endPos) end
+        strsub = function(s, stPos, endPos)
+            if #s > 1 and s:sub(1,1) == '-' then
+                endPos = endPos + 1
+            end
+            return s:sub(stPos, endPos)
+        end
     }
 --]]
 }
