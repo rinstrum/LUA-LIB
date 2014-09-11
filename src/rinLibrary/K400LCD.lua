@@ -345,6 +345,7 @@ local function writeAuto(f, register)
         if f.regAuto ~= nil and reg ~= f.auto then
             removeSlideTimer(f)
             f.current = nil
+            f.currentReg = nil
             private.writeRegHexAsync(f.regAuto, reg)
             f.saveAuto = f.auto
             f.auto = reg
@@ -379,6 +380,17 @@ local function writeArgs(t)
 end
 
 -------------------------------------------------------------------------------
+-- Write a properly formatted string fragment to the given display field
+-- @param f Display field
+-- @local
+local function writeToDisplay(f)
+    if f.currentReg ~= f.slideWords[f.slidePos] then
+        f.currentReg = f.slideWords[f.slidePos]
+        private.writeRegHexAsync(f.reg, f.currentReg)
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Write a message to the given display field.
 -- @param f Display field.
 -- @param s String to write
@@ -393,45 +405,26 @@ local function write(f, s, params)
             local once = t.once or wait or clear
             local time = math.max(t.time or 0.8, 0.2)
 
-            f.time = nil
-            s = tostring(s)
-            if s ~= f.current or clear or wait or once then
-                writeAuto(f, 0)
-                removeSlideTimer(f)
-                f.current = s
-                local function disp()
-                    private.writeRegHexAsync(f.reg, f.slideWords[f.slidePos])
-                end
+            writeAuto(f, 0)
+            removeSlideTimer(f)
+            f.slidePos, f.params, f.current = 1, t, tostring(s)
+            f.slideWords = splitWords(f, f.current, t.align)
 
-                f.slideWords = splitWords(f, s, t.align)
-                f.slidePos = 1
-                disp()
-                if #f.slideWords > 1 then
-                    f.time = t
-                    f.slideTimer = timers.addTimer(time, time, function()
-                        f.slidePos = private.addModBase1(f.slidePos, 1, #f.slideWords, true)
-                        if f.slidePos == 1 and once then
-                            removeSlideTimer(f)
-                            wait = false
-                            if clear then
-                                write(f, '')
-                            end
-                        else
-                            disp()
-                        end
-                    end)
-                    time = nil
-                elseif clear then
-                    f.slideTimer = timers.addTimer(0, time, write, f, '')
-                end
-            end
-            if wait then
-                if time ~= nil then
-                    _M.app.delay(time)
+            writeToDisplay(f)
+
+            f.slideTimer = timers.addTimer(time, time, function()
+                f.slidePos = private.addModBase1(f.slidePos, 1, #f.slideWords, true)
+                if f.slidePos == 1 and once then
+                    removeSlideTimer(f)
+                    wait = false
+                    if clear then
+                        private.writeRegHexAsync(f.reg, '')
+                    end
                 else
-                    _M.app.delayUntil(function() return not wait end)
+                    writeToDisplay(f)
                 end
-            end
+            end)
+            _M.app.delayUntil(function() return not wait end)
         elseif f.auto == 0 then
             writeAuto(f, f.saveAuto)
         end
@@ -471,7 +464,7 @@ function _M.saveBot()
     map(function(v) return v.bottom end,
         function(v)
             v.saveCurrent = v.current
-            v.saveTime = v.time
+            v.saveParams = v.params
             v.saveUnits = v.units
         end)
 end
@@ -485,7 +478,7 @@ end
 function _M.restoreBot()
     map(function(v) return v.bottom end,
         function(v)
-            write(v, v.saveCurrent, v.saveTime)
+            write(v, v.saveCurrent, v.saveParams)
             units(v, v.saveUnits)
         end)
 end
