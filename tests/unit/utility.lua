@@ -28,6 +28,7 @@ describe("utlitity #utilitiy", function()
             { a={3,-5, 6, true  },  r=4 },
             { a={1,-1, 4, true  },  r=4 },
             { a={4, 1, 4, true  },  r=1 },
+            { a={1, 1, 1, true  },  r=1 }
         }
         for i = 1, #cases do
             it('test '..i, function()
