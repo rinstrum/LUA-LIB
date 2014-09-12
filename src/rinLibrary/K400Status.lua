@@ -902,6 +902,18 @@ local function handleINIT(status, active)
 end
 
 -------------------------------------------------------------------------------
+-- Handle the power off key being held down
+-- @param status Status
+-- @param active Active?
+-- @local
+local function handlePower(status, active)
+    dbg.info('power', status, active)
+    if active then
+        os.execute('sync')
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Control the use of Net status bits
 -- @param status net1, net2, both or none
 -- @usage
@@ -927,6 +939,7 @@ function _M.setupStatus()
     private.RTCread('all')
     setEStatusMainCallback('rtc',  handleRTC)
     setEStatusMainCallback('init', handleINIT)
+    setEStatusMainCallback('power_off', handlePower)
     writeRTCStatus(true)
 end
 
@@ -939,6 +952,7 @@ function _M.endStatus()
     writeRTCStatus(false)
     setEStatusMainCallback('rtc',  nil)
     setEStatusMainCallback('init', nil)
+    setEStatusMainCallback('power_off', nil)
     _M.removeStream(statID)     statID = nil
     _M.removeStream(eStatID)    eStatID = nil
     _M.endIOStatus()
