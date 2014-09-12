@@ -22,31 +22,31 @@ local tostring = tostring
 -- @return t if successful, nil otherwise
 -- @usage
 -- local config = {
---         general = { name = 'Fred'},  -- [general] group settings 
+--         general = { name = 'Fred'},  -- [general] group settings
 --         comms = {baud = '9600',bits = 8, parity = 'N', stop = 1},  -- [comms] group settings
 --         }
 -- local t = ini.saveINI('config.ini',config)  -- save INI file to disk using config table
 
 function _M.saveINI(fname, t)
     local f = io.open(fname, "w+")
-    if f == nil then 
+    if f == nil then
         return nil, [['Can't find ]] .. fname
     end
 
     for k,v in ipairs(t) do  -- put in comments (currently comments are all grouped at top of file)
         if type(v) == 'string' and string.sub(v,1,1) == ';' then
            f:write(v,'\n')
-        end   
-     end    
+        end
+     end
     for k,v in pairs(t) do    -- do global vars first
         if type(v) ~= 'table' then
             v = tostring(v)
             if string.sub(v,1,1) ~= ';' then  -- don't print comments again
                  f:write(k,'=',v,'\n')
-            end     
+            end
         end
-    end  
-    
+    end
+
     for k,v in pairs(t) do   -- now do section vars
         if type(v) == 'table' then
             f:write('[',k,']','\n')
@@ -54,8 +54,9 @@ function _M.saveINI(fname, t)
                 f:write(i,'=',s,'\n')
             end
         end
-    end 
-    f:close();  
+    end
+    f:close()
+    os.execute('sync')
     return t
 end
 
@@ -66,20 +67,20 @@ end
 -- @param def  default table of settings
 -- @return table t or nil if file invalid
 -- @usage
--- local t = ini.loadINI('config.ini',config)  -- load INI file from disk using config table 
+-- local t = ini.loadINI('config.ini',config)  -- load INI file from disk using config table
 function _M.loadINI(fname, def)
 
     local lt = {}
     local t = {}
     local name, pos, val
     local extra = false
-    
+
     local f = io.open(fname,"r")
-    if f == nil then 
+    if f == nil then
         if def == nil then  return nil end
         return _M.saveINI(fname,def)
     end
-    
+
     lt = t    -- support settings with no section header directly
     for s in f:lines() do
         local first = string.find(s,'%[')
@@ -88,7 +89,7 @@ function _M.loadINI(fname, def)
             name = string.sub(s,first+1,last-1)
             lt = {}
             t[name] = lt
-        else 
+        else
             pos = string.find(s,'=')
             if pos ~= nil and pos > 1 then
                 name = string.gsub(string.sub(s,1,pos-1),' ','')
@@ -97,21 +98,21 @@ function _M.loadINI(fname, def)
             elseif string.sub(s,1,1) == ';' then
                 table.insert(t,s)  -- put comment in the main table
             end
-            
-        end 
-    end 
-   
-   f:close();
+
+        end
+    end
+
+   f:close()
 
    -- check default table to see if any extra settings to include
    for k,v in pairs(def) do
-      if t[k] == nil then  
+      if t[k] == nil then
          t[k] = def[k]
          extra = true
-        end 
+        end
     end
-    
-    if extra then 
+
+    if extra then
         _M.saveINI(fname,t)
     end   -- if extra fields in default table not already in file then save
     return t
@@ -122,29 +123,29 @@ end
 -- @param t is table of settings
 -- @return A string in INI format
 -- @usage
--- local t = ini.loadINI('config.ini',config) 
+-- local t = ini.loadINI('config.ini',config)
 -- print(ini.stringINI(t))
 function _M.stringINI(t)
 
     local initab = {}
 
     table.insert(initab,'-------------------------------------------------------------------------------------\r\n')
-  
-    for k,v in pairs(t) do 
+
+    for k,v in pairs(t) do
         if type(v) ~= 'table' then
             table.insert(initab, string.format("%s=%s\r\n", k, v))
         end
-    end      
-  
+    end
+
     for k,v in pairs(t) do
         if type(v) == 'table' then
             table.insert(initab, string.format("[%s]\r\n", k))
             for i,s in pairs(v) do
                 table.insert(initab, string.format("%s=%s\r\n", i, s))
-            end 
-        end    
+            end
+        end
     end
-    
+
     return table.concat(initab)
 end
 
