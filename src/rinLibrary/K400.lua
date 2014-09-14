@@ -14,6 +14,7 @@ local modules = {
     "K400Util",
     "K400Stream",
     "K400Status",
+    "K400Axle",
     "K400Keys",
     "K400Buzz",
     "K400LCD",
