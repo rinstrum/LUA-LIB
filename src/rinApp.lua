@@ -391,8 +391,7 @@ function _M.delayUntil(cond)
             system.handleEvents()
         end
     else
-        dbg.error('rinApp:', 'not a callable function for delayUntil')
-        local fatal fatal[nil] = nil
+       error('rinApp: not a callable function for delayUntil')
     end
 end
 

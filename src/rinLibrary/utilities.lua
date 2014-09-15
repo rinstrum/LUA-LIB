@@ -101,8 +101,7 @@ return function(mod, private, deprecated)
     function private.getRegisterNumber(r, silent)
         local n = naming.convertNameToValue(r, regMap)
         if n == nil and not silent then
-            dbg.error('rinLibrary: ', 'bad register '..tostring(r))
-            local unknown_register unknown_register[nil] = nil
+            error('rinLibrary: bad register '..tostring(r))
         end
         return n
     end
@@ -117,8 +116,7 @@ return function(mod, private, deprecated)
     function private.getRegisterName(r)
         local n = naming.convertValueToName(r, regUnmap)
         if n == nil then
-            dbg.warn('rinLibrary: ', 'unknown register '..tostring(r))
-            local unknown_register unknown_register[nil] = nil
+            error('rinLibrary: unknown register '..tostring(r))
         end
         return n
     end

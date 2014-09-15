@@ -35,7 +35,7 @@ function lpeg.Pi(str)
         end
         return patt
     end
-    local Pi_argument_is_not_a_string; Pi_argument_is_not_a_string[nil] = nil
+    error('argument to lpeg.Pi is not a string')
 end
 
 return lpeg

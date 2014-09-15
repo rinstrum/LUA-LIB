@@ -42,8 +42,7 @@ end
 function _M.checkCallback(cb)
     local r = cb == nil or _M.callable(cb)
     if not r then
-        print('rinSystem: callback specified but not a function or nil')
-        local non_function_callback_found non_function_callback_found[nil] = nil
+        error('rinSystem: callback specified but not a function or nil')
     end
     return r
 end

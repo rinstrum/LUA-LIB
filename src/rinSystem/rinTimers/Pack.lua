@@ -105,8 +105,7 @@ end
 local function internalAddTimer(time, delay, reg, callback, extraargs)
 	if not utils.callable(callback) then
         if callback ~= nil then
-            print('rinTimers: callback specified is not a function')
-            rinTimerCallbackNotFunction[nil] = nil
+            error('rinTimers: callback specified is not a function')
         end
     	return nil
     end
