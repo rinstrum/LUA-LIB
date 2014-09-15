@@ -62,6 +62,7 @@ local bidirectionalSocket = nil
 
 local userMainLoop = nil
 local userCleanup = nil
+local userEvents = {}
 
 -------------------------------------------------------------------------------
 -- Check if the application is still running
@@ -349,11 +350,29 @@ function _M.cleanup()
 end
 
 -------------------------------------------------------------------------------
+-- Add an event that will be processed only when all dialogs, editing and
+-- main loop processing is finished.
+-- @param callback Function to run when timer is complete
+-- @param ... Function arguments
+-- @usage
+-- rinApp.addIdleEvent(print, 'things have calmed down')
+function _M.addIdleEvent(callback, ...)
+    table.insert(userEvents, { cb = callback, args = {...} })
+end
+
+-------------------------------------------------------------------------------
 -- One iteration of the rinApp main loop.
 -- @local
 local function step()
     if userMainLoop then
-       userMainLoop()
+        userMainLoop()
+    end
+    if #userEvents ~= 0 then
+        local evts = userEvents
+        userEvents = {}
+        for _, e in ipairs(evts) do
+            e.cb(unpack(e.args))
+        end
     end
     system.handleEvents()           -- handleEvents runs the event handlers
 end
