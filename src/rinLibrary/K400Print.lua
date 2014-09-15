@@ -10,7 +10,7 @@ local string = string
 local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
-local can = require 'rinLibrary.canonicalisation'
+local can = naming.canonicalisation
 
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cs, Ct = lpeg.C, lpeg.Cs, lpeg.Ct

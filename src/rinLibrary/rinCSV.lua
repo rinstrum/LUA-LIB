@@ -19,7 +19,7 @@ local rename    = os.rename
 local stat      = require('posix').stat
 
 local dbg       = require "rinLibrary.rinDebug"
-local canonical = require 'rinLibrary.canonicalisation'
+local canonical = require('rinLibrary.namings').canonicalisation
 local deepcopy  = require 'rinLibrary.deepcopy'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

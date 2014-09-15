@@ -7,9 +7,28 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local lpeg = require 'rinLibrary.lpeg'
+local Cs, spc = lpeg.Cs, lpeg.space
+local nspc = 1 - spc
 
-local canonical = require 'rinLibrary.canonicalisation'
-local _M = {}
+local canonPat = spc^0 * Cs(nspc^0 * (spc^1 / ' ' * nspc^1)^0) * spc^0
+
+-------------------------------------------------------------------------------
+-- @param s String to convert
+-- @return Canonical form for string
+-- @local
+local function canonical(s)
+    return string.lower(canonPat:match(tostring(s)))
+end
+
+-------------------------------------------------------------------------------
+-- @function canonicalisation
+-- @param s String to convert
+-- @return Canonical form for string
+-- @usage
+-- print(namings.canonicalisation('  hello  WoRlD  '))
+
+local _M = { canonicalisation = canonical }
 
 -------------------------------------------------------------------------------
 -- Convert a named value into a real value but also let real values through

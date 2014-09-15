@@ -12,6 +12,7 @@ local string = string
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers.Pack'
 local naming = require 'rinLibrary.namings'
+local canonical = naming.canonicalisation
 local dbg = require "rinLibrary.rinDebug"
 local system = require "rinSystem.Pack"
 local utils = require 'rinSystem.utilities'

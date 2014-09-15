@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 
 describe("canonical form #canonical", function()
-    local canonical = require 'rinLibrary.canonicalisation'
+    local canonical = require('rinLibrary.namings').canonicalisation
 
     local canTests = {
         { res = "",         val = "" },
