@@ -446,7 +446,7 @@ local function write(f, s, params)
                     wait = false
                     if clear then
                         private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
-                        f.params, f.current = nil, ''
+                        f.params, f.current, f.currentReg = nil, '', nil
                     end
                 elseif #slideWords == 1 then
                     removeSlideTimer(f)
