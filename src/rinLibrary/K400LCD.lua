@@ -446,6 +446,7 @@ local function write(f, s, params)
                     wait = false
                     if clear then
                         private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
+                        f.params, f.current = nil, ''
                     end
                 elseif #slideWords == 1 then
                     removeSlideTimer(f)
@@ -958,6 +959,16 @@ function _M.restoreLcd()
     writeAutoTopAnnun(0)
     writeBotAnnuns(0)
     _M.writeUnits('bottomLeft')
+end
+
+-------------------------------------------------------------------------------
+-- Notify the library that there is a remote display attached
+-- @param name Name to be assigned to this display
+-- @param type Type of the display
+-- @param port Port used to communicate with the display
+function _M.addRemoteDisplay(name, type, port)
+    local d = nil
+    display[canonical(name)] = d
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
