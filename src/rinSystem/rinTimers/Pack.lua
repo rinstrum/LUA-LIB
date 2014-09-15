@@ -125,7 +125,7 @@ end
 -- @param time Time between timer events in seconds, 0 means no repetition
 -- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
--- @param ... Function variables
+-- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addRegularTimer
 -- @see removeTimer
@@ -151,7 +151,7 @@ end
 -- @param time Time between timer events in seconds, 0 means no repetition
 -- @param delay Initial delay for timer in seconds
 -- @param callback Function to run when timer is complete
--- @param ... Function variables
+-- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addTimer
 -- @see removeTimer
@@ -175,7 +175,7 @@ end
 -- other application functions to wait either.  The ordering of events is
 -- preserved.
 -- @param callback Function to run when timer is complete
--- @param ... Function variables
+-- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addTimer
 -- @see addRegularTimer
