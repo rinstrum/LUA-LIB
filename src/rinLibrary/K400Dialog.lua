@@ -53,7 +53,10 @@ end
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
 -- @return true iff a dialog is displayed
--- @local
+-- @usage
+-- if not device.dialogRunning() then
+--     write('bottomLeft', 'hello')
+-- end
 function _M.dialogRunning()
     return dialogRunning ~= 0
 end
