@@ -8,14 +8,14 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local canonical = require 'rinLibrary.canonicalisation'
 local _M = {}
-local lower = string.lower
 
 -------------------------------------------------------------------------------
 -- Convert a named value into a real value but also let real values through
 -- unmodified.
 -- @param n Name to be converted
--- @param map Mapping from names to numeric values, name should be lower case
+-- @param map Mapping from names to numeric values, names should be lower case canonical form
 -- @param default Default value to return if something is amiss
 -- @param l Least value allowed
 -- @param u Uppermost value allowed
@@ -36,7 +36,7 @@ local lower = string.lower
 function _M.convertNameToValue(n, map, default, l, u)
     local r
     if type(n) == 'string' then
-        r = map[lower(n)] or default
+        r = map[canonical(n)] or default
     elseif type(n) == 'number' then
         r = n
     else
@@ -52,7 +52,7 @@ end
 -- Convert a named value into a real value but also let real values through
 -- unmodified.
 -- @param n Number to be converted
--- @param map Mapping from numeric values to names, name should be lower case
+-- @param map Mapping from numeric values to names, names should be lower case canonical form
 -- @param default Default value to return if something is amiss
 -- @return The name associted with the specified code
 -- @usage
@@ -69,7 +69,7 @@ end
 -- print(name.convertNameToValue(12, map, 'nyarlathotep'))
 function _M.convertValueToName(n, map, default)
     if type(n) == 'string' then
-        return lower(n)
+        return canonical(n)
     elseif type(n) == 'number' then
         return map[n] or default
     end
