@@ -23,6 +23,7 @@ local space, digit, P, S = lpeg.space, lpeg.digit, lpeg.P, lpeg.S
 return function (_M, private, deprecated)
 
 private.addRegisters{
+    none                    = 0,        -- not a register
     keybuffer               = 0x0008,
     lcd                     = 0x0009,
 
