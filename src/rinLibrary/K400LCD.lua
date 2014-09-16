@@ -541,7 +541,7 @@ end
 -- @param register address of register to link display to.
 -- Set to 0 to enable direct control of the area
 -- @usage
--- device.writeAutoTopLeft('grossnet')
+-- device.writeAuto('topLeft', 'grossnet')
 function _M.writeAuto(where, register)
     return writeAuto(naming.convertNameToValue(where, display), register)
 end
@@ -550,10 +550,10 @@ end
 -- Reads the current auto update register for the specified field
 -- @return register that is being used for auto update, 0 if none
 -- @usage
--- local old = device.readAutoTopLeft()
--- device.writeAutoTopLeft(0)
+-- local old = device.readAuto('topLeft')
+-- device.writeAuto('topLeft', 'none')
 -- ...
--- device.writeAutoTopLeft(old)
+-- device.writeAuto('topLeft', old)
 function _M.readAuto(where)
     return readAuto(naming.convertNameToValue(where, display))
 end
@@ -631,9 +631,9 @@ end
 -- @see readAuto
 -- @usage
 -- local old = device.readAutoTopLeft()
--- device.writeAutoTopLeft(0)
+-- device.writeAuto('topLeft', 0)
 -- ...
--- device.writeAutoTopLeft(old)
+-- device.writeAuto('topLeft', old)
 function _M.readAutoTopLeft()
     return _M.readAuto('topLeft')
 end
@@ -659,9 +659,9 @@ end
 -- @see readAuto
 -- @usage
 -- local old = device.readAutoBotLeft()
--- device.writeAutoBotLeft(0)
+-- device.writeAuto('bottomLeft', 0)
 -- ...
--- device.writeAutoBotLeft(old)
+-- device.writeAuto('bottomLeft', old)
 function _M.readAutoBotLeft()
     return _M.readAuto('bottomLeft')
 end
