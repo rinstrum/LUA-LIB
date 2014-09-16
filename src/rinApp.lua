@@ -332,11 +332,12 @@ function _M.cleanup()
     if not _M.initialised then
         return
     end
+    running = true
     if userCleanup then
         userCleanup()
         userCleanup = nil
     end
-    userMainLoop = nil
+    userMainLoop, running = nil, true
 
     for _, d in pairs(_M.devices) do
         d.terminate()
@@ -345,7 +346,6 @@ function _M.cleanup()
     system.reset()
 
     _M.initialised = false
-    running = true
     dbg.info('','------   Application Finished  ------')
 end
 

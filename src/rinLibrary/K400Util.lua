@@ -99,6 +99,7 @@ function _M.terminate()
     _M.lcdControl('default')
     _M.streamCleanup()
     _M.endKeys()
+    private.exReg(REG_INSTRUMENT_BEGIN)     -- synchronous operation last
 end
 
 -------------------------------------------------------------------------------

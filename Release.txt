@@ -8,4 +8,10 @@ To make a release of this:
 Look at the checksum file created by the last step (in M01) and add this
 to the checksums file at the top of the list.
 
-Commit everything to git and go to L000-517 to build the mega package.
+Commit everything to git.
+
+Tag the tree with the revision number.
+
+Commit this to git.
+
+Go to L000-517 to build the mega package.
