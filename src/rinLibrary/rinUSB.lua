@@ -231,7 +231,7 @@ function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
 		                assert(port:set_flow_control(f) == noerr)
 
                         socks.addSocket(port, function ()
-                                                  local e, c, s = port:read(1, 10)
+                                                  local e, c, s = port:read(10000, 0)
                                                   if s == 0 then
                                                       socks.removeSocket(port)
                                                       callback(nil, "close", port)
