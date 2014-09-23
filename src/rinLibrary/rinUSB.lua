@@ -242,8 +242,10 @@ function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
                         callback(nil, "open", port)
                     elseif v[2] == 'removed' then
                         local port = v[3]
-                        socks.removeSocket(port)
-                        callback(nil, "close", port)
+                        if port then
+                            socks.removeSocket(port)
+                            callback(nil, "close", port)
+                        end
                     end
                 end
             end

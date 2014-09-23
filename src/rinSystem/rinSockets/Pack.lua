@@ -85,8 +85,10 @@ end
 --
 -- sockets.createServerSocket(666, myAccept)
 function _M.addSocket(sock, callback)
-    utils.checkCallback(callback)
-    sockets[sock] = callback
+    if sock then
+        utils.checkCallback(callback)
+        sockets[sock] = callback
+    end
     return sock
 end
 
@@ -102,9 +104,11 @@ end
 --
 -- sockets.removeSocket(mySocket)
 function _M.removeSocket(sock)
-    writers[sock] = nil
-    sockets[sock] = nil
-    _M.removeAllSocketSet(sock)
+    if sock then
+        writers[sock] = nil
+        sockets[sock] = nil
+        _M.removeAllSocketSet(sock)
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -146,13 +150,16 @@ end
 --
 -- sockets.setSocketTimeout(mySocket, 0.1)
 function _M.setSocketTimeout(sock, timeout)
-	sock:settimeout(timeout)
+    if sock then
+    	sock:settimeout(timeout)
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Read a message from a socket
 -- @param sock Socket to read from
 -- @return The message received
+-- @return Error string if an error occured, nil if no error
 -- @see addSocket
 -- @see writeSocket
 -- @usage
@@ -165,6 +172,10 @@ end
 -- print('message is: ', m)
 -- print('error is:', err)
 function _M.readSocket(sock)
+    if sock == nil then
+        return nil, "not a socket"
+    end
+
 	local m, err, extra = nil, nil, nil
 	m, err, extra = sock:receive(70000)
     if err == nil then
@@ -190,6 +201,10 @@ end
 --
 -- sockets.writeSocket(mySocket, 'hello again')
 function _M.writeSocket(sock, msg)
+    if sock == nil then
+        return 0
+    end
+
 	local queue = writers[sock]
     if queue == nil then
     	queue = { start=1, finish=0 }
