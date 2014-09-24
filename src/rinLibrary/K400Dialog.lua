@@ -718,6 +718,58 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     return options.getSelected()
 end
 
+-------------------------------------------------------------------------------
+-- Prompts operator to select from a list of options using
+-- arrow keys and ok, simultaneously showing the current value of the option
+-- @param prompt string to put on top left LCD
+-- @param options table of option strings and values
+-- @param def default selection index in options
+-- @param loop If true, top option loops to the bottom option and vice versa
+-- @param units optional units to display
+-- @param unitsOther optional other units to display
+-- @return selected option string if OK pressed or nil if CANCEL pressed
+-- @usage
+-- local opt = selectOption('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
+function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
+    local opts = options or {'cancel'}
+    local sel = nil
+
+    local index = 1
+    if def then
+        for k,v in ipairs(opts) do
+            if v == def then
+                index = k
+            end
+        end
+    end
+
+    editing = true
+    endDisplayMessage()
+    _M.saveBot()
+    _M.write('topLeft', string.upper(prompt))
+    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
+    
+    _M.startDialog()
+    while editing and _M.app.isRunning() do
+        _M.write('bottomLeft', string.upper(opts[index][1]))
+        _M.write('bottomRight', string.upper(opts[index][2]))
+        local key = _M.getKey('arrow')
+        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
+            editing = false
+        elseif key == 'down' then
+            index = private.addModBase1(index, 1, #opts, loop)
+        elseif key == 'up' then
+            index = private.addModBase1(index, -1, #opts, loop)
+        elseif key == 'ok' then
+            sel = opts[index][1]
+            editing = false
+        end
+    end
+    _M.abortDialog()
+    _M.restoreBot()
+    return sel
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 deprecated.REG_EDIT_REG = REG_EDIT_REG
