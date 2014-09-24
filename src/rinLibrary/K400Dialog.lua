@@ -734,14 +734,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local opts = options or {'cancel'}
     local sel = nil
 
-    local index = 1
-    if def then
-        for k,v in ipairs(opts) do
-            if v == def then
-                index = k
-            end
-        end
-    end
+    local index = def
 
     editing = true
     endDisplayMessage()
@@ -761,7 +754,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
         elseif key == 'up' then
             index = private.addModBase1(index, -1, #opts, loop)
         elseif key == 'ok' then
-            sel = opts[index][1]
+            sel = index
             editing = false
         end
     end
