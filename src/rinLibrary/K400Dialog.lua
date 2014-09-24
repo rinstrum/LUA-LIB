@@ -729,7 +729,7 @@ end
 -- @param unitsOther optional other units to display
 -- @return selected option string if OK pressed or nil if CANCEL pressed
 -- @usage
--- local opt = selectOption('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
+-- local opt = selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local opts = options or {'cancel'}
     local sel = nil
