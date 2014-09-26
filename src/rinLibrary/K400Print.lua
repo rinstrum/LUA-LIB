@@ -19,6 +19,7 @@ local P, Pi, V, S, spc = lpeg.P, lpeg.Pi, lpeg.V, lpeg.S, lpeg.space
 local REG_PRINTPORT         = 0xA317
 local REG_PRINTTOKENSTR     = 0x004C
 local REG_REPLYTOKENSTR     = 0x004D
+local REG_PRINT_AUTO        = 0x900D
 
 local PRINT_SER1A           = 0
 local PRINT_SER1B           = 1
@@ -40,6 +41,11 @@ local formatAttributes = {
     supress = 'no'      -- no, field or line
 }
 local formatFailed, formatPosition, formatSubstitutions
+
+local autoModes = {
+    auto = 1,
+    manual = 0
+}
 
 -------------------------------------------------------------------------------
 -- Apply a substitution.
@@ -176,7 +182,7 @@ end
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
-    s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
+    local s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
     dbg.printVar(s)
     return s
 end
@@ -195,6 +201,16 @@ end
 function _M.formatPrintString(subs, s)
     formatSubstitutions = subs
     return formatObject(s)
+end
+
+-------------------------------------------------------------------------------
+-- Set the print auto mode
+-- @param setting The auto mode to enter ('manual' or 'auto')
+-- @usage
+-- device.printModeAuto('auto')
+function _M.printModeAuto(setting)
+    local v = naming.convertNameToValue(setting, autoModes, autoModes.manual)
+    private.writeRegAsync(REG_PRINT_AUTO, v)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
