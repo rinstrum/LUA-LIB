@@ -33,6 +33,11 @@ local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
 local sizings = nil
 
 -------------------------------------------------------------------------------
+--- CSV Functions.
+-- Functions to manage CSV files directly
+-- @section CSV
+
+-------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
 -- @param s CSV string
 -- @return table (1d array)
@@ -206,11 +211,6 @@ local function checkCommonFields(a, b)
     end
     return n, map
 end
-
--------------------------------------------------------------------------------
---- CSV Functions.
--- Functions to manage CSV files directly
--- @section CSV
 
 --- CSV table is in the format:
 --@table CSV
