@@ -544,11 +544,9 @@ function _M.saveKeyCallbacks(keep)
     local g, b = keyGroup, keyBinds
 
     if keep then
-        keyGroup = deepcopy(keyGroup)
-        keyBinds = deepcopy(keyBinds)
+        keyGroup, keyBinds = deepcopy(g), deepcopy(b)
     else
-        keyGroup = newKeyGroup(allKeyGroups)
-        keyBinds = newKeyBinds()
+        keyGroup, keyBinds = newKeyGroup(allKeyGroups), newKeyBinds()
     end
     return function() keyGroup, keyBinds = g, b end
 end
