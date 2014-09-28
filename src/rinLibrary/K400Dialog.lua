@@ -144,7 +144,7 @@ function _M.getKey(keyGroup, keep)
     keyGroup = keyGroup or 'all'
     local getKeyState, getKeyPressed
 
-    local saved = private.saveKeyCallbacks(keep)
+    local saved = _M.saveKeyCallbacks(keep)
 
     _M.setKeyGroupCallback(keyGroup,
         function(key, state)
@@ -161,7 +161,7 @@ function _M.getKey(keyGroup, keep)
         return not _M.dialogRunning() or getKeyState
     end)
     _M.abortDialog()
-    private.restoreKeyCallbacks(saved)
+    _M.restoreKeyCallbacks(saved)
 
     return getKeyPressed, getKeyState
 end
