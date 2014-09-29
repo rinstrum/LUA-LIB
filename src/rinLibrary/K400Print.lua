@@ -129,7 +129,7 @@ local printFormatter = P{
             Cs((P'{'*s/'' * POS * V'cmd' * (s*P'}'/'') + (1-P'{'))^0) * P(-1),
     cmd =   Cs(V'attr' + V'sub' + V'hex'),
     hex =   P'$' * lpeg.xdigit * lpeg.xdigit / formatHex,
-    sub =   Ct(name * ((S':.'+spc^1) * (POS * V'subat' + name + num))^0) / substitute,
+    sub =   Ct(name * ((S':.'+spc^1) * (V'subat' + name + num))^0) / substitute,
     subat = Cg(Ct(V'align' + V'width' + V'sup') / setLocalAttribute, ''),
 
     attr =  Ct(V'align' + V'width' + V'sup') / setGlobalAttribute,

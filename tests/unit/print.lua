@@ -61,11 +61,11 @@ describe("K400Print #print", function()
         local m = makeModule()
         local cases = {
             { i = 'QQ{ bad = 1 }ABBCEE',    e = { {'Error:', ' QQ{ bad = 1 }ABBCEE'},
-                                                  {'   at ', '_________|' } } },
+                                                  {'   at ', '_____|' } } },
             { i = '{ align = middle }',     e = { {'Error:', ' { align = middle }'},
-                                                  {'   at ', '_________|' } } },
+                                                  {'   at ', '___|' } } },
             { i = '{width = abc}',          e = { {'Error:', ' {width = abc}'},
-                                                  {'   at ', '________|' } } },
+                                                  {'   at ', '__|' } } },
             { i = '{4}',                    e = { {'Error:', ' {4}'},
                                                   {'   at ', '__|' } } },
             { i = '{supress=never}',        e = { {'Error:', ' {supress=never}'},
