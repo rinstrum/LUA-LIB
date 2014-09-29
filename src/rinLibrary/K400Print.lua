@@ -118,9 +118,9 @@ local function substitute(x)
         p = p[last]
     end
 
-    local format = '%' .. (getAttribute'align' == 'left' and '-' or '')
+    local format = '%'
     if width ~= '-' then
-        format = format .. width
+        format = format .. (getAttribute'align' == 'left' and '-' or '') .. width
     end
     return string.format(format .. 's', tostring(p))
 end
