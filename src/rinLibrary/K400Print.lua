@@ -13,7 +13,7 @@ local naming = require 'rinLibrary.namings'
 local can = naming.canonicalisation
 
 local lpeg = require 'rinLibrary.lpeg'
-local C, Cs, Ct = lpeg.C, lpeg.Cs, lpeg.Ct
+local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
 local P, Pi, V, S, spc = lpeg.P, lpeg.Pi, lpeg.V, lpeg.S, lpeg.space
 
 local REG_PRINTPORT         = 0xA317
@@ -35,11 +35,11 @@ local portMap = setmetatable({
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Print string formatting setup
-local formatAttributes = {
+local formatAttributes, formatSingle = {
     width = '-',        -- - or number
     align = 'left',     -- left or right
     supress = 'no'      -- no, field or line
-}
+}, {}
 local formatFailed, formatPosition, formatSubstitutions
 
 local autoModes = {
@@ -47,23 +47,68 @@ local autoModes = {
     manual = 0
 }
 
+local name, num, value, s = C(lpeg.alpha * lpeg.alnum^0), C(lpeg.digit^1), C(lpeg.alnum^1), spc^0
+local POS = P(function(t, p) formatPosition = p return p end)
+local eql = s * P'=' * s
+
+-------------------------------------------------------------------------------
+-- Format a hex pair for output
+-- @param x Hex string for format $xx
+-- @return Hex output string \XX
+-- @local
+local function formatHex(x)
+    return '\\' .. string.upper(x:sub(2))
+end
+
+-------------------------------------------------------------------------------
+-- Set an attribute value just for this field
+-- @param x Attribute table
+-- @return ''
+-- @local
+local function setLocalAttribute(x)
+    formatSingle[string.lower(x[1])] = x[2]
+    return ''
+end
+
+-------------------------------------------------------------------------------
+-- Set an attribute value globally
+-- @param x Attribute table
+-- @return ''
+-- @local
+local function setGlobalAttribute(x)
+    formatAttributes[string.lower(x[1])] = x[2]
+    return ''
+end
+
 -------------------------------------------------------------------------------
 -- Apply a substitution.
 -- @param x Table containnig name list to be substituted
 -- @return Substituted value.
 -- @local
 local function substitute(x)
-    local p, last = formatSubstitutions
+    local p, singles, last = formatSubstitutions, formatSingle
+    formatSingle = {}
+
+    local function getAttribute(n)
+        if singles[n] ~= nil then
+            return singles[n]
+        end
+        return formatAttributes[n]
+    end
+
+    local width = getAttribute'width'
+
     for _, k in ipairs(x) do
         local cank = can(k)
         local z = tonumber(k) or cank
         if type(p) ~= 'table' or (p[z] == nil and p[cank] == nil) then
-            if formatAttributes.supress == 'line' then
+            local supress = getAttribute'supress'
+            if supress == 'line' then
                 formatFailed = true
                 return ''
             else
-                local w = formatAttributes.width == '-' and 1 or formatAttributes.width
-                local c = formatAttributes.supress == 'field' and ' ' or '?'
+                local w = width == '-' and 1 or width
+                local c = supress == 'field' and ' ' or '?'
                 return string.rep(c, w)
             end
         end
@@ -73,28 +118,24 @@ local function substitute(x)
         p = p[last]
     end
 
-    local format = '%' .. (formatAttributes.align == 'left' and '-' or '')
-    if formatAttributes.width ~= '-' then
-        format = format .. formatAttributes.width
+    local format = '%' .. (getAttribute'align' == 'left' and '-' or '')
+    if width ~= '-' then
+        format = format .. width
     end
     return string.format(format .. 's', tostring(p))
 end
 
-local name, num, value, s = C(lpeg.alpha * lpeg.alnum^0), C(lpeg.digit^1), C(lpeg.alnum^1), spc^0
-local POS = P(function(t, p) formatPosition = p return p end)
-local eql = s * P'=' * s
-
 local printFormatter = P{
             Cs((P'{'*s/'' * POS * V'cmd' * (s*P'}'/'') + (1-P'{'))^0) * P(-1),
     cmd =   Cs(V'attr' + V'sub' + V'hex'),
-    hex =   P'$' * lpeg.xdigit * lpeg.xdigit / function(x) return '\\' .. string.upper(x:sub(2)) end,
-    sub =   Ct(name * ((S':.'+spc^1) * (name + num))^0) / substitute,
--- This version accepts any name = value pairing, the later lines accept only legal ones
---  attr =  Ct(name * eql * value) / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end
-    attr =  Ct(V'align' + V'width' + V'sup') / function(x) formatAttributes[string.lower(x[1])] = x[2] return '' end,
+    hex =   P'$' * lpeg.xdigit * lpeg.xdigit / formatHex,
+    sub =   Ct(name * ((S':.'+spc^1) * (POS * V'subat' + name + num))^0) / substitute,
+    subat = Cg(Ct(V'align' + V'width' + V'sup') / setLocalAttribute, ''),
+
+    attr =  Ct(V'align' + V'width' + V'sup') / setGlobalAttribute,
     align = C(Pi'align') * eql * C(Pi'left' + Pi'right'),
     width = C(Pi'width') * eql * C(num + '-'),
-    sup =   C(Pi'supress') *eql * C(Pi'no' + Pi'field' + Pi'line')
+    sup =   C(Pi'supress') * eql * C(Pi'no' + Pi'field' + Pi'line')
 }
 
 -------------------------------------------------------------------------------

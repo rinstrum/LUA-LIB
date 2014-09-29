@@ -22,8 +22,8 @@ local params = {
 }
 
 describe("K400Print #print", function()
-        local dbg = require 'rinLibrary.rinDebug'
-        local function makeModule()
+    local dbg = require 'rinLibrary.rinDebug'
+    local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.rinCon")(m, p, d)
@@ -61,11 +61,11 @@ describe("K400Print #print", function()
         local m = makeModule()
         local cases = {
             { i = 'QQ{ bad = 1 }ABBCEE',    e = { {'Error:', ' QQ{ bad = 1 }ABBCEE'},
-                                                  {'   at ', '_____|' } } },
+                                                  {'   at ', '_________|' } } },
             { i = '{ align = middle }',     e = { {'Error:', ' { align = middle }'},
-                                                  {'   at ', '___|' } } },
+                                                  {'   at ', '_________|' } } },
             { i = '{width = abc}',          e = { {'Error:', ' {width = abc}'},
-                                                  {'   at ', '__|' } } },
+                                                  {'   at ', '________|' } } },
             { i = '{4}',                    e = { {'Error:', ' {4}'},
                                                   {'   at ', '__|' } } },
             { i = '{supress=never}',        e = { {'Error:', ' {supress=never}'},
@@ -163,6 +163,26 @@ describe("K400Print #print", function()
                     { "fin" } } },
             { { { { { { }, { } } } }, { { }, { }, { { } } } } }
         }))
+    end)
+
+    describe('local formatting', function()
+        local m = makeModule()
+        local cases = {
+            { i = 'T{width=8}{supress=no}{align=left}{bucket width=3}', o = 'T???' },
+            { i = '{align=left}{farm align=right name width=6}', o = '  FarM' },
+            { i = '{align=right}{width=9}{farm align=right name width=6}', o = '  FarM' },
+            { i = '{width=7}{farm name width=6}{truck}', o = '  FarM  TrUcK' },
+            { i = '{align=right}{width=9}{farm align=right name width=6}{truck}', o = '  FarM    TrUcK' },
+            { i = '{width=6}{truck}{bucket supress=field width=2}{truck}', o = ' TrUcK   TrUcK' },
+            { i = 'T{width=8}{supress=no}{align=right}{truck width=6}', o = 'T TrUcK' },
+        }
+
+        for i = 1, #cases do
+            it("test "..i, function()
+                local r = cases[i]
+                assert.equal(r.o, m.formatPrintString(params, r.i))
+            end)
+        end
     end)
 end)
 
