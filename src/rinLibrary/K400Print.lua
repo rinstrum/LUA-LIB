@@ -26,12 +26,12 @@ local PRINT_SER1B           = 1
 local PRINT_SER2A           = 2
 local PRINT_SER2B           = 3
 
-local portMap = setmetatable({
+local portMap = {
     ser1a = PRINT_SER1A,    ['1a'] = PRINT_SER1A,
     ser1b = PRINT_SER1B,    ['1b'] = PRINT_SER1B,
     ser2a = PRINT_SER2A,    ['2a'] = PRINT_SER2A,
     ser2b = PRINT_SER2B,    ['2b'] = PRINT_SER2B
-}, { __index = function(t, k) return PRINT_SER1A end })
+}
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Print string formatting setup
