@@ -109,7 +109,7 @@ local function mainLoop()
           if pc then
                dwi.changePasscode(pc)
           end
-      elseif dwi.checkPasscode('full',_,5) then
+      elseif dwi.checkPasscode('full', nil, 5) then
           if sel == 'ZERO' then
               msg, err = dwi.calibrateZero()
               if err == nil then
