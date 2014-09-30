@@ -37,7 +37,7 @@ local passcodes = {
 -- is rebooted
 -- @return true if unlocked false otherwise
 -- @usage
--- if device.checkPasscode('full', _, 3) then
+-- if device.checkPasscode('full', nil, 3) then
 --     print('you have full access now')
 -- end
 function _M.checkPasscode(pc, code, tries)
