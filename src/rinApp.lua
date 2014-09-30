@@ -391,7 +391,7 @@ function _M.delayUntil(cond)
             system.handleEvents()
         end
     else
-       error('rinApp: not a callable function for delayUntil')
+        error('rinApp: not a callable function for delayUntil')
     end
 end
 
