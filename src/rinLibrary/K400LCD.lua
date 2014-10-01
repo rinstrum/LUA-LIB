@@ -23,7 +23,7 @@ local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
 local P, Pi, R, S, V, spc = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V, lpeg.space
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
-local equals, formatPosition = spc^0 * P'=' *spc^0
+local equals, formatPosition = spc^0 * P'=' * spc^0
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Define a pattern to match the display options and produce an option table.
@@ -306,6 +306,16 @@ local display = {
 -- @field clear Clear is a boolean, that clears the message from the display once it has been
 -- shown (default: don't clear).  The clear implies the once option.
 
+--- Display Fields.
+--
+-- These are use as the first arugment the the @see write and associated functions.
+--
+-- @table displayField
+-- @field bottomLeft The bottom left field
+-- @field bottomRight The bottom right field
+-- @field topLeft The top left field
+-- @field topRight The top right field
+
 --- LCD Control Modes.
 --@table lcdControlModes
 -- @field default Set to a default setting (currently dual)
@@ -527,6 +537,7 @@ end
 -- @param where which display section to write to
 -- @param s string to display
 -- @param params displayControl parameter
+-- @see displayField
 -- @see displayControl
 -- @usage
 -- device.write('TopLeft', 'HELLO WORLD', 0.6)
@@ -540,6 +551,7 @@ end
 -- @param where which display section to write to
 -- @param register address of register to link display to.
 -- Set to 0 to enable direct control of the area
+-- @see displayField
 -- @usage
 -- device.writeAuto('topLeft', 'grossnet')
 function _M.writeAuto(where, register)
@@ -549,6 +561,7 @@ end
 -----------------------------------------------------------------------------
 -- Reads the current auto update register for the specified field
 -- @return register that is being used for auto update, 0 if none
+-- @see displayField
 -- @usage
 -- local old = device.readAuto('topLeft')
 -- device.writeAuto('topLeft', 'none')
@@ -916,6 +929,7 @@ end
 -- @param where which display section to write to
 -- @param unts Unit to display
 -- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @see displayField
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
