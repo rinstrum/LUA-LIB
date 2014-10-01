@@ -213,7 +213,7 @@ end
 -- The first press results in the first character, the second the second and
 -- so forth.
 local keyMapping = {
-    [1] = "$/\\1",
+    [1] = "$/\\+-1",
     [2] = "ABC2",
     [3] = "DEF3",
     [4] = "GHI4",
