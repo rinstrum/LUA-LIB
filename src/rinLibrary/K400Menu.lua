@@ -21,15 +21,15 @@ local function makeMenu(name, parent)
     local posn = 1
 
     local function newItem(args)
-        local name = args[1]
+        local name = args[1], r
         local prompt = args.prompt or name
         if type(prompt) == 'string' then
             prompt = string.upper(prompt)
         end
 
-        return {
+        r = {
             name = name,
-            refname = canonical(args.refname or name),
+            ref = canonical(args.ref or name),
             prompt = prompt,
             units = args.units or 'none',
             unitsOther = args.unitsOther or 'none',
@@ -43,7 +43,13 @@ local function makeMenu(name, parent)
             update = args.update or function()
                 _M.write('bottomLeft', string.upper(menu[posn].name))
             end,
+            findItem = args.findItem or function(ref)
+                return (ref == r.ref) and r or nil
+            end,
+            getValue = args.getValue or function(v) return nil end,
+            setValue = args.setValue or function(v) end
         }
+        return r
     end
     menu = newItem({name})
 
@@ -65,7 +71,8 @@ local function makeMenu(name, parent)
                 value = v
             end
         end
-        item.value = function() return value end
+        item.getValue = function() return value end
+        item.setValue = function(v) value = v end
         return add(item)
     end
 
@@ -92,7 +99,8 @@ local function makeMenu(name, parent)
                 value = v
             end
         end
-        item.value = function() return value end
+        item.getValue = function() return value end
+        item.setValue = function(v) value = v end
         return add(item)
     end
 
@@ -129,7 +137,8 @@ local function makeMenu(name, parent)
                 value = v
             end
         end
-        item.value = function() return value end
+        item.getValue = function() return value end
+        item.setValue = function(v) value = v end
         return add(item)
     end
 
@@ -179,10 +188,23 @@ local function makeMenu(name, parent)
         end
     end
 
-    function menu.getValue(name)
+    function menu.findItem(ref)
+        ref = canonical(ref)
+        for i = 1, #menu do
+            local z = menu[i].findItem(ref)
+            if z then return z end
+        end
+        return (ref == menu.ref) and menu or nil
     end
 
-    function menu.setValue(name)
+    function menu.getValue(ref)
+        local r = menu.findItem(ref)
+        return r.getValue()
+    end
+
+    function menu.setValue(ref, value)
+        local r = menu.findItem(ref)
+        r.setValue(value)
     end
 
     return menu
