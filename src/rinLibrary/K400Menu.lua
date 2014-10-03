@@ -14,9 +14,10 @@ return function (_M, private, deprecated)
 -- Create a new empty menu
 -- @param name Display name of the menu
 -- @param parent Menu's parent menu
+-- @fields Table of all fields defined
 -- @return The menu
 -- @local
-local function makeMenu(name, parent)
+local function makeMenu(name, parent, fields)
     local menu
     local posn = 1
 
@@ -43,9 +44,6 @@ local function makeMenu(name, parent)
             update = args.update or function()
                 _M.write('bottomLeft', string.upper(menu[posn].name))
             end,
-            findItem = args.findItem or function(ref)
-                return (ref == r.ref) and r or nil
-            end,
             getValue = args.getValue or function(v) return nil end,
             setValue = args.setValue or function(v) end
         }
@@ -55,6 +53,7 @@ local function makeMenu(name, parent)
 
     local function add(item)
         table.insert(menu, item)
+        fields[item.ref] = item
         return menu
     end
 
@@ -143,7 +142,7 @@ local function makeMenu(name, parent)
     end
 
     function menu.menu(args)
-        local item = makeMenu(args[1], menu)
+        local item = makeMenu(args[1], menu, fields)
         add(item)
         return item
     end
@@ -188,25 +187,6 @@ local function makeMenu(name, parent)
         end
     end
 
-    function menu.findItem(ref)
-        ref = canonical(ref)
-        for i = 1, #menu do
-            local z = menu[i].findItem(ref)
-            if z then return z end
-        end
-        return (ref == menu.ref) and menu or nil
-    end
-
-    function menu.getValue(ref)
-        local r = menu.findItem(ref)
-        return r.getValue()
-    end
-
-    function menu.setValue(ref, value)
-        local r = menu.findItem(ref)
-        r.setValue(value)
-    end
-
     return menu
 end
 
@@ -215,22 +195,57 @@ end
 -- @param name Display name of the menu
 -- @return The menu
 function _M.createMenu(name)
-    local m = makeMenu(name, nil)
-    local r = m.run
+    local fields = {}
+    local menu = makeMenu(name, nil, fields)
+    local r = menu.run
 
-    m.run = function()
+-------------------------------------------------------------------------------
+    menu.run = function()
         _M.saveBot()
         _M.startDialog()
-        m.show()
+        menu.show()
         r()
-        m.hide()
+        menu.hide()
         _M.abortDialog()
         _M.restoreBot()
         _M.write('bottomleft', '')
         _M.write('bottomright', '')
     end
 
-    return m
+-------------------------------------------------------------------------------
+-- Return the named field from within the menu heirarchy
+-- @function findField
+-- @param ref Field reference name
+-- @return field table
+    menu.findField = function(ref)
+        return fields[canonical(ref)]
+    end
+
+-------------------------------------------------------------------------------
+-- Set a named field to the specified value
+-- @function getValue
+-- @param ref Name of field
+-- @return Value the field is set to
+-- @usage
+-- local big = menu.getValue('largest')
+    function menu.getValue(ref)
+        local r = menu.findField(ref)
+        return r and r.getValue() or nil
+    end
+
+-------------------------------------------------------------------------------
+-- Set a named field to the specified value
+-- @function setValue
+-- @param ref Name of field
+-- @param value Value to set field to
+-- @usage
+-- menu.setValue('largest', 33.4)
+    function menu.setValue(ref, value)
+        local r = menu.findField(ref)
+        if r then r.setValue(value) end
+    end
+
+    return menu
 end
 
 end
