@@ -22,7 +22,7 @@ local function makeMenu(name, parent, fields)
     local posn = 1
 
     local function newItem(args)
-        local name = args[1], r
+        local name = args[1]
         local prompt = args.prompt or name
         if type(prompt) == 'string' then
             prompt = string.upper(prompt)
@@ -49,7 +49,7 @@ local function makeMenu(name, parent, fields)
         }
         return r
     end
-    menu = newItem({name})
+    menu = newItem {name}
 
     local function add(item)
         table.insert(menu, item)
