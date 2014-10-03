@@ -288,7 +288,8 @@ end
 -- @param maxLen maximum number of characters to include
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
--- @return value and true if ok pressed at end
+-- @return value
+-- @return true if ok pressed at end
 -- @usage
 -- local name = device.sEdit('NEW NAME', 'ZINC', 8)
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
