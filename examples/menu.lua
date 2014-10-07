@@ -10,7 +10,7 @@ local rinApp = require "rinApp"         --  load in the application framework
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400("K401", '172.17.1.116')   --  make a connection to the instrument
+local device = rinApp.addK400("K401")   --  make a connection to the instrument
 
 local menu = device.createMenu { 'TOP MENU' }   -- create a menu
     .integer { 'INTEGER', 3, min=1, max=5 }     -- Add an integer item
