@@ -2,8 +2,8 @@
 --- Menuing Functions.
 -- An easy to use menuing subsystem.
 --
--- Look at the <a href="../examples/menu.lua.html">menu.lua</a> example file for a more detailed usage example of this
--- subsystem.
+-- Look at the <a href="../examples/menu.lua.html">menu.lua</a> example file
+-- for a more detailed usage example of this subsystem.
 --
 -- @module rinLibrary.K400Menu
 -- @author Pauli
