@@ -43,7 +43,9 @@ return function (_M, private, deprecated)
 -- @field default Default item in a list selection.
 -- @field getValue Function to return the value of a field's contents.
 -- @field hide Function to execute when field is moved away from.
--- @field leave Function to execute when leaving the top level menu.
+-- @field leave Function to execute when leaving the top level menu, it is passed a boolean
+-- which indicates if the menu exited via an EXIT field item (true) or by cancelling at the
+-- top level (false).
 -- @field loop Should a list or menu item loop from bottom to top?
 -- @field max Maximum value a numeric, integer or passcode  field can take
 -- @field min Minimum value a numeric, integer or passcode field can take
@@ -377,12 +379,14 @@ local function makeMenu(args, parent, fields)
 -- @see createMenu
 -- @local
     function menu.run()
+        local okay = true
         menu.inProgress = true
         while _M.app.isRunning() and menu.inProgress do
             menu.update()
             local key = _M.getKey('arrow')
             if not _M.dialogRunning() or key == 'cancel' then
                 menu.inProgress = false
+                okay = false
             elseif key == 'down' then
                 posn = private.addModBase1(posn, 1, #menu, menu.loop)
             elseif key == 'up' then
@@ -395,6 +399,7 @@ local function makeMenu(args, parent, fields)
                 menu.show()
             end
         end
+        return okay
     end
 
     return menu
@@ -416,6 +421,7 @@ function _M.createMenu(args)
 -------------------------------------------------------------------------------
 -- Display and execute a menu
 -- @function run
+-- @return true if exit via EXIT item, false if exit via cancel
 -- @usage
 -- local mymenu = device.createMenu('MENU').string { 'NAME', 'Ethyl' }
 -- mymenu.run()
@@ -423,11 +429,12 @@ function _M.createMenu(args)
         local restoreBottom = _M.saveBottom()
         _M.startDialog()
         menu.show()
-        r()
+        local okay = r()
         menu.hide()
         _M.abortDialog()
         restoreBottom()
-        leave()
+        leave(okay)
+        return okay
     end
 
     return menu
