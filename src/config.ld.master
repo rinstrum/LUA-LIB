@@ -10,6 +10,7 @@ examples={          -- We should be able to wildcard this.
     'examples/multi-hello.lua',
     'examples/external.lua',
     'examples/marquee.lua',
+    'examples/menu.lua',
     'examples/myApp.lua',
     'examples/myCalApp.lua',
     'examples/myUSBApp.lua',
