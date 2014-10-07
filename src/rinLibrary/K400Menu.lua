@@ -55,7 +55,8 @@ return function (_M, private, deprecated)
 -- @field max Maximum value a numeric, integer or passcode  field can take
 -- @field min Minimum value a numeric, integer or passcode field can take
 -- @field prompt Prompt to be displayed when this field is being edited or viewed.
--- @field ref Reference name used to identify a field.
+-- @field ref Reference name used to identify a field, this defaults to the name and must be
+-- unique through the entire menu and submenus.
 -- @field run Function to execute when field is activated.
 -- @field setList Function to set the contents of a list field.
 -- @field setValue Function to set the field's contents.
@@ -121,6 +122,13 @@ local function makeMenu(args, parent, fields)
 -- @local
     local function add(item)
         table.insert(menu, item)
+        if fields[item.ref] then
+            if item.getValue or fields[item.ref].getValue then
+                error('Two items with reference '..item.ref..', one or both have values.')
+            else
+                dbg.error('Ambigious menu field reference:', item.ref)
+            end
+        end
         fields[item.ref] = item
         return menu
     end
@@ -342,14 +350,15 @@ local function makeMenu(args, parent, fields)
         return add(newItem(args))
     end
 
+    if parent == nil then
 -------------------------------------------------------------------------------
 -- Return the named field from within the menu heirarchy
 -- @function findField
 -- @param ref Field reference name
 -- @return field table
-    menu.findField = function(ref)
-        return fields[canonical(ref)]
-    end
+        menu.findField = function(ref)
+            return fields[canonical(ref)]
+        end
 
 -------------------------------------------------------------------------------
 -- Set a named field to the specified value
@@ -358,10 +367,10 @@ local function makeMenu(args, parent, fields)
 -- @return Value the field is set to
 -- @usage
 -- local big = menu.getValue('largest')
-    function menu.getValue(ref)
-        local r = menu.findField(ref)
-        return r and r.getValue and r.getValue() or nil
-    end
+        function menu.getValue(ref)
+            local r = menu.findField(ref)
+            return r and r.getValue and r.getValue() or nil
+        end
 
 -------------------------------------------------------------------------------
 -- Set a named field to the specified value
@@ -370,18 +379,64 @@ local function makeMenu(args, parent, fields)
 -- @param value Value to set field to
 -- @usage
 -- menu.setValue('largest', 33.4)
-    function menu.setValue(ref, value)
-        local r = menu.findField(ref)
-        if r and r.setValue then r.setValue(value) end
-    end
-
+        function menu.setValue(ref, value)
+            local r = menu.findField(ref)
+            if r and r.setValue then r.setValue(value) end
+        end
 
 -------------------------------------------------------------------------------
--- Run this menu.
--- See the later definition in createMenu for proper documentation.
--- @see createMenu
+-- Save menu values into a CSV file table.
+-- The CSV table is saved to file if a name exists.
+-- @function toCSV
+-- @param t Filename for CSV table or CSV table or nil to make a new nameless table.
+-- specified the CSV is saved to the file too.
+-- @return CSV table
+-- @see fromCSV
+-- @usage
+-- local csvTable = myMenu.toCSV('settings.csv')
+        function menu.toCSV(t)
+            if t == nil or type(t) == 'string' then
+                t = { labels = { 'name', 'value' }, data = {}, fname = t }
+            end
+            for k, v in pairs(fields) do
+                if v.getValue then
+                    csv.addLineCSV(t, { k, v.getValue() })
+                end
+            end
+            if t.fname then
+                csv.saveCSV(t)
+            end
+            return t
+        end
+
+-------------------------------------------------------------------------------
+-- Load values from the specified CSV file which was created by toCSV above.
+-- @function fromCSV
+-- @param t CSV table filename or CSV table
+-- @see toCSV
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local csvTable = csv.loadCSV { fname = 'settings.csv', labels = { 'name', 'value' } }
+--
+-- myMenu.fromCSV(csvTable)
+        function menu.fromCSV(t)
+            if type(t) == 'string' then
+                t = csv.loadCSV { labels = { 'name', 'value' }, data = {}, fname = t }
+            end
+            local names = csv.getColCSV(t, 'name')
+            local values = csv.getColCSV(t, 'value')
+
+            for i = 1, #names do
+                menu.setValue(names[i], values[i])
+            end
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Display and execute a menu
+-- @return true if exit via EXIT item, false if exit via cancel
 -- @local
-    function menu.run()
+    local function runMenu()
         local okay = true
         menu.inProgress = true
         while _M.app.isRunning() and menu.inProgress do
@@ -406,64 +461,29 @@ local function makeMenu(args, parent, fields)
     end
 
 -------------------------------------------------------------------------------
--- Append menu values to an existing CSV file
--- @function appendCSV
--- @param t CSV table
--- @see toCSV
+-- Display and execute a menu
+-- @function run
+-- @return true if exit via EXIT item, false if exit via cancel
 -- @usage
--- myMenu.appendCSV(myCSVTable)
-    function menu.appendCSV(t)
-        for _, v in ipairs(menu) do
-            if v.appendCSV then
-                v.appendCSV(t)
-            elseif v.getValue then
-                csv.addLineCSV(t, { v.ref, v.getValue() })
-            end
+-- local mymenu = device.createMenu('MENU').string { 'NAME', 'Ethyl' }
+-- mymenu.run()
+    if parent == nil then
+        -- For the main root menu, do some extra bring up & pull down
+        local leave = cb(args.leave, null)
+        menu.run = function()
+            local restoreBottom = _M.saveBottom()
+            _M.startDialog()
+            menu.show()
+            local okay = runMenu()
+            menu.hide()
+            _M.abortDialog()
+            restoreBottom()
+            leave(okay)
+            return okay
         end
-    end
-
--------------------------------------------------------------------------------
--- Save menu values into a CSV file table.
--- The CSV table is saved to file if a name exists.
--- @function toCSV
--- @param t Filename for CSV table or CSV table or nil to make a new nameless table.
--- specified the CSV is saved to the file too.
--- @return CSV table
--- @see fromCSV
--- @see appendCSV
--- @usage
--- local csvTable = myMenu.toCSV('settings.csv')
-    function menu.toCSV(t)
-        if t == nil or type(t) == 'string' then
-            t = { labels = { 'name', 'value' }, data = {}, fname = t }
-        end
-        menu.appendCSV(t)
-        if t.fname then
-            csv.saveCSV(t)
-        end
-        return t
-    end
-
--------------------------------------------------------------------------------
--- Load values from the specified CSV file which was created by toCSV above.
--- @function fromCSV
--- @param t CSV table filename or CSV table
--- @see toCSV
--- @usage
--- local csv = require('rinLibrary.rinCSV')
--- local csvTable = csv.loadCSV { fname = 'settings.csv', labels = { 'name', 'value' } }
---
--- myMenu.fromCSV(csvTable)
-    function menu.fromCSV(t)
-        if type(t) == 'string' then
-            t = csv.loadCSV { labels = { 'name', 'value' }, data = {}, fname = t }
-        end
-        local names = csv.getColCSV(t, 'name')
-        local values = csv.getColCSV(t, 'value')
-
-        for i = 1, #names do
-            menu.setValue(names[i], values[i])
-        end
+    else
+        -- for submenus, we just run the menu
+        menu.run = runMenu
     end
 
     return menu
@@ -478,30 +498,7 @@ end
 -- local mymenu = createMenu('MENU') . string { 'NAME', 'Bob' }
 -- mymenu.run()
 function _M.createMenu(args)
-    local fields = {}
-    local menu = makeMenu(args, nil, fields)
-    local r, leave = menu.run, cb(args.leave, null)
-
--------------------------------------------------------------------------------
--- Display and execute a menu
--- @function run
--- @return true if exit via EXIT item, false if exit via cancel
--- @usage
--- local mymenu = device.createMenu('MENU').string { 'NAME', 'Ethyl' }
--- mymenu.run()
-    menu.run = function()
-        local restoreBottom = _M.saveBottom()
-        _M.startDialog()
-        menu.show()
-        local okay = r()
-        menu.hide()
-        _M.abortDialog()
-        restoreBottom()
-        leave(okay)
-        return okay
-    end
-
-    return menu
+    return makeMenu(args, nil, {})
 end
 
 end
