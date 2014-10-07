@@ -64,10 +64,10 @@ return function (_M, private, deprecated)
 -- @field unitsOther Extra units annunciators to display when active.
 -- @field units Units annunciators to display when this field is active.
 -- @field update Function that is called repeatedly while field is displayed.
--- @field value Value to set field to (usually the second positional argumnet would be used for this)
 -- @field length Length of a string field (usually the third positional argumnet would be used for this)
--- @field register Register to use with field (usually the second positional argumnet would be used for this)
 -- @field name Name of field (usually the first positional argumnet would be used for this)
+-- @field register Register to use with field (usually the second positional argumnet would be used for this)
+-- @field value Value to set field to (usually the second positional argumnet would be used for this)
 
 -------------------------------------------------------------------------------
 -- Create a new empty menu
