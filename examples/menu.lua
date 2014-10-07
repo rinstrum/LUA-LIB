@@ -38,7 +38,7 @@ local menu = device.createMenu { 'TOP MENU' }   -- create a menu
 
 device.write('bottomLeft', 'WELCOME TO THE MENU')
 device.write('bottomRight', 'F3 FOR THE MENU')
-device.setKeyCallback('f3', function() menu.run() end)
+device.setKeyCallback('f3', menu.run)
 
 -- We can query out menu fields via the top level menu
 function printMenuContents()
