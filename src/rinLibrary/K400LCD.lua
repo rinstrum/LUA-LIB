@@ -208,8 +208,8 @@ local display = {
         strlen = strLenR400,
         finalFormat = padDots,
         strsub = strSubR400,
-        units = nil,    saveUnits = 0,
-        auto = nil,     saveAuto = 0
+        units = 0,
+        auto = 0,       saveAuto = 0
     },
     
     topright = {
@@ -232,8 +232,8 @@ local display = {
         strlen = strLenR400,
         finalFormat = padDots,
         strsub = strSubR400,
-        units = nil,    saveUnits = 0,
-        auto = nil,     saveAuto = 0
+        units = 0,
+        auto = 0,       saveAuto = 0
     },
 
     bottomright = {
@@ -1096,7 +1096,7 @@ function deprecated.restoreBot()
     map(function(v) return v.bottom end,
         function(v)
             write(v, v.saveCurrent, v.saveParams)
-            units(v, v.saveUnits)
+            units(v, v.saveUnits or 0)
         end)
 end
 
