@@ -13,6 +13,7 @@ local dbg = require "rinLibrary.rinDebug"
 local canonical = require('rinLibrary.namings').canonicalisation
 local deepcopy = require 'rinLibrary.deepcopy'
 local callable = require('rinSystem.utilities').callable
+local csv = require 'rinLibrary.rinCSV'
 
 -------------------------------------------------------------------------------
 -- Return a callback if it is callable, return the default if not.
@@ -107,9 +108,7 @@ local function makeMenu(args, parent, fields)
             hide = cb(args.hide, null),
             update = cb(args.update, function()
                 _M.write('bottomLeft', string.upper(menu[posn].name))
-            end),
-            getValue = cb(args.getValue, null),
-            setValue = cb(args.setValue, null)
+            end)
         }
         return r
     end
@@ -361,7 +360,7 @@ local function makeMenu(args, parent, fields)
 -- local big = menu.getValue('largest')
     function menu.getValue(ref)
         local r = menu.findField(ref)
-        return r and r.getValue() or nil
+        return r and r.getValue and r.getValue() or nil
     end
 
 -------------------------------------------------------------------------------
@@ -373,7 +372,7 @@ local function makeMenu(args, parent, fields)
 -- menu.setValue('largest', 33.4)
     function menu.setValue(ref, value)
         local r = menu.findField(ref)
-        if r then r.setValue(value) end
+        if r and r.setValue then r.setValue(value) end
     end
 
 
@@ -404,6 +403,67 @@ local function makeMenu(args, parent, fields)
             end
         end
         return okay
+    end
+
+-------------------------------------------------------------------------------
+-- Append menu values to an existing CSV file
+-- @function appendCSV
+-- @param t CSV table
+-- @see toCSV
+-- @usage
+-- myMenu.appendCSV(myCSVTable)
+    function menu.appendCSV(t)
+        for _, v in ipairs(menu) do
+            if v.appendCSV then
+                v.appendCSV(t)
+            elseif v.getValue then
+                csv.addLineCSV(t, { v.ref, v.getValue() })
+            end
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Save menu values into a CSV file table.
+-- The CSV table is saved to file if a name exists.
+-- @function toCSV
+-- @param t Filename for CSV table or CSV table or nil to make a new nameless table.
+-- specified the CSV is saved to the file too.
+-- @return CSV table
+-- @see fromCSV
+-- @see appendCSV
+-- @usage
+-- local csvTable = myMenu.toCSV('settings.csv')
+    function menu.toCSV(t)
+        if t == nil or type(t) == 'string' then
+            t = { labels = { 'name', 'value' }, data = {}, fname = t }
+        end
+        menu.appendCSV(t)
+        if t.fname then
+            csv.saveCSV(t)
+        end
+        return t
+    end
+
+-------------------------------------------------------------------------------
+-- Load values from the specified CSV file which was created by toCSV above.
+-- @function fromCSV
+-- @param t CSV table filename or CSV table
+-- @see toCSV
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local csvTable = csv.loadCSV { fname = 'settings.csv', labels = { 'name', 'value' } }
+--
+-- myMenu.fromCSV(csvTable)
+    function menu.fromCSV(t)
+        if type(t) == 'string' then
+            t = csv.loadCSV { labels = { 'name', 'value' }, data = {}, fname = t }
+        end
+        local names = csv.getColCSV(t, 'name')
+        local values = csv.getColCSV(t, 'value')
+
+        for i = 1, #names do
+            menu.setValue(names[i], values[i])
+        end
     end
 
     return menu

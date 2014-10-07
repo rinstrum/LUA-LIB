@@ -5,12 +5,15 @@
 --
 -- Creates a menu containing the various items available and runs it.
 -------------------------------------------------------------------------------
+package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
+--package.cpath = "/home/pauli/m4223/L000-515/lua-linux-headers/?.so;" .. package.cpath
+package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
 local rinApp = require "rinApp"         --  load in the application framework
 
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400("K401")   --  make a connection to the instrument
+local device = rinApp.addK400("K401", '172.17.1.116')   --  make a connection to the instrument
 
 local menu = device.createMenu { 'TOP MENU' }   -- create a menu
     .integer { 'INTEGER', 3, min=1, max=5 }     -- Add an integer item
@@ -38,7 +41,7 @@ local menu = device.createMenu { 'TOP MENU' }   -- create a menu
 
 device.write('bottomLeft', 'WELCOME TO THE MENU')
 device.write('bottomRight', 'F3 FOR THE MENU')
-device.setKeyCallback('f3', menu.run)
+device.setKeyCallback('f3', menu.run, 'short')
 
 -- We can query out menu fields via the top level menu
 function printMenuContents()
@@ -48,7 +51,16 @@ function printMenuContents()
         print(n, menu.getValue(n))
     end
 end
-device.setKeyCallback('f2', printMenuContents)
+device.setKeyCallback('f2', printMenuContents, 'short')
+
+device.setKeyCallback('f1', function()
+    device.write('bottomLeft', 'SAVING', 'time=2, clear')
+    menu.toCSV('settings.csv')
+end, 'short')
+device.setKeyCallback('f1', function()
+    device.write('bottomLeft', 'LOADING', 'time=2, clear')
+    menu.fromCSV('settings.csv')
+end, 'long')
 
 rinApp.run()
 
