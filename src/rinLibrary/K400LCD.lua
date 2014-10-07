@@ -496,40 +496,42 @@ end
 
 -------------------------------------------------------------------------------
 -- Save the bottom left and right fields and units.
+-- @return Function that restores the bottom fields to their current values
 -- @usage
--- device.saveBot()
+-- local restoreBottom = device.saveBottom()
 -- device.writeBotLeft('fnord')
--- device.restoreBot()
-function _M.saveBot()
+-- restoreBottom()
+function _M.saveBottom()
+    local restorations = {}
     map(function(v) return v.bottom end,
         function(v)
-            v.saveCurrent = v.current
-            v.saveParams = v.params
-            v.saveUnits = v.units
+            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units })
         end)
-end
-
--------------------------------------------------------------------------------
--- Restore the bottom left and right fields and units.
--- @usage
--- device.saveBot()
--- device.writeBotLeft('fnord')
--- device.restoreBot()
-function _M.restoreBot()
-    map(function(v) return v.bottom end,
-        function(v)
-            write(v, v.saveCurrent, v.saveParams)
-            units(v, v.saveUnits)
-        end)
+    return function()
+        for _, v in ipairs(restorations) do
+            write(v.f, v.c, v.p)
+            units(v.f, v.u)
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
 -- Save the top and bottom left field auto settings
+-- @return Function that restores the left auto fields to their current values
 -- @usage
 -- device.saveAutoLeft()
 function _M.saveAutoLeft()
+    local restorations = {}
     map(function(v) return v.left end,
-        function(v) v.saveAuto = v.auto end)
+        function(v)
+            table.insert(restorations, { f=v, a=v.auto })
+            v.saveAuto = v.auto
+        end)
+    return function()
+        for _, v in ipairs(restorations) do
+            writeAuto(v.f, v.a)
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -1062,6 +1064,41 @@ deprecated.UNITS_OTHER_PC               = otherAunnuncitors.pc
 deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
 
 deprecated.rightJustify                 = rightJustify
+
+-------------------------------------------------------------------------------
+-- Save the bottom left and right fields and units.
+-- Don't use this function, use saveBottom instead.
+-- @function saveBot
+-- @see saveBottom
+-- @usage
+-- device.saveBot()
+-- device.writeBotLeft('fnord')
+-- device.restoreBot()
+function deprecated.saveBot()
+    map(function(v) return v.bottom end,
+        function(v)
+            v.saveCurrent = v.current
+            v.saveParams = v.params
+            v.saveUnits = v.units
+        end)
+end
+
+-------------------------------------------------------------------------------
+-- Restore the bottom left and right fields and units.
+-- Don't use this function, use saveBottom instead.
+-- @function restoreBot
+-- @see saveBottom
+-- @usage
+-- device.saveBot()
+-- device.writeBotLeft('fnord')
+-- device.restoreBot()
+function deprecated.restoreBot()
+    map(function(v) return v.bottom end,
+        function(v)
+            write(v, v.saveCurrent, v.saveParams)
+            units(v, v.saveUnits)
+        end)
+end
 
 if _TEST then
     _M.strLenR400 = strLenR400

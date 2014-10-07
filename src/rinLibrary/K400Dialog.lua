@@ -36,8 +36,8 @@ local sEditKeyTimeout = 4   -- number of counts before starting a new key in sEd
 local scrUpdTm = 0.5        -- screen update frequency in Sec
 local blinkOff = false      -- blink cursor for string editing
 
-local msgDisp = false	    -- message is being displayed by dispMsg function
 local msgTimer = nil		-- timer for user message display
+local messageRestoreBottom  -- Function reference to resore the bottom after a message display, nil if no message currently
 
 -------------------------------------------------------------------------------
 -- Is a message currently being displayed?
@@ -47,7 +47,7 @@ local msgTimer = nil		-- timer for user message display
 --     device.displayMessage('hello', 2.123)
 -- end
 function _M.messageDisplayed()
-    return msgDisp
+    return messageRestoreBottom ~= nil
 end
 
 -------------------------------------------------------------------------------
@@ -84,11 +84,11 @@ end
 -- Cancel a displayed message, if any.
 -- @local
 local function endDisplayMessage()
-	if msgDisp then
-        msgDisp = false
+	if messageRestoreBottom then
+        messageRestoreBottom()
+        messageRestoreBottom = nil
 	    timers.removeTimer(msgTimer)
         msgTimer = nil
-        _M.restoreBot()
     end
 end
 
@@ -107,8 +107,7 @@ function _M.displayMessage(msg, t, units, unitsOther)
 
     endDisplayMessage()
 	if msg and t > 0 then
-		msgDisp = true
-		_M.saveBot()
+		messageRestoreBottom = _M.saveBottom()
 		_M.write('bottomLeft', msg)			-- display message
 		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
 		msgTimer = timers.addTimer(0, t, endDisplayMessage)
@@ -313,7 +312,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     endDisplayMessage()             -- abort any existing display prompt
     local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom()
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
         for i=0,math.min(sLen, maxLen),1 do
@@ -429,7 +428,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     end
     _M.abortDialog()
 
-    _M.restoreBot() -- restore previously displayed messages
+    restoreBottom() -- restore previously displayed messages
 
     timers.removeTimer(cursorTmr) -- remove cursor blink timer
     return sEditVal, ok                  -- return edited string and OK status
@@ -464,7 +463,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local editType = typ or 'integer'
     editing = true
     endDisplayMessage()
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom()
     _M.write('bottomRight', prompt)
     if hide then
        _M.write('bottomLeft', string.rep('+',#editVal))
@@ -529,7 +528,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _M.restoreBot()
+    restoreBottom()
 
     return tonumber(editVal), ok
 end
@@ -544,9 +543,11 @@ end
 -- device.editReg('userid1', 'NAME')
 function _M.editReg(register, prompt)
     local reg = private.getRegisterNumber(register)
+    local restoreBottom = nil
+
     endDisplayMessage()
-    if (prompt) then
-        _M.saveBot()
+    if prompt then
+        restoreBottom = _M.saveBottom()
         if type(prompt) == 'string' then
             _M.write('bottomRight', prompt)
         else
@@ -567,8 +568,8 @@ function _M.editReg(register, prompt)
         end
     end
     _M.abortDialog()
-    if prompt then
-        _M.restoreBot()
+    if restoreBottom then
+        restoreBottom()
     end
     return private.readReg(reg)
 end
@@ -586,7 +587,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     local askOKResult = 'cancel'
 
     endDisplayMessage()
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom() 
     _M.write('bottomRight', prompt or '')
     _M.write('bottomLeft', q or '')
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
@@ -603,7 +604,7 @@ function _M.askOK(prompt, q, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _M.restoreBot()
+    restoreBottom()
     return askOKResult
 end
 
@@ -634,7 +635,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
 
     editing = true
     endDisplayMessage()
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom()
     _M.write('bottomRight', string.upper(prompt))
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
@@ -654,7 +655,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _M.restoreBot()
+    restoreBottom()
     return sel
 end
 
@@ -687,7 +688,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
 
     editing = true
     endDisplayMessage()
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom()
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
     _M.startDialog()
@@ -715,7 +716,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _M.restoreBot()
+    restoreBottom()
     return options.getSelected()
 end
 
@@ -739,7 +740,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
 
     editing = true
     endDisplayMessage()
-    _M.saveBot()
+    local restoreBottom = _M.saveBottom()
     _M.write('topLeft', string.upper(prompt))
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
     
@@ -760,7 +761,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _M.restoreBot()
+    _MrestoreBottom()
     return sel
 end
 

@@ -96,7 +96,7 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
     local editType = typ or 'integer'
     editing = true
 
-    dwi.saveBot()
+    local restoreBottom = dwi.saveBottom()
     dwi.write('bottomRight', prompt)
     dwi.write('bottomLeft', editVal)
     dwi.writeUnits('bottomLeft', u, uo)
@@ -154,7 +154,7 @@ function _M.edit(dwi, prompt, def, typ, units, unitsOther)
             dwi.write('bottomLeft', editVal)
         end
     end
-    dwi.restoreBot()
+    restoreBottom()
 
     if editType == 'string' then
         return editVal, ok
