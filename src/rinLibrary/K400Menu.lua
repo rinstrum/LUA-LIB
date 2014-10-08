@@ -66,6 +66,7 @@ return function (_M, private, deprecated)
 -- @field loop Should a list or menu item loop from bottom to top?
 -- @field max Maximum value a numeric, integer or passcode  field can take
 -- @field min Minimum value a numeric, integer or passcode field can take
+-- @field no The name of the no item in a boolean field (default: no).
 -- @field prompt Prompt to be displayed when this field is being edited or viewed.
 -- @field ref Reference name used to identify a field, this defaults to the name and must be
 -- unique through the entire menu and submenus.
@@ -76,6 +77,7 @@ return function (_M, private, deprecated)
 -- @field unitsOther Extra units annunciators to display when active.
 -- @field units Units annunciators to display when this field is active.
 -- @field update Function that is called repeatedly while field is displayed.
+-- @field yes The name of the yes item in a boolean field (default: yes).
 -- @field length Length of a string field (usually the third positional argumnet would be used for this)
 -- @field name Name of field (usually the first positional argumnet would be used for this)
 -- @field register Register to use with field (usually the second positional argumnet would be used for this)
@@ -235,6 +237,34 @@ local function makeMenu(args, parent, fields)
         end
         item.getValue = function() return value end
         item.setValue = function(v) value = v end
+        return add(item)
+    end
+
+-------------------------------------------------------------------------------
+-- Add a boolean field to a menu
+-- @function boolean
+-- @param args Field arguments
+-- @return The menu
+-- @see FieldDefinition
+-- @usage
+-- local mymenu = device.createMenu { 'MYMENU' }
+--                      .boolean { 'OKAY?' }
+--                      .boolean { 'COLOUR', true, 'RED', 'BLUE' }
+    function menu.boolean(args)
+        local item = newItem(args)
+        local value = (args[2] or args.value) and true or false
+        local yesItem = args[3] or args.yes or 'YES'
+        local noItem = args[4] or args.no or 'NO'
+        if args.loop == nil then item.loop = true end
+
+        item.run = function()
+            local v = _M.selectOption(item.prompt, { yesItem, noItem }, value and yesItem or noItem, item.loop, item.units, item.unitsOther)
+            if v then
+                value = v == yesItem
+            end
+        end
+        item.getValue = function() return value end
+        item.setValue = function(v) value = v and true or false end
         return add(item)
     end
 

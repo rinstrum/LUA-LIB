@@ -27,6 +27,8 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
         .string     { 'SHORT', 'abc', 3 }           -- Three character string
         .string     { 'LONG', 'hello', 15 }         -- A longer string
         .fin        {}
+    .boolean    { 'OKAY?' }                         -- A yes/no field
+    .boolean    { 'SURE?', true, 'YEP', 'NOPE' }    -- A two pick list
     .list       { 'PRODUCT',                        -- A pick list of three elements
                     { 'WHEAT', 'RICE', 'CORN' },
                     loop = true }                   -- That wraps top to bottom
