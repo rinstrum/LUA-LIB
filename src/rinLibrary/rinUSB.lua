@@ -27,6 +27,8 @@ local userUSBKBDCallback = nil
 local libUSBSerialCallback = nil
 local eventDevices = {}
 
+local userStorageRemovedCallback, userStorageAddedCallback = nil, nil
+
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
 -- @param callback Callback function takes event table as a parameter
@@ -137,6 +139,64 @@ function _M.getUSBKBDCallback()
 end
 
 -------------------------------------------------------------------------------
+-- Register a callback to run whenever a USB storage device is inserted
+-- @param callback Callback function takes the mount point as a string
+-- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setStorageAddedCallback(function(mnt) print('new USB storage '..mnt) end)
+function _M.setStorageAddedCallback(callback)
+    utils.checkCallback(callback)
+    local r = userStorageAddedCallback
+    userStorageAddedCallback = callback
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a new USB storage
+-- device is detected
+-- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getStorageAddedCallback() == nil then
+--     print('No storage added callback installed')
+-- end
+function _M.getStorageAddedCallback(callback)
+    return userStorageAddedCallback
+end
+
+-------------------------------------------------------------------------------
+-- Register a callback to run whenever a USB storage device is removed
+-- @param callback Callback function takes the mount point as a string
+-- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setStorageRemovedCallback(function(mnt) print('USB storage '..mnt..' has gone') end)
+function _M.setStorageRemovedCallback(callback)
+    utils.checkCallback(callback)
+    local r = userStorageRemovedCallback
+    userStorageRemovedCallback = callback
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a new USB storage
+-- device is removed
+-- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getStorageRemovedCallback() == nil then
+--     print('No storage removed callback installed')
+-- end
+function _M.getStorageRemovedCallback(callback)
+    return userStorageRemovedCallback
+end
+
+-------------------------------------------------------------------------------
 -- Callback to detect events happening for USB devices and to further dispatch
 -- them as required.
 -- @param sock File descriptor the USB device is communicating with.
@@ -169,6 +229,16 @@ local function usbCallback(t)
             elseif v[2] == 'removed' and eventDevices[k] ~= nil then
                 socks.removeSocket(eventDevices[k])
                 eventDevices[k] = nil
+            end
+        elseif v[1] == 'partition' then
+            if v[2] == 'added' then
+                if utils.callable(userStorageAddedCallback) then
+                    userStorageAddedCallback(t[3])
+                end
+            elseif v[2] == 'removed' then
+                if utils.callable(userStorageRemovedCallback) then
+                    userStorageRemovedCallback(t[3])
+                end
             end
         end
     end
