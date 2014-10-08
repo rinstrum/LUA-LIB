@@ -29,9 +29,19 @@ end
 -- A null function for use as a dummy callback
 -- @return nil
 -- @local
-local function null()
-    return nil
-end
+local function null()   return nil      end
+
+-------------------------------------------------------------------------------
+-- A function that always returns true
+-- @return true
+-- @local
+local function True()   return true     end
+
+-------------------------------------------------------------------------------
+-- A function that always returns false
+-- @return false
+-- @local
+local function False()  return false    end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -46,6 +56,8 @@ return function (_M, private, deprecated)
 --
 -- @table FieldDefinition
 -- @field default Default item in a list selection.
+-- @field enabled Boolean or function returning a boolean to indicate if this
+-- field should be visible or not.
 -- @field getValue Function to return the value of a field's contents.
 -- @field hide Function to execute when field is moved away from.
 -- @field leave Function to execute when leaving the top level menu, it is passed a boolean
@@ -92,6 +104,13 @@ local function makeMenu(args, parent, fields)
             prompt = string.upper(prompt)
         end
 
+        local enabled
+        if type(args.enabled) == 'boolean' then
+            enabled = args.enabled and True or False
+        else
+            enabled = cb(args.enabled, True)
+        end
+
         local r
         r = {
             name = name,
@@ -109,7 +128,8 @@ local function makeMenu(args, parent, fields)
             hide = cb(args.hide, null),
             update = cb(args.update, function()
                 _M.write('bottomLeft', string.upper(menu[posn].name))
-            end)
+            end),
+            enabled = enabled
         }
         return r
     end
@@ -385,6 +405,38 @@ local function makeMenu(args, parent, fields)
         end
 
 -------------------------------------------------------------------------------
+-- Query if a field is currently enabled
+-- @function enabled
+-- @param ref Name of field
+-- @return true iff the field is currently enabled
+-- @usage
+-- if menu.enabled('name') then print('name is '..menu.getValue('name')) end
+        function menu.enabled(ref)
+            local r = menu.findField(ref)
+            return r and r.enabled()
+        end
+
+-------------------------------------------------------------------------------
+-- Disable a field
+-- @function disable
+-- @param ref Name of field
+-- @usage
+-- menu.disable('name')
+        function menu.disable(ref)
+            menu.findField(ref).enabled = False
+        end
+
+-------------------------------------------------------------------------------
+-- Enable a field
+-- @function enable
+-- @param ref Name of field
+-- @usage
+-- menu.enable('name')
+        function menu.enable(ref)
+            menu.findField(ref).enabled = True
+        end
+
+-------------------------------------------------------------------------------
 -- Save menu values into a CSV file table.
 -- The CSV table is saved to file if a name exists.
 -- @function toCSV
@@ -433,6 +485,21 @@ local function makeMenu(args, parent, fields)
     end
 
 -------------------------------------------------------------------------------
+-- Move the current position in the menu inthe direction indicated
+-- @param dirn Direction +1 or -1
+-- @local
+    local function move(dirn)
+        local p = posn
+        for i = 1, #menu do
+            p = private.addModBase1(p, dirn, #menu, menu.loop)
+            if menu[p].enabled() then
+                posn = p
+                return
+            end
+        end
+    end
+
+-------------------------------------------------------------------------------
 -- Display and execute a menu
 -- @return true if exit via EXIT item, false if exit via cancel
 -- @local
@@ -446,9 +513,9 @@ local function makeMenu(args, parent, fields)
                 menu.inProgress = false
                 okay = false
             elseif key == 'down' then
-                posn = private.addModBase1(posn, 1, #menu, menu.loop)
+                move(1)
             elseif key == 'up' then
-                posn = private.addModBase1(posn, -1, #menu, menu.loop)
+                move(-1)
             elseif key == 'ok' then
                 menu.hide()
                 menu[posn].show()

@@ -12,6 +12,8 @@ local rinApp = require "rinApp"         --  load in the application framework
 --=============================================================================
 local device = rinApp.addK400("K401")   --  make a connection to the instrument
 
+-- Sample menu hooked onto the F3 short press
+-- This includes examples of all the available field types
 local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .integer    { 'INTEGER', 3, min=1, max=5 }      -- Add an integer item
     .integer    { 'ANOTHER', 1 }                    -- Another integer without min and max limits
@@ -39,6 +41,31 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
 device.write('bottomLeft', 'WELCOME TO THE MENU')
 device.write('bottomRight', 'F3 FOR THE MENU')
 device.setKeyCallback('f3', menu.run, 'short')
+
+-- A second sample menu that illustrates the ways of enabling and disabling
+-- items.
+local enableMenu                                    -- Has to be separate
+enableMenu = device.createMenu { 'ENABLE MENU' }
+    .list       { 'CHOOSE', { 'A', 'B', 'C' }, default = 'A' }
+    .integer    { 'A', 1,   enabled = function()   -- An integer that appears based on the list choise
+                                          return enableMenu.getValue('CHOOSE') == 'A'
+                                      end }
+    .integer    { 'B', 2,   enabled = function()   -- A string that appears based on the list choice
+                                          return enableMenu.getValue('CHOOSE') == 'B'
+                                      end }
+    .menu       { 'C',      enabled = function()      -- A menu that appears based on the list choice
+                                          return enableMenu.getValue('CHOOSE') == 'C'
+                                      end }
+        .integer    { 'C1', 3 }
+        .integer    { 'C2', 4 }
+        .fin()
+    -- Menu items that turn on and off other items
+    .item       { 'ENABLE D', run=function() enableMenu.enable('D') end }
+    .item       { 'DISABLE D', run=function() enableMenu.disable('D') end }
+    .integer    { 'D', 5 }
+    .exit       { 'QUIT' }
+device.setKeyCallback('f3', enableMenu.run, 'long')
+
 
 -- We can query out menu fields via the top level menu
 function printMenuContents()
