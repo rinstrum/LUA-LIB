@@ -972,7 +972,7 @@ end
 -- @usage
 -- device.endIOStatus()
 function _M.endIOStatus()
-    private.removeStreamLib(IOID)
+    _M.removeStream(IOID)
     IOID = nil
 end
 
@@ -982,7 +982,7 @@ end
 -- @usage
 -- device.endSETPStatus()
 function _M.endSETPStatus()
-    private.removeStreamLib(SETPID)
+    _M.removeStream(SETPID)
     SETPID = nil
 end
 

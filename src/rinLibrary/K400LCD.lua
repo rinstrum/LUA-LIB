@@ -1007,14 +1007,14 @@ deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
 deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
 deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
-deprecated.setBitsTopAnnuns             = setAnnunciators
-deprecated.clrBitsTopAnnuns             = clearAnnunciators
-deprecated.setBitsBotAnnuns             = setAnnunciators
-deprecated.clrBitsBotAnnuns             = clearAnnunciators
+deprecated.setBitsTopAnnuns             = _M.setAnnunciators
+deprecated.clrBitsTopAnnuns             = _M.clearAnnunciators
+deprecated.setBitsBotAnnuns             = _M.setAnnunciators
+deprecated.clrBitsBotAnnuns             = _M.clearAnnunciators
 
 -- Support the released function names with spelling errors :(
-deprecated.setAnnunicators              = setAnnunciators
-deprecated.clearAnnunicators            = clearAnnunciators
+deprecated.setAnnunicators              = _M.setAnnunciators
+deprecated.clearAnnunicators            = _M.clearAnnunciators
 
 deprecated.BATTERY                      = annunciatorMap.battery.v
 deprecated.CLOCK                        = annunciatorMap.clock.v
