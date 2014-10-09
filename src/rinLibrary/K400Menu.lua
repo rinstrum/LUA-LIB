@@ -562,7 +562,7 @@ local function makeMenu(args, parent, fields)
 -- @function run
 -- @return true if exit via EXIT item, false if exit via cancel
 -- @usage
--- local mymenu = device.createMenu('MENU').string { 'NAME', 'Ethyl' }
+-- local mymenu = device.createMenu {'MENU'}.string { 'NAME', 'Ethyl' }
 -- mymenu.run()
     if parent == nil then
         -- For the main root menu, do some extra bring up & pull down
@@ -592,7 +592,7 @@ end
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
--- local mymenu = createMenu('MENU') . string { 'NAME', 'Bob' }
+-- local mymenu = createMenu {'MENU'} . string { 'NAME', 'Bob' }
 -- mymenu.run()
 function _M.createMenu(args)
     return makeMenu(args, nil, {})
