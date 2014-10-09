@@ -447,7 +447,8 @@ local function makeMenu(args, parent, fields)
         end
 
 -------------------------------------------------------------------------------
--- Disable a field
+-- Disable a field.
+-- Disabling the currently displayed field is not a supported operation.
 -- @function disable
 -- @param ref Name of field
 -- @usage
