@@ -235,13 +235,11 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.readRegLiteral(reg, timeout)
-    local data, err
-
-    data, err = sendRegWait('rdlit', reg, nil, timeout)
+    local data, err = sendRegWait('rdlit', reg, nil, timeout)
     if err then
         dbg.debug('Read Literal Error', err)
     end
-    return data, nil
+    return data, err
 end
 
 -------------------------------------------------------------------------------
