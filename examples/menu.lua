@@ -40,12 +40,12 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .item       { 'PRESS ME', run=function() print('hello user') end }
     .exit       { 'QUIT' }
 
-device.write('bottomLeft', 'WELCOME TO THE MENU')
-device.write('bottomRight', 'F3 FOR THE MENU')
+device.write('bottomLeft', 'WELCOME TO THE MENU EXAMPLE')
+device.write('bottomRight', 'F3 FOR THE MENU F2 FOR ENABLES')
 device.setKeyCallback('f3', menu.run, 'short')
 
 -- A second sample menu that illustrates the ways of enabling and disabling
--- items.
+-- items.  This menu is hooked up to F2 function key.
 local enableMenu                                    -- Has to be separate
 enableMenu = device.createMenu { 'ENABLE MENU' }
     .list       { 'CHOOSE', { 'A', 'B', 'C' }, default = 'A' }
@@ -66,7 +66,7 @@ enableMenu = device.createMenu { 'ENABLE MENU' }
     .item       { 'DISABLE D', run=function() enableMenu.disable('D') end }
     .integer    { 'D', 5 }
     .exit       { 'QUIT' }
-device.setKeyCallback('f3', enableMenu.run, 'long')
+device.setKeyCallback('f2', enableMenu.run, 'short')
 
 
 -- We can query out menu fields via the top level menu
@@ -77,7 +77,7 @@ function printMenuContents()
         print(n, menu.getValue(n))
     end
 end
-device.setKeyCallback('f2', printMenuContents, 'short')
+device.setKeyCallback('f3', printMenuContents, 'long')
 
 device.setKeyCallback('f1', function()
     device.write('bottomLeft', 'SAVING', 'time=2, clear')
