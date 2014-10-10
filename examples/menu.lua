@@ -5,39 +5,42 @@
 --
 -- Creates a menu containing the various items available and runs it.
 -------------------------------------------------------------------------------
+package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
+package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
 local rinApp = require "rinApp"         --  load in the application framework
 
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400("K401")   --  make a connection to the instrument
+local device = rinApp.addK400("K401", '172.17.1.116')   --  make a connection to the instrument
 
 -- Sample menu hooked onto the F3 short press
 -- This includes examples of all the available field types
 local menu = device.createMenu { 'TOP MENU' }       -- create a menu
-    .integer    { 'INTEGER', 3, min=1, max=5 }      -- Add an integer item
-    .integer    { 'ANOTHER', 1 }                    -- Another integer without min and max limits
-    .menu       { 'NUMBERS', loop=true }            -- A submenu called NUMBERS
+    .integer    { 'INT', 3, min=1, max=5 }          -- Add an integer item
+    .integer    { 'ONE', 1 }                        -- Another integer without min and max limits
+    .menu       { 'NUMBER', loop=true }             -- A submenu called NUMBERS
         .integer    { 'COUNT', 0, min=0, max=9 }
         .number     { 'SCALE', 1, min=0.9, max=1.1} -- A real number with limits
         .number     { 'FUDGE', 2.718281828495 }     -- Another real number
         .passcode   { 'SECRET', 1111 }              -- A pass code entry field
         .fin()                                      -- End the sub menu
-    .menu       { 'STRINGS' }
+    .menu       { 'STRING' }
         .string     { 'SHORT', 'abc', 3 }           -- Three character string
         .string     { 'LONG', 'hello', 15 }         -- A longer string
         .fin        {}
     .boolean    { 'OKAY?' }                         -- A yes/no field
-    .boolean    { 'SURE?', true, 'YEP', 'NOPE' }    -- A two pick list
-    .list       { 'PRODUCT',                        -- A pick list of three elements
+    .boolean    { 'SURE?', 'YEP', 'YEP', 'NOPE' }   -- A two pick list
+    .list       { 'PROD',                           -- A pick list of three elements
                     { 'WHEAT', 'RICE', 'CORN' },
                     loop = true }                   -- That wraps top to bottom
-    .menu       { 'REGISTER' }
-        .register   { 'USER 1', 'userid1', prompt = true }
+    .menu       { 'REG', secondary = 'VIEWER' }
+        .register   { 'USER 1', 'userid1' }
         .register   { 'USER 2', 'userid2', prompt = 'U2' }
         .auto       { 'MVV', 'absmvv' }
         .fin()
-    .item       { 'PRESS ME', run=function() print('hello user') end }
+    .item       { 'PRESS', secondary = 'ME NOW',
+                    run=function() print('hello user') end }
     .exit       { 'QUIT' }
 
 device.write('bottomLeft', 'WELCOME TO THE MENU EXAMPLE')
