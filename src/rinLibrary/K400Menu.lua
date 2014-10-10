@@ -98,6 +98,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Initialise a new item to the defaults
 -- @param args arguments passed in by user
+-- @param typeName Optional name of field type that will be displayed in absence of a value
 -- @return New item
 -- @local
     local function newItem(args, typeName)
