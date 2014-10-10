@@ -20,7 +20,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .menu       { 'NUMBER', loop=true }             -- A submenu called NUMBERS
         .integer    { 'COUNT', 0, min=0, max=9 }
         .number     { 'SCALE', 1, min=0.9, max=1.1} -- A real number with limits
-        .number     { 'FUDGE', 2.718281828495 }     -- Another real number
+        .number     { 'FUDGE', 2.7182818 }          -- Another real number
         .passcode   { 'SECRET', 1111 }              -- A pass code entry field
         .fin()                                      -- End the sub menu
     .menu       { 'STRING', secondary = 'EDITING' }
