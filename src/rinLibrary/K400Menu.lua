@@ -43,6 +43,14 @@ local function True()   return true     end
 -- @local
 local function False()  return false    end
 
+-------------------------------------------------------------------------------
+-- A function that checks for a readonly field and returns a null function if so
+-- @return null function or f
+-- @local
+local function ro(item, f)
+    return item.readonly and null or f
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -68,6 +76,7 @@ return function (_M, private, deprecated)
 -- @field min Minimum value a numeric, integer or passcode field can take
 -- @field no The name of the no item in a boolean field (default: no).
 -- @field prompt Prompt to be displayed when this field is being edited or viewed.
+-- @field readonly Boolean indicating is the field is immutable or not (default false).
 -- @field ref Reference name used to identify a field, this defaults to the name and must be
 -- unique through the entire menu and submenus.
 -- @field run Function to execute when field is activated.
@@ -127,11 +136,13 @@ local function makeMenu(args, parent, fields)
             unitsOther = args.unitsOther or 'none',
             loop = args.loop,
             secondary = args.secondary or typeName or '',
+            readonly = args.readonly or false,
 
-            run = cb(args.run, function() print(r.name .. ' has no run function') end),
+            run = cb(args.run, null),
             show = cb(args.show, function()
                     _M.write('topLeft', r.prompt)
                     _M.writeUnits('bottomLeft', r.units, r.unitsOther)
+                    _M.write('topRight', r.readonly and 'FIXD' or '')
                 end),
             hide = cb(args.hide, null),
             update = cb(args.update, function()
@@ -175,14 +186,14 @@ local function makeMenu(args, parent, fields)
         local value = args[2] or args.value or 0
         local min, max = args.min, args.max
 
-        item.run = function()
+        item.run = ro(item, function()
             local v, ok = _M.edit(item.prompt, value, type, item.units, item.unitsOther)
             if ok then
                 if min then v = math.max(min, v) end
                 if max then v = math.min(max, v) end
                 value = v
             end
-        end
+        end)
         item.getValue = function() return value end
         item.setValue = function(v) value = v end
         return add(item)
@@ -237,12 +248,12 @@ local function makeMenu(args, parent, fields)
         local value = args[2] or args.value or ''
         local len = args[3] or args.length or #value
 
-        item.run = function()
+        item.run = ro(item, function()
             local v, ok = _M.sEdit(item.prompt, value, len, item.units, item.unitsOther)
             if ok then
                 value = v
             end
-        end
+        end)
         item.getValue = function() return value end
         item.setValue = function(v) value = v end
         return add(item)
@@ -270,12 +281,12 @@ local function makeMenu(args, parent, fields)
         end
         set(args[2] or args.value)
 
-        function item.run()
+        item.run = ro(item, function()
             local v = _M.selectOption(item.prompt, { yesItem, noItem }, value, item.loop, item.units, item.unitsOther)
             if v then
                 set(v)
             end
-        end
+        end)
         item.getValue = function() return value end
         item.setValue = set
         return add(item)
@@ -294,42 +305,29 @@ local function makeMenu(args, parent, fields)
         local item = newItem(args)
         local reg = args[2] or args.register
 
+        local writePerm
+        local function checkWritable()
+            if writePerm == nil then
+                writePerm = private.getRegPermissions(reg).write
+            end
+            return writePerm
+        end
+
         item.show = function()
             _M.write('topLeft', item.prompt)
             _M.writeAuto('bottomLeft', reg)
+            _M.write('topRight', (item.readonly or not checkWritable()) and 'FIXD' or '')
         end
         item.hide = function()
             _M.writeAuto('bottomLeft', 'none')
         end
         item.update = null
-        item.run = function()
-            local v = _M.editReg(reg, item.prompt)
-            _M.write('bottomLeft', v, 'align=right')
-        end
-        return add(item)
-    end
-
--------------------------------------------------------------------------------
--- Add an auto register field to a menu.  Cannot be invoked.
--- @function auto
--- @param args Field arguments
--- @return The menu
--- @see FieldDefinition
--- @usage
--- local mymenu = device.createMenu { 'MYMENU' } . auto { 'MVV', 'absmvv' }
-    function menu.auto(args)
-        local item = newItem(args)
-        local reg = args[2] or args.register
-
-        item.show = function()
-            _M.write('topLeft', item.prompt)
-            _M.writeAuto('bottomLeft', reg)
-        end
-        item.hide = function()
-            _M.writeAuto('bottomLeft', 'none')
-        end
-        item.update = null
-        item.run = null
+        item.run = ro(item, function()
+            if checkWritable() then
+                local v = _M.editReg(reg, item.prompt)
+                _M.write('bottomLeft', v, 'align=right')
+            end
+        end)
         return add(item)
     end
 
@@ -347,12 +345,12 @@ local function makeMenu(args, parent, fields)
         local itemList = deepcopy(args[2] or args.value)
         local value = args.default or itemList[1]
 
-        item.run = function()
+        item.run = ro(item, function()
             local v = _M.selectOption(item.prompt, itemList, value, item.loop, item.units, item.unitsOther)
             if v then
                 value = v
             end
-        end
+        end)
         item.getValue = function() return value end
         item.setValue = function(v) value = v end
         item.setList = function(l) itemList = deepcopy(l) end
