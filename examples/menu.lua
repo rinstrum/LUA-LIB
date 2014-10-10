@@ -17,6 +17,7 @@ local device = rinApp.addK400("K401")   --  make a connection to the instrument
 local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .integer    { 'INT', 3, min=1, max=5 }          -- Add an integer item
     .integer    { 'ONE', 1 }                        -- Another integer without min and max limits
+    .integer    { 'UNWRIT', 16, readonly=true }     -- An unmodifiable integer
     .menu       { 'NUMBER', loop=true }             -- A submenu called NUMBERS
         .integer    { 'COUNT', 0, min=0, max=9 }
         .number     { 'SCALE', 1, min=0.9, max=1.1} -- A real number with limits
@@ -35,7 +36,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .menu       { 'REG', secondary = 'VIEWER' }
         .register   { 'USER 1', 'userid1' }
         .register   { 'USER 2', 'userid2', prompt = 'U2' }
-        .auto       { 'MVV', 'absmvv' }
+        .register   { 'MVV', 'absmvv' }
         .fin()
     .item       { 'PRESS', secondary = 'ME NOW',
                     run=function() print('hello user') end }

@@ -196,6 +196,12 @@ local function makeMenu(args, parent, fields)
         end)
         item.getValue = function() return value end
         item.setValue = function(v) value = v end
+        if type == 'passcode' then
+            item.update = cb(args.update, function()
+                _M.write('bottomLeft', string.rep('+', #tostring(value)), 'align=right')
+                return false
+            end)
+        end
         return add(item)
     end
 
