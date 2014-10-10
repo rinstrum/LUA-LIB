@@ -199,7 +199,7 @@ local waitPos = 1
 
 local display = {
     topleft = {
-        top = true, left = true,
+        top = true, left = true, localDisplay = true,
         length = 6,
         rightJustify = function(s) return rightJustify(s, 6) end,
         reg = REG_DISP_TOP_LEFT,
@@ -208,12 +208,12 @@ local display = {
         strlen = strLenR400,
         finalFormat = padDots,
         strsub = strSubR400,
-        units = 0,
-        auto = 0,       saveAuto = 0
+        units = nil,
+        auto = nil,       saveAuto = 0
     },
     
     topright = {
-        top = true, right = true,
+        top = true, right = true, localDisplay = true,
         length = 4,
         rightJustify = function(s) return rightJustify(s, 4) end,
         reg = REG_DISP_TOP_RIGHT,
@@ -223,7 +223,7 @@ local display = {
     },
 
     bottomleft = {
-        bottom = true,  left = true,
+        bottom = true,  left = true, localDisplay = true,
         length = 9,
         rightJustify = function(s) return rightJustify(s, 9) end,
         reg = REG_DISP_BOTTOM_LEFT,
@@ -232,12 +232,12 @@ local display = {
         strlen = strLenR400,
         finalFormat = padDots,
         strsub = strSubR400,
-        units = 0,
-        auto = 0,       saveAuto = 0
+        units = nil,
+        auto = nil,       saveAuto = 0
     },
 
     bottomright = {
-        bottom = true,  right = true,
+        bottom = true,  right = true, localDisplay = true,
         length = 8,
         rightJustify = function(s) return rightJustify(s, 8) end,
         reg = REG_DISP_BOTTOM_RIGHT,
@@ -389,7 +389,7 @@ local function writeAuto(f, register)
             f.current = nil
             f.currentReg = nil
             private.writeRegHexAsync(f.regAuto, reg)
-            f.saveAuto = f.auto
+            f.saveAuto = f.auto or 0
             f.auto = reg
         end
     end
@@ -465,7 +465,7 @@ local function write(f, s, params)
                 end
             end)
             _M.app.delayUntil(function() return not wait end)
-        elseif f.auto == 0 then
+        elseif f.auto == nil or f.auto == 0 then
             writeAuto(f, f.saveAuto)
         end
     end
@@ -479,7 +479,7 @@ end
 local function units(f, v)
     if f and f.regUnits ~= nil and f.units ~= v then
         private.writeReg(f.regUnits, v)
-        f.units = v
+        f.units = v or 0
     end
 end
 
@@ -495,17 +495,15 @@ local function map(p, f)
 end
 
 -------------------------------------------------------------------------------
--- Save the bottom left and right fields and units.
--- @return Function that restores the bottom fields to their current values
--- @usage
--- local restoreBottom = device.saveBottom()
--- device.writeBotLeft('fnord')
--- restoreBottom()
-function _M.saveBottom()
+-- Save the specified display fields and return a function that will restore
+-- them to their current settings.
+-- @param p Predicate that selects which elements to act on
+-- @return Function to restore selected display elements
+-- @local
+local function saver(p)
     local restorations = {}
-    map(function(v) return v.bottom end,
-        function(v)
-            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units })
+    map(p, function(v)
+            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units or 0 })
         end)
     return function()
         for _, v in ipairs(restorations) do
@@ -516,6 +514,29 @@ function _M.saveBottom()
 end
 
 -------------------------------------------------------------------------------
+-- Save the all display fields and fields and units.
+-- @return Function that restores the display fields to their current values
+-- @usage
+-- local restore = device.saveDisplay()
+-- device.writeBotLeft('fnord')
+-- restore()
+function _M.saveDisplay()
+    return saver(function(v) return v.localDisplay end)
+end
+
+-------------------------------------------------------------------------------
+-- Save the bottom left and right fields and units.
+-- @return Function that restores the bottom fields to their current values
+-- @usage
+-- local restoreBottom = device.saveBottom()
+-- device.writeBotLeft('fnord')
+-- restoreBottom()
+function _M.saveBottom()
+    return saver(function(v) return v.bottom end)
+end
+
+
+-------------------------------------------------------------------------------
 -- Save the top and bottom left field auto settings
 -- @return Function that restores the left auto fields to their current values
 -- @usage
@@ -524,8 +545,8 @@ function _M.saveAutoLeft()
     local restorations = {}
     map(function(v) return v.left end,
         function(v)
-            table.insert(restorations, { f=v, a=v.auto })
-            v.saveAuto = v.auto
+            v.saveAuto = v.auto or 0
+            table.insert(restorations, { f=v, a=v.saveAuto })
         end)
     return function()
         for _, v in ipairs(restorations) do
@@ -968,7 +989,7 @@ end
 -- @usage
 -- device.restoreLcd()
 function _M.restoreLcd()
-    map(function(v) return true end, function(v) write(v, '') end)
+    map(function(v) return v.localDisplay end, function(v) write(v, '') end)
     writeAuto(display.topleft, 'grossnet')
     writeAuto(display.bottomright, 0)
 
@@ -1079,7 +1100,7 @@ function deprecated.saveBot()
         function(v)
             v.saveCurrent = v.current
             v.saveParams = v.params
-            v.saveUnits = v.units
+            v.saveUnits = v.units or 0
         end)
 end
 
