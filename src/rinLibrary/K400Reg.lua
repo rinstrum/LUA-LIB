@@ -14,6 +14,7 @@ local timers = require 'rinSystem.rinTimers.Pack'
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local rinMsg = require 'rinLibrary.rinMessage'
+local bit32 = require "bit"
 
 local lpeg = require "rinLibrary.lpeg"
 local space, digit, P, S = lpeg.space, lpeg.digit, lpeg.P, lpeg.S
@@ -132,6 +133,10 @@ local typeMap = {
     [TYP_BLOB]              = 'blob',
     [TYP_EXECUTE]           = 'execute',
     [TYP_BITFIELD]          = 'bitfield'
+}
+
+local permissionsMap = {
+    [0] = true, [1] = 'safe', [2] = 'full', [3] = false
 }
 
 -- Pattern to ease the computation of the number of decimal places in a value
@@ -395,6 +400,21 @@ function private.getRegDecimalPlaces(reg)
         dpPattern:match(data)
         return dpCount
     end
+end
+
+-------------------------------------------------------------------------------
+-- Called to read a register's permissions
+-- @function getRegType
+-- @param reg Register to query
+-- @return The register permissions
+-- @local
+function private.getRegPermissions(reg)
+    local p = tonumber(sendRegWait('rdpermission', reg), 16)
+    return {
+        read = permissionsMap[bit32.band(3, p)],
+        write = permissionsMap[bit32.band(3, p * 0.25)],
+        sideEffects = bit32.band(0x80, p) == 0
+    }
 end
 
 -------------------------------------------------------------------------------
