@@ -63,8 +63,8 @@ enableMenu = device.createMenu { 'ENABLE MENU' }
         .integer    { 'C2', 4 }
         .fin()
     -- Menu items that turn on and off other items
-    .item       { 'ENABLE D', run=function() enableMenu.enable('D') end }
-    .item       { 'DISABLE D', run=function() enableMenu.disable('D') end }
+    .item       { '+ D', run=function() enableMenu.enable('D') end }
+    .item       { '- D', run=function() enableMenu.disable('D') end }
     .integer    { 'D', 5 }
     .exit       { 'QUIT' }
 device.setKeyCallback('f2', enableMenu.run, 'short')
