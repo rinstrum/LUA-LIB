@@ -71,12 +71,13 @@ return function (_M, private, deprecated)
 -- @field ref Reference name used to identify a field, this defaults to the name and must be
 -- unique through the entire menu and submenus.
 -- @field run Function to execute when field is activated.
+-- @field secondary Name of type of item which is displayed in the value area if field has no value.
 -- @field setList Function to set the contents of a list field.
 -- @field setValue Function to set the field's contents.
 -- @field show Function to execute when field is displayed.
 -- @field unitsOther Extra units annunciators to display when active.
 -- @field units Units annunciators to display when this field is active.
--- @field update Function that is called repeatedly while field is displayed.
+-- @field update Function that is called, until it returns false, while field is displayed.
 -- @field yes The name of the yes item in a boolean field (default: yes).
 -- @field length Length of a string field (usually the third positional argumnet would be used for this)
 -- @field name Name of field (usually the first positional argumnet would be used for this)
@@ -99,9 +100,12 @@ local function makeMenu(args, parent, fields)
 -- @param args arguments passed in by user
 -- @return New item
 -- @local
-    local function newItem(args)
+    local function newItem(args, typeName)
         local name = args[1] or args.name
-        local prompt = args.prompt or name
+        local prompt = name
+        if args.prompt ~= nil then
+            prompt = args.prompt
+        end
         if type(prompt) == 'string' then
             prompt = string.upper(prompt)
         end
@@ -121,21 +125,24 @@ local function makeMenu(args, parent, fields)
             units = args.units or 'none',
             unitsOther = args.unitsOther or 'none',
             loop = args.loop,
+            secondary = args.secondary or typeName or '',
 
             run = cb(args.run, function() print(r.name .. ' has no run function') end),
             show = cb(args.show, function()
-                _M.write('bottomRight', r.prompt)
-                _M.writeUnits('bottomLeft', r.units, r.unitsOther)
-            end),
+                    _M.write('topLeft', r.prompt)
+                    _M.writeUnits('bottomLeft', r.units, r.unitsOther)
+                end),
             hide = cb(args.hide, null),
             update = cb(args.update, function()
-                _M.write('bottomLeft', string.upper(menu[posn].name))
-            end),
+                    local m = callable(r.getValue) and r.getValue() or r.secondary
+                    _M.write('bottomLeft', m, 'align=right')
+                    return false
+                end),
             enabled = enabled
         }
         return r
     end
-    menu = newItem(args)
+    menu = newItem(args, 'MENU')
 
 -------------------------------------------------------------------------------
 -- Add an item to this menu
@@ -251,20 +258,25 @@ local function makeMenu(args, parent, fields)
 --                      .boolean { 'OKAY?' }
 --                      .boolean { 'COLOUR', true, 'RED', 'BLUE' }
     function menu.boolean(args)
+        local value
         local item = newItem(args)
-        local value = (args[2] or args.value) and true or false
         local yesItem = args[3] or args.yes or 'YES'
         local noItem = args[4] or args.no or 'NO'
         if args.loop == nil then item.loop = true end
 
-        item.run = function()
-            local v = _M.selectOption(item.prompt, { yesItem, noItem }, value and yesItem or noItem, item.loop, item.units, item.unitsOther)
+        local function set(v)
+            value = (canonical(v) == canonical(yesItem)) and yesItem or noItem
+        end
+        set(args[2] or args.value)
+
+        function item.run()
+            local v = _M.selectOption(item.prompt, { yesItem, noItem }, value, item.loop, item.units, item.unitsOther)
             if v then
-                value = v == yesItem
+                set(v)
             end
         end
         item.getValue = function() return value end
-        item.setValue = function(v) value = v and true or false end
+        item.setValue = set
         return add(item)
     end
 
@@ -281,14 +293,23 @@ local function makeMenu(args, parent, fields)
         local item = newItem(args)
         local reg = args[2] or args.register
 
+        item.show = function()
+            _M.write('topLeft', item.prompt)
+            _M.writeAuto('bottomLeft', reg)
+        end
+        item.hide = function()
+            _M.writeAuto('bottomLeft', 'none')
+        end
+        item.update = null
         item.run = function()
-            _M.editReg(reg, item.prompt)
+            local v = _M.editReg(reg, item.prompt)
+            _M.write('bottomLeft', v, 'align=right')
         end
         return add(item)
     end
 
 -------------------------------------------------------------------------------
--- Add an auto register field to a menu
+-- Add an auto register field to a menu.  Cannot be invoked.
 -- @function auto
 -- @param args Field arguments
 -- @return The menu
@@ -299,14 +320,15 @@ local function makeMenu(args, parent, fields)
         local item = newItem(args)
         local reg = args[2] or args.register
 
-        item.run = function()
-            local restoreBottom = _M.saveBottom()
-            _M.write('bottomRight', item.name)
+        item.show = function()
+            _M.write('topLeft', item.prompt)
             _M.writeAuto('bottomLeft', reg)
-            _M.getKey()
-            restoreBottom()
+        end
+        item.hide = function()
             _M.writeAuto('bottomLeft', 'none')
         end
+        item.update = null
+        item.run = null
         return add(item)
     end
 
@@ -524,7 +546,9 @@ local function makeMenu(args, parent, fields)
         for i = 1, #menu do
             p = private.addModBase1(p, dirn, #menu, menu.loop)
             if menu[p].enabled() then
+                menu[posn].hide()
                 posn = p
+                menu[posn].show()
                 return
             end
         end
@@ -537,8 +561,10 @@ local function makeMenu(args, parent, fields)
     local function runMenu()
         local okay = true
         menu.inProgress = true
+        menu[posn].show()
+        _M.write('bottomRight', menu.prompt)
         while _M.app.isRunning() and menu.inProgress do
-            menu.update()
+            menu[posn].update()
             local key = _M.getKey('arrow')
             if not _M.dialogRunning() or key == 'cancel' then
                 menu.inProgress = false
@@ -548,13 +574,13 @@ local function makeMenu(args, parent, fields)
             elseif key == 'up' then
                 move(-1)
             elseif key == 'ok' then
-                menu.hide()
-                menu[posn].show()
-                menu[posn].run()
                 menu[posn].hide()
-                menu.show()
+                menu[posn].run()
+                _M.write('bottomRight', menu.prompt)
+                menu[posn].show()
             end
         end
+        menu[posn].hide()
         return okay
     end
 
@@ -569,13 +595,11 @@ local function makeMenu(args, parent, fields)
         -- For the main root menu, do some extra bring up & pull down
         local leave = cb(args.leave, null)
         menu.run = function()
-            local restoreBottom = _M.saveBottom()
+            local restore = _M.saveDisplay()
             _M.startDialog()
-            menu.show()
             local okay = runMenu()
-            menu.hide()
             _M.abortDialog()
-            restoreBottom()
+            restore()
             leave(okay)
             return okay
         end
