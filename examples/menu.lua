@@ -23,7 +23,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
         .number     { 'FUDGE', 2.718281828495 }     -- Another real number
         .passcode   { 'SECRET', 1111 }              -- A pass code entry field
         .fin()                                      -- End the sub menu
-    .menu       { 'STRING' }
+    .menu       { 'STRING', secondary = 'EDITING' }
         .string     { 'SHORT', 'abc', 3 }           -- Three character string
         .string     { 'LONG', 'hello', 15 }         -- A longer string
         .fin        {}
