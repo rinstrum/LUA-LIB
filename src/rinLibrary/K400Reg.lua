@@ -411,8 +411,8 @@ end
 function private.getRegPermissions(reg)
     local p = tonumber(sendRegWait('rdpermission', reg), 16)
     return {
-        read = permissionsMap[bit32.band(3, p)],
-        write = permissionsMap[bit32.band(3, p * 0.25)],
+        read = permissionsMap[p % 4],
+        write = permissionsMap[math.floor(p/4) % 4],
         sideEffects = bit32.band(0x80, p) == 0
     }
 end
