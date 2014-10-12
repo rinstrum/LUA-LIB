@@ -44,11 +44,15 @@ local function True()   return true     end
 local function False()  return false    end
 
 -------------------------------------------------------------------------------
--- A function that checks for a readonly field and returns a null function if so
--- @return null function or f
+-- A function that wrappers another function with a check for a readonly field
+-- @return wrappered function
 -- @local
 local function ro(item, f)
-    return item.readonly and null or f
+    return function(...)
+        if not item.readonly then
+            return f(...)
+        end
+    end
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -474,24 +478,39 @@ local function makeMenu(args, parent, fields)
         end
 
 -------------------------------------------------------------------------------
--- Disable a field.
--- Disabling the currently displayed field is not a supported operation.
--- @function disable
--- @param ref Name of field
--- @usage
--- menu.disable('name')
-        function menu.disable(ref)
-            menu.findField(ref).enabled = False
-        end
-
--------------------------------------------------------------------------------
 -- Enable a field
 -- @function enable
 -- @param ref Name of field
+-- @param state Boolean indicating if the field should be enabled (true)
+-- or disabled (false)
 -- @usage
 -- menu.enable('name')
-        function menu.enable(ref)
-            menu.findField(ref).enabled = True
+        function menu.enable(ref, state)
+            menu.findField(ref).enabled = state and True or False
+        end
+
+-------------------------------------------------------------------------------
+-- Query if a field is currently read only
+-- @function isReadonly
+-- @param ref Name of field
+-- @return true iff the field is currently read only
+-- @usage
+-- if not menu.isReadonly('name') then print('name can be changed') end
+        function menu.isReadonly(ref)
+            local r = menu.findField(ref)
+            return r and r.readonly
+        end
+
+-------------------------------------------------------------------------------
+-- Change the read only setting for a field
+-- @function setReadonly
+-- @param ref Name of field
+-- @param state Boolean indicating if the field should be read only (true)
+-- or writable (false)
+-- @usage
+-- menu.setReadonly('name')
+        function menu.setReadonly(ref, state)
+            menu.findField(ref).readonly = state and true or false
         end
 
 -------------------------------------------------------------------------------

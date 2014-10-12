@@ -64,8 +64,10 @@ enableMenu = device.createMenu { 'ENABLE MENU' }
         .integer    { 'C2', 4 }
         .fin()
     -- Menu items that turn on and off other items
-    .item       { '+ D', run=function() enableMenu.enable('D') end }
-    .item       { '- D', run=function() enableMenu.disable('D') end }
+    -- Also an item that toggles the read only status of another
+    .item       { '+  D', run=function() enableMenu.enable('D', true)  end }
+    .item       { '-  D', run=function() enableMenu.enable('D', false) end }
+    .item       { 'ro D', run=function() enableMenu.setReadonly('D', not enableMenu.isReadonly('D'))  end }
     .integer    { 'D', 5 }
     .exit       { 'QUIT' }
 device.setKeyCallback('f2', enableMenu.run, 'short')
