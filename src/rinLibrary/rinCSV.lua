@@ -262,6 +262,8 @@ end
 -- If the source table doesn't include the labels, then all fields will be loaded
 -- and the labels will be filled in as per the file.
 -- @param t is table, optionally with structure of expected CSV included
+-- @param logFileOnly Optional boolean that, if true, means this is a log file
+-- which won't be loaded into memory, by default the file will be loaded.
 -- @return CSV table
 -- @return A result code describing what was done (see below for explanation)
 -- @see saveCSV
@@ -273,7 +275,7 @@ end
 -- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
-function _M.loadCSV(t)
+function _M.loadCSV(t, logFileOnly)
 
     local f = io.open(t.fname,"r")
     local res = nil
@@ -301,8 +303,10 @@ function _M.loadCSV(t)
 
                 -- Clear the current table and read in the existing data
                 t.data = {}
-                for s in f:lines() do
-                    table.insert(t.data, _M.fromCSV(s))
+                if logFileOnly ~= true then
+                    for s in f:lines() do
+                        table.insert(t.data, _M.fromCSV(s))
+                    end
                 end
                 f:close()
                 res = "load"
@@ -313,17 +317,21 @@ function _M.loadCSV(t)
                 local n, fieldmap = checkCommonFields(t.labels, fieldnames)
                 if n ~= 0 then
                     t.data = {}
-                    for s in f:lines() do
-                        local fields = _M.fromCSV(s)
-                        local row = {}
-                        for i = 1, #fieldmap do
-                            if fieldmap[i] == '' then
-                                table.insert(row, '')
-                            else
-                                table.insert(row, fields[fieldmap[i]])
+                    if logFileOnly ~= true then
+                        for s in f:lines() do
+                            local fields = _M.fromCSV(s)
+                            local row = {}
+                            for i = 1, #fieldmap do
+                                if fieldmap[i] == '' then
+                                    table.insert(row, '')
+                                else
+                                    table.insert(row, fields[fieldmap[i]])
+                                end
                             end
+                            table.insert(t.data, row)
                         end
-                        table.insert(t.data, row)
+                    else
+                        dbg.error('loadCSV:', 'log file format is different, no logging will take place until a save')
                     end
                     f:close()
 
