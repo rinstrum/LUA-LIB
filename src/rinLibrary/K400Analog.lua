@@ -37,7 +37,10 @@ local lastAnalogue = nil
 local analogSourceMap = {   comms = 3    }
 
 -------------------------------------------------------------------------------
--- Set the analog output type
+-- Set the analog output type.
+--
+-- This call saves display settings and permissions will be reset and an
+-- initialisation event will occur.
 -- @param source Source for output.
 -- Must be set to 'comms' to control directly
 -- @usage
