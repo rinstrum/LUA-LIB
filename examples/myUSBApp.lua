@@ -104,6 +104,16 @@ end
 usb.serialUSBdeviceHandler(usbSerialHandler)
 
 -------------------------------------------------------------------------------
+-- Callback for USB storage events
+local function usbStorageAppears(where)
+    print(where..' has appeared')
+end
+usb.setStorageAddedCallback(usbStorageAppears)
+
+local function usbStorageDisappears()
+    print('USB storage has gone')
+end
+usb.setStorageRemovedCallback(usbStorageDisappears)
 
 -------------------------------------------------------------------------------
 -- Callback for local timer

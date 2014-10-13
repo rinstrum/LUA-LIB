@@ -174,7 +174,7 @@ end
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
--- usb.setStorageRemovedCallback(function(mnt) print('USB storage '..mnt..' has gone') end)
+-- usb.setStorageRemovedCallback(function() print('USB storage has gone') end)
 function _M.setStorageRemovedCallback(callback)
     utils.checkCallback(callback)
     local r = userStorageRemovedCallback
@@ -233,11 +233,11 @@ local function usbCallback(t)
         elseif v[1] == 'partition' then
             if v[2] == 'added' then
                 if utils.callable(userStorageAddedCallback) then
-                    userStorageAddedCallback(t[3])
+                    userStorageAddedCallback(v[3])
                 end
             elseif v[2] == 'removed' then
                 if utils.callable(userStorageRemovedCallback) then
-                    userStorageRemovedCallback(t[3])
+                    userStorageRemovedCallback()
                 end
             end
         end
