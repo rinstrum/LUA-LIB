@@ -48,7 +48,7 @@ local analogSourceMap = {   comms = 3    }
 function _M.setAnalogSource(source)
     local src = naming.convertNameToValue(source, analogSourceMap)
     private.writeReg(REG_ANALOGUE_SOURCE, src)
-    private.saveSettings()
+    _M.saveSettings()
 end
 
 -------------------------------------------------------------------------------

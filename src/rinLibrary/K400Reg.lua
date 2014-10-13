@@ -482,7 +482,7 @@ function _M.loadRIS(filename, calibration)
         end
     end
     private.setCRCmode(oldCRC)
-    private.saveSettings()
+    _M.saveSettings()
     file:close()
 end
 

@@ -104,9 +104,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to save any changed settings and re-initialise instrument
--- @function saveSettings
--- @local
-function private.saveSettings()
+-- @usage
+-- device.saveSettings()
+function _M.saveSettings()
     private.exReg(REG_SAVESETTING)
 end
 
@@ -330,7 +330,6 @@ deprecated.REG_SOFTVER              = REG_SOFTVER
 deprecated.REG_SERIALNO             = private.REG_SERIALNO
 
 deprecated.readSettings = private.readSettings
-deprecated.saveSettings = private.saveSettings
 deprecated.system = system
 deprecated.settings = settings
 deprecated.units = units
