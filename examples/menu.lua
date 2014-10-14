@@ -40,7 +40,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
         .fin()
     .item       { 'PRESS', secondary = 'ME NOW',
                     run=function() print('hello user') end }
-    .exit       { 'QUIT' }
+    .exit       { 'quit', uppercasePrompt = false } -- don't upper case this one
 
 device.write('bottomLeft', 'WELCOME TO THE MENU EXAMPLE')
 device.write('bottomRight', 'F3 FOR THE MENU F2 FOR ENABLES')
