@@ -55,6 +55,19 @@ local function ro(item, f)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Interogate an item and return the appropriate prompt for it
+-- @param item Item to be prompted for
+-- @return Prompt for the item
+-- @local
+local function getPrompt(item)
+    local p = item.prompt
+    if item.uppercasePrompt and type(p) == 'string' then
+        p = string.upper(p)
+    end
+    return p
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -91,6 +104,7 @@ return function (_M, private, deprecated)
 -- @field unitsOther Extra units annunciators to display when active.
 -- @field units Units annunciators to display when this field is active.
 -- @field update Function that is called, until it returns false, while field is displayed.
+-- @field uppercasePrompt Boolean to force the prompt to be upper case or not (default: true for upper case)
 -- @field yes The name of the yes item in a boolean field (default: yes).
 -- @field length Length of a string field (usually the third positional argumnet would be used for this)
 -- @field name Name of field (usually the first positional argumnet would be used for this)
@@ -120,9 +134,6 @@ local function makeMenu(args, parent, fields)
         if args.prompt ~= nil then
             prompt = args.prompt
         end
-        if type(prompt) == 'string' then
-            prompt = string.upper(prompt)
-        end
 
         local enabled
         if type(args.enabled) == 'boolean' then
@@ -136,6 +147,7 @@ local function makeMenu(args, parent, fields)
             name = name,
             ref = canonical(args.ref or name),
             prompt = prompt,
+            uppercasePrompt = (args.uppercasePrompt == nil) and true or args.uppercasePrompt,
             units = args.units or 'none',
             unitsOther = args.unitsOther or 'none',
             loop = args.loop,
@@ -144,7 +156,7 @@ local function makeMenu(args, parent, fields)
 
             run = cb(args.run, null),
             show = cb(args.show, function()
-                    _M.write('topLeft', r.prompt)
+                    _M.write('topLeft', getPrompt(r))
                     _M.writeUnits('bottomLeft', r.units, r.unitsOther)
                     _M.write('topRight', r.readonly and 'FIXD' or '')
                 end),
@@ -191,7 +203,7 @@ local function makeMenu(args, parent, fields)
         local min, max = args.min, args.max
 
         item.run = ro(item, function()
-            local v, ok = _M.edit(item.prompt, value, type, item.units, item.unitsOther)
+            local v, ok = _M.edit(getPrompt(item), value, type, item.units, item.unitsOther)
             if ok then
                 if min then v = math.max(min, v) end
                 if max then v = math.min(max, v) end
@@ -259,7 +271,7 @@ local function makeMenu(args, parent, fields)
         local len = args[3] or args.length or #value
 
         item.run = ro(item, function()
-            local v, ok = _M.sEdit(item.prompt, value, len, item.units, item.unitsOther)
+            local v, ok = _M.sEdit(getPrompt(item), value, len, item.units, item.unitsOther)
             if ok then
                 value = v
             end
@@ -292,7 +304,7 @@ local function makeMenu(args, parent, fields)
         set(args[2] or args.value)
 
         item.run = ro(item, function()
-            local v = _M.selectOption(item.prompt, { yesItem, noItem }, value, item.loop, item.units, item.unitsOther)
+            local v = _M.selectOption(getPrompt(item), { yesItem, noItem }, value, item.loop, item.units, item.unitsOther)
             if v then
                 set(v)
             end
@@ -334,7 +346,7 @@ local function makeMenu(args, parent, fields)
         item.update = null
         item.run = ro(item, function()
             if checkWritable() then
-                local v = _M.editReg(reg, item.prompt)
+                local v = _M.editReg(reg, getPrompt(item))
                 _M.write('bottomLeft', v, 'align=right')
             end
         end)
@@ -356,7 +368,7 @@ local function makeMenu(args, parent, fields)
         local value = args.default or itemList[1]
 
         item.run = ro(item, function()
-            local v = _M.selectOption(item.prompt, itemList, value, item.loop, item.units, item.unitsOther)
+            local v = _M.selectOption(getPrompt(item), itemList, value, item.loop, item.units, item.unitsOther)
             if v then
                 value = v
             end
@@ -586,7 +598,7 @@ local function makeMenu(args, parent, fields)
         local okay = true
         menu.inProgress = true
         menu[posn].show()
-        _M.write('bottomRight', menu.prompt)
+        _M.write('bottomRight', getPrompt(menu))
         while _M.app.isRunning() and menu.inProgress do
             menu[posn].update()
             local key = _M.getKey('arrow')
@@ -600,7 +612,7 @@ local function makeMenu(args, parent, fields)
             elseif key == 'ok' then
                 menu[posn].hide()
                 menu[posn].run()
-                _M.write('bottomRight', menu.prompt)
+                _M.write('bottomRight', getPrompt(menu))
                 menu[posn].show()
             end
         end

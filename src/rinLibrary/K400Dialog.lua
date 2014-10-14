@@ -636,7 +636,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     editing = true
     endDisplayMessage()
     local restoreBottom = _M.saveBottom()
-    _M.write('bottomRight', string.upper(prompt))
+    _M.write('bottomRight', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
     _M.startDialog()
@@ -681,7 +681,6 @@ end
 --     print('selection ' .. i .. ' is ' .. selections[i])
 -- end
 function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
-    prompt = string.upper(prompt)
     local index = 1
     local opts = options.get()
     local origSelected = options.getSelected()
@@ -741,7 +740,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     editing = true
     endDisplayMessage()
     local restoreBottom = _M.saveBottom()
-    _M.write('topLeft', string.upper(prompt))
+    _M.write('topLeft', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
     
     _M.startDialog()
