@@ -37,10 +37,10 @@ describe("analog #analog", function ()
 
         for i, v in pairs({ {'comms', comms}, {0, 0}, {comms, comms} }) do
             it("test "..i, function()
-                stub(p, 'saveSettings')
+                stub(m, 'saveSettings')
                 z.checkWriteReg(m, {{ r=regSource, v[2] }}, m.setAnalogSource, v[1])
-                assert.stub(p.saveSettings).was.called(1)
-                p.saveSettings:revert()
+                assert.stub(m.saveSettings).was.called(1)
+                m.saveSettings:revert()
             end)
         end
     end)
