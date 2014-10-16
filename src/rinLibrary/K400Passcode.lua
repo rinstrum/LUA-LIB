@@ -123,18 +123,18 @@ function _M.changePasscode(pc, oldCode, newCode)
         if not newCode then
             local pass, ok = _M.edit('NEW','','passcode')
             if not ok then
-               return false
+               return false, nil
             end
             newCode = pass
         end
         local m, err = private.writeRegHex(pcodeData, _M.toPrimary(newCode, 0), 1.0)
         if not m then
-            return false
+            return false, nil
         else
-            return true
+            return true, newCode
         end
     end
-    return false
+    return false, nil
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
