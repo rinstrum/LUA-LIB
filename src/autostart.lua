@@ -49,7 +49,7 @@ return function(directory, main)
     -- Only get here if something goes horribly wrong
     local rinApp = require 'rinApp'
     local usb = require "rinLibrary.rinUSB"
-    local dev = rinApp.addK400('K401', '172.17.1.116')
+    local dev = rinApp.addK400('K401')
     local usbPath = nil
 
 -------------------------------------------------------------------------------
@@ -71,7 +71,7 @@ return function(directory, main)
 -- Copy lua, ini, csv, ris and txt files from the USB to the execution directory
 -- @local
     local function copyFrom()
-        for _, s in pairs{ 'lua', 'ini', 'csv', 'ris', 'txt' } do
+        for _, s in pairs{ 'lua', 'luac', 'ini', 'csv', 'ris', 'txt' } do
             os.execute('cp '..usbPath..'/*.'..s..' '..directory..'/')
         end
         os.execute('sync')
