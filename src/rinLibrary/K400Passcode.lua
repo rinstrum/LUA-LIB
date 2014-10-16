@@ -111,6 +111,7 @@ end
 -- @param oldCode passcode to unlock, nil to prompt user
 -- @param newCode passcode to set, nil to prompt user
 -- @return true if successful
+-- @return new pass code if successful, nil otherwise
 -- @usage
 -- local pc = device.selectOption('ENTER PASSCODE', {'full', 'safe', 'oper'}, 'full', true)
 -- if pc then
