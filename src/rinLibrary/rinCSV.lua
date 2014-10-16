@@ -37,6 +37,37 @@ local sizings = nil
 -- Functions to manage CSV files directly
 -- @section CSV
 
+--- CSV table file fields
+--
+-- A CSV table contains a number of controlling fields.  These fields should
+-- only be set initially and not during the lifetime of the CSV table.
+-- @table CVSFields
+-- @field fname Name of the CSV file, if not specified file cannot be loaded or
+-- saved.
+-- @field labels Names of columns of the CSV table.  If not specifed, this will
+-- be determined from the first line of the CSV file.
+-- @field data Data table inside the CSV table.  Generally, leave this nil as
+-- this module takes care of it.
+-- @field noLoad Set to true to disable loading the data in the loadCSV call.
+-- Use this for log files which are only appended to.
+-- @field saveMode Specify the write to backing store behavior.
+-- @see saveMode
+
+--- CSV saveMode options
+--
+-- The CSV saveMode setting changes the rapidity of the commiting of changes to
+-- backing store.
+-- @table saveMode
+-- @field safe Always commit changes immediately.  This is the safest and
+-- slowest option but it minimises the damage caused by an unexpected power
+-- loss.  This is the default.
+-- @field fast Schedule changes immediately but don't wait for them to fully
+-- commit before continuing.
+-- @field unsafe Never schedule change commits explicitly.  Instead the
+-- underlying file system's methods are used.  This can mean a delay of up to
+-- thirty second between making a change and that change being committed to
+-- backing storage.
+
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
 -- @param s CSV string
@@ -151,7 +182,11 @@ end
 -- @param t Table to force to disc
 -- @local
 local function sync(t)
-    xeq("sync")
+    if t.saveMode == 'fast' then
+        xeq("sync &")
+    elseif t.saveMode ~= 'unsafe' then
+        xeq("sync")
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -173,7 +208,7 @@ local function appendrow(t, s)
     local f = io.open(t.fname, "a+")
     writerow(f, s)
     f:close()
-    sync()
+    sync(t)
 end
 
 -------------------------------------------------------------------------------
@@ -248,7 +283,7 @@ function _M.saveCSV(t)
             end
         end
         f:close()
-        sync()
+        sync(t)
 
         t.differentOnFileSystem = nil
     end
@@ -262,7 +297,6 @@ end
 -- If the source table doesn't include the labels, then all fields will be loaded
 -- and the labels will be filled in as per the file.
 -- @param t is table, optionally with structure of expected CSV included
--- @param logFileOnly Optional boolean that, if true, means this is a log file
 -- which won't be loaded into memory, by default the file will be loaded.
 -- @return CSV table
 -- @return A result code describing what was done (see below for explanation)
@@ -275,7 +309,7 @@ end
 -- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
-function _M.loadCSV(t, logFileOnly)
+function _M.loadCSV(t)
 
     local f = io.open(t.fname,"r")
     local res = nil
@@ -303,7 +337,7 @@ function _M.loadCSV(t, logFileOnly)
 
                 -- Clear the current table and read in the existing data
                 t.data = {}
-                if logFileOnly ~= true then
+                if t.noLoad ~= true then
                     for s in f:lines() do
                         table.insert(t.data, _M.fromCSV(s))
                     end
@@ -317,7 +351,7 @@ function _M.loadCSV(t, logFileOnly)
                 local n, fieldmap = checkCommonFields(t.labels, fieldnames)
                 if n ~= 0 then
                     t.data = {}
-                    if logFileOnly ~= true then
+                    if t.noLoad ~= true then
                         for s in f:lines() do
                             local fields = _M.fromCSV(s)
                             local row = {}
