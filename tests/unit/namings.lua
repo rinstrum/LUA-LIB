@@ -20,6 +20,7 @@ describe("canonical form #canonical", function()
         { res = "ab cd",    val = "  ab cd  " },
         { res = "ab cd",    val = "  ab   cd  " },
         { res = "ab cd",    val = "ab    cd" },
+        { res = "ab cd",    val = "ab    cd" },
         { res = "a\000b",   val = " \t\r\n\f\va\000b \r\t\n\f\v" },
         { res = "abc",      val = '  AbC  ' }
     }

@@ -12,13 +12,20 @@ local Cs, spc = lpeg.Cs, lpeg.space
 local nspc = 1 - spc
 
 local canonPat = spc^0 * Cs(nspc^0 * (spc^1 / ' ' * nspc^1)^0) * spc^0
+local canonCache = setmetatable({}, { __mode = "kv" })
 
 -------------------------------------------------------------------------------
 -- @param s String to convert
 -- @return Canonical form for string
 -- @local
 local function canonical(s)
-    return string.lower(canonPat:match(tostring(s)))
+    s = tostring(s)
+    local r = canonCache[s]
+    if r == nil then
+        r = string.lower(canonPat:match(s))
+        canonCache[s] = r
+    end
+    return r
 end
 
 -------------------------------------------------------------------------------
