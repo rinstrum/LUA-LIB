@@ -48,6 +48,21 @@ return function(directory, main)
     local usbPath, usbPackages = nil, nil
 
 -------------------------------------------------------------------------------
+-- Convert a string into a case insensitive glob string
+-- @paraqm s String
+-- @return Glob string
+-- @local
+    local function mix(s)
+        local r = {}
+        for i = 1, #s do
+            local c = s:sub(i, i)
+            local cu, cl = string.upper(c), string.lower(c)
+            table.insert(r, (cu == cl) and c or ('['..cu..cl..']'))
+        end
+        return table.concat(r)
+    end
+
+-------------------------------------------------------------------------------
 -- Copy the execution directory to USB as a tar file
 -- @local
     local function copyTo()
@@ -69,7 +84,7 @@ return function(directory, main)
     local function copyFrom()
         dev.write('topRight', 'LOAD', 'wait, time=.3')
         for _, s in pairs{ 'lua', 'luac', 'ini', 'csv', 'ris', 'txt' } do
-            os.execute('cp '..usbPath..'/*.'..s..' '..directory..'/')
+            os.execute('cp '..usbPath..'/*.'..mix(s)..' '..directory..'/')
         end
         os.execute('sync')
         dev.write('topRight', 'DONE LOAD', 'time=1, clear')
@@ -120,7 +135,7 @@ return function(directory, main)
     usb.setStorageAddedCallback(function(where)
         usbPath = where
         usbPackages = posix.glob(where .. '/*.[oOrR][Pp][kK]')
-        local recover = posix.glob(where .. '/[rR][eE][cC][oO][vV][eE][rR][yY].[lL][uU][aA]')
+        local recover = posix.glob(where .. mix('/recovery.lua'))
         if recover then
             dev.write('bottomRight', #recover > 1 and 'SCRIPTS' or 'SCRIPT')
             dev.write('bottomLeft', 'RUNNING', 'wait, time=.3, align=right')
