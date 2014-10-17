@@ -31,20 +31,6 @@ describe("analog #analog", function ()
     end)
 
     -- These tests are digging deep into the non-exposed internals
-    describe("source", function()
-        local m, p = makeModule()
-        local z = require "tests.messages"
-
-        for i, v in pairs({ {'comms', comms}, {0, 0}, {comms, comms} }) do
-            it("test "..i, function()
-                stub(m, 'saveSettings')
-                z.checkWriteReg(m, {{ r=regSource, v[2] }}, m.setAnalogSource, v[1])
-                assert.stub(m.saveSettings).was.called(1)
-                m.saveSettings:revert()
-            end)
-        end
-    end)
-
     describe("type", function()
         local m, p = makeModule()
         local z = require "tests.messages"
