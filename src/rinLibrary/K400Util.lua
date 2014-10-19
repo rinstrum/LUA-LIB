@@ -314,7 +314,7 @@ function _M.restart(what)
         os.execute('sync')
 
         private.exRegAsync(REG_RESTART)
-        rinApp.delay(0.5)
+        _M.app.delay(0.5)
     end
 
     os.execute('reboot')
