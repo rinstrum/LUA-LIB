@@ -40,7 +40,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
         .fin()
     .item       { 'PRESS', secondary = 'ME NOW',
                     run=function() print('hello user') end }
-    .exit       { 'quit', uppercasePrompt = false } -- don't upper case this one
+    .item       { 'quit', uppercasePrompt = false, exit=true } -- don't upper case this one
 
 device.write('bottomLeft', 'WELCOME TO THE MENU EXAMPLE')
 device.write('bottomRight', 'F3 FOR THE MENU F2 FOR ENABLES')
@@ -69,7 +69,7 @@ enableMenu = device.createMenu { 'ENABLE MENU' }
     .item       { '-  D', run=function() enableMenu.enable('D', false) end }
     .item       { 'ro D', run=function() enableMenu.setReadonly('D', not enableMenu.isReadonly('D'))  end }
     .integer    { 'D', 5 }
-    .exit       { 'QUIT' }
+    .item       { 'QUIT', exit=true }
 device.setKeyCallback('f2', enableMenu.run, 'short')
 
 

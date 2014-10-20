@@ -83,6 +83,7 @@ return function (_M, private, deprecated)
 -- @field default Default item in a list selection.
 -- @field enabled Boolean or function returning a boolean to indicate if this
 -- field should be visible or not.
+-- #field exit Boolean, true means selecting this item exits the containing menu.
 -- @field getValue Function to return the value of a field's contents.
 -- @field hide Function to execute when field is moved away from.
 -- @field leave Function to execute when leaving the top level menu, it is passed a boolean
@@ -153,6 +154,7 @@ local function makeMenu(args, parent, fields)
             loop = args.loop,
             secondary = args.secondary or typeName or '',
             readonly = args.readonly or false,
+            exit = args.exit or false,
 
             run = cb(args.run, null),
             show = cb(args.show, function()
@@ -416,17 +418,12 @@ local function makeMenu(args, parent, fields)
     end
 
 -------------------------------------------------------------------------------
--- Add an exit menu item to a menu
--- @function exit
--- @param args Field arguments
--- @return The menu
--- @see FieldDefinition
+-- Terminate a menu
+-- @function finish
 -- @usage
--- local mymenu = device.createMenu { 'MYMENU' } . exit { 'QUIT' }
-    function menu.exit(args)
-        local item = newItem(args)
-        item.run = function() menu.inProgress = false end
-        return add(item)
+-- mymenu.finish()
+    function menu.finish()
+        menu.inProgress = false
     end
 
 
@@ -603,17 +600,17 @@ local function makeMenu(args, parent, fields)
             menu[posn].update()
             local key = _M.getKey('arrow')
             if not _M.dialogRunning() or key == 'cancel' then
-                menu.inProgress = false
+                menu.finish()
                 okay = false
             elseif key == 'down' then
                 move(1)
             elseif key == 'up' then
                 move(-1)
             elseif key == 'ok' then
-                menu[posn].hide()
-                menu[posn].run()
+                local m = menu[posn]
+                m.hide()    m.run()     m.show()
                 _M.write('bottomRight', getPrompt(menu))
-                menu[posn].show()
+                if m.exit == true then menu.finish() end
             end
         end
         menu[posn].hide()
