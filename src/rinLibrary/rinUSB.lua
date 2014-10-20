@@ -208,12 +208,10 @@ end
 local function eventCallback(sock)
     local ev = ev_lib and ev_lib.getEvent(sock)
     if ev then
-        if utils.callable(userUSBEventCallback) then
-            userUSBEventCallback(ev)
-        end
+        utils.call(userUSBEventCallback, ev)
         local key = kb_lib and kb_lib.getR400Keys(ev)
-        if key and utils.callable(userUSBKBDCallback) then
-            userUSBKBDCallback(key)
+        if key then
+            utils.call(userUSBKBDCallback, key)
         end
     end
 end
@@ -236,23 +234,15 @@ local function usbCallback(t)
             end
         elseif v[1] == 'partition' then
             if v[2] == 'added' then
-                if utils.callable(userStorageAddedCallback) then
-                    userStorageAddedCallback(v[3])
-                end
+                utils.call(userStorageAddedCallback, v[3])
             elseif v[2] == 'removed' then
-                if utils.callable(userStorageRemovedCallback) then
-                    userStorageRemovedCallback()
-                end
+                utils.call(userStorageRemovedCallback)
             end
         end
     end
 
-    if utils.callable(libUSBSerialCallback) then
-        libUSBSerialCallback(t)
-    end
-    if utils.callable(userUSBRegisterCallback) then
-        userUSBRegisterCallback(t)
-    end
+    utils.call(libUSBSerialCallback, t)
+    utils.call(userUSBRegisterCallback, t)
 end
 
 -------------------------------------------------------------------------------

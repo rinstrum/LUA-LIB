@@ -31,7 +31,7 @@ end
 -- local utils = require 'rinSystem.utilities'
 --
 -- function callbackEnabler(cb)
---     checkCallback(cb)
+--     utils.checkCallback(cb)
 --     rememberCallback = cb
 -- end
 --
@@ -45,6 +45,21 @@ function _M.checkCallback(cb)
         error('rinSystem: callback specified but not a function or nil')
     end
     return r
+end
+
+-------------------------------------------------------------------------------
+-- Call a callback if it is callable, do nothing otherwise
+-- @param cb Callback to call
+-- @param ... Arguments to be passed to call back
+-- @return The callback's return values
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- utils.call(myCallback, 1, 2, 'hello')
+function _M.call(cb, ...)
+    if _M.callable(cb) then
+        return cb(...)
+    end
 end
 
 return _M

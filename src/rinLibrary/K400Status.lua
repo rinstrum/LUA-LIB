@@ -375,12 +375,8 @@ local function eStatusCallback(data, err)
                 local estatName = naming.convertValueToName(k, estatusUnmap, nil)
                 v.lastStatus = status
                 v.running = true
-                if utils.callable(v.mainf) then
-                    v.mainf(estatName, status ~= 0)
-                end
-                if utils.callable(v.f) then
-                    v.f(estatName, status ~= 0)
-                end
+                utils.call(v.mainf, estatName, status ~= 0)
+                utils.call(v.f, estatName, status ~= 0)
                 v.running = false
             end
          end
