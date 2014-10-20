@@ -49,7 +49,7 @@ return function(directory, main)
 
 -------------------------------------------------------------------------------
 -- Convert a string into a case insensitive glob string
--- @paraqm s String
+-- @param s String
 -- @return Glob string
 -- @local
     local function mix(s)
