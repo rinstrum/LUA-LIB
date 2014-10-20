@@ -12,6 +12,9 @@ local socks = require "rinSystem.rinSockets.Pack"
 local dbg = require "rinLibrary.rinDebug"
 local rs232 = require "luars232"
 local utils = require 'rinSystem.utilities'
+local partition = require "dm.partition"
+local timers = require 'rinSystem.rinTimers.Pack'
+local posix = require 'posix'
 
 local usb, ev_lib, kb_lib
 if pcall(function() usb = require "devicemounter" end) then
@@ -28,6 +31,7 @@ local libUSBSerialCallback = nil
 local eventDevices = {}
 
 local userStorageRemovedCallback, userStorageAddedCallback = nil, nil
+local storageEvent = nil
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
@@ -359,6 +363,118 @@ function _M.deprecatedUSBhandlers(app)
                         end
         end
     end
+end
+
+-------------------------------------------------------------------------------
+--- USB Storage Helper Functions
+--
+-- A selection of functions to make accessing USB storage devices a little
+-- easier.
+-- @section Storage Helpers
+
+-------------------------------------------------------------------------------
+-- Schedule a file commit but don't run it until event processing occurs.
+--
+-- This allows this function to be called liberally without incurring undue
+-- overhead.
+-- device.commitFileChanges()
+function _M.commitFileChanges()
+    if storageEvent == nil then
+        storageEvent = timers.addEvent(function()
+            storageEvent = nil
+            os.execute('sync &')
+        end)
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Make a directory, if one doesn't already exist in that location.
+-- @param path Path to the directory
+-- @return Result code, 0 being no error
+-- @usage
+-- device.makeDirectory(usbMountPoint .. '/logFile/myLogs')
+function _M.makeDirectory(path)
+    _M.commitFileChanges()
+    return os.execute('mkdir -p "'..path..'"')
+end
+
+-------------------------------------------------------------------------------
+-- Copy all files in the specified directory to the destination
+-- @param src Source diretory or mount point
+-- @param dest Destination directory or mount point
+-- @return Result code, 0 being no error
+-- @usage
+-- device.copyDirectory(dataPath, usbPath)
+function _M.copyDirectory(src, dest)
+    _M.makeDirectory(dest)
+    return os.execute('cp -a "'..src..'"/* "'..dest..'"/')
+end
+
+-------------------------------------------------------------------------------
+-- Copy all files containing name from the source to the destination
+-- @param src Source file
+-- @param dest Destination file
+-- @return Result code, 0 being no error
+-- @usage
+-- device.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
+function _M.copyFile(src, dest)
+    _M.commitFileChanges()
+    return os.execute('cp -dp "'..src..'" "'..dest..'"')
+end
+
+-------------------------------------------------------------------------------
+-- Copy all files containing name from the source to the destination
+-- @param src Source diretory or mount point
+-- @param dest Destination directory or mount point
+-- @param name Fragment in file name to check for
+-- @return Result code, 0 being no error
+-- @usage
+-- device.copyFiles(localPath, usbPath, '.txt')
+function _M.copyFiles(src, dest, name)
+    if name == nil then
+        return _M.copyDirectory(src, dest)
+    end
+    _M.makeDirectory(dest)
+    return os.execute('cp -dp "'..src..'"/*"'..name..'"* "'..dest..'"/')
+end
+
+-------------------------------------------------------------------------------
+-- Install a specified package into the system
+--
+-- You will have to restart the module before changes take effect.
+-- @param pkg Package file path
+-- @usage
+-- device.installPackages(usbPath .. '/L000-517-1.1.1-M02.rpk')
+function _M.installPackage(pkg)
+    _M.commitFileChanges()
+    return os.execute('/usr/local/bin/rinfwupgrade ' .. pkg)
+end
+
+-------------------------------------------------------------------------------
+-- Install all packages from the given directory into the system.
+--
+-- You will have to restart the module before changes take effect.
+-- @param dir Directory containing packages
+-- @usage
+-- device.installPackages(usbPath .. '/packages')
+function _M.installPackages(dir)
+    local packages = posix.glob(dir .. '/*.[oOrR][Pp][kK]')
+    if packages ~= nil then
+        for _, p in pairs(packages) do
+            _M.installPackage(p)
+        end
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Unmount a partition and remove the directory
+-- @param path Location of mounted partition
+-- @return Result code, 0 being no error
+-- @usage
+-- device.unmount(usbPath)
+function _M.unmount(path)
+    _M.commitFileChanges()
+    return partition.umount(path)
 end
 
 return _M
