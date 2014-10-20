@@ -337,18 +337,13 @@ local lcdModes = {
 -- However, sometimes you'll want to return control to the display device
 -- for a time and grab control again later.
 -- @param mode  is 'lua' to control display from script or 'default'
--- to return control to the default instrument application
+-- to return control to the default instrument application.
 -- @usage
 -- device.lcdControl('default')     -- let the display control itself
 -- ...
 -- device.lcdControl('lua')         -- switch on Lua display
 function _M.lcdControl(mode)
-    mode = mode or 'default'
-    local m = lcdModes[mode]
-    if m == nil then
-        dbg.error("K400LCD: unknown lcd mode: ", mode)
-        m = lcdModes.default
-    end
+    local m = naming.convertNameToValue(mode, lcdModes, lcdModes.default)
     private.exReg(REG_LCDMODE, m)
 end
 
