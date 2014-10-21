@@ -54,7 +54,7 @@ local whenMap = {
 return function (_M, private, deprecated)
     local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB
     local mountPoint
-    local mustReboot = false
+    local mustReboot, usbRemoved = false, false
     local when = 'idle'
 
 -------------------------------------------------------------------------------
@@ -67,11 +67,12 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbUnmount('/dev/sda1')
     function _M.usbUnmount()
+        _M.write('bottomLeft', 'UNMOUNT', 'align=right')
+        _M.app.delay(0.3)
         utils.call(unmountUsbCB, mountPoint)
         usb.unmount(mountPoint)
-        _M.app.delay(1)
         _M.write('bottomRight', 'USB')
-        _M.write('bottomLeft', 'REMOVE', 'wait, time=3, align=right')
+        _M.write('bottomLeft', 'REMOVE', 'align=right')
     end
 
 -------------------------------------------------------------------------------
@@ -154,6 +155,7 @@ return function (_M, private, deprecated)
             _M.usbRebootRequired()
         end
     end
+
 -------------------------------------------------------------------------------
 -- USB storage save/restore handler
 -- @param mountPoint Mount point for the USB storage device
@@ -165,16 +167,13 @@ return function (_M, private, deprecated)
         _M.write('bottomLeft', 'FOUND', 'time=2, wait')
 
         local menu = _M.createMenu { 'USB STORAGE', loop=true }
-                .item { 'REMOVE',   secondary='USB', exit=true }
-        if updateUsbCB then
-            menu.item { 'FROM',     secondary='USB', exit=true, run=copyFrom }
-        end
-        if backupUsbCB then
-            menu.item { 'TO',       secondary='USB', exit=true, run=_M.usbBackup }
-        end
-        menu.run()
+            .item { 'REMOVE', secondary='USB', exit=true,  }
+            .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
+            .item { 'TO', secondary='USB', exit=true, run=_M.usbBackup, enabled=backupUsbCB ~= nil }
+            .run()
 
         _M.usbUnmount()
+        _M.app.delayUntil(function() return usbRemoved end)
         restoreDisplay()
         _M.lcdControl(mode)
     end
@@ -184,7 +183,7 @@ return function (_M, private, deprecated)
 -- @param loc Mount point for new USB storage device
 -- @local
     local function added(loc)
-        mountPoint, mustReboot = loc, false
+        mountPoint, mustReboot, usbRemoved = loc, false, false
         _M.buzz(1) -- "single beep" on USB registration
 
         local w = utils.call(newUsbCB, loc) or when
@@ -201,6 +200,7 @@ return function (_M, private, deprecated)
     local function removed()
         _M.buzz(2) -- "double beep" when USB is unplugged
         utils.call(removedUsbCB)
+        usbRemoved = true
 
         if mustReboot then
             _M.usbReboot()
