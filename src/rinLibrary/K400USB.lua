@@ -58,6 +58,17 @@ return function (_M, private, deprecated)
     local when = 'idle'
 
 -------------------------------------------------------------------------------
+-- Display a message to the screen in a standard manner.
+-- @param m Message to display
+-- @param params Optional display parameters
+-- @local
+    local function message(m, params)
+        params = params or 'align=right, sync'
+        _M.write('topLeft', 'USB')
+        _M.write('bottomLeft', m, params)
+    end
+
+-------------------------------------------------------------------------------
 -- Unmount the attached USB storage device.
 --
 -- Appropraite messages are displayed on the display during this process.
@@ -67,11 +78,9 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbUnmount('/dev/sda1')
     function _M.usbUnmount()
-        _M.write('bottomLeft', 'UNMOUNT', 'align=right')
-        _M.app.delay(0.3)
+        message('UNMOUNT')
         utils.call(unmountUsbCB, mountPoint)
         usb.unmount(mountPoint)
-        _M.write('bottomRight', 'USB')
         _M.write('bottomLeft', 'REMOVE', 'align=right')
     end
 
@@ -85,8 +94,7 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbBackup()
     function _M.usbBackup()
-        _M.write('bottomRight', 'USB')
-        _M.write('bottomLeft', 'WRITING', 'align=right')
+        message('WRITING')
         utils.call(backupUsbCB, mountPoint)
     end
 
@@ -100,8 +108,7 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbUpdate()
     function _M.usbUpdate()
-        _M.write('bottomRight', 'USB')
-        _M.write('bottomLeft', 'READING', 'align=right')
+        message('READING')
         utils.call(updateUsbCB, mountPoint)
     end
 
@@ -128,8 +135,8 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbReboot()
     function _M.usbReboot()
-        _M.write('bottomLeft', 'REBOOT')
         _M.buzz(3) -- "triple beep" on reboot
+        message('REBOOT')
         _M.restart('all')
     end
 
@@ -163,10 +170,9 @@ return function (_M, private, deprecated)
     local function newUsb(mountPoint)
         local mode, restoreDisplay = _M.lcdControl('lua'), _M.saveDisplay()
 
-        _M.write('topLeft', 'USB')
-        _M.write('bottomLeft', 'FOUND', 'time=2, wait')
+        message('FOUND', 'time=2, wait, clear')
 
-        local menu = _M.createMenu { 'USB STORAGE', loop=true }
+        _M.createMenu { 'USB STORAGE', loop=true }
             .item { 'REMOVE', secondary='USB', exit=true,  }
             .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
             .item { 'TO', secondary='USB', exit=true, run=_M.usbBackup, enabled=backupUsbCB ~= nil }
@@ -206,7 +212,6 @@ return function (_M, private, deprecated)
             _M.usbReboot()
         end
         mountPoint, mustReboot = nil, false
-        _M.app.delay(2)
     end
 
 -------------------------------------------------------------------------------

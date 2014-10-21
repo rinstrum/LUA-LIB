@@ -31,7 +31,7 @@ local function boolArg(s) return Cg(Pi(s), s) end
 local function nameArg(s) return Pi(s) / s end
 local writeArgPat = P{
             spc^0 * Ct((V'opt' * ((spc + P',')^1 * V'opt')^0)^-1) * spc^0 * P(-1),
-    opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once' + V'align',
+    opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once' + boolArg'sync' + V'align',
     time =  (Pi'time' * equals)^-1 * Cg(lpeg.float / tonumber, 'time'),
     align = Pi'align' * equals * Cg(nameArg'left' + nameArg'right', 'align')
 }
@@ -305,6 +305,9 @@ local display = {
 -- the message has been fully displayed (default: don't wait).  The wait implies the once option.
 -- @field clear Clear is a boolean, that clears the message from the display once it has been
 -- shown (default: don't clear).  The clear implies the once option.
+-- @field sync Synchronously write message to the display (default: asynchronous).  This guarantees that
+-- the message is on the display when the call returns but will cause a slight loss of performance for
+-- long multi-part messages.  Generally, you shouldn't need to add this control modifier.
 
 --- Display Fields.
 --
@@ -435,6 +438,7 @@ local function write(f, s, params)
             local clear = t.clear
             local once = t.once or wait or clear
             local time = math.max(t.time or 0.8, 0.2)
+            local showText = t.sync and private.writeRegHex or private.writeRegHexAsync
 
             writeAuto(f, 0)
             f.params, f.current = t, tostring(s)
@@ -443,7 +447,7 @@ local function write(f, s, params)
             local function writeToDisplay(s)
                 if f.currentReg ~= s then
                     f.currentReg = s
-                    private.writeRegHexAsync(f.reg, s)
+                    showText(f.reg, s)
                 end
             end
             writeToDisplay(slideWords[1])
