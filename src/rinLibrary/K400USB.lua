@@ -152,7 +152,6 @@ return function (_M, private, deprecated)
 -- @local
     local function newUsb(mountPoint)
         local mode, restoreDisplay = _M.lcdControl('lua'), _M.saveDisplay()
-        print('display mode "'..mode..'"')
 
         _M.write('topLeft', 'USB')
         _M.write('bottomLeft', 'FOUND', 'time=2, wait')
