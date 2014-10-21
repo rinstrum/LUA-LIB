@@ -323,13 +323,13 @@ local display = {
 -- @field lua Communication mode, necessary for LUA control
 -- @field master Change to master display mode
 -- @field product Change to product display mode
-local lcdModes = {
+local lcdModes, currentLcdMode = {
     default = private.k410(0) or private.k422(0) or 1,
     dual    = private.k410(0) or 1,                             -- dynamic
     lua     = private.k410(1) or 2,
     master  = private.k410(2) or 3,
     product = private.valueByDevice{ k402=0, k422=0, k491=0 }   -- normal
-}
+}, 'default'
 
 -------------------------------------------------------------------------------
 -- Called to setup LCD control.
@@ -338,13 +338,17 @@ local lcdModes = {
 -- for a time and grab control again later.
 -- @param mode  is 'lua' to control display from script or 'default'
 -- to return control to the default instrument application.
+-- @return The previous mode setting
 -- @usage
 -- device.lcdControl('default')     -- let the display control itself
 -- ...
 -- device.lcdControl('lua')         -- switch on Lua display
 function _M.lcdControl(mode)
+    local oldMode = currentLcdMode
+    currentLcdMode = mode
     local m = naming.convertNameToValue(mode, lcdModes, lcdModes.default)
     private.exReg(REG_LCDMODE, m)
+    return oldMode
 end
 
 -------------------------------------------------------------------------------

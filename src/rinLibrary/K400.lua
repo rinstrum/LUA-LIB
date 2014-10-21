@@ -26,7 +26,8 @@ local modules = {
     "K400Print",
     "K400Command",
     "K400Users",
-    "K400Passcode"
+    "K400Passcode",
+    "K400USB"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
