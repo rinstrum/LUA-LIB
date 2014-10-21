@@ -356,7 +356,7 @@ keyCallback = function(data, err)
 
         if utils.callable(keyHandler[state]) then
             local function handler()
-                dbg.warn('Attempt to call key event handler recursively : ', keyName)
+                dbg.warn('Attempt to call key event handler recursively:', keyName)
                 return true
             end
             local cb = keyHandler[state]
@@ -375,7 +375,7 @@ keyCallback = function(data, err)
                 local group = keyGroup[keyHandler[i]]
                 if utils.callable(group[state]) then
                     local function handler()
-                        dbg.warn('Attempt to call key group event Handler recursively : ', keyName)
+                        dbg.warn('Attempt to call key group event Handler recursively:', keyName)
                         return true
                     end
                     local cb = group[state]
@@ -490,7 +490,7 @@ function _M.setKeyCallback(keyName, callback, ...)
             if keyMode[e] then
                 keyBinds[key][e] = callback
             else
-                dbg.error('Attempt to add unknown key event: ', e)
+                dbg.error('Attempt to add unknown key event:', e)
             end
         end
     end
@@ -519,17 +519,21 @@ end
 -- device.setKeyGroupCallback('numpad', handleKey, 'short')
 function _M.setKeyGroupCallback(keyGroupName, callback, ...)
     utils.checkCallback(callback)
-    local kg = naming.convertNameToValue(keyGroupName, keyGroup, keyGroupName)
-    local events = {...}
-    if #events == 0 then
-        events = { 'short', 'long' }
-    end
-    for _, e in pairs(events) do
-        if keyMode[e] then
-            kg[e] = callback
-        else
-            dbg.error('Attempt to add unknown key group event: ', e)
+    local kg = naming.convertNameToValue(keyGroupName, keyGroup, nil)
+    if kg ~= nil then
+        local events = {...}
+        if #events == 0 then
+            events = { 'short', 'long' }
         end
+        for _, e in pairs(events) do
+            if keyMode[e] then
+                kg[e] = callback
+            else
+                dbg.error('Attempt to add unknown key group event:', e)
+            end
+        end
+    else
+        dbg.error('Unknown key group name:', keyGroupName)
     end
 end
 
