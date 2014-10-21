@@ -68,10 +68,10 @@ return function (_M, private, deprecated)
 -- device.usbUnmount('/dev/sda1')
     function _M.usbUnmount()
         utils.call(unmountUsbCB, mountPoint)
-	    usb.unmount(mountPoint)
-	    _M.app.delay(1)
-	    _M.write('bottomRight', 'USB')
-	    _M.write('bottomLeft', 'REMOVE', 'wait, time=3, align=right')
+        usb.unmount(mountPoint)
+        _M.app.delay(1)
+        _M.write('bottomRight', 'USB')
+        _M.write('bottomLeft', 'REMOVE', 'wait, time=3, align=right')
     end
 
 -------------------------------------------------------------------------------
@@ -84,8 +84,8 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbBackup()
     function _M.usbBackup()
-	    _M.write('bottomRight', 'USB')
-	    _M.write('bottomLeft', 'WRITING', 'align=right')
+        _M.write('bottomRight', 'USB')
+        _M.write('bottomLeft', 'WRITING', 'align=right')
         utils.call(backupUsbCB, mountPoint)
     end
 
@@ -99,8 +99,8 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbUpdate()
     function _M.usbUpdate()
-	    _M.write('bottomRight', 'USB')
-	    _M.write('bottomLeft', 'READING', 'align=right')
+        _M.write('bottomRight', 'USB')
+        _M.write('bottomLeft', 'READING', 'align=right')
         utils.call(updateUsbCB, mountPoint)
     end
 
@@ -127,8 +127,8 @@ return function (_M, private, deprecated)
 -- @usage
 -- device.usbReboot()
     function _M.usbReboot()
-	    _M.write('bottomLeft', 'REBOOT')
-	    _M.buzz(3) -- "triple beep" on reboot
+        _M.write('bottomLeft', 'REBOOT')
+        _M.buzz(3) -- "triple beep" on reboot
         _M.restart('all')
     end
 
@@ -163,13 +163,13 @@ return function (_M, private, deprecated)
         local optFile = _M.selectOption(prompt, tblOptions, def, true)
 
         if optFile == 'TO USB' then
-	        _M.usbBackup()
+            _M.usbBackup()
         elseif optFile == 'FROM USB' then
-	        if _M.usbUpdate() == true then
+            if _M.usbUpdate() == true then
                 _M.usbRebootRequired()
             end
         end
-	    _M.usbUnmount()
+        _M.usbUnmount()
         restoreDisplay()
         _M.lcdControl(mode)
     end
@@ -180,7 +180,7 @@ return function (_M, private, deprecated)
 -- @local
     local function added(loc)
         mountPoint, mustReboot = loc, false
-	    _M.buzz(1) -- "single beep" on USB registration
+        _M.buzz(1) -- "single beep" on USB registration
 
         local w = utils.call(newUsbCB, loc) or when
         if w == 'immediate' then
@@ -194,12 +194,12 @@ return function (_M, private, deprecated)
 -- Call back for USB deregistration events
 -- @local
     local function removed()
-	    _M.buzz(2) -- "double beep" when USB is unplugged
+        _M.buzz(2) -- "double beep" when USB is unplugged
         utils.call(removedUsbCB)
 
-	    if mustReboot then 
-		    _M.usbReboot()
-	    end
+        if mustReboot then
+            _M.usbReboot()
+        end
         mountPoint, mustReboot = nil, false
         _M.app.delay(2)
     end
