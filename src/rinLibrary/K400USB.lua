@@ -147,6 +147,14 @@ return function (_M, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
+-- Copy things from the USB device, optionally schedule a reboot.
+-- @local
+    local function copyFrom()
+        if _M.usbUpdate() == true then
+            _M.usbRebootRequired()
+        end
+    end
+-------------------------------------------------------------------------------
 -- USB storage save/restore handler
 -- @param mountPoint Mount point for the USB storage device
 -- @local
@@ -155,20 +163,17 @@ return function (_M, private, deprecated)
 
         _M.write('topLeft', 'USB')
         _M.write('bottomLeft', 'FOUND', 'time=2, wait')
-        _M.write('bottomLeft', 'SELECT', 'time=2, wait')
 
-        local def = 'REMOVE'
-        local tblOptions = { def, 'FROM USB', 'TO USB' }
-        local prompt = 'USE ARROWS OR REMOVE'
-        local optFile = _M.selectOption(prompt, tblOptions, def, true)
-
-        if optFile == 'TO USB' then
-            _M.usbBackup()
-        elseif optFile == 'FROM USB' then
-            if _M.usbUpdate() == true then
-                _M.usbRebootRequired()
-            end
+        local menu = _M.createMenu { 'USB STORAGE', loop=true }
+                .item { 'REMOVE',   secondary='USB', exit=true }
+        if updateUsbCB then
+            menu.item { 'FROM',     secondary='USB', exit=true, run=copyFrom }
         end
+        if backupUsbCB then
+            menu.item { 'TO',       secondary='USB', exit=true, run=_M.usbBackup }
+        end
+        menu.run()
+
         _M.usbUnmount()
         restoreDisplay()
         _M.lcdControl(mode)

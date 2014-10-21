@@ -28,8 +28,8 @@ end
 --=============================================================================
 -- This function is called when the user chooses to read from the USB device
 local function usbUpdate(path)
-    usb.copyFiles(path, ".", 'ris')             -- copy new settings files
-    usb.copyFiles(path, ".", 'csv')             -- copy CSV files
+    usb.copyFiles(path, ".", '.ris')            -- copy new settings files
+    usb.copyFiles(path, ".", '.csv')            -- copy CSV files
     return true                                 -- force a reboot
 end
 
