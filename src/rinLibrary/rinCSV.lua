@@ -456,8 +456,6 @@ function _M.logLineCSV(t, line)
         if t.differentOnFileSystem then
             dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
         else
-            appendrow(t, line)
-
             if stat(t.fname, 'size') > _M.getLogSize(t) then
                 for i = 9, 1, -1 do
                     rename(t.fname .. '.' .. (i-1), t.fname .. '.' .. i)
@@ -465,6 +463,7 @@ function _M.logLineCSV(t, line)
                 rename(t.fname, t.fname .. '.0')
                 _M.saveCSV(t)
             end
+            appendrow(t, line)
             t.data = nil
         end
     end
