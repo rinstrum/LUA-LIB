@@ -126,7 +126,7 @@ end
 -- device.displayMessageWait('unhappy', 1.5)
 function _M.displayMessageWait(msg, t, units, unitsOther)
     _M.displayMessage(msg, t, units, unitsOther)
-    _M.app.delayUntil(function() return not mspDisp end)
+    _M.app.delayUntil(function() return messageRestoreBottom == nil end)
 end
 
 -------------------------------------------------------------------------------
