@@ -77,11 +77,11 @@ local function myNew(path)
     local restore = device.saveDisplay()
 
     device.createMenu { 'USB MENU', loop=true }
-        .item { 'BACKUP', exit=true, run=device.usbBackup }
         .item { 'PRODCT', secondary='UPDATE', run=updateProduct,
                           enabled=function() return usb.fileExists(productFile) end }
         .item { 'MATERL', secondary='UPDATE', run=updateMaterial,
                           enabled=function() return usb.fileExists(materialFile) end }
+        .item { 'BACKUP', exit=true, run=device.usbBackup }
         .item { 'DONE',   exit=true }
         .run()
     device.usbUnmount()
