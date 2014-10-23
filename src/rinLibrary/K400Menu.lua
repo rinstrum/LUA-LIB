@@ -584,19 +584,25 @@ local function makeMenu(args, parent, fields)
                 menu[posn].hide()
                 posn = p
                 menu[posn].show()
-                return
+                break
             end
         end
     end
 
 -------------------------------------------------------------------------------
--- Move the curent position in the menu to an enabled item.  The entire
--- menu will be scanned, although the exact sequence depends on things like
+-- Move the curent position in the menu to an enabled item.  The scanning
+-- first looks at nearby elements first and expands outwards until the entire
+-- menu is checked.
 -- the loop setting.
 -- @local
     local function findEnabled()
-        if not menu[posn].enabled() then move(1) end
-        if not menu[posn].enabled() then move(-1) end
+        for i = 0, 2*#menu do
+            local p = posn + math.floor((i+1) * 0.5) * (1 - 2*(i%2))
+            if menu[p] and menu[p].enabled() then
+                posn = p
+                break
+            end
+        end
         menu[posn].show()
     end
 
