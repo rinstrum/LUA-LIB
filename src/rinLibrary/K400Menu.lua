@@ -97,6 +97,7 @@ return function (_M, private, deprecated)
 -- @field readonly Boolean indicating is the field is immutable or not (default false).
 -- @field ref Reference name used to identify a field, this defaults to the name and must be
 -- unique through the entire menu and submenus.
+-- @field rememberPosition Does this menu remember its position between invocations or not.
 -- @field run Function to execute when field is activated.
 -- @field secondary Name of type of item which is displayed in the value area if field has no value.
 -- @field setList Function to set the contents of a list field.
@@ -122,6 +123,7 @@ return function (_M, private, deprecated)
 -- @local
 local function makeMenu(args, parent, fields)
     local posn, menu = 1
+    local rememberPosition = args.rememberPosition == true
 
 -------------------------------------------------------------------------------
 -- Initialise a new item to the defaults
@@ -594,6 +596,10 @@ local function makeMenu(args, parent, fields)
     local function runMenu()
         local okay = true
         menu.inProgress = true
+        if not rememberPosition then
+            posn = 1
+            if not menu[posn].enabled() then move(1) end
+        end
         menu[posn].show()
         _M.write('bottomRight', getPrompt(menu))
         while _M.app.isRunning() and menu.inProgress do
