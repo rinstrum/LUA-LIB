@@ -378,6 +378,28 @@ function _M.commitFileChanges()
 end
 
 -------------------------------------------------------------------------------
+-- Check is a file exists are the specified path
+-- @param path Path to the file to be tested
+-- @return Boolean, true if the file exists
+-- @usage
+-- if usb.fileExists('hello.lua') then
+-- end
+function _M.fileExists(path)
+    return posix.stat(path, 'type') == 'regular'
+end
+
+-------------------------------------------------------------------------------
+-- Check is a directory exists are the specified path
+-- @param path Path to the directory to be tested
+-- @return Boolean, true if the directory exists
+-- @usage
+-- if usb.directoryExists('/tmp') then
+-- end
+function _M.directoryExists(path)
+    return posix.stat(path, 'type') == 'directory'
+end
+
+-------------------------------------------------------------------------------
 -- Make a directory, if one doesn't already exist in that location.
 -- @param path Path to the directory
 -- @return Result code, 0 being no error

@@ -13,7 +13,6 @@ local usb = require "rinLibrary.rinUSB"
 -- Define any Application variables you wish to use
 --=============================================================================
 local device = rinApp.addK400("K401")           --  make a connection to the instrument
-device.loadRIS("myApp.RIS")                     -- load default instrument settings
 
 --=============================================================================
 -- This function is called when the user chooses to write to the USB device
@@ -22,7 +21,7 @@ local function usbBackup(path)
 	usb.copyDirectory("data", path .. '/data')  -- Copy the data directory
     usb.copyFiles(".", path .. '/lua', '.lua')  -- back up .lua files
     usb.copyFiles(".", path , '.ris')           -- back up .ris files
-    usb.copyFiles(".", path , '.csv')           -- back up .ris files
+    usb.copyFiles(".", path , '.csv')           -- back up .csv files
 end
 
 --=============================================================================
@@ -30,7 +29,7 @@ end
 local function usbUpdate(path)
     usb.copyFiles(path, ".", '.ris')            -- copy new settings files
     usb.copyFiles(path, ".", '.csv')            -- copy CSV files
-    return true                                 -- force a reboot
+    return usb.copyFiles(path, ".", '.lua')==0  -- reboot, if our code changed
 end
 
 --=============================================================================

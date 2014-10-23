@@ -36,20 +36,6 @@ local sEditKeyTimeout = 4   -- number of counts before starting a new key in sEd
 local scrUpdTm = 0.5        -- screen update frequency in Sec
 local blinkOff = false      -- blink cursor for string editing
 
-local msgTimer = nil		-- timer for user message display
-local messageRestoreBottom  -- Function reference to resore the bottom after a message display, nil if no message currently
-
--------------------------------------------------------------------------------
--- Is a message currently being displayed?
--- @return true iff a message is displayed
--- @usage
--- if not device.messageDisplayed() then
---     device.displayMessage('hello', 2.123)
--- end
-function _M.messageDisplayed()
-    return messageRestoreBottom ~= nil
-end
-
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
 -- @return true iff a dialog is displayed
@@ -80,9 +66,10 @@ function _M.startDialog()
     private.bumpIdleTimer()
 end
 
--------------------------------------------------------------------------------
--- Cancel a displayed message, if any.
--- @local
+-- These are to support the deprectaed display message functionality
+local msgTimer = nil		-- timer for user message display
+local messageRestoreBottom  -- Function reference to resore the bottom after a message display, nil if no message currently
+
 local function endDisplayMessage()
 	if messageRestoreBottom then
         messageRestoreBottom()
@@ -91,43 +78,8 @@ local function endDisplayMessage()
         msgTimer = nil
     end
 end
+-- end of deprecated support code
 
--------------------------------------------------------------------------------
--- Called to display a message to the screen for a time
--- @param msg message displayed on bottom left LCD
--- @param t number of seconds to display message (can be fractional; e.g. 2.125)
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @usage
--- -- Display an happy message for one and a half seconds.
--- -- Program will continue operation immediately.
--- device.displayMessage('joy', 1.5)
-function _M.displayMessage(msg, t, units, unitsOther)
-    local t = t or 0.5
-
-    endDisplayMessage()
-	if msg and t > 0 then
-		messageRestoreBottom = _M.saveBottom()
-		_M.write('bottomLeft', msg)			-- display message
-		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
-		msgTimer = timers.addTimer(0, t, endDisplayMessage)
-	end
-end
-
--------------------------------------------------------------------------------
--- Called to display a message to the screen for a time and waits for it to finish
--- @param msg message displayed on bottom left LCD
--- @param t number of seconds to display message (can be fractional; e.g. 2.125)
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @usage
--- -- Display an unhappy message for one and a half seconds.
--- -- Program will pause operation immediately.
--- device.displayMessageWait('unhappy', 1.5)
-function _M.displayMessageWait(msg, t, units, unitsOther)
-    _M.displayMessage(msg, t, units, unitsOther)
-    _M.app.delayUntil(function() return not _M.messageDisplayed() end)
-end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
@@ -137,7 +89,7 @@ end
 -- @return key
 -- @return state ('short' or 'long')
 -- @usage
--- device.displayMessage('Press key', 3)
+-- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup, keep)
     keyGroup = keyGroup or 'all'
@@ -170,7 +122,7 @@ end
 -- @return true if editing false otherwise
 -- @usage
 -- if not device.isEditing() then
---     device.displayMessage('idle')
+--     device.write('bottomLeft', 'idle')
 -- end
 function _M.isEditing()
    return editing
@@ -775,6 +727,29 @@ deprecated.delay = function(t)
     end
     _M.app.delay(t)
 end
+
+function deprecated.messageDisplayed()
+    return messageRestoreBottom ~= nil
+end
+
+local function displayMessage(msg, t, units, unitsOther)
+    local t = t or 0.5
+
+    endDisplayMessage()
+	if msg and t > 0 then
+		messageRestoreBottom = _M.saveBottom()
+		_M.write('bottomLeft', msg)			-- display message
+		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
+		msgTimer = timers.addTimer(0, t, endDisplayMessage)
+	end
+end
+deprecated.displayMessage = displayMessage
+
+function deprecated.displayMessageWait(msg, t, units, unitsOther)
+    displayMessage(msg, t, units, unitsOther)
+    _M.app.delayUntil(function() return messageRestoreBottom == nil end)
+end
+
 
 end
 

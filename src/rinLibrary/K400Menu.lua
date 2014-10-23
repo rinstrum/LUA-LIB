@@ -83,7 +83,7 @@ return function (_M, private, deprecated)
 -- @field default Default item in a list selection.
 -- @field enabled Boolean or function returning a boolean to indicate if this
 -- field should be visible or not.
--- #field exit Boolean, true means selecting this item exits the containing menu.
+-- @field exit Boolean, true means selecting this item exits the containing menu.
 -- @field getValue Function to return the value of a field's contents.
 -- @field hide Function to execute when field is moved away from.
 -- @field leave Function to execute when leaving the top level menu, it is passed a boolean

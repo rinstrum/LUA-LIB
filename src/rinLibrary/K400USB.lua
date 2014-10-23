@@ -13,9 +13,9 @@ local utils = require 'rinSystem.utilities'
 local naming = require 'rinLibrary.namings'
 
 local whenMap = {
-    idle = idle,
-    immediate = immediate,
-    manual = manual
+    idle = 'idle',
+    immediate = 'immediate',
+    manual = 'manual'
 }
 
 --- When Setting Modes.
@@ -173,7 +173,7 @@ return function (_M, private, deprecated)
         message('FOUND', 'time=2, wait, clear')
 
         _M.createMenu { 'USB STORAGE', loop=true }
-            .item { 'REMOVE', secondary='USB', exit=true,  }
+            .item { 'EJECT', secondary='USB', exit=true,  }
             .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
             .item { 'TO', secondary='USB', exit=true, run=_M.usbBackup, enabled=backupUsbCB ~= nil }
             .run()
