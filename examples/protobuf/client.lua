@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 require "struct"
 require "pb"
 require "messages"

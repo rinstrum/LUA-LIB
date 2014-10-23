@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -- Copyright (c) 2007 Humberto Saraiva Nazareno dos Anjos.
 --
 -- Permission is hereby granted, free of charge, to any person obtaining a copy

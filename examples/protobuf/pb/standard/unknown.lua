@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -- Copyright (c) 2010, Robert G. Jakabosky <bobby@sharedrealm.com> All rights reserved.
 
 local concat = table.concat

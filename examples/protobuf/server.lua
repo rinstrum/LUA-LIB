@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework

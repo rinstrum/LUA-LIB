@@ -18,6 +18,7 @@ examples={          -- We should be able to wildcard this.
     'examples/printCopy.lua',
     'examples/setpIO/setpIO.lua',
     'examples/usbStorage.lua',
+    'examples/usbMenu.lua',
 }
 
 full_description=[[

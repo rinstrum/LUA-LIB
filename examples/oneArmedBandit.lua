@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -------------------------------------------------------------------------------
 -- This example demonstrates a complete take over of the console.
 -- Lots of timers are used to slow things down so the user can see

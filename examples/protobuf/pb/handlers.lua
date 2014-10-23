@@ -1,3 +1,4 @@
+#!/usr/bin/env lua
 -- Copyright (c) 2011, Robert G. Jakabosky <bobby@sharedrealm.com> All rights reserved.
 
 local setmetatable = setmetatable
