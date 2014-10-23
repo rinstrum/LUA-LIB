@@ -31,7 +31,8 @@ local function boolArg(s) return Cg(Pi(s), s) end
 local function nameArg(s) return Pi(s) / s end
 local writeArgPat = P{
             spc^0 * Ct((V'opt' * ((spc + P',')^1 * V'opt')^0)^-1) * spc^0 * P(-1),
-    opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once' + boolArg'sync' + V'align',
+    opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once' +
+                boolArg'sync' + boolArg'restore' + V'align',
     time =  (Pi'time' * equals)^-1 * Cg(lpeg.float / tonumber, 'time'),
     align = Pi'align' * equals * Cg(nameArg'left' + nameArg'right', 'align')
 }
@@ -308,6 +309,10 @@ local display = {
 -- @field sync Synchronously write message to the display (default: asynchronous).  This guarantees that
 -- the message is on the display when the call returns but will cause a slight loss of performance for
 -- long multi-part messages.  Generally, you shouldn't need to add this control modifier.
+-- @field restore Restore the field to the settings it had prior to having the message displayed.  This
+-- implies once and not clear.
+-- @field finish A function to call once the display have finished -- this can only be specified in the
+-- tabular form and implies once, not clear and not restore.
 
 --- Display Fields.
 --
@@ -398,6 +403,18 @@ local function writeAuto(f, register)
 end
 
 -------------------------------------------------------------------------------
+-- Write the specified units value to the specified display field
+-- @param f Display field
+-- @param v Unit value to write
+-- @local
+local function units(f, v)
+    if f and f.regUnits ~= nil and f.units ~= v then
+        private.writeReg(f.regUnits, v)
+        f.units = v or 0
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Decode the time argument to the write function.
 -- The input argument can be a number which is interpreted as a time,
 -- it can be nil for all defaults or it can be a table which is returned
@@ -434,11 +451,26 @@ local function write(f, s, params)
         removeSlideTimer(f)
         if s then
             local t = writeArgs(params)
+            utils.checkCallback(t.finish)
             local wait = t.wait
-            local clear = t.clear
-            local once = t.once or wait or clear
+            local once = t.once or wait or t.clear or t.restore or t.finish
             local time = math.max(t.time or 0.8, 0.2)
             local showText = t.sync and private.writeRegHex or private.writeRegHexAsync
+
+            if not t.finish then
+                if t.restore then
+                    local c, p, u = f.current, f.params, f.units
+                    t.finish = function()
+                        write(f, c, p)
+                        units(f, u)
+                    end
+                elseif t.clear then
+                    t.finish = function()
+                        private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
+                        f.params, f.current, f.currentReg = nil, '', nil
+                    end
+                end
+            end
 
             writeAuto(f, 0)
             f.params, f.current = t, tostring(s)
@@ -457,10 +489,7 @@ local function write(f, s, params)
                 if slidePos == 1 and once then
                     removeSlideTimer(f)
                     wait = false
-                    if clear then
-                        private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
-                        f.params, f.current, f.currentReg = nil, '', nil
-                    end
+                    utils.call(t.finish)
                 elseif #slideWords == 1 then
                     removeSlideTimer(f)
                 else
@@ -471,18 +500,6 @@ local function write(f, s, params)
         elseif f.auto == nil or f.auto == 0 then
             writeAuto(f, f.saveAuto)
         end
-    end
-end
-
--------------------------------------------------------------------------------
--- Write the specified units value to the specified display field
--- @param f Display field
--- @param v Unit value to write
--- @local
-local function units(f, v)
-    if f and f.regUnits ~= nil and f.units ~= v then
-        private.writeReg(f.regUnits, v)
-        f.units = v or 0
     end
 end
 

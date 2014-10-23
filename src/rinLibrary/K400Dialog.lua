@@ -66,21 +66,6 @@ function _M.startDialog()
     private.bumpIdleTimer()
 end
 
--- These are to support the deprectaed display message functionality
-local msgTimer = nil		-- timer for user message display
-local messageRestoreBottom  -- Function reference to resore the bottom after a message display, nil if no message currently
-
-local function endDisplayMessage()
-	if messageRestoreBottom then
-        messageRestoreBottom()
-        messageRestoreBottom = nil
-	    timers.removeTimer(msgTimer)
-        msgTimer = nil
-    end
-end
--- end of deprecated support code
-
-
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default
@@ -262,7 +247,6 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     local strTab = {}               -- temporary table holding edited string characters
     local blink = false             -- cursor display variable
 
-    endDisplayMessage()             -- abort any existing display prompt
     local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     local restoreBottom = _M.saveBottom()
 
@@ -414,7 +398,6 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local editVal = def
     local editType = typ or 'integer'
     editing = true
-    endDisplayMessage()
     local restoreBottom = _M.saveBottom()
     _M.write('bottomRight', prompt)
     if hide then
@@ -497,7 +480,6 @@ function _M.editReg(register, prompt)
     local reg = private.getRegisterNumber(register)
     local restoreBottom = nil
 
-    endDisplayMessage()
     if prompt then
         restoreBottom = _M.saveBottom()
         if type(prompt) == 'string' then
@@ -538,7 +520,6 @@ end
 function _M.askOK(prompt, q, units, unitsOther)
     local askOKResult = 'cancel'
 
-    endDisplayMessage()
     local restoreBottom = _M.saveBottom() 
     _M.write('bottomRight', prompt or '')
     _M.write('bottomLeft', q or '')
@@ -586,7 +567,6 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     end
 
     editing = true
-    endDisplayMessage()
     local restoreBottom = _M.saveBottom()
     _M.write('bottomRight', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
@@ -638,7 +618,6 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     local origSelected = options.getSelected()
 
     editing = true
-    endDisplayMessage()
     local restoreBottom = _M.saveBottom()
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
@@ -690,7 +669,6 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local index = def
 
     editing = true
-    endDisplayMessage()
     local restoreBottom = _M.saveBottom()
     _M.write('topLeft', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
@@ -728,28 +706,22 @@ deprecated.delay = function(t)
     _M.app.delay(t)
 end
 
-function deprecated.messageDisplayed()
-    return messageRestoreBottom ~= nil
-end
-
-local function displayMessage(msg, t, units, unitsOther)
+function deprecated.displayMessage(msg, t, units, unitsOther)
     local t = t or 0.5
 
-    endDisplayMessage()
 	if msg and t > 0 then
-		messageRestoreBottom = _M.saveBottom()
-		_M.write('bottomLeft', msg)			-- display message
 		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
-		msgTimer = timers.addTimer(0, t, endDisplayMessage)
+		_M.write('bottomLeft', msg, 'restore, time='..t)			-- display message
 	end
 end
-deprecated.displayMessage = displayMessage
 
 function deprecated.displayMessageWait(msg, t, units, unitsOther)
-    displayMessage(msg, t, units, unitsOther)
-    _M.app.delayUntil(function() return messageRestoreBottom == nil end)
+    local t = t or 0.5
+
+	if msg and t > 0 then
+		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
+		_M.write('bottomLeft', msg, 'wait, restore, time='..t)			-- display message
+	end
 end
 
-
 end
-
