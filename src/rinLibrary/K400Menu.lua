@@ -596,10 +596,9 @@ local function makeMenu(args, parent, fields)
     local function runMenu()
         local okay = true
         menu.inProgress = true
-        if not rememberPosition then
-            posn = 1
-            if not menu[posn].enabled() then move(1) end
-        end
+        if not rememberPosition then posn = 1 end
+        if not menu[posn].enabled() then move(1) end
+        if not menu[posn].enabled() then move(-1) end
         menu[posn].show()
         _M.write('bottomRight', getPrompt(menu))
         while _M.app.isRunning() and menu.inProgress do
