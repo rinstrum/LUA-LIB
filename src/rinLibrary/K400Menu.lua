@@ -590,6 +590,17 @@ local function makeMenu(args, parent, fields)
     end
 
 -------------------------------------------------------------------------------
+-- Move the curent position in the menu to an enabled item.  The entire
+-- menu will be scanned, although the exact sequence depends on things like
+-- the loop setting.
+-- @local
+    local function findEnabled()
+        if not menu[posn].enabled() then move(1) end
+        if not menu[posn].enabled() then move(-1) end
+        menu[posn].show()
+    end
+
+-------------------------------------------------------------------------------
 -- Display and execute a menu
 -- @return true if exit via EXIT item, false if exit via cancel
 -- @local
@@ -597,9 +608,7 @@ local function makeMenu(args, parent, fields)
         local okay = true
         menu.inProgress = true
         if not rememberPosition then posn = 1 end
-        if not menu[posn].enabled() then move(1) end
-        if not menu[posn].enabled() then move(-1) end
-        menu[posn].show()
+        findEnabled()
         _M.write('bottomRight', getPrompt(menu))
         while _M.app.isRunning() and menu.inProgress do
             menu[posn].update()
@@ -613,7 +622,7 @@ local function makeMenu(args, parent, fields)
                 move(-1)
             elseif key == 'ok' then
                 local m = menu[posn]
-                m.hide()    m.run()     m.show()
+                m.hide()    m.run()     findEnabled()
                 _M.write('bottomRight', getPrompt(menu))
                 if m.exit == true then menu.finish() end
             end
