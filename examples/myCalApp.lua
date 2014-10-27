@@ -99,7 +99,7 @@ local function mainLoop()
       dwi.write('bottomLeft', 'F1-MENU',1.5)
       dwi.write('bottomRight', '')
    elseif mode == 'menu' then
-      dwi.write('topLeft', )
+      dwi.write('topLeft')
       dwi.write('bottomLeft', '')
       sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
       if not sel or sel == 'EXIT' then

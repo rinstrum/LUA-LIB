@@ -147,7 +147,7 @@ local function mainLoop()
       dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
       dwi.write('bottomRight', '')
    elseif mode == 'run' then
-      dwi.write('topLeft', )
+      dwi.write('topLeft')
       dwi.write('bottomLeft', '')
       dwi.write('bottomRight', 'PLACE')
       if dwi.allStatusSet('notzero', 'notmotion') then
