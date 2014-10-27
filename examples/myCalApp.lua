@@ -79,9 +79,7 @@ timers.addTimer(tickerRepeat, tickerStart, ticker)
 dwi.setIdleCallback(dwi.abortDialog, 30)
 
 local function prompt(msg)
-    msg = msg or '        '
-    dwi.write('bottomLeft', msg)
-    rinApp.delay(1.5)
+    dwi.write('bottomLeft', msg or '', 'time=1.5, wait')
 end
 
 --=============================================================================
@@ -96,7 +94,7 @@ local function mainLoop()
 
    if mode == 'idle' then
       dwi.write('topLeft', 'CAL.APP')
-      dwi.write('bottomLeft', 'F1-MENU',1.5)
+      dwi.write('bottomLeft', 'F1-MENU')
       dwi.write('bottomRight', '')
    elseif mode == 'menu' then
       dwi.write('topLeft')

@@ -153,17 +153,15 @@ local function mainLoop()
       if dwi.allStatusSet('notzero', 'notmotion') then
          dwi.setUserNumber(3, dwi.toPrimary(curWeight))
          dwi.writeAuto('bottomLeft', 'usernum3')
-         dwi.write('bottomRight', 'CAPTURED')
          dwi.buzz(2)
-         rinApp.delay(1)
+         dwi.write('bottomRight', 'CAPTURED', 'time=1, wait')
          dwi.write('bottomRight', '...')
          mode = 'wait'
       end
     elseif mode == 'wait' then
        if dwi.anyStatusSet('motion') then
-           dwi.write('bottomRight', '')
            dwi.buzz(1)
-           rinApp.delay(0.5)
+           dwi.write('bottomRight', '', 'time=0.5, wait')
            mode = 'run'
        end
     end
