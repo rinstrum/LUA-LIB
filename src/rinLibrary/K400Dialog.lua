@@ -706,7 +706,12 @@ deprecated.delay = function(t)
     _M.app.delay(t)
 end
 
+local warnDisplayMessage, warnDisplayMessageWait = true, true
 function deprecated.displayMessage(msg, t, units, unitsOther)
+    if warnDisplayMessage then
+        dbg.warn("K400:", "instead of displayMessage, use write with 'restore'")
+        warnDisplayMessage = false
+    end
     local t = t or 0.5
 
 	if msg and t > 0 then
@@ -716,6 +721,10 @@ function deprecated.displayMessage(msg, t, units, unitsOther)
 end
 
 function deprecated.displayMessageWait(msg, t, units, unitsOther)
+    if warnDisplayMessageWait then
+        dbg.warn("K400:", "instead of displayMessageWait, use write with 'restore, wait'")
+        warnDisplayMessageWait = false
+    end
     local t = t or 0.5
 
 	if msg and t > 0 then
