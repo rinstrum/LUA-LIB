@@ -275,8 +275,8 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
         sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
         if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
-           editing = false
-           sEditVal = default
+            editing = false
+            sEditVal = default
         elseif state == "short" then                            -- short key presses for editing
             if type(key) == 'number' then     -- keys 0 to 9 on the keypad
 --              print('i:' .. sEditIndex .. ' l:' .. sLen)   -- debug
@@ -690,7 +690,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
         end
     end
     _M.abortDialog()
-    _MrestoreBottom()
+    _M.restoreBottom()
     return sel
 end
 
