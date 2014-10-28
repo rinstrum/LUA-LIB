@@ -169,6 +169,8 @@ return function (_M, private, deprecated)
 -- @local
     local function newUsb(mountPoint)
         local mode, restoreDisplay = _M.lcdControl('lua'), _M.saveDisplay()
+        local savedKeyHandlers = _M.saveKeyCallbacks(false)
+        _M.setKeyGroupCallback('all', function() return true end)
 
         message('FOUND', 'time=2, wait, clear')
 
@@ -180,6 +182,7 @@ return function (_M, private, deprecated)
 
         _M.usbUnmount()
         _M.app.delayUntil(function() return usbRemoved end)
+        savedKeyHandlers()
         restoreDisplay()
         _M.lcdControl(mode)
     end
