@@ -19,8 +19,34 @@ local rename    = os.rename
 local stat      = require('posix').stat
 
 local dbg       = require "rinLibrary.rinDebug"
-local canonical = require('rinLibrary.namings').canonicalisation
+local namings   = require 'rinLibrary.namings'
+local canonical = namings.canonicalisation
 local deepcopy  = require 'rinLibrary.deepcopy'
+local timers    = require 'rinSystem.rinTimers.Pack'
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- CSV write back options.
+local syncTimer, syncCommands
+syncCommands = {
+    event = function(t)
+        timers.removeTimer(syncTimer)
+        syncTimer = timers.addEvent(syncCommands.fast)
+    end,
+
+    fast = function(t)
+        xeq('sync &')
+        timers.removeTimer(syncTimer)
+        syncTimer = nil
+    end,
+
+    safe = function(t)
+        xeq('sync')
+        timers.removeTimer(syncTimer)
+        syncTimer = nil
+    end,
+
+    unsafe = function(t) end
+}
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- LPEG pattern for parsing a CSV file
@@ -60,9 +86,10 @@ local sizings = nil
 -- @table saveMode
 -- @field safe Always commit changes immediately.  This is the safest and
 -- slowest option but it minimises the damage caused by an unexpected power
--- loss.  This is the default.
+-- loss.
 -- @field fast Schedule changes immediately but don't wait for them to fully
--- commit before continuing.
+-- commit before continuing.  This is the default.
+-- @field event Schedule the write back when event processing next takes place.
 -- @field unsafe Never schedule change commits explicitly.  Instead the
 -- underlying file system's methods are used.  This can mean a delay of up to
 -- thirty second between making a change and that change being committed to
@@ -182,11 +209,10 @@ end
 -- @param t Table to force to disc
 -- @local
 local function sync(t)
-    if t.saveMode == 'fast' then
-        xeq("sync &")
-    elseif t.saveMode ~= 'unsafe' then
-        xeq("sync")
+    if type(t.saveMode) ~= 'function' then
+        t.saveMode = namings.convertNameToValue(t.saveMode, syncCommands, syncCommands.fast)
     end
+    t.saveMode(t)
 end
 
 -------------------------------------------------------------------------------
@@ -456,7 +482,7 @@ function _M.logLineCSV(t, line)
         if t.differentOnFileSystem then
             dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
         else
-            if stat(t.fname, 'size') > _M.getLogSize(t) then
+            if posix.stat(t.fname, 'size') > _M.getLogSize(t) then
                 for i = 9, 1, -1 do
                     rename(t.fname .. '.' .. (i-1), t.fname .. '.' .. i)
                 end
