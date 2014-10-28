@@ -372,7 +372,7 @@ function _M.commitFileChanges()
     if storageEvent == nil then
         storageEvent = timers.addEvent(function()
             storageEvent = nil
-            os.execute('sync &')
+            utils.sync(false)
         end)
     end
 end

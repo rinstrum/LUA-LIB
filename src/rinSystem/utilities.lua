@@ -5,6 +5,7 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+local posix = require 'posix'
 
 local _M = {}
 
@@ -60,6 +61,23 @@ function _M.call(cb, ...)
     if _M.callable(cb) then
         return cb(...)
     end
+end
+
+-------------------------------------------------------------------------------
+-- Force buffers to discs
+-- @param wait Boolean indicating if we're to wait or not, default is wait.
+function _M.sync(wait)
+    if wait ~= false then
+        os.execute('sync')
+    else
+        os.execute('sync &')
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Reboot this Lua module
+function _M.reboot()
+    os.execute('reboot')
 end
 
 return _M

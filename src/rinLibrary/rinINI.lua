@@ -14,6 +14,7 @@ local string = string
 local table = table
 local ipairs = ipairs
 local tostring = tostring
+local utils = require 'rinSystem.utilities'
 
 -------------------------------------------------------------------------------
 -- Saves table t as a .INI name (fname)
@@ -56,7 +57,7 @@ function _M.saveINI(fname, t)
         end
     end
     f:close()
-    os.execute('sync')
+    utils.sync()
     return t
 end
 

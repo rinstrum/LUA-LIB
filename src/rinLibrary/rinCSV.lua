@@ -14,7 +14,6 @@ local io        = io
 local ipairs    = ipairs
 local tostring  = tostring
 local error     = error
-local xeq       = os.execute
 local rename    = os.rename
 local stat      = require('posix').stat
 
@@ -23,24 +22,25 @@ local namings   = require 'rinLibrary.namings'
 local canonical = namings.canonicalisation
 local deepcopy  = require 'rinLibrary.deepcopy'
 local timers    = require 'rinSystem.rinTimers.Pack'
+local utils     = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- CSV write back options.
-local syncTimer, syncCommands
-syncCommands = {
+local syncTimer
+local syncCommands = {
     event = function(t)
         timers.removeTimer(syncTimer)
-        syncTimer = timers.addEvent(syncCommands.fast)
+        syncTimer = timers.addEvent(utils.sync, false)
     end,
 
     fast = function(t)
-        xeq('sync &')
+        utils.sync(false)
         timers.removeTimer(syncTimer)
         syncTimer = nil
     end,
 
     safe = function(t)
-        xeq('sync')
+        utils.sync(true)
         timers.removeTimer(syncTimer)
         syncTimer = nil
     end,

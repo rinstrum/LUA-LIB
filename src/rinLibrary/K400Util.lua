@@ -18,6 +18,7 @@ local dbg           = require "rinLibrary.rinDebug"
 local naming        = require 'rinLibrary.namings'
 local lpeg          = require 'rinLibrary.lpeg'
 local system        = require 'rinSystem.Pack'
+local utils         = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -309,15 +310,15 @@ function _M.restart(what)
             pat:match(mount)
         end
 
-        os.execute('sync')
+        utils.sync()
         system.sleep(0.5)
-        os.execute('sync')
+        utils.sync()
 
         private.exRegAsync(REG_RESTART)
         _M.app.delay(0.5)
     end
 
-    os.execute('reboot')
+    utils.reboot()
     system.sleep(300)
     dbg.warn('Reboot failed')
 end

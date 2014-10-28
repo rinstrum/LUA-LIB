@@ -912,7 +912,7 @@ end
 local function handlePowerOff(status, active)
     if active then
         dbg.info('Event:', 'Power Off')
-        os.execute('sync')
+        utils.sync()
     end
 end
 

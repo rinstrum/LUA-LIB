@@ -10,6 +10,7 @@
 -------------------------------------------------------------------------------
 
 local posix = require 'posix'
+local utils = require 'rinSystem.utilities'
 
 local threshold = 30        -- Seconds running to consider the start a failure
 local failure = 3           -- Number of sequential failures before terminating
@@ -73,7 +74,7 @@ return function(directory, main)
                                     usbPath, dev.getSerialNumber():gsub('%s+', ''),
                                     yr, mo, da, hr, mi, se)
         os.execute('tar cf ' .. dest .. ' ' .. directory)
-        os.execute('sync')
+        utils.sync()
         dev.write('topRight', 'DONE SAVE', 'time=1, clear')
         return true
     end
@@ -86,7 +87,7 @@ return function(directory, main)
         for _, s in pairs{ 'lua', 'luac', 'ini', 'csv', 'ris', 'txt' } do
             os.execute('cp '..usbPath..'/*.'..mix(s)..' '..directory..'/')
         end
-        os.execute('sync')
+        utils.sync()
         dev.write('topRight', 'DONE LOAD', 'time=1, clear')
         return true
     end
@@ -100,7 +101,7 @@ return function(directory, main)
             os.execute('/usr/local/bin/rinfwupgrade ' .. pkg)
         end
         -- Package installation kills the Lua infrastructure so reboot now
-        os.execute('reboot')
+        utils.reboot()
     end
 
 -------------------------------------------------------------------------------
@@ -157,5 +158,5 @@ return function(directory, main)
     rinApp.addIdleEvent(updateDisplay)
 
     rinApp.run()
-    os.execute('reboot')
+    utils.reboot()
 end
