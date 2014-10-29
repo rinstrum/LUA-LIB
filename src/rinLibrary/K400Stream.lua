@@ -148,6 +148,18 @@ local function convertFrequency(f)
 end
 
 -----------------------------------------------------------------------------
+-- Convert the streamed value into a value for the callback
+-- @param s Streamed data
+-- @param v Streaming field record
+-- @local
+local function convertCallbackArg(s, v)
+    if v.typ == 'weight' and _M.isHiRes() then
+        return private.toFloat(substr, v.dp+1)
+    end
+    return private.toFloat(s, v.dp)
+end
+
+-----------------------------------------------------------------------------
 -- Divide the data stream up and run the relevant callbacks
 -- @param reg Register being streamed
 -- @param data Data received from register
@@ -169,11 +181,7 @@ local function streamCallback(reg, data, err)
             if substr and substr ~= "" then
                 if v.onChange == 'always' or v.lastData ~= substr then
                      v.lastData = substr
-                     if v.typ == 'weight' and _M.isHiRes() then
-                         timers.addEvent(v.callback, private.toFloat(substr, v.dp+1), err)
-                     else
-                         timers.addEvent(v.callback, private.toFloat(substr, v.dp), err)
-                     end
+                     timers.addEvent(v.callback, convertCallbackArg(substr, v), err)
                 end
             end
         end
@@ -203,7 +211,7 @@ function _M.addStream(streamReg, callback, onChange)
             return nil, "already streaming that register"
         end
 
-        local regid, availReg
+        local regid, availReg, err
         for k = 1, #availRegisters do
             local v = availRegisters[k]
             if v.reg == 0 then
@@ -229,9 +237,11 @@ function _M.addStream(streamReg, callback, onChange)
         availReg.reg = reg
         availReg.callback = callback
         availReg.onChange = onChange or 'change'
-        availReg.lastData = ''
+        availReg.lastData, err = private.readRegHex(reg)
         availReg.typ = private.getRegType(reg)
+
         streamRegisters[reg] = availReg
+        utils.call(callback, convertCallbackArg(availReg.lastData, availReg), err)
 
         private.writeRegHexAsync(availReg.mode, convertFrequency(freqUser))
         private.writeRegAsync(availReg.stream, regid)
