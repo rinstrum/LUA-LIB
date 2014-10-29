@@ -290,29 +290,31 @@ local display = {
 -- of the message to display.  The other settings default as below.
 --
 -- The this parameter is a string, it is considered to be a space or comma separated list
--- of values.  For example, the string <i>"time=2, once, clear"</i>
--- specified a two second display between elements, clear the field after wards and only display
--- the message once.  For the <i>time</i> parameter, the <i>time=</i> can be omitted.  Thus,
--- "once 2 clear" has the same meaning as the previous example.
+-- of values.  For example, the string <i>"time=2, once, clear, align=left"</i>
+-- specifies a two second display between elements, clear the field after wards, only display
+-- the message once and left align the message.  For the <i>time</i> parameter, the <i>time=</i> can be omitted.
+-- Thus, "once 2 clear, align=left" has the same meaning as the previous example.
 --
 -- If this parameter is a table, it contains a number of fields which fine tune
 -- the display behaviour.  These fields are described below.
 --
 -- @table displayControl
--- @field time The time parameter is the number of second between the display being updated (default 0.8).
--- @field once Once is a boolean that forces the message to be shown once rather
--- than repeating (default: repeat/display forever).
--- @field wait Wait is a boolean for causes the display call to not return until after
--- the message has been fully displayed (default: don't wait).  The wait implies the once option.
+-- @field align Takes a value of either <i>left</i> or <i>right</i>.  The text in the field is aligned
+-- to this end of the field.  The default is left justified.
 -- @field clear Clear is a boolean, that clears the message from the display once it has been
 -- shown (default: don't clear).  The clear implies the once option.
+-- @field finish A function to call once the display have finished -- this can only be specified in the
+-- tabular form and implies once, not clear and not restore.
+-- @field once Once is a boolean that forces the message to be shown once rather
+-- than repeating (default: repeat/display forever).
+-- @field restore Restore the field to the settings it had prior to having the message displayed.  This
+-- implies once and not clear.
 -- @field sync Synchronously write message to the display (default: asynchronous).  This guarantees that
 -- the message is on the display when the call returns but will cause a slight loss of performance for
 -- long multi-part messages.  Generally, you shouldn't need to add this control modifier.
--- @field restore Restore the field to the settings it had prior to having the message displayed.  This
--- implies once and not clear.
--- @field finish A function to call once the display have finished -- this can only be specified in the
--- tabular form and implies once, not clear and not restore.
+-- @field time The time parameter is the number of second between the display being updated (default 0.8).
+-- @field wait Wait is a boolean for causes the display call to not return until after
+-- the message has been fully displayed (default: don't wait).  The wait implies the once option.
 
 --- Display Fields.
 --
@@ -872,9 +874,9 @@ local unitAnnunciators = {
 -- @field total Total annunciator
 local otherAunnuncitors = {
     none    = 0,
-    per_h   = 0x14,
-    per_m   = 0x11,
-    per_s   = 0x12,
+    per_h   = 0x14,     perh = 0x14,
+    per_m   = 0x11,     perm = 0x11,
+    per_s   = 0x12,     pers = 0x12,
     percent = 0x30,     pc  = 0x30,
     total   = 0x08,     tot = 0x08,
     second  = 0x02,     s = 0x02,
