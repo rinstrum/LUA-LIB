@@ -875,9 +875,9 @@ local unitAnnunciators = {
 -- @field total Total annunciator
 local otherAunnuncitors = {
     none    = 0,
-    per_h   = 0x14,     perh = 0x14,
-    per_m   = 0x11,     perm = 0x11,
-    per_s   = 0x12,     pers = 0x12,
+    per_h   = 0x14,
+    per_m   = 0x11,
+    per_s   = 0x12,
     percent = 0x30,     pc  = 0x30,
     total   = 0x08,     tot = 0x08,
     second  = 0x02,     s = 0x02,
