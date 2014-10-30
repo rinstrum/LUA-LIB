@@ -67,7 +67,7 @@
 
 -- Require the rinApp module
 local rinApp = require "rinApp"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local random = math.random
 math.randomseed(os.time())      -- shake things up a bit
 

@@ -9,7 +9,7 @@ local silent = true
 if not silent then
     describe("Beep #beep", function ()
         local net = require "tests.network"
-        local timers = require 'rinSystem.rinTimers.Pack'
+        local timers = require 'rinSystem.rinTimers'
         local app, upper, lower
 
         before_each(function()

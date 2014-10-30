@@ -8,7 +8,7 @@ local regs = require "tests.registers"
 
 describe("K400Reg #register", function()
     local net = require "tests.network"
-    local timers = require 'rinSystem.rinTimers.Pack'
+    local timers = require 'rinSystem.rinTimers'
     local app, upper, lower, death, lowerPrivate, upperPrivate
 
     setup(function()

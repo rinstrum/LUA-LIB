@@ -7,8 +7,8 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = require 'rinSystem.rinTimers.Pack'
-local sockets = require 'rinSystem.rinSockets.Pack'
+local timers = require 'rinSystem.rinTimers'
+local sockets = require 'rinSystem.rinSockets'
 local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================

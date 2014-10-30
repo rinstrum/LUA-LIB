@@ -14,7 +14,7 @@ local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.

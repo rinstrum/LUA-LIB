@@ -11,7 +11,7 @@ local string = string
 local tonumber = tonumber
 local pairs = pairs
 local bit32 = require "bit"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
@@ -153,6 +153,9 @@ end
 -- @param v Streaming field record
 -- @local
 local function convertCallbackArg(s, v)
+    if s == nil then
+        return nil
+    end
     if v.typ == 'weight' and _M.isHiRes() then
         return private.toFloat(substr, v.dp+1)
     end

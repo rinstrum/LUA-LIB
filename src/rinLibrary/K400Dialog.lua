@@ -15,7 +15,7 @@ local ipairs = ipairs
 local tostring = tostring
 local table = table
 local bit32 = require "bit"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local system = require 'rinSystem.Pack'
 local dbg = require 'rinLibrary.rinDebug'
 

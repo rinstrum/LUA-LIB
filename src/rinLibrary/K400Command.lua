@@ -9,7 +9,7 @@ local tonumber = tonumber
 local bit32 = require "bit"
 local type = type
 local table = table
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here

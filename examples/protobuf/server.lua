@@ -2,7 +2,7 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
-local sockets = requre 'rinSystem.rinSockets.Pack'
+local sockets = require 'rinSystem.rinSockets'
 local dbg = require 'rinLibrary.rinDebug'
 
 require "struct"

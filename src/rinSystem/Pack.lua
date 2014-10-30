@@ -8,8 +8,8 @@
 local socket    = require "socket"
 local posix     = require "posix"
 
-local timers    = require "rinSystem.rinTimers.Pack"
-local sockets   = require "rinSystem.rinSockets.Pack"
+local timers    = require "rinSystem.rinTimers"
+local sockets   = require "rinSystem.rinSockets"
 local dbg       = require "rinLibrary.rinDebug"
 
 local deprecatedFields, warned = {

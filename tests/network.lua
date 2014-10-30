@@ -31,7 +31,7 @@ package.loaded["rinLibrary.rinDebug"] = {
 }
 
 local rinAppFactory = require "rinApp"
-local timers        = require 'rinSystem.rinTimers.Pack'
+local timers        = require 'rinSystem.rinTimers'
 local ftp           = require "socket.ftp"
 local posix         = require "posix"
 

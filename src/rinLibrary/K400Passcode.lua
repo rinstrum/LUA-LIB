@@ -89,7 +89,7 @@ end
 -- Command to lock instrument
 -- @param pc = 'full','safe','oper'
 -- Set a timeout of thirty seconds before full access is lost
--- timers = require 'rinSystem.rinTimers.Pack'
+-- timers = require 'rinSystem.rinTimers'
 -- timers.addTimer(0, 30, function() device.lockPasscode('full') end)
 function _M.lockPasscode(pc)
     local pc = pc or 'full'

@@ -8,7 +8,7 @@
 -------------------------------------------------------------------------------
 local usb = require 'rinLibrary.rinUSB'
 local dbg = require "rinLibrary.rinDebug"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local utils = require 'rinSystem.utilities'
 local naming = require 'rinLibrary.namings'
 

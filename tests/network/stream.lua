@@ -7,7 +7,7 @@ require "tests.assertions"
 
 describe("Streaming #stream", function ()
     local net = require "tests.network"
-    local timers = require 'rinSystem.rinTimers.Pack'
+    local timers = require 'rinSystem.rinTimers'
     local app, upper, lower, death
 
     setup(function()

@@ -10,7 +10,7 @@
 local string = string
 local tonumber = tonumber
 local powersOfTen = require "rinLibrary.powersOfTen"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local system = require 'rinSystem.Pack'
 local dbg = require "rinLibrary.rinDebug"
 local rinMsg = require 'rinLibrary.rinMessage'

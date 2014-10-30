@@ -8,7 +8,7 @@
 -------------------------------------------------------------------------------
 local math = math
 local bit32 = require "bit"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 

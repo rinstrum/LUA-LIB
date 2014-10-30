@@ -8,12 +8,12 @@
 
 local _M = {}
 
-local socks = require "rinSystem.rinSockets.Pack"
+local socks = require "rinSystem.rinSockets"
 local dbg = require "rinLibrary.rinDebug"
 local rs232 = require "luars232"
 local utils = require 'rinSystem.utilities'
 local partition = require "dm.partition"
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
 
 local usb, ev_lib, kb_lib

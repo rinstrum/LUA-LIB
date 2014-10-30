@@ -8,7 +8,7 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = requre 'rinSystem.rinTimers.Pack'
+local timers = requre 'rinSystem.rinTimers'
 
 --=============================================================================
 -- Connect to the instruments you want to control

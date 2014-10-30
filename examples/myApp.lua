@@ -9,7 +9,7 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = require 'rinSystem.rinTimers.Pack'
+local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 
 --=============================================================================

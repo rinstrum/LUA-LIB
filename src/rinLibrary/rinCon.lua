@@ -6,8 +6,8 @@
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-local sockets = require "rinSystem.rinSockets.Pack"
-local timers = require 'rinSystem.rinTimers.Pack'
+local sockets = require "rinSystem.rinSockets"
+local timers = require 'rinSystem.rinTimers'
 local bit32 = require "bit"
 local rinMsg = require "rinLibrary.rinMessage"
 local dbg = require "rinLibrary.rinDebug"
@@ -364,7 +364,7 @@ end
 -- @param ip The source IP address of the socket
 -- @param port The source port of the socket
 -- @usage
--- local sockets = require "rinSystem.rinSockets.Pack"
+-- local sockets = require "rinSystem.rinSockets"
 --
 -- sockets.createServerSocket(1111, device.socketDebugAcceptCallback)
 function _M.socketDebugAcceptCallback(sock, ip, port)

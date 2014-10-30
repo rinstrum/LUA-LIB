@@ -72,7 +72,7 @@ local instrumentSoftwareVersion = nil
 -- @param sockB TCP sockets to connect SERB port
 -- @param app application framework
 -- @usage
--- local sockets = require "rinSystem.rinSockets.Pack"
+-- local sockets = require "rinSystem.rinSockets"
 -- local me = {}
 --
 -- local sA = sockets.createTCPsocket('1.1.1.1', 2222, 0.001)
