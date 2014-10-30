@@ -70,18 +70,11 @@ dwi.write('bottomRight', "COPY")
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
--- mainLoop gets continually called by the framework
--- Main Application logic goes here
-function mainLoop()
-
-end
-rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
 
 --=============================================================================
 -- Clean Up
 --=============================================================================
 -- Put any application clean up here
-
 rinApp.cleanup()                   -- shutdown application resources
 
