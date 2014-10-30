@@ -1,5 +1,8 @@
 -------------------------------------------------------------------------------
--- Wrapper for backwards compatibility
+-- Wrapper for backwards compatibility.
+--
+-- Instead use:
+--     require 'rinSystem.rinSockets'
 -- @module rinSystem.rinSockets.Pack
 -- @author Pauli
 -- @copyright 2013 Rinstrum Pty Ltd

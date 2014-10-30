@@ -16,7 +16,7 @@ local tostring = tostring
 local table = table
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
-local system = require 'rinSystem.Pack'
+local system = require 'rinSystem'
 local dbg = require 'rinLibrary.rinDebug'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

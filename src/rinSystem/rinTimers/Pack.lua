@@ -1,5 +1,8 @@
 -------------------------------------------------------------------------------
 -- Wrapper for backwards compatibility
+--
+-- Instead use:
+--     require 'rinSystem.rinTimers'
 -- @module rinSystem.rinTimers.Pack
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd

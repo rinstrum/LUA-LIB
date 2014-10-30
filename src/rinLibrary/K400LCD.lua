@@ -14,7 +14,7 @@ local timers = require 'rinSystem.rinTimers'
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation
 local dbg = require "rinLibrary.rinDebug"
-local system = require "rinSystem.Pack"
+local system = require "rinSystem"
 local utils = require 'rinSystem.utilities'
 local deepcopy = require 'rinLibrary.deepcopy'
 

@@ -18,7 +18,7 @@ local io = io
 local lpeg = require "rinLibrary.lpeg"
 local P, Pi, V = lpeg.P, lpeg.Pi, lpeg.V
 
-local system = require 'rinSystem.Pack'
+local system = require 'rinSystem'
 local socks = require "rinSystem.rinSockets"
 local timers = require 'rinSystem.rinTimers'
 local utils = require 'rinSystem.utilities'

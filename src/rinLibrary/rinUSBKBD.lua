@@ -12,7 +12,7 @@ local string = string
 local table = table
 local ipairs = ipairs
 local tostring = tostring
-local system = require 'rinSystem.Pack'
+local system = require 'rinSystem'
 
 local _M = {}
 

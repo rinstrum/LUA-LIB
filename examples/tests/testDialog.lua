@@ -8,7 +8,7 @@
 local rinApp = require "rinApp"
 local dwi = rinApp.addK400("K401")
 local dbg = require "rinLibrary.rinDebug"
-local system = require 'rinSystem.Pack'
+local system = require 'rinSystem'
 
 -------------------------------------------------------------------------------
 -- Put a message on LCD and remove after 2 second delay
