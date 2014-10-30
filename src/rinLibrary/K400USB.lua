@@ -95,6 +95,7 @@ return function (_M, private, deprecated)
 --
 -- You won't need to call this unless you are taking control of the USB storage
 -- handling yourself.
+-- @return the return value(s) from the user's call back or nil
 -- @usage
 -- device.usbBackup()
     function _M.usbBackup()
@@ -109,6 +110,7 @@ return function (_M, private, deprecated)
 --
 -- You won't need to call this unless you are taking control of the USB storage
 -- handling yourself.
+-- @return the return value(s) from the user's call back or nil
 -- @usage
 -- device.usbUpdate()
     function _M.usbUpdate()
