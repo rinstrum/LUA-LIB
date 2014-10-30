@@ -759,14 +759,8 @@ end)
 --- LCD Annunciators
 -- These are the definitions of all the annunciators top and bottom.
 --@table Annunciators
--- @field sigma (top)
+-- @field all All annunciators top and bottom
 -- @field balance (top)
--- @field coz (top)
--- @field hold (top)
--- @field motion (top)
--- @field net (top)
--- @field range (top)
--- @field zero (top)
 -- @field bal_sega (top)
 -- @field bal_segb (top)
 -- @field bal_segc (top)
@@ -774,22 +768,28 @@ end)
 -- @field bal_sege (top)
 -- @field bal_segf (top)
 -- @field bal_segg (top)
+-- @field bat_full Top battery charge bar (bottom)
+-- @field bat_hi Second from top battery charge bar (bottom)
+-- @field bat_midh Middle battery charge bar (bottom)
+-- @field bat_midl Second from bottom battery charge bar (bottom)
+-- @field bat_lo Bottom battery charge bar (bottom)
+-- @field battery Battery icon (bottom)
+-- @field clock (bottom)
+-- @field coz (top)
+-- @field hold (top)
+-- @field motion (top)
+-- @field net (top)
 -- @field range_segadg (top)
 -- @field range_segc (top)
 -- @field range_sege (top)
--- @field battery (bottom)
--- @field clock (bottom)
--- @field bat_lo (bottom)
--- @field bat_midl (bottom)
--- @field bat_midh (bottom)
--- @field bat_hi (bottom)
--- @field bat_full (bottom)
--- @field wait (bottom)
--- @field wait45 (bottom)
--- @field wait90 (bottom)
--- @field wait135 (bottom)
--- @field waitall (bottom)
--- @field all All annunciators top and bottom
+-- @field range (top)
+-- @field sigma (top)
+-- @field wait135 Diagonal wait annunciator (bottom)
+-- @field wait45 Diagonal wait annunciator (bottom)
+-- @field wait90 Horizontal wait annunciator (bottom)
+-- @field waitall All four wait annunciators (bottom)
+-- @field wait Vertical wait annunciator (bottom)
+-- @field zero (top)
 
 -- REG_DISP_BOTTOM_ANNUN BIT SETTINGS
 local WAIT      = 0x0040
@@ -833,6 +833,7 @@ local annunciatorMap = {
     waitall         = { v=WAITALL,  locn='bottom' },
     all             = { v=1,        locn='all'  }
 }
+
 --- Main Units
 --@table Units
 -- @field none No annunciator selected
@@ -865,12 +866,12 @@ local unitAnnunciators = {
 -- @field none No annuciator selected
 -- @field hour Hour annunciator
 -- @field minute Minute annunciator
+-- @field percent Percent annunciator (includes slash)
+-- @field per_h Per hour annunciator (slash + hour)
+-- @field per_m Per meter annunciator (slash + minute)
+-- @field per_s Per second annuicator (slash + second)
 -- @field second Second annunicator
 -- @field slash Slash line
--- @field per_h Per hour annunciator
--- @field per_m Per meter annunciator
--- @field per_s Per second annuicator
--- @field percent Percent annunciator
 -- @field total Total annunciator
 local otherAunnuncitors = {
     none    = 0,
