@@ -32,33 +32,42 @@ local whenMap = {
 -- over the copying and update processes.  Generally, you will only need
 -- to specify a backup and an update call back.
 -- @table usbActivateParameters
--- @field when Secify when the automatic USB storage handler is invoked.
+-- @field automatic Boolean which, when true, skips the user menu and does the copying
+-- automatically.  Default is false.
+--
+-- @field backup Call back to backup the module to the USB and save logs etc.
+-- The USB storage device's mount point path is passed to the call back.  This
+-- call back should return true to indicate that some deletions are possible and
+-- that the user should be prompted to do so.
+--
+-- @field delete Call back that is called to delete files from the module after
+-- the USB device has been removed.
+--
 -- @field new Call back when a new USB storage device becomes available.
 -- The USB storage device's mount point path is passed to the call back.  This
 -- call back can return a new when code that replaces the previous set when
 -- code just for this USB storage device, returning nothing or nil will use
 -- the normally defined when code.
+--
 -- @field removed Call back when a USB storage device is removed.  No arguments
 -- are passed to the call back.
--- @field backup Call back to backup the module to the USB and save logs etc.
--- The USB storage device's mount point path is passed to the call back.  This
--- call back should return true to indicate that some deletions are possible and
--- that the user should be prompted to do so.
--- @field update Call back to update the module from the USB storage device.
--- The USB storage device's mount point path is passed to the call back.
--- This call back can return true to indicate that a reboot is required.
+--
 -- @field unmount Call back when the USB storage device is about to be unmounted.
 -- The USB storage device's mount point path is passed to the call back.
 -- @see usbWhenMode
--- @field delete Call back that is called to delete files from the module after
--- the USB device has been removed.
+--
+-- @field update Call back to update the module from the USB storage device.
+-- The USB storage device's mount point path is passed to the call back.
+-- This call back can return true to indicate that a reboot is required.
+--
+-- @field when Secify when the automatic USB storage handler is invoked.
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
     local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB, deleteUsbCB
     local mountPoint
-    local doDelete, mustReboot, usbRemoved = false, false, false
+    local doDelete, mustReboot, usbRemoved, noMenu = false, false, false, false
     local when = 'idle'
 
 -------------------------------------------------------------------------------
@@ -201,11 +210,16 @@ return function (_M, private, deprecated)
 
         message('FOUND', 'time=2, wait, clear')
 
-        _M.createMenu { 'USB STORAGE', loop=true }
-            .item { 'EJECT', secondary='USB', exit=true,  }
-            .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
-            .item { 'TO', secondary='USB', exit=true, run=copyTo, enabled=backupUsbCB ~= nil }
-            .run()
+        if noMenu then
+            if backupUsbCB then copyTo() end
+            if updateUsbCB then copyFrom() end
+        else
+            _M.createMenu { 'USB STORAGE', loop=true }
+                .item { 'TO', secondary='USB', exit=true, run=copyTo, enabled=backupUsbCB ~= nil }
+                .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
+                .item { 'EJECT', secondary='USB', exit=true,  }
+                .run()
+        end
 
         _M.usbUnmount()
         _M.app.delayUntil(function() return usbRemoved end)
@@ -267,6 +281,7 @@ return function (_M, private, deprecated)
         unmountUsbCB = args.unmount     utils.checkCallback(unmountUsbCB)
         deleteUsbCB = args.delete       utils.checkCallback(deleteUsbCB)
         _M.usbSetWhen(args.when)
+        noMenu = args.automatic == true
 
         usb.setStorageAddedCallback(added)
         usb.setStorageRemovedCallback(removed)
