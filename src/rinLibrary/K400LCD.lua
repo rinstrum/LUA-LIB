@@ -974,7 +974,7 @@ end
 -- The other field isn't always supported.  Likewise, not all fields have units.
 -- @param where which display section to write to
 -- @param unts Unit to display
--- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot')
 -- @see displayField
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
@@ -999,7 +999,7 @@ end
 -------------------------------------------------------------------------------
 -- Set bottom units.  The writeUnits interface is preferred.
 -- @param unts Unit to display
--- @param other ('per_h', 'per_m', 'per_s', 'pc', 'tot')
+-- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot')
 -- @see writeUnits
 -- @usage
 -- device.writeBotUnits('oz', 'per_m')
