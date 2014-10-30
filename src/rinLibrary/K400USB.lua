@@ -41,20 +41,24 @@ local whenMap = {
 -- @field removed Call back when a USB storage device is removed.  No arguments
 -- are passed to the call back.
 -- @field backup Call back to backup the module to the USB and save logs etc.
--- The USB storage device's mount point path is passed to the call back.
+-- The USB storage device's mount point path is passed to the call back.  This
+-- call back should return true to indicate that some deletions are possible and
+-- that the user should be prompted to do so.
 -- @field update Call back to update the module from the USB storage device.
 -- The USB storage device's mount point path is passed to the call back.
 -- This call back can return true to indicate that a reboot is required.
 -- @field unmount Call back when the USB storage device is about to be unmounted.
 -- The USB storage device's mount point path is passed to the call back.
 -- @see usbWhenMode
+-- @field delete Call back that is called to delete files from the module after
+-- the USB device has been removed.
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
-    local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB
+    local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB, deleteUsbCB
     local mountPoint
-    local mustReboot, usbRemoved = false, false
+    local doDelete, mustReboot, usbRemoved = false, false, false
     local when = 'idle'
 
 -------------------------------------------------------------------------------
@@ -95,7 +99,7 @@ return function (_M, private, deprecated)
 -- device.usbBackup()
     function _M.usbBackup()
         message('WRITING')
-        utils.call(backupUsbCB, mountPoint)
+        return utils.call(backupUsbCB, mountPoint)
     end
 
 -------------------------------------------------------------------------------
@@ -109,7 +113,19 @@ return function (_M, private, deprecated)
 -- device.usbUpdate()
     function _M.usbUpdate()
         message('READING')
-        utils.call(updateUsbCB, mountPoint)
+        return utils.call(updateUsbCB, mountPoint)
+    end
+
+-------------------------------------------------------------------------------
+-- Indicate that a reboot is required when the USB storage device is unmounted.
+--
+-- You generally won't need to call this because the return code from your
+-- update routine sets this directly.
+-- @see usbReboot
+-- @usage
+-- device.usbRebootRequired()
+    function _M.usbDeletionRequired()
+        doDelete = true
     end
 
 -------------------------------------------------------------------------------
@@ -164,6 +180,15 @@ return function (_M, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
+-- Copy things to the USB device, optionally schedule a deletion query.
+-- @local
+    local function copyTo()
+        if _M.usbBackup() == true then
+            _M.usbDeletionRequired()
+        end
+    end
+
+-------------------------------------------------------------------------------
 -- USB storage save/restore handler
 -- @param mountPoint Mount point for the USB storage device
 -- @local
@@ -177,7 +202,7 @@ return function (_M, private, deprecated)
         _M.createMenu { 'USB STORAGE', loop=true }
             .item { 'EJECT', secondary='USB', exit=true,  }
             .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
-            .item { 'TO', secondary='USB', exit=true, run=_M.usbBackup, enabled=backupUsbCB ~= nil }
+            .item { 'TO', secondary='USB', exit=true, run=copyTo, enabled=backupUsbCB ~= nil }
             .run()
 
         _M.usbUnmount()
@@ -192,7 +217,7 @@ return function (_M, private, deprecated)
 -- @param loc Mount point for new USB storage device
 -- @local
     local function added(loc)
-        mountPoint, mustReboot, usbRemoved = loc, false, false
+        mountPoint, doDelete, mustReboot, usbRemoved = loc, false, false, false
         _M.buzz(1) -- "single beep" on USB registration
 
         local w = utils.call(newUsbCB, loc) or when
@@ -211,6 +236,16 @@ return function (_M, private, deprecated)
         utils.call(removedUsbCB)
         usbRemoved = true
 
+        if doDelete and utils.callable(deleteUsbCB) then
+            _M.write('topLeft', 'DELETE')
+            if _M.askOK('OK ?', 'LOG FILES') == 'ok' then
+                utils.call(deleteUsbCB)
+                _M.write('topLeft', 'LOGS')
+                _M.write('bottomRight', '')
+                _M.write('bottomLeft', 'DELETED', 'wait, time=1.5')
+            end
+        end
+
         if mustReboot then
             _M.usbReboot()
         end
@@ -228,6 +263,7 @@ return function (_M, private, deprecated)
         backupUsbCB = args.backup       utils.checkCallback(backupUsbCB)
         updateUsbCB = args.update       utils.checkCallback(updateUsbCB)
         unmountUsbCB = args.unmount     utils.checkCallback(unmountUsbCB)
+        deleteUsbCB = args.delete       utils.checkCallback(deleteUsbCB)
         _M.usbSetWhen(args.when)
 
         usb.setStorageAddedCallback(added)
