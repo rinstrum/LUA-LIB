@@ -48,13 +48,13 @@ function _M.checkPasscode(pc, code, tries)
     local tries = tries or 1
     local count = 1
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     while _M.dialogRunning() and _M.app.isRunning() do
         local m, err = private.readRegHex(pcode, 1.0)
         if not m then
             if count > tries then
                 msg.setErrHandler(f)
-                _M.abortDialog()
+                finished()
                 return false
             end
             if count > 1 and err then
@@ -70,7 +70,7 @@ function _M.checkPasscode(pc, code, tries)
                 pass, ok = _M.edit('ENTER PCODE','','passcode')
                 if not ok or not pass then
                     msg.setErrHandler(f)
-                    _M.abortDialog()
+                    finished()
                     return false
                 end
             end
@@ -80,7 +80,7 @@ function _M.checkPasscode(pc, code, tries)
             break
         end
     end
-    _M.abortDialog()
+    finished()
     msg.setErrHandler(f)
     return true
 end

@@ -25,7 +25,7 @@ return function (_M, private, deprecated)
 
 local REG_EDIT_REG = 0x0320
 
-local dialogRunning = 0
+local dialogRunning = false
 local editing = false
 
 local sEditVal = ' '        -- default edit value for sEdit()
@@ -44,7 +44,7 @@ local blinkOff = false      -- blink cursor for string editing
 --     write('bottomLeft', 'hello')
 -- end
 function _M.dialogRunning()
-    return dialogRunning ~= 0
+    return dialogRunning
 end
 
 -------------------------------------------------------------------------------
@@ -52,18 +52,18 @@ end
 -- application loop.
 -- @local
 function _M.abortDialog()
-    dialogRunning = dialogRunning - 1
-    if dialogRunning < 0 then
-        dialogRunning = 0
-    end
+    dialogRunning = false
 end
 
 -------------------------------------------------------------------------------
 -- Enter into a new dialog.
+-- @return function to restore dialog entry state to previous
 -- @local
 function _M.startDialog()
-    dialogRunning = dialogRunning + 1
+    local old = dialogRunning
+    dialogRunning = true
     private.bumpIdleTimer()
+    return function() dialogRunning = old end
 end
 
 -------------------------------------------------------------------------------
@@ -92,11 +92,11 @@ function _M.getKey(keyGroup, keep)
         _M.setKeyGroupCallback('all', function() return true end)
     end
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     _M.app.delayUntil(function()
         return not _M.dialogRunning() or getKeyState
     end)
-    _M.abortDialog()
+    finished()
     savedKeyHandlers()
 
     return getKeyPressed, getKeyState
@@ -266,7 +266,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     _M.write('bottomLeft', sEditVal)    -- write the default string to edit
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         key, state = _M.getKey('keypad')  -- wait for a key press
         if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
@@ -362,7 +362,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 --          print('eVal = \'' .. sEditVal .. '\'')   -- debug
         end
     end
-    _M.abortDialog()
+    finished()
 
     restoreBottom() -- restore previously displayed messages
 
@@ -410,7 +410,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     local first = true
 
     local ok = false
-    _M.startDialog()
+    local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         key, state = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
@@ -462,7 +462,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
            _M.write('bottomLeft', editVal..' ')
         end
     end
-    _M.abortDialog()
+    finished()
     restoreBottom()
 
     return tonumber(editVal), ok
@@ -489,7 +489,7 @@ function _M.editReg(register, prompt)
         end
     end
     private.writeReg(REG_EDIT_REG, reg)
-    _M.startDialog()
+    local finished = _M.startDialog()
     while true do
         local data,err = private.readRegHex(REG_EDIT_REG)
 
@@ -501,7 +501,7 @@ function _M.editReg(register, prompt)
             _M.sendKey('cancel', 'long')
         end
     end
-    _M.abortDialog()
+    finished()
     if restoreBottom then
         restoreBottom()
     end
@@ -525,7 +525,7 @@ function _M.askOK(prompt, q, units, unitsOther)
     _M.write('bottomLeft', q or '')
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     while _M.app.isRunning() do
         local key = _M.getKey('arrow')
 
@@ -536,7 +536,7 @@ function _M.askOK(prompt, q, units, unitsOther)
             break
         end
     end
-    _M.abortDialog()
+    finished()
     restoreBottom()
     return askOKResult
 end
@@ -571,7 +571,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     _M.write('bottomRight', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         _M.write('bottomLeft', string.upper(opts[index]))
         local key = _M.getKey('arrow')
@@ -586,7 +586,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
             editing = false
         end
     end
-    _M.abortDialog()
+    finished()
     restoreBottom()
     return sel
 end
@@ -621,7 +621,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     local restoreBottom = _M.saveBottom()
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
-    _M.startDialog()
+    local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         _M.write('bottomLeft', string.upper(opts[index]))
         _M.write('bottomRight', (options.isSelected(opts[index]) and "*" or " ")..prompt)
@@ -645,7 +645,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
             options.selectAll()
         end
     end
-    _M.abortDialog()
+    finished()
     restoreBottom()
     return options.getSelected()
 end
@@ -673,7 +673,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     _M.write('topLeft', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
     
-    _M.startDialog()
+    local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         _M.write('bottomLeft', string.upper(opts[index][1]))
         _M.write('bottomRight', string.upper(opts[index][2]))
@@ -689,7 +689,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
             editing = false
         end
     end
-    _M.abortDialog()
+    finished()
     _M.restoreBottom()
     return sel
 end
