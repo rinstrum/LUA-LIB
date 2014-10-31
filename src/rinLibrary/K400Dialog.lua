@@ -56,6 +56,19 @@ function _M.abortDialog()
 end
 
 -------------------------------------------------------------------------------
+-- Null function
+-- @local
+local function null()
+end
+
+-------------------------------------------------------------------------------
+-- Stop the current dialog running
+-- @local
+local function stopDialog()
+    dialogRunning = false
+end
+
+-------------------------------------------------------------------------------
 -- Enter into a new dialog.
 -- @return function to restore dialog entry state to previous
 -- @local
@@ -63,7 +76,7 @@ function _M.startDialog()
     local old = dialogRunning
     dialogRunning = true
     private.bumpIdleTimer()
-    return function() dialogRunning = old end
+    return old and null or stopDialog
 end
 
 -------------------------------------------------------------------------------

@@ -619,10 +619,7 @@ local function makeMenu(args, parent, fields)
         while _M.app.isRunning() and menu.inProgress do
             menu[posn].update()
             local key = _M.getKey('arrow')
-            if not _M.dialogRunning() or key == 'cancel' then
-                menu.finish()
-                okay = false
-            elseif key == 'down' then
+            if key == 'down' then
                 move(1)
             elseif key == 'up' then
                 move(-1)
@@ -631,6 +628,10 @@ local function makeMenu(args, parent, fields)
                 m.hide()    m.run()     findEnabled()
                 _M.write('bottomRight', getPrompt(menu))
                 if m.exit == true then menu.finish() end
+            end
+            if not _M.dialogRunning() or key == 'cancel' then
+                menu.finish()
+                okay = false
             end
         end
         menu[posn].hide()
