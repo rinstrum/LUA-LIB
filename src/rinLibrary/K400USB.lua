@@ -68,7 +68,7 @@ return function (_M, private, deprecated)
     local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB, deleteUsbCB
     local mountPoint
     local doDelete, mustReboot, usbRemoved, noMenu = false, false, false, false
-    local when = 'idle'
+    local when, theMenu = 'idle', nil
 
 -------------------------------------------------------------------------------
 -- Display a message to the screen in a standard manner.
@@ -214,15 +214,18 @@ return function (_M, private, deprecated)
             if backupUsbCB then copyTo() end
             if updateUsbCB then copyFrom() end
         else
-            _M.createMenu { 'USB STORAGE', loop=true }
+            theMenu = _M.createMenu { 'USB STORAGE', loop=true }
                 .item { 'TO', secondary='USB', exit=true, run=copyTo, enabled=backupUsbCB ~= nil }
                 .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
                 .item { 'EJECT', secondary='USB', exit=true,  }
-                .run()
+            theMenu.run()
+            theMenu = nil
         end
 
-        _M.usbUnmount()
-        _M.app.delayUntil(function() return usbRemoved end)
+        if not usbRemoved then
+            _M.usbUnmount()
+            _M.app.delayUntil(function() return usbRemoved end)
+        end
         savedKeyHandlers()
         restoreDisplay()
         _M.lcdControl(mode)
@@ -251,6 +254,8 @@ return function (_M, private, deprecated)
         _M.buzz(2) -- "double beep" when USB is unplugged
         utils.call(removedUsbCB)
         usbRemoved = true
+
+        if theMenu ~= nil then _M.abortDialog() end
 
         if doDelete and utils.callable(deleteUsbCB) then
             _M.write('topLeft', 'DELETE')
