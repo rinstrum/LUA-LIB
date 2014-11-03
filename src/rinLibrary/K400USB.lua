@@ -77,6 +77,8 @@ return function (_M, private, deprecated)
 -- @local
     local function message(m, params)
         params = params or 'align=right, sync'
+        _M.write('bottomRight', '')
+        _M.write('topRight', '')
         _M.write('topLeft', 'USB')
         _M.write('bottomLeft', m, params)
     end
@@ -215,8 +217,8 @@ return function (_M, private, deprecated)
             if updateUsbCB then copyFrom() end
         else
             theMenu = _M.createMenu { 'USB STORAGE', loop=true }
-                .item { 'TO', secondary='USB', exit=true, run=copyTo, enabled=backupUsbCB ~= nil }
-                .item { 'FROM', secondary='USB', exit=true, run=copyFrom, enabled=updateUsbCB ~= nil }
+                .item { 'TO', secondary='USB', run=copyTo, enabled=backupUsbCB ~= nil }
+                .item { 'FROM', secondary='USB', run=copyFrom, enabled=updateUsbCB ~= nil }
                 .item { 'EJECT', secondary='USB', exit=true,  }
             theMenu.run()
             theMenu = nil
