@@ -29,8 +29,8 @@ local mode = 'idle'
 --  Callback to capture changes to current weight
 local curWeight = 0
 local function handleNewWeight(data, err)
-   curWeight = data
-   print('Weight = ',curWeight)
+    curWeight = data
+    print('Weight = ',curWeight)
 end
 dwi.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
@@ -40,11 +40,11 @@ dwi.addStream('grossnet', handleNewWeight, 'change')
 -- Callback to monitor motion status
 local function handleMotion(status, active)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then
-     print('motion')
-  else
-     print('stable')
-   end
+    if active then
+        print('motion')
+    else
+        print('stable')
+    end
 end
 dwi.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
@@ -53,18 +53,18 @@ dwi.setStatusCallback('motion', handleMotion)
 -- Callback to capture changes to instrument status
 local function handleIO1(IO, active)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then
-     print('IO 1 is on ')
-  else
-     print('IO 1 is off ')
-  end
+    if active then
+        print('IO 1 is on ')
+    else
+        print('IO 1 is off ')
+    end
 end
 dwi.setIOCallback(1, handleIO1)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
 local function handleIO(data)
-   dbg.info(' IO: ', string.format('%08X',data))
+    dbg.info(' IO: ', string.format('%08X',data))
 end
 dwi.setAllIOCallback(handleIO)
 
@@ -72,11 +72,11 @@ dwi.setAllIOCallback(handleIO)
 -- Callback to capture changes to instrument status
 local function handleSETP1(SETP, active)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
-  if active then
-     print ('SETP 1 is on ')
-  else
-     print ('SETP 1 is off ')
-  end
+    if active then
+        print ('SETP 1 is on ')
+    else
+        print ('SETP 1 is off ')
+    end
 end
 dwi.setSETPCallback(1, handleSETP1)
 -- set callback to capture changes on IO1
@@ -86,7 +86,7 @@ dwi.setSETPCallback(1, handleSETP1)
 -- Callback to capture changes to instrument status
 local function handleSETP(data)
 -- status is a copy of the instrument status bits and active is true or false to show if active or not
-   dbg.info('SETP: ',string.format('%04X',data))
+    dbg.info('SETP: ',string.format('%04X',data))
 end
 dwi.setAllSETPCallback(handleSETP)
 -- set callback to capture changes on IO1
@@ -142,28 +142,28 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -- mainLoop() gets called by the framework after any event has been processed
 -- Main Application logic goes here
 local function mainLoop()
-   if mode == 'idle' then
-      dwi.write('topLeft', 'MY APP')
-      dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
-      dwi.write('bottomRight', '')
-   elseif mode == 'run' then
-      dwi.write('topLeft')
-      dwi.write('bottomLeft', '')
-      dwi.write('bottomRight', 'PLACE')
-      if dwi.allStatusSet('notzero', 'notmotion') then
-         dwi.setUserNumber(3, dwi.toPrimary(curWeight))
-         dwi.writeAuto('bottomLeft', 'usernum3')
-         dwi.buzz(2)
-         dwi.write('bottomRight', 'CAPTURED', 'time=1, wait')
-         dwi.write('bottomRight', '...')
-         mode = 'wait'
-      end
+    if mode == 'idle' then
+        dwi.write('topLeft', 'MY APP')
+        dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
+        dwi.write('bottomRight', '')
+    elseif mode == 'run' then
+        dwi.write('topLeft')
+        dwi.write('bottomLeft', '')
+        dwi.write('bottomRight', 'PLACE')
+        if dwi.allStatusSet('notzero', 'notmotion') then
+            dwi.setUserNumber(3, dwi.toPrimary(curWeight))
+            dwi.writeAuto('bottomLeft', 'usernum3')
+            dwi.buzz(2)
+            dwi.write('bottomRight', 'CAPTURED', 'time=1, wait')
+            dwi.write('bottomRight', '...')
+            mode = 'wait'
+        end
     elseif mode == 'wait' then
-       if dwi.anyStatusSet('motion') then
-           dwi.buzz(1)
-           dwi.write('bottomRight', '', 'time=0.5, wait')
-           mode = 'run'
-       end
+        if dwi.anyStatusSet('motion') then
+            dwi.buzz(1)
+            dwi.write('bottomRight', '', 'time=0.5, wait')
+            mode = 'run'
+        end
     end
 end
 
