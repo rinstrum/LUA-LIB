@@ -29,7 +29,7 @@ rinApp.setUserTerminal(function(s)
     if not ok then
         print(err)
 	    return false
-    end	 
+    end
     return true
 end)
 
