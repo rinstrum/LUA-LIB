@@ -7,6 +7,8 @@
 -- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
+package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
+package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
 
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers'
@@ -16,10 +18,8 @@ local dbg = require "rinLibrary.rinDebug"
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwi = rinApp.addK400("K401", '172.17.1.116')     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
-
-local mode = 'idle'
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -90,18 +90,55 @@ local function handleSETP(data)
 end
 dwi.setAllSETPCallback(handleSETP)
 -- set callback to capture changes on IO1
--------------------------------------------------------------------------------
+
+--=============================================================================
+-- Define the state machine that drives this appliction.
+
+local function enterIdle()
+    dwi.write('topLeft', 'MY APP')
+    dwi.write('bottomLeft', 'F1-START F2-FINISH', 'time=1.5')
+    dwi.write('bottomRight', '')        
+end
+
+local function enterRun()
+    dwi.writeAuto('topLeft', 'grossnet')
+    dwi.write('bottomLeft', '')
+    dwi.write('bottomRight', 'PLACE')
+end
+
+local function captured()
+    dwi.setUserNumber(3, dwi.toPrimary(curWeight))
+    dwi.writeAuto('bottomLeft', 'usernum3')
+    dwi.buzz(2)
+    dwi.write('bottomRight', 'CAPTURED', 'time=1, wait')
+    dwi.write('bottomRight', '...')
+end
+
+-- The actual state machine is pretty small at six lines:
+local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
+    -- States are the modes we can be in.
+    .state { 'idle', enter=enterIdle, initial=true }
+    .state { 'run',  enter=enterRun }
+    .state { 'wait' }
+
+    -- Transitions are the movements between modes.
+    .trans { 'run', 'wait', status={'notzero', 'notmotion'}, run=captured }
+    .trans { 'wait', 'run', status='motion',
+        run = function()
+            dwi.buzz(1)
+            dwi.write('bottomRight', '', 'time=0.5, wait')
+        end }
 
 -------------------------------------------------------------------------------
 -- Callbacks to handle F1 key event
 dwi.setKeyCallback('f1', function() print('Long F1 Pressed') return true end, 'long')
-dwi.setKeyCallback('f1', function() mode = 'run' return true end, 'short')
+dwi.setKeyCallback('f1', function() fsm.setState('run') return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callbacks to handle F2 key event
 dwi.setKeyCallback('f2', function() print('Long F2 Pressed') return true end, 'long')
-dwi.setKeyCallback('f2', function() mode = 'idle' return true end, 'short')
+dwi.setKeyCallback('f2', function() fsm.reset() return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -136,49 +173,7 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 
 --=============================================================================
--- Main Application Loop
---=============================================================================
--- Define your application loop
--- mainLoop() gets called by the framework after any event has been processed
--- Main Application logic goes here
-local function mainLoop()
-    if mode == 'idle' then
-        dwi.write('topLeft', 'MY APP')
-        dwi.write('bottomLeft', 'F1-START F2-FINISH',1.5)
-        dwi.write('bottomRight', '')
-    elseif mode == 'run' then
-        dwi.write('topLeft')
-        dwi.write('bottomLeft', '')
-        dwi.write('bottomRight', 'PLACE')
-        if dwi.allStatusSet('notzero', 'notmotion') then
-            dwi.setUserNumber(3, dwi.toPrimary(curWeight))
-            dwi.writeAuto('bottomLeft', 'usernum3')
-            dwi.buzz(2)
-            dwi.write('bottomRight', 'CAPTURED', 'time=1, wait')
-            dwi.write('bottomRight', '...')
-            mode = 'wait'
-        end
-    elseif mode == 'wait' then
-        if dwi.anyStatusSet('motion') then
-            dwi.buzz(1)
-            dwi.write('bottomRight', '', 'time=0.5, wait')
-            mode = 'run'
-        end
-    end
-end
-
---=============================================================================
--- Clean Up
---=============================================================================
--- Define anything for the Application to do when it exits
--- cleanup() gets called by framework when the application finishes
-local function cleanup()
-
-end
-
---=============================================================================
 -- run the application
-rinApp.setMainLoop(mainLoop)
-rinApp.setCleanup(cleanup)
+rinApp.setMainLoop(fsm.run)
 rinApp.run()
 --=============================================================================
