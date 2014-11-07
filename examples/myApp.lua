@@ -7,9 +7,6 @@
 -- Copy this file to your project directory and insert the specific code of
 -- your application
 -------------------------------------------------------------------------------
-package.path = "/home/pauli/m4223/L001-507/opkg/usr/local/share/lua/5.1/?.lua;" .. package.path
-package.path = "/home/pauli/m4223/L001-503/src/?.lua;" .. package.path
-
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
@@ -18,7 +15,7 @@ local dbg = require "rinLibrary.rinDebug"
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400("K401", '172.17.1.116')     --  make a connection to the instrument
+local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 
 --=============================================================================
@@ -157,11 +154,8 @@ dwi.setStatusCallback('init', settingsChanged)
 -- Callback for local timer
 local tickerStart = 0.100    -- time in millisec until timer events start triggering
 local tickerRepeat = 0.200  -- time in millisec that the timer repeats
-local function ticker()
--- insert code here that you want to run on each timer event
-    dwi.rotWAIT(1)
-end
-timers.addTimer(tickerRepeat,tickerStart,ticker)
+
+timers.addTimer(tickerRepeat, tickerStart, dwi.rotWAIT, 1)
 -------------------------------------------------------------------------------
 
 --=============================================================================
