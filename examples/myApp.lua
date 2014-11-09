@@ -114,14 +114,14 @@ end
 -- The actual state machine is pretty small at six lines:
 local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
     -- States are the modes we can be in.
-    .state { 'idle', enter=enterIdle, initial=true }
+    .state { 'idle', enter=enterIdle }
     .state { 'run',  enter=enterRun }
     .state { 'wait' }
 
     -- Transitions are the movements between modes.
-    .trans { 'run', 'wait', status={'notzero', 'notmotion'}, run=captured }
+    .trans { 'run', 'wait', status={'notzero', 'notmotion'}, activate=captured }
     .trans { 'wait', 'run', status='motion',
-        run = function()
+        activate = function()
             dwi.buzz(1)
             dwi.write('bottomRight', '', 'time=0.5, wait')
         end }

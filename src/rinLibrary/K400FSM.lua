@@ -129,6 +129,11 @@ return function (_M, private, deprecated)
 --
 -- @field status The statuses that must be set for this transition to trigger.  Either a
 -- string containing one status, or a table of several.
+--
+-- @field time The amount of time that the from state must have been in before
+-- this transition will trigger.  This is only a minimum, it is highly likely that more
+-- time will have elapsed before the transition activates.  Of course, all of the other
+-- trigger conditions also have to be met.
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
@@ -167,6 +172,15 @@ function _M.stateMachine(args)
         return 'K400FSM ' .. module .. ' (' .. name .. '):'
     end
 
+-------------------------------------------------------------------------------
+-- Check if a time based transition is due or not
+-- @param t Transition
+-- @return Boolean, true iff the time has passed
+-- @local
+    local function checkTime(t)
+        return t.time == nil or timers.monotonicTime() >= (t.time + current.activeTime)
+    end
+    
 -------------------------------------------------------------------------------
 -- Set the state of the finite state machine
 -- @param s State table
@@ -257,10 +271,10 @@ function _M.stateMachine(args)
 
             if from == 'all' then
                 for _, s in pairs(states) do
-                    table.insert(s, t)
+                    table.insert(s.trans, t)
                 end
             else
-                table.insert(states[from], t)
+                table.insert(states[from].trans, t)
             end
         end
         return fsm
@@ -327,7 +341,7 @@ function _M.stateMachine(args)
         else
             current.run()
             for _, t in ipairs(current.trans) do
-                if t.cond() and checkBitConditions(t) then
+                if t.cond() and checkBitConditions(t) and checkTime(t) then
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
