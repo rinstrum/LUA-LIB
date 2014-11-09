@@ -43,7 +43,7 @@ function _M.getKey()
 
     local keypressed = ''
 
-    local f = rinApp.getUSBKBDCallback()
+    local f = usb.getUSBKBDCallback()
     local function kbdHandler(key)
         keypressed = key
     end
