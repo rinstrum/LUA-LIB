@@ -36,6 +36,7 @@ if pcall(function() require "posix" end) then
 	    return s + n * 0.000000001
     end
 end
+_M.monotonicTime = monotonictime
 
 -------------------------------------------------------------------------------
 -- Put an event into the timer table.

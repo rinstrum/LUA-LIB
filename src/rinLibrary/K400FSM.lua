@@ -8,6 +8,7 @@
 local dbg = require "rinLibrary.rinDebug"
 local utils = require 'rinSystem.utilities'
 local canonical = require('rinLibrary.namings').canonicalisation
+local timers = require 'rinSystem.rinTimers'
 
 -------------------------------------------------------------------------------
 -- Return a callback if it is callable, return the default if not.
@@ -77,10 +78,6 @@ return function (_M, private, deprecated)
 -- @field enter A function that will be called whenever this field becomes active.  It
 -- will only be called once per transition.
 --
--- @field initial Booleam, if true then this field is the initial or reset field.
--- By default a field is not the initial state.  There can only be one initial state and
--- a diagnostic message is produced if a second is defined.
---
 -- @field leave A function that will be called whenever this field is transitioned
 -- away from (i.e. becoming inactive).
 --
@@ -106,6 +103,10 @@ return function (_M, private, deprecated)
 -- transition will always activate.
 --
 -- @table FiniteStateMachineTransitions
+-- @field activate A function that will be execute after this transition activates.  The state
+-- machine will be in the destination state when this executes but the destination's entry
+-- will not yet have been called, it is called after this run function returns.
+--
 -- @field cond The condition under which the transition will activate.  This function
 -- should return a boolean and if true, the transition will be taken.
 --
@@ -122,10 +123,6 @@ return function (_M, private, deprecated)
 --
 -- @field name The name for this transition, by default from-destination will be used.
 -- This argument is only used for diagnostic messages and during tracing.
---
--- @field run A function that will be execute after this transition activates.  The state
--- machine will be in the destination state when this executes but the destination's entry
--- will not yet have been called, it is called after this run function returns.
 --
 -- @field setpoint The setpoints that must be set for this transition to trigger.  Either
 -- a number or a table of several numbers.
@@ -151,11 +148,11 @@ end
 -- @see FiniteStateMachineDefinition
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
---                      .state { 'initialise', initial=true }
+--                      .state { 'initialise' }
 --                      .state { 'waiting', enter=enterWait }
 --                      .trans { 'initialise', 'waiting', cond=readyToWait }
 function _M.stateMachine(args)
-    local initial, warnInitial = nil, false
+    local initial, warnNoState = nil, false
     local name = args[1] or args.name or 'FSM'
     local states, current = {}, nil
     local showState, trace = args.showState or false, args.trace or false
@@ -176,16 +173,19 @@ function _M.stateMachine(args)
 -- @param f Function to call between states, optional
 -- @local
     local function setState(s, f)
+        local prevName
         if trace then
             dbg.info('K400FSM', name..' state = ' ..s.name)
         end
         if current ~= nil then
-            current.leave()
+            prevName = current.name
+            current.leave(s.name)
         end
         current = s
+        current.activeTime = timers.monotonicTime()
         utils.call(f)
         if showState then _M.write('topRight', s.short) end
-        current.enter()
+        current.enter(prevName)
     end
 
 -------------------------------------------------------------------------------
@@ -196,34 +196,29 @@ function _M.stateMachine(args)
 -- @see FiniteStateMachineStates
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
---                      .state { 'initialise', initial=true }
+--                      .state { 'initialise' }
 --                      .state { 'waiting', enter=enterWait }
 --                      .trans { 'initialise', 'waiting', cond=readyToWait }
     function fsm.state(args)
-        local name = args[1] or args.name
-        if name == nil then
-            dbg.error(ename'state', 'unnamed state -- ignored')
-            return
-        end
-        local state = {
-            name = name,
-            ref = canonical(name),
-            short = args.short or string.upper(name),
-            run = cb(args.run, null),
-            enter = cb(args.enter, null),
-            leave = cb(args.leave, null),
-            trans = {}
-        }
-
-        if args.initial then
+        local name = canonical(args[1] or args.name)
+        if name == 'all' then
+            error(ename'state' .. " state '" .. name .. "' is reserved")
+        else
+            local state = {
+                name = name,
+                ref = canonical(name),
+                short = args.short or string.upper(name),
+                run = cb(args.run, null),
+                enter = cb(args.enter, null),
+                leave = cb(args.leave, null),
+                trans = {}
+            }
+            states[state.ref] = state
             if initial == nil then
                 initial = state
                 setState(state)
-            else
-                dbg.error(ename'state', 'Multiple initial states '..state.name..' using earlier '..initial.name)
             end
         end
-        states[state.ref] = state
         return fsm
     end
 
@@ -236,37 +231,36 @@ function _M.stateMachine(args)
 -- @see FiniteStateMachineTransitions
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
---                      .state { 'initialise', initial=true }
+--                      .state { 'initialise' }
 --                      .state { 'waiting', enter=enterWait }
 --                      .trans { 'initialise', 'waiting', cond=readyToWait }
     function fsm.trans(args)
-        local from = args[1] or args.from
-        local dest = args[2] or args.dest
+        local from = canonical(args[1] or args.from)
+        local dest = canonical(args[2] or args.dest)
         local name = args.name or (tostring(from) .. '-' .. tostring(dest))
 
-        if from ~= nil and states[from] == nil then
-            dbg.error(ename'trans', 'Unknown from state for '..name)
-        elseif dest == nil then
-            dbg.error(ename'trans', 'Missing destination state for '..name)
+        if from ~= 'all' and states[from] == nil then
+            error(ename'trans' .. ' unknown from state for '..name)
         elseif states[dest] == nil then
-            dbg.error(ename'trans', 'Unknown destination state for '..name)
+            error(ename'trans' .. ' unknown destination state for '..name)
         else
-            local function add(s)
-                table.insert(s.trans, { name=name,
-                                        cond=cb(args.cond, True),
-                                        status=args.status,
-                                        io=args.io,
-                                        setpoint=args.setpoint,
-                                        run=cb(args.run, null),
-                                        dest=states[dest] })
-            end
+            local t = {
+                name        = name,
+                cond        = cb(args.cond, True),
+                time        = args.time,
+                status      = args.status,
+                io          = args.io,
+                setpoint    = args.setpoint,
+                activate    = cb(args.activate, null),
+                dest        = states[dest]
+            }
 
-            if from == nil then
+            if from == 'all' then
                 for _, s in pairs(states) do
-                    add(s)
+                    table.insert(s, t)
                 end
             else
-                add(states[from])
+                table.insert(states[from], t)
             end
         end
         return fsm
@@ -326,9 +320,9 @@ function _M.stateMachine(args)
 -- device.setMainLoop(fsm.run)
     function fsm.run()
         if current == nil then
-            if not warnInitial then
-                dbg.error(ename'run', 'No initial state')
-                warnInitial = true
+            if not warnNoState then
+                dbg.error(ename'run', 'No current state')
+                warnNoState = true
             end
         else
             current.run()
@@ -337,7 +331,7 @@ function _M.stateMachine(args)
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
-                    setState(t.dest, t.run)
+                    setState(t.dest, t.activate)
                     break
                 end
             end
