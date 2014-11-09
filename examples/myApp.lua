@@ -111,6 +111,11 @@ local function captured()
     dwi.write('bottomRight', '...')
 end
 
+local function rerun()
+    dwi.buzz(1)
+    dwi.write('bottomRight', '', 'time=0.5, wait')
+end
+
 -- The actual state machine is pretty small at six lines:
 local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
     -- States are the modes we can be in.
@@ -120,11 +125,7 @@ local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
 
     -- Transitions are the movements between modes.
     .trans { 'run', 'wait', status={'notzero', 'notmotion'}, activate=captured }
-    .trans { 'wait', 'run', status='motion',
-        activate = function()
-            dwi.buzz(1)
-            dwi.write('bottomRight', '', 'time=0.5, wait')
-        end }
+    .trans { 'wait', 'run', status='motion',                 activate=rerun    }
 
 -------------------------------------------------------------------------------
 -- Callbacks to handle F1 key event
