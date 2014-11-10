@@ -223,7 +223,7 @@ end
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
-    local s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1000)
+    local s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1)
     dbg.printVar(s)
     return s
 end
