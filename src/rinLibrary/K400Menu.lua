@@ -22,7 +22,7 @@ local csv = require 'rinLibrary.rinCSV'
 -- @return callback if callable, default if not
 -- @local
 local function cb(callback, default)
-    return callable(callback) and callback or default
+    return callable(callback) and deepcopy(callback) or default
 end
 
 -------------------------------------------------------------------------------

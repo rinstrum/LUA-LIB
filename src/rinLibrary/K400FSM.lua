@@ -18,7 +18,7 @@ local deepcopy = require 'rinLibrary.deepcopy'
 -- @return callback if callable, default if not
 -- @local
 local function cb(callback, default)
-    return utils.callable(callback) and callback or default
+    return utils.callable(callback) and deepcopy(callback) or default
 end
 
 -------------------------------------------------------------------------------
@@ -117,7 +117,11 @@ return function (_M, private, deprecated)
 --
 -- @field event An event which causes this transition to activate.  Events are raised
 -- by other portions of the application.  The event should typically be a string for
--- readability purposes.
+-- readability purposes.  Events are processed the next time the finite state machine's
+-- run procedure is executed, however an event is only processed if the current state
+-- of the state machine has transitions defined that require the event.  Otherwise,
+-- the event will be quietly lost.  Naturally, all other conditions must also be met
+-- for the transition to activate.
 --
 -- @field from The state from which this transition will go.  Leaving this nil means
 -- all states which can be useful for error handling.  Generally specify this using the
@@ -345,7 +349,11 @@ function _M.stateMachine(args)
     end
 
 -------------------------------------------------------------------------------
--- Raise an event which will be processed later
+-- Raise an event which will be processed later.
+-- The event must be one that has been defined in a transition.
+-- There is no guarantee that the event will ever be acted upon, that depends on
+-- the current state of the finite state machine and its transition definitions.
+-- Events that are not processed immediately are lost.
 -- @function raise
 -- @param event The event to raise
 -- @usage
