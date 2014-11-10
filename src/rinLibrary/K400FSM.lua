@@ -200,10 +200,11 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Check if an event has been raised or not
 -- @param t Transition
+-- @param pending Pending event table
 -- @return Boolean, true iff the event has been raised
 -- @local
-    local function checkEvent(t)
-        return t.event == nil or raiseEvents[t.event]
+    local function checkEvent(t, pending)
+        return t.event == nil or pending[t.event]
     end
 
 -------------------------------------------------------------------------------
@@ -408,8 +409,10 @@ function _M.stateMachine(args)
             end
         else
             current.run()
+            local pending = raiseEvents
+            raiseEvents = {}
             for _, t in ipairs(current.trans) do
-                if t.cond() and checkEvent(t) and checkBitConditions(t) and checkTime(t) then
+                if t.cond() and checkEvent(t, pending) and checkBitConditions(t) and checkTime(t) then
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
@@ -418,7 +421,6 @@ function _M.stateMachine(args)
                     break
                 end
             end
-            raiseEvents = {}
         end
     end
 
