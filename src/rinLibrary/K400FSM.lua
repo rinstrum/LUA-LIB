@@ -130,7 +130,7 @@ return function (_M, private, deprecated)
 -- @field status The statuses that must be set for this transition to trigger.  Either a
 -- string containing one status, or a table of several.
 --
--- @field time The amount of time that the from state must have been in before
+-- @field time The amount of time that the <i>from</i> state must have been active before
 -- this transition will trigger.  This is only a minimum, it is highly likely that more
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
