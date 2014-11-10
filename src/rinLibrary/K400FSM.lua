@@ -115,7 +115,8 @@ return function (_M, private, deprecated)
 -- argument instead of the <i>dest=</i> form here.
 --
 -- @field event An event which causes this transition to activate.  Events are raised
--- by other portions of the application.
+-- by other portions of the application.  The event should typically be a string for
+-- readability purposes.
 --
 -- @field from The state from which this transition will go.  Leaving this nil means
 -- all states which can be useful for error handling.  Generally specify this using the
@@ -137,18 +138,6 @@ return function (_M, private, deprecated)
 -- this transition will trigger.  This is only a minimum, it is highly likely that more
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
-
---- Event definition Arguments
---
--- An event is a trigger for a transition that can be raised by other parts of the
--- application.
---
--- @table FiniteStateMachineEvents
--- @field name Name of this event.  Generally use the first positional argument instead
--- of the <i>name=</i> form for brevity.
---
--- @field trigger A function that is executed when the event is acted upon by a
--- transition.  The trigger function is called before the <i>from</i> event's leave.
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
@@ -229,34 +218,6 @@ function _M.stateMachine(args)
     end
 
 -------------------------------------------------------------------------------
--- Add an event to a finite state machine
--- @function event
--- @param args Event definition arguments
--- @return The finite state machine
--- @see FiniteStateMachineEvents
--- @usage
--- local fsm = device.stateMachine { 'myFSM' }
---                      .event 'reset'
---                      .event { 'end' }
---                      .state { 'start' }
---                      .state { 'finish' }
---                      .trans { 'start', 'finish', event='end' }
---                      .trans { 'finish', 'start', event='reset' }
-    function fsm.event(args)
-        if type(args) == 'string' then
-            args = { args }
-        end
-        local name = canonical(args[1] or args.name)
-        if events[name] ~= nil then
-            error(ename'event' .. " event '" .. name .. "' already defined")
-        end
-        events[name] = {
-            trigger = cb(args.trigger, null)
-        }
-        return fsm
-    end
-
--------------------------------------------------------------------------------
 -- Add a state to a finite state machine
 -- @function state
 -- @param args State definition arguments
@@ -317,13 +278,17 @@ function _M.stateMachine(args)
                 name        = name,
                 cond        = cb(args.cond, True),
                 time        = args.time,
-                event       = args.event,
                 status      = args.status,
                 io          = args.io,
                 setpoint    = args.setpoint,
                 activate    = cb(args.activate, null),
                 dest        = states[dest]
             }
+
+            if args.event ~= nil then
+                t.event = canonical(args.event)
+                events[t.event] = true
+            end
 
             if from == 'all' then
                 for _, s in pairs(states) do
@@ -385,8 +350,9 @@ function _M.stateMachine(args)
 -- @usage
 -- fsm.raise('begin')
     function fsm.raise(event)
-        if event == nil or events[event] == nil then
-            dbg.error(ename'event', "Event '" .. name .. "' is not defined")
+        event = canonical(event)
+        if events[event] == nil then
+            dbg.error(ename'event', "Event '" .. event .. "' is not defined")
         end
         raiseEvents[event] = true
     end
@@ -416,7 +382,6 @@ function _M.stateMachine(args)
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
-                    if t.event ~= nil then events[t.event].trigger() end
                     setState(t.dest, t.activate)
                     break
                 end

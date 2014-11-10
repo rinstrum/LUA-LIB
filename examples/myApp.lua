@@ -118,10 +118,6 @@ end
 
 -- The actual state machine is pretty small:
 local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
-    -- Events to cause things to move
-    .event 'run'                            -- F1 key to enter run/wait states
-    .event 'reset'                          -- F2 key to return to idle state
-
     -- States are the modes we can be in.
     .state { 'idle', enter=enterIdle    }
     .state { 'run',  enter=enterRun     }
