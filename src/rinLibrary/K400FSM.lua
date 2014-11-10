@@ -82,7 +82,7 @@ return function (_M, private, deprecated)
 -- away from (i.e. becoming inactive).
 --
 -- @field name Name of this state.  Generally use the first positional argument instead
--- of the <i>name=</i> form for brevity.  If not provided, a numeric index will be used instead.
+-- of the <i>name=</i> form for brevity.
 --
 -- @field run A function that will be repeatedly called whenever this state is active.
 --
@@ -114,6 +114,9 @@ return function (_M, private, deprecated)
 -- must refer to a valid already defined state.  Generally, use the second positional
 -- argument instead of the <i>dest=</i> form here.
 --
+-- @field event An event which causes this transition to activate.  Events are raised
+-- by other portions of the application.
+--
 -- @field from The state from which this transition will go.  Leaving this nil means
 -- all states which can be useful for error handling.  Generally specify this using the
 -- first positional argument not the <i>from=</i> form.
@@ -134,6 +137,18 @@ return function (_M, private, deprecated)
 -- this transition will trigger.  This is only a minimum, it is highly likely that more
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
+
+--- Event definition Arguments
+--
+-- An event is a trigger for a transition that can be raised by other parts of the
+-- application.
+--
+-- @table FiniteStateMachineEvents
+-- @field name Name of this event.  Generally use the first positional argument instead
+-- of the <i>name=</i> form for brevity.
+--
+-- @field trigger A function that is executed when the event is acted upon by a
+-- transition.  The trigger function is called before the <i>from</i> event's leave.
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
@@ -160,6 +175,7 @@ function _M.stateMachine(args)
     local initial, warnNoState = nil, false
     local name = args[1] or args.name or 'FSM'
     local states, current = {}, nil
+    local events, raiseEvents = {}, {}
     local showState, trace = args.showState or false, args.trace or false
     local fsm = {}
 
@@ -180,7 +196,16 @@ function _M.stateMachine(args)
     local function checkTime(t)
         return t.time == nil or timers.monotonicTime() >= (t.time + current.activeTime)
     end
-    
+
+-------------------------------------------------------------------------------
+-- Check if an event has been raised or not
+-- @param t Transition
+-- @return Boolean, true iff the event has been raised
+-- @local
+    local function checkEvent(t)
+        return t.event == nil or raiseEvents[t.event]
+    end
+
 -------------------------------------------------------------------------------
 -- Set the state of the finite state machine
 -- @param s State table
@@ -203,6 +228,34 @@ function _M.stateMachine(args)
     end
 
 -------------------------------------------------------------------------------
+-- Add an event to a finite state machine
+-- @function event
+-- @param args Event definition arguments
+-- @return The finite state machine
+-- @see FiniteStateMachineEvents
+-- @usage
+-- local fsm = device.stateMachine { 'myFSM' }
+--                      .event 'reset'
+--                      .event { 'end' }
+--                      .state { 'start' }
+--                      .state { 'finish' }
+--                      .trans { 'start', 'finish', event='end' }
+--                      .trans { 'finish', 'start', event='reset' }
+    function fsm.event(args)
+        if type(args) == 'string' then
+            args = { args }
+        end
+        local name = canonical(args[1] or args.name)
+        if events[name] ~= nil then
+            error(ename'event' .. " event '" .. name .. "' already defined")
+        end
+        events[name] = {
+            trigger = cb(args.trigger, null)
+        }
+        return fsm
+    end
+
+-------------------------------------------------------------------------------
 -- Add a state to a finite state machine
 -- @function state
 -- @param args State definition arguments
@@ -214,24 +267,25 @@ function _M.stateMachine(args)
 --                      .state { 'waiting', enter=enterWait }
 --                      .trans { 'initialise', 'waiting', cond=readyToWait }
     function fsm.state(args)
-        local name = canonical(args[1] or args.name)
-        if name == 'all' then
+        local name = args[1] or args.name
+        local state = {
+            name = name,
+            ref = canonical(name),
+            short = args.short or string.upper(name),
+            run = cb(args.run, null),
+            enter = cb(args.enter, null),
+            leave = cb(args.leave, null),
+            trans = {}
+        }
+        if state.ref == 'all' then
             error(ename'state' .. " state '" .. name .. "' is reserved")
-        else
-            local state = {
-                name = name,
-                ref = canonical(name),
-                short = args.short or string.upper(name),
-                run = cb(args.run, null),
-                enter = cb(args.enter, null),
-                leave = cb(args.leave, null),
-                trans = {}
-            }
-            states[state.ref] = state
-            if initial == nil then
-                initial = state
-                setState(state)
-            end
+        elseif states[state.ref] ~= nil then
+            error(ename'state' .. " state '" .. name .. "' already defined")
+        end
+        states[state.ref] = state
+        if initial == nil then
+            initial = state
+            setState(state)
         end
         return fsm
     end
@@ -262,6 +316,7 @@ function _M.stateMachine(args)
                 name        = name,
                 cond        = cb(args.cond, True),
                 time        = args.time,
+                event       = args.event,
                 status      = args.status,
                 io          = args.io,
                 setpoint    = args.setpoint,
@@ -323,6 +378,19 @@ function _M.stateMachine(args)
     end
 
 -------------------------------------------------------------------------------
+-- Raise an event which will be processed later
+-- @function raise
+-- @param event The event to raise
+-- @usage
+-- fsm.raise('begin')
+    function fsm.raise(event)
+        if event == nil or events[event] == nil then
+            dbg.error(ename'event', "Event '" .. name .. "' is not defined")
+        end
+        raiseEvents[event] = true
+    end
+
+-------------------------------------------------------------------------------
 -- Step the finite state machine.
 -- This calls the current state's run call back if defined and then checks for
 -- all the transitions from the current state and executes them if required.
@@ -341,14 +409,16 @@ function _M.stateMachine(args)
         else
             current.run()
             for _, t in ipairs(current.trans) do
-                if t.cond() and checkBitConditions(t) and checkTime(t) then
+                if t.cond() and checkEvent(t) and checkBitConditions(t) and checkTime(t) then
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
+                    if t.event ~= nil then events[t.event].trigger() end
                     setState(t.dest, t.activate)
                     break
                 end
             end
+            raiseEvents = {}
         end
     end
 

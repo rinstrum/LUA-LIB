@@ -116,27 +116,33 @@ local function rerun()
     dwi.write('bottomRight', '', 'time=0.5, wait')
 end
 
--- The actual state machine is pretty small at six lines:
+-- The actual state machine is pretty small:
 local fsm = dwi.stateMachine { 'myAppFSM', showState=true }
+    -- Events to cause things to move
+    .event 'run'                            -- F1 key to enter run/wait states
+    .event 'reset'                          -- F2 key to return to idle state
+
     -- States are the modes we can be in.
-    .state { 'idle', enter=enterIdle }
-    .state { 'run',  enter=enterRun }
-    .state { 'wait' }
+    .state { 'idle', enter=enterIdle    }
+    .state { 'run',  enter=enterRun     }
+    .state { 'wait'                     }
 
     -- Transitions are the movements between modes.
     .trans { 'run', 'wait', status={'notzero', 'notmotion'}, activate=captured }
     .trans { 'wait', 'run', status='motion',                 activate=rerun    }
+    .trans { 'idle', 'run', event='run'                                        }
+    .trans { 'all', 'idle', event='reset'                                      }
 
 -------------------------------------------------------------------------------
 -- Callbacks to handle F1 key event
 dwi.setKeyCallback('f1', function() print('Long F1 Pressed') return true end, 'long')
-dwi.setKeyCallback('f1', function() fsm.setState('run') return true end, 'short')
+dwi.setKeyCallback('f1', function() fsm.raise('run') return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callbacks to handle F2 key event
 dwi.setKeyCallback('f2', function() print('Long F2 Pressed') return true end, 'long')
-dwi.setKeyCallback('f2', function() fsm.reset() return true end, 'short')
+dwi.setKeyCallback('f2', function() fsm.raise('reset') return true end, 'short')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
