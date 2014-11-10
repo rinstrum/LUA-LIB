@@ -9,6 +9,7 @@ local dbg = require "rinLibrary.rinDebug"
 local utils = require 'rinSystem.utilities'
 local canonical = require('rinLibrary.namings').canonicalisation
 local timers = require 'rinSystem.rinTimers'
+local deepcopy = require 'rinLibrary.deepcopy'
 
 -------------------------------------------------------------------------------
 -- Return a callback if it is callable, return the default if not.
@@ -278,9 +279,9 @@ function _M.stateMachine(args)
                 name        = name,
                 cond        = cb(args.cond, True),
                 time        = args.time,
-                status      = args.status,
-                io          = args.io,
-                setpoint    = args.setpoint,
+                status      = deepcopy(args.status),
+                io          = deepcopy(args.io),
+                setpoint    = deepcopy(args.setpoint),
                 activate    = cb(args.activate, null),
                 dest        = states[dest]
             }
