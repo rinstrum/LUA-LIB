@@ -196,8 +196,8 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.write('bottomLeft', '  SETP IO')
-dwi.write('bottomRight', ' .LUA')
+dwi.write('bottomLeft', 'SETP IO', 'align=right')
+dwi.write('bottomRight', '.LUA')
 dwi.enableOutput(OVER_OUTPUT,
                  PASS_OUTPUT,
                  CHIME_OUTPUT,
