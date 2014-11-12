@@ -114,6 +114,21 @@ end
     end
 
 -------------------------------------------------------------------------------
+-- Edit one of the user IDs and return the modified value
+-- @param id User ID in question (1 .. 5)
+-- @param prompt Prompt to display
+-- @return The user ID string
+-- @return Error message, nil if none
+-- @usage
+-- device.editUserId(3)
+    function _M.editUserId(id, prompt)
+        local u = checkId(id, 'userid')
+        if u ~= nil then
+            return _M.editReg(u, prompt)
+        end
+    end
+
+-------------------------------------------------------------------------------
 -- Set one of the user ID numbers to the specified string
 -- @param id User ID in question (1 .. 5)
 -- @param x Number to set to
@@ -137,6 +152,21 @@ end
         local u = checkId(id, 'usernum')
         if u ~= nil then
             return private.readReg(u)
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Edit one of the user ID numbers and return the modified value
+-- @param id User ID in question (1 .. 5)
+-- @param prompt Prompt to display
+-- @return The user ID number
+-- @return Error message, nil if none
+-- @usage
+-- device.editUserId(3)
+    function _M.editUserNumber(id, prompt)
+        local u = checkId(id, 'usernum')
+        if u ~= nil then
+            return _M.editReg(u, prompt)
         end
     end
 
@@ -168,6 +198,21 @@ end
     end
 
 -------------------------------------------------------------------------------
+-- Edit one of the user ID names and return the modified value
+-- @param id User ID in question (1 .. 5)
+-- @param prompt Prompt to display
+-- @return The user ID string
+-- @return Error message, nil if none
+-- @usage
+-- device.editUserId(3)
+    function _M.editUserIdName(id, prompt)
+        local u = checkId(id, 'userid_name')
+        if u ~= nil then
+            return _M.editReg(u, prompt)
+        end
+    end
+
+-------------------------------------------------------------------------------
 -- Set one of the user ID number names to the specified string
 -- @param id User ID in question (1 .. 5)
 -- @param n Name to set to
@@ -191,6 +236,21 @@ end
         local u = checkId(id, 'usernum_name')
         if u ~= nil then
             return private.readReg(u)
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Edit one of the user ID number names and return the modified value
+-- @param id User ID in question (1 .. 5)
+-- @param prompt Prompt to display
+-- @return The user ID string
+-- @return Error message, nil if none
+-- @usage
+-- device.editUserId(3)
+    function _M.editUserNumberName(id, prompt)
+        local u = checkId(id, 'usernum_name')
+        if u ~= nil then
+            return _M.editReg(u, prompt)
         end
     end
 
