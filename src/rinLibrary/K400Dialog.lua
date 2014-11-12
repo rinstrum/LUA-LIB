@@ -18,6 +18,7 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local system = require 'rinSystem'
 local dbg = require 'rinLibrary.rinDebug'
+local utils = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -515,9 +516,7 @@ function _M.editReg(register, prompt)
         end
     end
     finished()
-    if restoreBottom then
-        restoreBottom()
-    end
+    utils.call(restoreBottom)
     return private.readReg(reg)
 end
 
