@@ -14,6 +14,7 @@ local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
 local deepcopy = require 'rinLibrary.deepcopy'
+local usb = require 'rinLibrary.rinUSB'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -134,6 +135,36 @@ for k, v in pairs(keyMap) do
     keyUnmap[v] = k
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Various translation maps for USB keyboard events to display key presses.
+-- We permit unshifted, control shifted and meta/windows shifted keys to map
+-- differently.  Alt shift is used to indicate a long press of the key.
+local usbMap = {
+    ['0'] = KEY_0,      ['1'] = KEY_1,      ['2'] = KEY_2,      ['3'] = KEY_3,
+    ['4'] = KEY_4,      ['5'] = KEY_5,      ['6'] = KEY_6,      ['7'] = KEY_7,
+    ['8'] = KEY_8,      ['9'] = KEY_9,      ['.'] = KEY_DP,
+    ['-'] = KEY_PLUSMINUS,                  plusminus = KEY_PLUSMINUS,
+
+    power = KEY_POWER,  power2 = KEY_POWER,
+    select = KEY_SEL,
+    f1 = KEY_F1,        f2 = KEY_F2,        f3 = KEY_F3,
+    up = KEY_UP,        down = KEY_DOWN,
+    ['\n'] = KEY_OK,    ok = KEY_OK,
+    esc = KEY_CANCEL,   ['\b']=KEY_CANCEL,  delete = KEY_CANCEL,
+    setup = KEY_SETUP,
+}
+
+local usbControlMap = {
+    Z = KEY_ZERO,       T = KEY_TARE,       S = KEY_SEL,
+}
+
+local usbMetaMap = {
+    P = KEY_POWER,
+    Z = KEY_PWR_ZERO,   T = KEY_PWR_TARE,   S = KEY_PWR_SEL,
+    f1 = KEY_PWR_F1,    f2 = KEY_PWR_F2,    f3 = KEY_PWR_F3,
+    esc=KEY_PWR_CANCEL, ['\b'] = KEY_PWR_CANCEL,    delete = KEY_PWR_CANCEL,
+}
+
 --- Key Groups are defined as follows.
 --@table keygroups
 -- @field all All keys.
@@ -171,6 +202,7 @@ local REG_GET_KEY          = 0x0321
 local REG_FLUSH_KEYS       = 0x0322
 local REG_APP_DO_KEYS      = 0x0324
 local REG_APP_KEY_HANDLER  = 0x0325
+local REG_KEY_BUFFER_ENTRY = 0x0008
 
 local keyID = nil
 
@@ -341,7 +373,7 @@ keyCallback = function(data, err)
         if hasRepeatHandler(keyHandler) then
             if state == 'long' then
                 timers.removeTimer(keyHandler.repeatTimer)
-                keyHandler.repeatTimer = timers.addTimer(0, 0, keyRepeater, keyHandler, key)
+                keyHandler.repeatTimer = timers.addTimer(0, repeatStart, keyRepeater, keyHandler, key)
                 keyHandler.repeatInterval = repeatStart
             elseif state == 'up' then
                 timers.removeTimer(keyHandler.repeatTimer)
@@ -400,6 +432,27 @@ keyCallback = function(data, err)
         private.bumpIdleTimer()
     end
 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Install our own USB key stroke handler
+-- This handler writes known key sequences back to the display to be later
+-- delivered via the usual key mechanism above.
+usb.setLibKBDCallback(function(k)
+    if k.type == 'down' then
+        local c, meta, control = nil, k.meta, k.control
+        if not control and not meta then
+            c = usbMap[k.raw]
+        elseif control and not meta then
+            c = usbControlMap[k.raw]
+        elseif meta and not control then
+            c = usbMetaMap[k.raw]
+        end
+
+        if c then
+            private.writeReg(REG_KEY_BUFFER_ENTRY, c + (k.alt and KEYF_LONG or 0))
+        end
+    end
+end)
 
 -------------------------------------------------------------------------------
 -- Flush any outstanding key events.

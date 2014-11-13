@@ -87,12 +87,13 @@ end
 -- cause some interference issues unless used prudently.
 -- @return key
 -- @return state ('short' or 'long')
+-- @return source ('display' or 'usb')
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup, keep)
     keyGroup = keyGroup or 'all'
-    local getKeyState, getKeyPressed
+    local getKeyState, getKeyPressed, getKeySource
 
     local savedKeyHandlers = _M.saveKeyCallbacks(keep)
 
@@ -100,6 +101,7 @@ function _M.getKey(keyGroup, keep)
         function(key, state)
             getKeyPressed = key
             getKeyState = state
+            getKeySource = 'display'
             return true
         end, 'short', 'long')
     if keyGroup ~= 'all' then
@@ -113,7 +115,7 @@ function _M.getKey(keyGroup, keep)
     finished()
     savedKeyHandlers()
 
-    return getKeyPressed, getKeyState
+    return getKeyPressed, getKeyState, getKeySource
 end
 
 -------------------------------------------------------------------------------

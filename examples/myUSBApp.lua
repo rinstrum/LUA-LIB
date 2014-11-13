@@ -12,9 +12,6 @@ local dbg = require 'rinLibrary.rinDebug'
 local rinApp = require "rinApp"     --  load in the application framework
 local timers = require 'rinSystem.rinTimers'
 local usb = require "rinLibrary.rinUSB"
-local usbKBD = require "rinLibrary.rinUSBKBD"
-
-usbKBD.link(rinApp)
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -131,7 +128,7 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event
 local function F1Pressed(key, state)
-    print (usbKBD.edit(dwi,'NAME','FRED','string'))
+    print (dwi.edit(dwi,'NAME','FRED','string'))
     return true    -- key handled here so don't send back to instrument for handling
 end
 dwi.setKeyCallback('f1', F1Pressed)

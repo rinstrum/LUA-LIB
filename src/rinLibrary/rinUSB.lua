@@ -16,10 +16,10 @@ local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
 
-local usb, ev_lib, kb_lib
+local usb, ev_lib, decodeKey
 if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
-    kb_lib = require "kb_lib"
+    decodeKey = require "kb_lib"
 else
     dbg.warn('rinUSB:', 'USB not supported')
 end
@@ -27,6 +27,7 @@ end
 local userUSBRegisterCallback = nil
 local userUSBEventCallback = nil
 local userUSBKBDCallback = nil
+local libUSBKBDCallback = nil
 local libUSBSerialCallback = nil
 local eventDevices = {}
 
@@ -201,6 +202,17 @@ function _M.getStorageRemovedCallback(callback)
 end
 
 -------------------------------------------------------------------------------
+-- Add the raw key stroke call back.
+-- @param callback The library call back
+-- @local
+function _M.setLibKBDCallback(callback)
+    utils.checkCallback(callback)
+    if decodeKey then
+        libUSBKBDCallback = callback
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Callback to detect events happening for USB devices and to further dispatch
 -- them as required.
 -- @param sock File descriptor the USB device is communicating with.
@@ -209,9 +221,20 @@ local function eventCallback(sock)
     local ev = ev_lib and ev_lib.getEvent(sock)
     if ev then
         utils.call(userUSBEventCallback, ev)
-        local key = kb_lib and kb_lib.getR400Keys(ev)
-        if key then
-            utils.call(userUSBKBDCallback, key)
+
+        if decodeKey then
+            local key = decodeKey(ev)
+            if key then
+                utils.call(libUSBKBDCallback, key)
+
+                if key.type == 'down' and not key.modifier then
+                    local k = key.key
+                    if key.alt then
+                        k = 'ALT-' .. k
+                    end
+                    utils.call(userUSBKBDCallback, k)
+                end
+            end
         end
     end
 end
