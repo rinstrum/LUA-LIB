@@ -84,6 +84,7 @@ usb.setUSBEventCallback(usbEventHandler)
 -- Callback for USB keyboard events
 barcodeKeys = {}
 barcode = nil
+local acceptKeyboardInput = false
 local function kbdHandler(key)
     dbg.info('Key is :', key)
     if key == '\n' then
@@ -93,6 +94,17 @@ local function kbdHandler(key)
     end
 end
 usb.setUSBKBDCallback(kbdHandler)
+
+-------------------------------------------------------------------------------
+-- toggle USB keyboard input between a simulated barcode reader and performing
+-- display functions.
+dwi.setKeyCallback('f2', function(key, state)
+    acceptKeyboardInput = not acceptKeyboardInput
+    dwi.usbProcessKeys(acceptKeyboardInput)
+    usb.setUSBKBDCallback(not acceptKeyboardInput and kbdHandler or nil)
+    local m = 'KEYBOARD ' .. (acceptKeyboardInput and 'CONTROL' or 'BAR CODE') .. ' MODE'
+    dwi.write('bottomLeft', m, 'clear, time=1.5, restore')
+end, 'short')
 
 -------------------------------------------------------------------------------
 -- Callback for USB serial events
@@ -131,8 +143,7 @@ local function F1Pressed(key, state)
     print (dwi.edit(dwi,'NAME','FRED','string'))
     return true    -- key handled here so don't send back to instrument for handling
 end
-dwi.setKeyCallback('f1', F1Pressed)
--------------------------------------------------------------------------------
+dwi.setKeyCallback('f1', F1Pressed, 'short')
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application

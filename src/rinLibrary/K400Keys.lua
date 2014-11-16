@@ -433,11 +433,14 @@ keyCallback = function(data, err)
     end
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Install our own USB key stroke handler
--- This handler writes known key sequences back to the display to be later
--- delivered via the usual key mechanism above.
-usb.setLibKBDCallback(function(k)
+-------------------------------------------------------------------------------
+-- Push a key stroke back into the event processing code.
+-- We actually push the key back to the display so it can send it back to our
+-- normal key processing.  This is a bit convoluted but allows for operation
+-- of the display via a USB keyboard.
+-- @param k Key stroke defintion structure return from kb_lib in L001-507
+-- @local
+local function keyPushback(k)
     if k.type == 'down' then
         local c, meta, control = nil, k.meta, k.control
         if not control and not meta then
@@ -452,7 +455,19 @@ usb.setLibKBDCallback(function(k)
             private.writeReg(REG_KEY_BUFFER_ENTRY, c + (k.alt and KEYF_LONG or 0))
         end
     end
-end)
+end
+
+-------------------------------------------------------------------------------
+-- Enable or disable USB keyboard processing.
+-- By default key presses on a USB keyboard device (keyboard, bar code scanner,
+-- RFID reader) do not act like keys on the display being pressed.
+-- @param enable Boolean, true means to process keys as per the display and false
+-- doesn't.  The default is false.
+-- @usage
+-- device.usbProcessKeys(true)
+function _M.usbProcessKeys(enable)
+    usb.setLibKBDCallback(enable and keyPushback or nil)
+end
 
 -------------------------------------------------------------------------------
 -- Flush any outstanding key events.
