@@ -82,18 +82,16 @@ usb.setUSBEventCallback(usbEventHandler)
 
 -------------------------------------------------------------------------------
 -- Callback for USB keyboard events
-barcodeKeys = {}
-barcode = nil
 local acceptKeyboardInput = false
 local function kbdHandler(key)
     dbg.info('Key is :', key)
-    if key == '\n' then
-        barcode = table.concat(barcodeKeys)
-    else
-        table.insert(barcodeKeys,key)
-    end
 end
 usb.setUSBKBDCallback(kbdHandler)
+
+local function kbdLineHandler(line)
+    rinApp.addIdleEvent(print, line, ':', curWeight)
+end
+usb.setUSBKBDLineCallback(kbdLineHandler)
 
 -------------------------------------------------------------------------------
 -- toggle USB keyboard input between a simulated barcode reader and performing
@@ -101,7 +99,8 @@ usb.setUSBKBDCallback(kbdHandler)
 dwi.setKeyCallback('f2', function(key, state)
     acceptKeyboardInput = not acceptKeyboardInput
     dwi.usbProcessKeys(acceptKeyboardInput)
-    usb.setUSBKBDCallback(not acceptKeyboardInput and kbdHandler or nil)
+    usb.setUSBKBDLineCallback(not acceptKeyboardInput and kbdLineHandler or nil)
+
     local m = 'KEYBOARD ' .. (acceptKeyboardInput and 'CONTROL' or 'BAR CODE') .. ' MODE'
     dwi.write('bottomLeft', m, 'clear, time=1.5, restore')
 end, 'short')
@@ -160,33 +159,6 @@ dwi.write('bottomLeft', 'USB APP', 'align=right')
 dwi.write('bottomRight', '.LUA')
 
 --=============================================================================
--- Main Application Loop
---=============================================================================
--- Define your application loop
--- mainLoop() gets called by the framework after any event has been processed
--- Main Application logic goes here
-local function mainLoop()
-
-     if barcode then
-         print (barcode, ': ',curWeight)
-         barcode = nil
-         barcodeKeys = {}
-     end
-
-end
-
---=============================================================================
--- Clean Up
---=============================================================================
--- Define anything for the Application to do when it exits
--- cleanup() gets called by framework when the application finishes
-local function cleanup()
-
-end
-
---=============================================================================
 -- run the application
-rinApp.setMainLoop(mainLoop)
-rinApp.setCleanup(cleanup)
 rinApp.run()
 --=============================================================================

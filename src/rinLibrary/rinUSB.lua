@@ -15,6 +15,7 @@ local utils = require 'rinSystem.utilities'
 local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
+local deepcopy = require 'rinLibrary.deepcopy'
 
 local usb, ev_lib, decodeKey
 if pcall(function() usb = require "devicemounter" end) then
@@ -27,6 +28,7 @@ end
 local userUSBRegisterCallback = nil
 local userUSBEventCallback = nil
 local userUSBKBDCallback = nil
+local lineUSBKBDCallback = nil
 local libUSBKBDCallback = nil
 local libUSBSerialCallback = nil
 local eventDevices = {}
@@ -116,7 +118,8 @@ function _M.getUSBEventCallback()
 end
 
 -------------------------------------------------------------------------------
--- Called to register a callback to run whenever a USB Keyboard event is processed
+-- Called to register a callback to run whenever a USB Keyboard event is
+-- processed
 -- @param callback Callback function takes key string as a parameter
 -- @return The previous callback
 -- @usage
@@ -131,16 +134,66 @@ function _M.setUSBKBDCallback(callback)
 end
 
 -------------------------------------------------------------------------------
--- Called to get current callback that runs whenever whenever a USB Keyboard event is processed
+-- Called to get current callback that runs whenever whenever a USB Keyboard
+-- event is processed
 -- @return current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
 -- if usb.getUSBKBDCallback() == nil then
---     print('No USB keyboard callback installed')
+--     print('No USB keyboard call back installed')
 -- end
 function _M.getUSBKBDCallback()
     return userUSBKBDCallback
+end
+
+-------------------------------------------------------------------------------
+-- Called to register a callback to run whenever a USB Keyboard has input a full
+-- line of text
+-- @param callback Callback function takes line string as a parameter
+-- @param endchar Ending character for a line (default \n)
+-- @return The previous callback
+-- @return The previous end of line character
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setUSBKBDLineCallback(function(line) print('data: ' .. line) end)
+function _M.setUSBKBDLineCallback(callback, endchar)
+    utils.checkCallback(callback)
+
+    local cb, ec = deepcopy(callback), endchar or '\n'
+    local r1, r2 = _M.getUSBKBDLineCallback()
+    _M.getUSBKBDLineCallback = function() return cb, ec end
+
+    if cb == nil then
+        lineUSBKBDCallback = nil
+    else
+        local line = {}
+        lineUSBKBDCallback = function(k)
+            if k == ec then
+                utils.call(cb, table.concat(line))
+                line = {}
+            else
+                table.insert(line, k)
+            end
+        end
+    end
+    return r1, r2
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a USB Keyboard
+-- has finished inputting a line.
+-- @return The current callback
+-- @return The current end of line character
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getUSBKBDLineCallback() == nil then
+--     print('No USB keyboard line call back installed')
+-- end
+function _M.getUSBKBDLineCallback()
+    return nil, '\n'
 end
 
 -------------------------------------------------------------------------------
@@ -233,6 +286,10 @@ local function eventCallback(sock)
                         k = 'ALT-' .. k
                     end
                     utils.call(userUSBKBDCallback, k)
+
+                    if lineUSBKBDCallback and not key.alt then
+                        lineUSBKBDCallback(key.key)
+                    end
                 end
             end
         end
