@@ -8,6 +8,7 @@
 -------------------------------------------------------------------------------
 
 local string        = string
+local format        = string.format
 local tonumber      = tonumber
 local type          = type
 local floor         = math.floor
@@ -284,6 +285,22 @@ function _M.toPrimary(v, dp)
         v = tonumber(v)
     end                              -- TODO: how to handle non-numbers elegantly here?
     return floor(0.5 + v * powersOfTen[dp])
+end
+
+-------------------------------------------------------------------------------
+-- Format a value using the current display mode.
+-- The value is correctly rounded in the final digit.
+-- @param display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @param value The floating point value to format.
+-- @return Formatted string.
+-- @usage
+-- print('Weight is', device.formatValue('primary', currentWeight)
+function _M.formatValue(display, value)
+    local dp, units = _M.getDispModeDP(display), _M.getDispModeUnits(display)
+    local v = format('%.0f', _M.toPrimary(value, dp))
+    local f = '.' .. (('0'):rep(dp) .. v):sub(-dp)
+    local i = v:sub(1, -dp-1)
+    return format('%s%s %3s', i~='' and i or '0', dp>0 and f or '', units)
 end
 
 -------------------------------------------------------------------------------
