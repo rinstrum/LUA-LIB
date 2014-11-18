@@ -168,6 +168,9 @@ local usbMetaMap = {
 --- Key Groups are defined as follows.
 --@table keygroups
 -- @field all All keys.
+-- @field alpha Alphabetic keys.  Only available for USB attached keyboards.
+-- @field alphanum Alphabetic and numeric keys.
+-- @field ascii ASCII characters.
 -- @field arrow Up, down, okay and cancel.
 -- @field cursor The non-digit keys to the right of the display.
 -- @field extended Power + key combination keys (pwr_...)
@@ -175,10 +178,14 @@ local usbMetaMap = {
 -- @field keypad The sixteen buttons to the right of the display.
 -- @field numpad The ten digits.
 -- @field primary The six buttong below the display plus on and setup.
+-- @field punctuation Punctuation symbols.  Only available for USB attached keyboards.
+-- @field space White space characters.  Only available for USB attached keyboards.
 
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
-    'keypad',   'numpad',   'primary',  'arrow'
+    'keypad',   'numpad',   'primary',  'arrow',
+    'alpha',    'alphanum', 'ascii',    'punctuation',
+    'space'
 }
 
 --- Key events are grouped into a number of different types.
@@ -224,39 +231,66 @@ end
 -- @return Populated table suitable for group addition
 -- @local
 local function newKeyBinds()
-    return {
-        [KEY_0]          = { 'numpad',  'keypad',               'all' },
-        [KEY_1]          = { 'numpad',  'keypad',               'all' },
-        [KEY_2]          = { 'numpad',  'keypad',               'all' },
-        [KEY_3]          = { 'numpad',  'keypad',               'all' },
-        [KEY_4]          = { 'numpad',  'keypad',               'all' },
-        [KEY_5]          = { 'numpad',  'keypad',               'all' },
-        [KEY_6]          = { 'numpad',  'keypad',               'all' },
-        [KEY_7]          = { 'numpad',  'keypad',               'all' },
-        [KEY_8]          = { 'numpad',  'keypad',               'all' },
-        [KEY_9]          = { 'numpad',  'keypad',               'all' },
-        [KEY_POWER]      = { 'primary',                         'all' },
-        [KEY_ZERO]       = { 'primary',                         'all' },
-        [KEY_TARE]       = { 'primary',                         'all' },
-        [KEY_SEL]        = { 'primary',                         'all' },
-        [KEY_F1]         = { 'primary', 'functions',            'all' },
-        [KEY_F2]         = { 'primary', 'functions',            'all' },
-        [KEY_F3]         = { 'primary', 'functions',            'all' },
-        [KEY_PLUSMINUS]  = { 'cursor',  'keypad',               'all' },
-        [KEY_DP]         = { 'cursor',  'keypad',               'all' },
-        [KEY_CANCEL]     = { 'arrow',   'cursor',  'keypad',    'all' },
-        [KEY_UP]         = { 'arrow',   'cursor',  'keypad',    'all' },
-        [KEY_DOWN]       = { 'arrow',   'cursor',  'keypad',    'all' },
-        [KEY_OK]         = { 'arrow',   'cursor',  'keypad',    'all' },
-        [KEY_SETUP]      = { 'primary',                         'all' },
-        [KEY_PWR_ZERO]   = { 'extended',                        'all' },
-        [KEY_PWR_TARE]   = { 'extended',                        'all' },
-        [KEY_PWR_SEL ]   = { 'extended',                        'all' },
-        [KEY_PWR_F1  ]   = { 'extended',                        'all' },
-        [KEY_PWR_F2  ]   = { 'extended',                        'all' },
-        [KEY_PWR_F3  ]   = { 'extended',                        'all' },
-        [KEY_PWR_CANCEL] = { 'extended',                        'all' }
+    local r = {
+        [KEY_0]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_1]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_2]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_3]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_4]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_5]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_6]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_7]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_8]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_9]          = { 'numpad',  'keypad', 'alphanum', 'ascii' },
+        [KEY_POWER]      = { 'primary'                                },
+        [KEY_ZERO]       = { 'primary'                                },
+        [KEY_TARE]       = { 'primary'                                },
+        [KEY_SEL]        = { 'primary'                                },
+        [KEY_F1]         = { 'primary', 'functions'                   },
+        [KEY_F2]         = { 'primary', 'functions'                   },
+        [KEY_F3]         = { 'primary', 'functions'                   },
+        [KEY_PLUSMINUS]  = { 'cursor',  'keypad'                      },
+        [KEY_DP]         = { 'cursor',  'keypad'                      },
+        [KEY_CANCEL]     = { 'arrow',   'cursor',  'keypad'           },
+        [KEY_UP]         = { 'arrow',   'cursor',  'keypad'           },
+        [KEY_DOWN]       = { 'arrow',   'cursor',  'keypad'           },
+        [KEY_OK]         = { 'arrow',   'cursor',  'keypad'           },
+        [KEY_SETUP]      = { 'primary'                                },
+        [KEY_PWR_ZERO]   = { 'extended'                               },
+        [KEY_PWR_TARE]   = { 'extended'                               },
+        [KEY_PWR_SEL]    = { 'extended'                               },
+        [KEY_PWR_F1]     = { 'extended'                               },
+        [KEY_PWR_F2]     = { 'extended'                               },
+        [KEY_PWR_F3]     = { 'extended'                               },
+        [KEY_PWR_CANCEL] = { 'extended'                               }
     }
+
+    -- The USB keyboard character groups are algorithmatically generated
+    for k in usb.usbKeyboardKeyIterator() do
+        if usbMap[k] == nil and r[k] == nil then
+            local b = {}
+            if #k == 1 then
+                if k >= 'a' and k<= 'z' then
+                    table.insert(b, 'alpha')
+                    table.insert(b, 'alphanum')
+                elseif string.find(k, '^%s') then
+                    table.insert(b, 'space')
+                else
+                    table.insert(b, 'punctuation')
+                end
+                table.insert(b, 'ascii')
+            elseif k:find'^f%d+$' then -- also check for k:find'^fn' ??
+                table.insert(b, 'functions')
+            end
+            r[k] = b
+        end
+    end
+
+    -- Add the final all grouping
+    for k, v in pairs(r) do
+        table.insert(v, 'all')
+    end
+    return r
 end
 
 local keyGroup = newKeyGroup(allKeyGroups)
@@ -264,12 +298,12 @@ local keyBinds = newKeyBinds()
 
 local idleTimerID, idleCallback, idleTimeout = nil, nil, 10
 
-local KEYF_UP, KEYF_LONG, KEYF_REPEAT = 0x40, 0x80, 0x40000000
+local KEYF_UP, KEYF_LONG = 0x40, 0x80
 local KEYF_MASK = 0x3F
 
 local repeatStart, repeatDecay, repeatFinish
 
-local keyCallback       -- Forward declaration
+local dispatchKey       -- Forward declaration
 
 -------------------------------------------------------------------------------
 -- Give the idle timeout timer a kick
@@ -300,11 +334,12 @@ _M.setKeyRepeatParameters()
 -- Called to generate repeating keys
 -- @param keyHandler The key handler in question
 -- @param key The key being pressed
+-- @param modifiers Table contain additional key information
 -- @local
-local function keyRepeater(keyHandler, key)
-    keyCallback(key + KEYF_REPEAT, nil)
+local function keyRepeater(keyHandler, key, modifiers)
+    dispatchKey(key, 'repeat', 'display', modifiers)
     keyHandler.repeatInterval = math.max(keyHandler.repeatInterval * repeatDecay, repeatFinish)
-    keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key)
+    keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key, modifiers)
 end
 
 -------------------------------------------------------------------------------
@@ -325,55 +360,23 @@ local function hasRepeatHandler(k)
 end
 
 -------------------------------------------------------------------------------
--- Called when keys are streamed, send the keys to each group it is bound to
--- in order of priority, until one of them returns true.
--- key states are 'short', 'long', 'up' and 'repeat'
--- Note: keybind tables should be sorted by priority
--- @function keyCallback
--- @param data Data on key streamed
--- @param err Potential error message
--- @local
-keyCallback = function(data, err)
-    if type(data) ~= 'number' then
-        data = tonumber(data, 16)
-    end
-    if data == KEY_IDLE or data == nil then return end
-
-    local state = "short"
-    local key = bit32.band(data, 0x3F)
-    local keyHandler = keyBinds[key]
-
-    if bit32.band(data, KEYF_UP) ~= 0 then
-        state = "up"
-    elseif bit32.band(data, KEYF_LONG) ~= 0 then
-        state = "long"
-    elseif bit32.band(data, KEYF_REPEAT) ~= 0 then
-        state = 'repeat'
-    end
-
-    -- Debug - throw away first 0 key garbage -- this doesn't seem to appear anymore
-    if data == 0 and firstKey then
-        return
-    end
-    firstKey = false
-
-    -- Throw away uninteresting events
-    -- Key up events on the power key are always delivered
-    --if state ~= 'up' or key ~= KEY_POWER then
-
-    local handled = false
+-- Dispatch a key to the appropriate handler
+-- @param key The key code or string
+-- @param state The type of key press
+-- @param source The source of the key press
+-- @param modifiers Modified keys active
+dispatchKey = function(key, state, source, modifiers)
+    local keyHandler, handled, keyName = keyBinds[key], false, key
     if keyHandler ~= nil then
-        local keyName = naming.convertValueToName(key, keyUnmap)
-
-        -- No point trying to deal with a key we don't know about
-        if keyName == nil then
-            return
+        if type(key) == 'number' then
+            keyName = naming.convertValueToName(key, keyUnmap)
         end
+        if keyName == nil then return end
 
-        if hasRepeatHandler(keyHandler) then
+        if source == 'display' and hasRepeatHandler(keyHandler) then
             if state == 'long' then
                 timers.removeTimer(keyHandler.repeatTimer)
-                keyHandler.repeatTimer = timers.addTimer(0, repeatStart, keyRepeater, keyHandler, key)
+                keyHandler.repeatTimer = timers.addTimer(0, repeatStart, keyRepeater, keyHandler, key, modifiers)
                 keyHandler.repeatInterval = repeatStart
             elseif state == 'up' then
                 timers.removeTimer(keyHandler.repeatTimer)
@@ -393,12 +396,9 @@ keyCallback = function(data, err)
             end
             local cb = keyHandler[state]
             keyHandler[state] = handler
-            local r = cb(keyName, state)
+            handled = cb(keyName, state, source, modifiers)
             if keyHandler[state] == handler then
                 keyHandler[state] = cb
-            end
-            if r == true then
-                handled = true
             end
         end
 
@@ -412,7 +412,7 @@ keyCallback = function(data, err)
                     end
                     local cb = group[state]
                     group[state] = handler
-                    local r = cb(keyName, state)
+                    local r = cb(keyName, state, source, modifiers)
                     if group[state] == handler then
                         group[state] = cb
                     end
@@ -425,12 +425,46 @@ keyCallback = function(data, err)
         end
     end
 
-    if not handled and state ~= 'repeat' and (state ~= 'up' or key == KEY_POWER) then
+    if not handled and state ~= 'repeat' and type(key) == 'number' and (state ~= 'up' or key == KEY_POWER) then
+        local data = key + (state == 'up' and KEYF_UP or 0) + (state == 'long' and KEYF_LONG or 0)
         private.writeRegAsync(REG_APP_DO_KEYS, data)
     end
     if state ~= 'up' then
         private.bumpIdleTimer()
     end
+end
+
+-------------------------------------------------------------------------------
+-- Called when keys are streamed, send the keys to each group it is bound to
+-- in order of priority, until one of them returns true.
+-- key states are 'short', 'long', 'up' and 'repeat'
+-- Note: keybind tables should be sorted by priority
+-- @function keyCallback
+-- @param data Data on key streamed
+-- @param err Potential error message
+-- @local
+local function keyCallback(data, err)
+    if type(data) ~= 'number' then
+        data = tonumber(data, 16)
+    end
+    if data == KEY_IDLE or data == nil then return end
+
+    local state = "short"
+    local key = bit32.band(data, 0x3F)
+
+    if bit32.band(data, KEYF_UP) ~= 0 then
+        state = "up"
+    elseif bit32.band(data, KEYF_LONG) ~= 0 then
+        state = "long"
+    end
+
+    -- Debug - throw away first 0 key garbage -- this doesn't seem to appear anymore
+    if data == 0 and firstKey then
+        return
+    end
+    firstKey = false
+
+    return dispatchKey(key, state, 'display', {})
 end
 
 -------------------------------------------------------------------------------
@@ -441,20 +475,16 @@ end
 -- @param k Key stroke defintion structure return from kb_lib in L001-507
 -- @local
 local function keyPushback(k)
-    if k.type == 'down' then
-        local c, meta, control = nil, k.meta, k.control
-        if not control and not meta then
-            c = usbMap[k.raw]
-        elseif control and not meta then
-            c = usbControlMap[k.raw]
-        elseif meta and not control then
-            c = usbMetaMap[k.raw]
-        end
-
-        if c then
-            private.writeReg(REG_KEY_BUFFER_ENTRY, c + (k.alt and KEYF_LONG or 0))
-        end
+    local c, meta, control = nil, k.meta, k.control
+    if not control and not meta then
+        c = usbMap[k.raw]
+    elseif control and not meta then
+        c = usbControlMap[k.raw]
+    elseif meta and not control then
+        c = usbMetaMap[k.raw]
     end
+    local state = k.type == 'down' and (k.alt and 'long' or 'short') or k.type
+    return dispatchKey(c or string.lower(k.raw), state, 'usb', k)
 end
 
 -------------------------------------------------------------------------------
@@ -548,7 +578,8 @@ end
 -- device.setKeyCallback('f1', F1Pressed)
 function _M.setKeyCallback(keyName, callback, ...)
     utils.checkCallback(callback)
-    local key = naming.convertNameToValue(keyName, keyMap)
+    local key = naming.convertNameToValue(keyName, keyMap) or
+                naming.convertNameToValue(keyName, usb.getKeyboardKeys())
     if key then
         local events = {...}
         if #events == 0 then

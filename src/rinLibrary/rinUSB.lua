@@ -16,11 +16,13 @@ local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
 local deepcopy = require 'rinLibrary.deepcopy'
+local canonical = require('rinLibrary.namings').canonicalisation
 
-local usb, ev_lib, decodeKey
+local usb, ev_lib, decodeKey, usbKeyboardMap
 if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
     decodeKey = require "kb_lib"
+    usbKeyboardMap = require 'kb_mapping'
 else
     dbg.warn('rinUSB:', 'USB not supported')
 end
@@ -263,6 +265,43 @@ function _M.setLibKBDCallback(callback)
     if decodeKey then
         libUSBKBDCallback = callback
     end
+end
+
+-------------------------------------------------------------------------------
+-- Return an iterator that gives canonical names for all USB defined keyboard
+-- keys.
+-- @return Iterator
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- for k in usb.usbKeyboardKeyIterator() do
+--     print('key: ', k)
+-- end
+function _M.usbKeyboardKeyIterator()
+    if usbKeyboardMap == nil then return function() return nil end end
+
+    local k = nil
+    return function()
+        local v
+        k, v = next(usbKeyboardMap, k)
+        return v ~= nil and canonical(v[1]) or nil
+    end
+end
+
+local legalKeys = {}
+for k in _M.usbKeyboardKeyIterator() do
+    legalKeys[k] = k
+end
+
+-------------------------------------------------------------------------------
+-- Return a table of legal keys
+-- @return Table of all known USB keys
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- dbg.info('legal USB keys:', usb.usbKeyboardGetKeys())
+function _M.getKeyboardKeys()
+    return legalKeys
 end
 
 -------------------------------------------------------------------------------
