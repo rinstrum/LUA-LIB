@@ -102,5 +102,5 @@ install:
 $(RELEASE_M01_TARGET): install checksum pdf
 #Opkg it....
 	$(MKDIR) $(M01_DIR)
-	./opkg-build -O -o root -g root $(STAGE_DIR)
+	opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
