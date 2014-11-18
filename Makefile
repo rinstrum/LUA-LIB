@@ -14,7 +14,9 @@ DEST_DIR ?=$(BUILDDIR)/$(STAGE_DIR)
 #export TEST_USERNAME := root
 #export TEST_PASSWORD := root
 
-NET_LUA_PATH := './src/?.lua;../L001-507/src/?.lua'
+BASEDIR ?= $(shell pwd)/..
+L001_507_DIR=$(BASEDIR)/L001_507_DIR
+NET_LUA_PATH := "./src/?.lua;$(L001_507_DIR)/src/?.lua"
 
 #Commands
 MKDIR= mkdir -p
@@ -35,16 +37,21 @@ SRC_BASE = *.lua
 
 SRC_LOC_BASE = src
 
+LUA_FILES := $(shell find $(SRC_LOC_BASE)/ -type f -name '*.lua')
+
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
-.PHONY: clean install pdf checksum $(RELEASE_M01_TARGET)
+.PHONY: clean install compile net pdf checksum $(RELEASE_M01_TARGET)
 
 all: $(RELEASE_M01_TARGET)
 
 clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
 	rm -rf $(M01_DIR) $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
+
+compile: 
+	luac -p $(LUA_FILES)
 
 unit test:
 	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
@@ -64,7 +71,7 @@ checksum: install
 	$(MKDIR) $(M01_DIR)
 	lua checksum.lua >$(CHECKSUM_M01_TARGET)
 
-install:
+install: compile
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary
@@ -104,3 +111,4 @@ $(RELEASE_M01_TARGET): install checksum pdf
 	$(MKDIR) $(M01_DIR)
 	opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
+
