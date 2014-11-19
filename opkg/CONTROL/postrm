@@ -1,7 +1,0 @@
-#!/bin/sh
-# Script to be run after un-installing
-#
-
-#echo "post uninstall run"
-
-exit 0

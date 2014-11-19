@@ -1,7 +1,0 @@
-#!/bin/sh
-# Script to be run prior to uninstalling
-#
-
-# echo "pre-uninstall run"
-
-exit 0

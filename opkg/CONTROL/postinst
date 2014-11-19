@@ -1,7 +1,0 @@
-#!/bin/sh
-# Script to be run after installing
-#
-
-#echo "post install run"
-
-exit 0

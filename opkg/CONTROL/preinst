@@ -1,7 +1,0 @@
-#!/bin/sh
-# Script to be run prior to installing
-#
-
-#echo "pre-install run"
-
-exit 0
