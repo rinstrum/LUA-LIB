@@ -401,7 +401,7 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Dump a DOT representation of the FSM to the given file.
 -- This output can be converting in a graphical representation of the FSM using the
--- dot program from the graphviz tools.
+-- dot program from the <a href="http://www.graphviz.org/">graphviz</a> tools.
 --
 -- dot -Tpdf >myGraph.pdf <myGraph.dot
 -- @function dump
