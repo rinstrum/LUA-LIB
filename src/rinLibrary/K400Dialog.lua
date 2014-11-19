@@ -145,7 +145,7 @@ function _M.setScreenUpdateFrequency(s)
 end
 
 
------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Helper function that takes a string and a position and returns the character
 -- at the specified position.  It modulo reduces its argument to the string's
 -- length.
@@ -177,8 +177,9 @@ local keyMapping = {
     [0] = " 0"
 }
 
------------------------------------------------------------------------------------------------
--- Return a character for the key pressed, according to the number of times it has been pressed
+-------------------------------------------------------------------------------
+-- Return a character for the key pressed, according to the number of times it
+-- has been pressed.
 -- @param k key pressed
 -- @param p number of times key has been pressed
 -- @return letter, number or symbol character represented on the number key pad
@@ -187,14 +188,14 @@ local function keyChar(k, p)
     return keyCharSelect(keyMapping[k], p)
 end
 
------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Trim white space from a string.
 -- @local
 local function sTrim(s)       -- removes whitespace from strings
     return s:match'^%s*(.*%S)' or ''
 end
 
------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Set the key timeout in terms of the number of blink half cycles
 -- @param n The timeout
 -- @return The previous timeout
@@ -207,7 +208,7 @@ function _M.setEditKeyTimeout(n)
     return old
 end
 
------------------------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 -- Simulate a blinking cursor by altering the string periodically.
 -- @local
 local function blinkCursor()
