@@ -551,7 +551,7 @@ local function IOsCallback(t, data, err)
         local status = v.status(data)
         if status ~= v.last then
             if v.running then
-                dbg.warn(type.name .. ' event lost:', k, v.warnlost(status))
+                dbg.warn(t.name .. ' event lost:', k, v.warnlost(status))
             else
                 v.last = status
                 v.running = true
