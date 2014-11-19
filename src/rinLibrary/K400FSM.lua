@@ -398,6 +398,90 @@ function _M.stateMachine(args)
         end
     end
 
+-------------------------------------------------------------------------------
+-- Dump a DOT representation of the FSM to the given file.
+-- This output can be converting in a graphical representation of the FSM using the
+-- dot program from the graphviz tools.
+--
+-- dot -Tpdf >myGraph.pdf <myGraph.dot
+-- @function dump
+-- @param filename Name of the output file.
+-- @param showCurrent Boolean, highlight the current node.  By default, this
+-- is not highlighted.
+-- @return The finite state machine
+-- @usage
+-- fsm.dump('myGraph.dot')
+    function fsm.dump(filename, showCurrent)
+        -- Colourblind friend colour set
+        local black, orange, blue, dblue ='#000000', '#E69F00', '#56B4E9', '#0072B2'
+        local green, yellow, red, pink = '#009E73', '#F0E442', '#D55E00', '#CC79A7'
+
+        local file = io.open(filename, 'w')
+        local function w(...)
+            file:write(...)
+        end
+
+        w('digraph ', name, ' {\n')
+        w(' graph [label="', name, '", labelloc=t, fontsize=20];\n')
+        for _, s in pairs(states) do
+            -- State
+            w(' "', s.ref, '" [label="', s.name)
+            if showCurrent and s == current then w('\\ncurrent') end
+            w('"')
+            if s == initial then
+                w(' style=filled color="', yellow, '"')
+            end
+            w(' fontsize=14];\n')
+
+            -- State's transitions
+            for _, t in pairs(s.trans) do
+                local col, lbl
+
+                -- Append transition attributes to the lists
+                local function a(s, c)
+                    if lbl == nil then
+                        w(' [')
+                    end
+                    if c ~= nil then
+                        if col == nil then col = c else col = col .. ':' .. c end
+                    end
+                    if lbl == nil then lbl = s else lbl = lbl .. '\\n' .. s end
+                end
+
+                -- Process the bit based transition triggers
+                local function bits(b, c, pre)
+                    if b ~= nil then
+                        if type(b) == 'table' then
+                            for _, v in pairs(b) do
+                                a(pre .. v, c)
+                                c = nil
+                            end
+                        else
+                            a(pre .. b, c)
+                        end
+                    end
+                end
+
+                w('  "', s.ref, '" -> "', t.dest.ref, '"')
+                if t.time then a('t='..t.time, green) end
+                if t.event then a(t.event, red) end
+                if t.cond ~= True then a('Cond', dblue) end
+                bits(t.status, pink, '')
+                bits(t.io, blue, 'IO ')
+                bits(t.setpoint, orange, 'SP ')
+                if lbl then
+                    w('color="', col, '" label="', lbl, '" fontsize=10]')
+                end
+                w(';\n')
+            end
+        end
+        w('}\n')
+        file:close()
+        utils.sync(false)
+
+        return fsm
+    end
+
     return fsm
 end
 
