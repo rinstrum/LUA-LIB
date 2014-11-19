@@ -38,6 +38,8 @@ local eventDevices = {}
 local userStorageRemovedCallback, userStorageAddedCallback = nil, nil
 local storageEvent = nil
 
+local legalKeys = nil
+
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
 -- @param callback Callback function takes event table as a parameter
@@ -288,11 +290,6 @@ function _M.usbKeyboardKeyIterator()
     end
 end
 
-local legalKeys = {}
-for k in _M.usbKeyboardKeyIterator() do
-    legalKeys[k] = k
-end
-
 -------------------------------------------------------------------------------
 -- Return a table of legal keys
 -- @return Table of all known USB keys
@@ -301,6 +298,13 @@ end
 --
 -- dbg.info('legal USB keys:', usb.usbKeyboardGetKeys())
 function _M.getKeyboardKeys()
+    if legalKeys == nil then
+    print'generating key table'
+        legalKeys = {}
+        for k in _M.usbKeyboardKeyIterator() do
+            legalKeys[k] = k
+        end
+    end
     return legalKeys
 end
 
