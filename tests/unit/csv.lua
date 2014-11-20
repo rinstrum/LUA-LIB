@@ -338,7 +338,7 @@ describe("CSV tests #csv", function()
         local tostringColTests = {
             { r = nil,                  c = nil         },
             { r = "",                   c = {}          },
-            { r = "1\r\n2\r\n3\r\n",    c = { 1, 2, 3, 4}  },
+            { r = "1\r\n2\r\n3\r\n",    c = { 1, 2, 3}  },
             { r = "1\r\n",              c = { 1 }       }
         }
 
