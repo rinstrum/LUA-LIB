@@ -36,6 +36,13 @@ if pcall(function() require "posix" end) then
 	    return s + n * 0.000000001
     end
 end
+-------------------------------------------------------------------------------
+-- Return an ever increasing time.
+-- @return Real time
+-- @usage
+-- local start = timers.monotonicTime()
+-- ...
+-- print('elapsed', timers.monotonicTime() - start)
 _M.monotonicTime = monotonictime
 
 -------------------------------------------------------------------------------
