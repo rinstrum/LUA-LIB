@@ -166,20 +166,30 @@ local usbMetaMap = {
 }
 
 --- Key Groups are defined as follows.
+--
+-- This table is in priority order.  If a group call back return true, then any
+-- other call backs that would be relevant lower down the table will not be
+-- invoked.
+--
+-- For example, a numeric digit is a member of these groups:
+-- <i>numpad</i>, <i>keypad</i>, <i>alphanum</i>, <i>ascii</i> and <i>all</i>.
+-- If the handler for the <i>numpad</i> returns false, the search continues
+-- down the list and the <i>keypad</i> call back is invoked.  If this then returns
+-- true, the later ones will not be called.
 --@table keygroups
--- @field all All keys.
--- @field alpha Alphabetic keys.  Only available for USB attached keyboards.
--- @field alphanum Alphabetic and numeric keys.
--- @field ascii ASCII characters.
 -- @field arrow Up, down, okay and cancel.
 -- @field cursor The non-digit keys to the right of the display.
--- @field extended Power + key combination keys (pwr_...)
--- @field functions The three function buttons below the display.
--- @field keypad The sixteen buttons to the right of the display.
 -- @field numpad The ten digits.
+-- @field keypad The sixteen buttons to the right of the display.
 -- @field primary The six buttong below the display plus on and setup.
+-- @field functions The three function buttons below the display.
+-- @field alpha Alphabetic keys.  Only available for USB attached keyboards.
+-- @field alphanum Alphabetic and numeric keys.
 -- @field punctuation Punctuation symbols.  Only available for USB attached keyboards.
 -- @field space White space characters.  Only available for USB attached keyboards.
+-- @field ascii ASCII characters.
+-- @field extended Power + key combination keys (pwr_...)
+-- @field all All keys.
 
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
@@ -403,13 +413,13 @@ dispatchKey = function(key, state, source, modifiers)
         end
 
         if not handled then
+            local function handler()
+                dbg.warn('Attempt to call key group event Handler recursively:', keyName)
+                return true
+            end
             for i = 1, #keyHandler do
                 local group = keyGroup[keyHandler[i]]
                 if utils.callable(group[state]) then
-                    local function handler()
-                        dbg.warn('Attempt to call key group event Handler recursively:', keyName)
-                        return true
-                    end
                     local cb = group[state]
                     group[state] = handler
                     local r = cb(keyName, state, source, modifiers)
