@@ -53,8 +53,10 @@ clean:
 compile: 
 	luac -p $(LUA_FILES)
 
-unit test:
-	busted -o junit -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
+test:
+	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
+unit:
+	busted -o junit -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit >M02/busted.xml
 
 net:
 	./lock obtain
