@@ -17,6 +17,7 @@ DEST_DIR ?=$(BUILDDIR)/$(STAGE_DIR)
 BASEDIR ?= $(shell pwd)/..
 L001_507_DIR=$(BASEDIR)/L001-507
 NET_LUA_PATH := "./src/?.lua;$(L001_507_DIR)/src/?.lua"
+BUSTED_OPTS := --suppress-pending
 
 #Commands
 MKDIR= mkdir -p
@@ -54,11 +55,11 @@ compile:
 	luac -p $(LUA_FILES)
 
 unit test:
-	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
+	busted -p 'lua$$' -m './src/?.lua' $(BUSTED_OPTS) tests/unit
 
 net:
 	./lock obtain
-	-busted -o junit -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
+	-busted -p 'lua$$' -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
 	./lock release
 
 pdf: install
