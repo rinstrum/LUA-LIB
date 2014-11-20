@@ -56,7 +56,7 @@ compile:
 test:
 	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
 unit:
-	busted -o junit -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit >M02/busted.xml
+	busted -o junit -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit >M01/busted.xml
 
 net:
 	./lock obtain
