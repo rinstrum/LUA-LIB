@@ -54,11 +54,11 @@ compile:
 	luac -p $(LUA_FILES)
 
 unit test:
-	busted -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
+	busted -o junit -p 'lua$$' --suppress-pending -m './src/?.lua' $(BUSTED_OPTS) tests/unit
 
 net:
 	./lock obtain
-	-busted -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
+	-busted -o junit -p 'lua$$' --suppress-pending -m $(NET_LUA_PATH) $(BUSTED_OPTS) tests/network
 	./lock release
 
 pdf: install
