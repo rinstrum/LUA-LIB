@@ -15,7 +15,7 @@ DEST_DIR ?=$(BUILDDIR)/$(STAGE_DIR)
 #export TEST_PASSWORD := root
 
 BASEDIR ?= $(shell pwd)/..
-L001_507_DIR=$(BASEDIR)/L001_507_DIR
+L001_507_DIR=$(BASEDIR)/L001-507
 NET_LUA_PATH := "./src/?.lua;$(L001_507_DIR)/src/?.lua"
 
 #Commands
