@@ -190,7 +190,6 @@ local usbMetaMap = {
 -- @field ascii ASCII characters.
 -- @field extended Power + key combination keys (pwr_...)
 -- @field all All keys.
-
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
     'keypad',   'numpad',   'primary',  'arrow',
