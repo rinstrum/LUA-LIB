@@ -406,12 +406,3 @@ timers.addTimer(0.005, 0, function () rng = random(nSides) end)
 
 -- Main Application Loop
 rinApp.run()
-
--- Cleanup the application and exit
-dwi.write('topLeft', "")
-dwi.write('bottomLeft', "")
-dwi.write('topRight', "")
-dwi.write('bottomRight', "")
-
-rinApp.cleanup()
-os.exit()

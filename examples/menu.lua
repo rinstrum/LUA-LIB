@@ -96,7 +96,3 @@ device.setKeyCallback('f1', function()
 end, 'long')
 
 rinApp.run()
-
--- Cleanup the application and exit
-rinApp.cleanup()
-os.exit()

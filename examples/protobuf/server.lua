@@ -98,10 +98,3 @@ sockets.createServerSocket(2224, socketBidirectionalAccept)
 --=============================================================================
 -- Main Application logic goes here
 rinApp.run()                       -- run the application framework
-
---=============================================================================
--- Clean Up
---=============================================================================
--- Put any application clean up here
-
-rinApp.cleanup()                   -- shutdown application resources

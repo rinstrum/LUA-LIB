@@ -232,16 +232,7 @@ local function mainLoop()
 
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
-rinApp.init()
+rinApp.setCleanup(function()
+    dwi.releaseOutput(OVER_OUTPUT, PASS_OUTPUT, CHIME_OUTPUT, RESET_OUTPUT)
+end)
 rinApp.run()                       -- run the application framework
-
---=============================================================================
--- Clean Up
---=============================================================================
--- Put any application clean up here
-dwi.releaseOutput(OVER_OUTPUT,
-                 PASS_OUTPUT,
-                 CHIME_OUTPUT,
-                 RESET_OUTPUT)
-
-rinApp.cleanup()                   -- shutdown application resources
