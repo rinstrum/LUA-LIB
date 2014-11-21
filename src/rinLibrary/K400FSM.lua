@@ -297,7 +297,9 @@ function _M.stateMachine(args)
 
             if from == 'all' then
                 for _, s in pairs(states) do
-                    table.insert(s.trans, t)
+                    if s.ref ~= dest then
+                        table.insert(s.trans, t)
+                    end
                 end
             else
                 table.insert(states[from].trans, t)
