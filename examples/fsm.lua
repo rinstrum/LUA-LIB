@@ -54,5 +54,6 @@ fsm.dump('demoFSM.dot')
 
 device.setKeyCallback(9, function() fsm.raise('fin') return true end, 'short')
 
+device.write('bottomLeft', 'FIND THE WAY OUT', 'wait, clear')
 rinApp.setMainLoop(fsm.run)
 rinApp.run()
