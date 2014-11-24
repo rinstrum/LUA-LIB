@@ -485,5 +485,4 @@ function _M.stateMachine(args)
 
     return fsm
 end
-
 end
