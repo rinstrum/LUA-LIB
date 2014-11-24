@@ -257,7 +257,6 @@ function _M.stateMachine(args)
         return fsm
     end
 
-
 -------------------------------------------------------------------------------
 -- Add a state transition to a finite state machine
 -- @function trans
