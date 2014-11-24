@@ -421,6 +421,18 @@ local function queryRegisterInformation(reg, name, post, ...)
 end
 
 -------------------------------------------------------------------------------
+-- Query helper function that simply returns its arguments.
+-- This is used for a no modification query
+-- @param data Data returned from the display
+-- @param err Error code from display
+-- @return Data
+-- @return Error code
+-- @local
+local function queryNoChanges(data, err)
+    return data, err
+end
+
+-------------------------------------------------------------------------------
 -- Called to get a registers name
 -- @param reg register
 -- @param timeout Timeout in seconds (optional)
@@ -428,9 +440,23 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegName(reg, timeout)
-    return queryRegisterInformation(reg, 'name', function(data, err)
+    return queryRegisterInformation(reg, 'name', queryNoChanges, 'rdname', reg, nil, timout)
+end
+
+-------------------------------------------------------------------------------
+-- Query helper function to get decimal places from a query return code
+-- @param data Formatted value returned from display
+-- @param err Error code from display
+-- @return Number of decimal places
+-- @return Error code
+-- @local
+local function queryDecimalPlaces(data, err)
+    if err then
         return data, err
-    end, 'rdname', reg, nil, timout)
+    end
+    dpCount = 0
+    dpPattern:match(data)
+    return dpCount, nil
 end
 
 -------------------------------------------------------------------------------
@@ -442,14 +468,23 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegDecimalPlaces(reg)
-    return queryRegisterInformation(reg, 'decimalPlaces', function(data, err)
-        if err then
-            return data, err
-        end
-        dpCount = 0
-        dpPattern:match(data)
-        return dpCount, nil
-    end, 'rdlit', reg)
+    return queryRegisterInformation(reg, 'decimalPlaces', queryDecimalPlaces, 'rdlit', reg)
+end
+
+-------------------------------------------------------------------------------
+-- Query helper function to get permissions from the permission return code
+-- @param data Permission code returned from display
+-- @param err Error code from display
+-- @return Permissions table
+-- @return Error code
+-- @local
+local function queryPermissions(data, err)
+    local p = tonumber(data, 16) or 15
+    return {
+        read = permissionsMap[p % 4],
+        write = permissionsMap[math.floor(p/4) % 4],
+        sideEffects = bit32.band(0x80, p) == 0
+    }, err
 end
 
 -------------------------------------------------------------------------------
@@ -460,14 +495,18 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegPermissions(reg)
-    return queryRegisterInformation(reg, 'permissions', function(data, err)
-        local p = tonumber(data, 16) or 15
-        return {
-            read = permissionsMap[p % 4],
-            write = permissionsMap[math.floor(p/4) % 4],
-            sideEffects = bit32.band(0x80, p) == 0
-        }, err
-    end, 'rdpermission', reg)
+    return queryRegisterInformation(reg, 'permissions', queryPermissions, 'rdpermission', reg)
+end
+
+-------------------------------------------------------------------------------
+-- Query helper function to get type from the type code
+-- @param data Type code returned from display
+-- @param err Error code from display
+-- @return Type name
+-- @return Error code
+-- @local
+local function queryType(data, err)
+    return typeMap[tonumber(data, 16) or -1], err
 end
 
 -------------------------------------------------------------------------------
@@ -478,9 +517,18 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegType(reg)
-    return queryRegisterInformation(reg, 'type', function(data, err)
-        return typeMap[tonumber(data, 16) or -1], err
-    end, 'rdtype', reg)
+    return queryRegisterInformation(reg, 'type', queryType, 'rdtype', reg)
+end
+
+-------------------------------------------------------------------------------
+-- Query helper function to get a number from the data
+-- @param data Data returned from display
+-- @param err Error code from display
+-- @return Numeric data
+-- @return Error code
+-- @local
+local function queryNum(data, err)
+    return tonumber(data, 16), err
 end
 
 -------------------------------------------------------------------------------
@@ -491,9 +539,7 @@ end
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMax(reg)
-    return queryRegisterInformation(reg, 'max', function(data, err)
-        return tonumber(data, 16), err
-    end, 'rdrangemax', reg)
+    return queryRegisterInformation(reg, 'max', queryNum, 'rdrangemax', reg)
 end
 
 -------------------------------------------------------------------------------
@@ -504,9 +550,7 @@ end
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMin(reg)
-    return queryRegisterInformation(reg, 'min', function(data, err)
-        return tonumber(data, 16), err
-    end, 'rdrangemin', reg)
+    return queryRegisterInformation(reg, 'min', queryNum, 'rdrangemin', reg)
 end
 
 -------------------------------------------------------------------------------
