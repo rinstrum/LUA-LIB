@@ -432,8 +432,8 @@ function _M.edit(prompt, def, typ, units, unitsOther)
         key, state = _M.getKey('keypad')
         if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
-           editing = false
-           sEditVal = def
+            editing = false
+            sEditVal = def
         elseif state == 'short' then
             if type(key) == 'number' then
                 if first then
