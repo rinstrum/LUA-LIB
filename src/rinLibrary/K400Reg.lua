@@ -265,9 +265,9 @@ function private.readReg(reg, timeout)
     end
     local num = literalToFloat(data)
     if num then
-      return num, nil
+        return num, nil
     else
-      return data, nil
+        return data, nil
     end
 end
 
