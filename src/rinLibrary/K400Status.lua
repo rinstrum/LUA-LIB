@@ -892,6 +892,7 @@ end
 -- @local
 local function handleINIT(status, active)
     if active then
+        private.resetRegisterInfoCache()
         timers.addEvent(function()
             dbg.info('Event:', 'INIT')
             private.readSettings()

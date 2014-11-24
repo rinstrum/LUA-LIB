@@ -143,6 +143,8 @@ local permissionsMap = {
 local dpCount
 local dpPattern = S('+-')^-1 * space^0 * digit^0 * (P'.' * (digit^0 / function(s) dpCount = #s end))^-1
 
+local regCache      -- Maintain a cache of register attributes
+
 -------------------------------------------------------------------------------
 -- Called to send command to a register but not wait for the response
 -- @param cmd command
@@ -373,14 +375,62 @@ function private.exRegAsync(reg, data)
 end
 
 -------------------------------------------------------------------------------
+-- Reset the register infomation cache to clear.
+--
+-- This needs to be called after any change that might impact the register
+-- information and settings.
+-- @function resetRegisterInfoCache
+-- @local
+function private.resetRegisterInfoCache()
+    regCache = {}
+end
+private.resetRegisterInfoCache()
+
+-------------------------------------------------------------------------------
+-- Utility function to cache register information.
+-- The item desired is queried for and cached.  Future queries return the
+-- cached value directly.
+-- @param reg Register to query
+-- @param name Name of item being queried
+-- @param post Post query update function
+-- @param ... Argument to sendRegWait to query this item
+-- @return query result, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+local function queryRegisterInformation(reg, name, post, ...)
+    if reg == nil then
+          return nil, 'Nil Register'
+    end
+    local r = private.getRegisterNumber(reg)
+    if r == nil then
+        return nil, "Unknown Register"
+    end
+
+    if regCache[r] == nil then
+        regCache[r] = {}
+    end
+    if regCache[r][name] ~= nil then
+        return regCache[r][name], nil
+    end
+
+    local data, err = post(sendRegWait(...))
+    if err == nil then
+        regCache[r][name] = data
+    end
+    return data, err
+end
+
+-------------------------------------------------------------------------------
 -- Called to get a registers name
 -- @param reg register
 -- @param timeout Timeout in seconds (optional)
--- @return reply received from instrument, nil if error
+-- @return reply Name of register from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegName(reg, timeout)
-    return sendRegWait('rdname', reg, nil, timout)
+    return queryRegisterInformation(reg, 'name', function(data, err)
+        return data, err
+    end, 'rdname', reg, nil, timout)
 end
 
 -------------------------------------------------------------------------------
@@ -388,66 +438,93 @@ end
 -- value contains.
 -- @function getRegDecimalPlaces
 -- @param reg Register to read
--- @return Decimal places
+-- @return Decimal places for register, nil if error
+-- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegDecimalPlaces(reg)
-    local data, err = sendRegWait('rdlit', reg)
-    if err then
-        dbg.error('getRegDecimalPlaces: ', reg, err)
-        return nil
-    else
+    return queryRegisterInformation(reg, 'decimalPlaces', function(data, err)
+        if err then
+            return data, err
+        end
         dpCount = 0
         dpPattern:match(data)
-        return dpCount
-    end
+        return dpCount, nil
+    end, 'rdlit', reg)
 end
 
 -------------------------------------------------------------------------------
 -- Called to read a register's permissions
 -- @function getRegType
 -- @param reg Register to query
--- @return The register permissions
+-- @return The register permissions, nil if error
+-- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegPermissions(reg)
-    local p = tonumber(sendRegWait('rdpermission', reg), 16)
-    return {
-        read = permissionsMap[p % 4],
-        write = permissionsMap[math.floor(p/4) % 4],
-        sideEffects = bit32.band(0x80, p) == 0
-    }
+    return queryRegisterInformation(reg, 'permissions', function(data, err)
+        local p = tonumber(data, 16) or 15
+        return {
+            read = permissionsMap[p % 4],
+            write = permissionsMap[math.floor(p/4) % 4],
+            sideEffects = bit32.band(0x80, p) == 0
+        }, err
+    end, 'rdpermission', reg)
 end
 
 -------------------------------------------------------------------------------
 -- Called to read a register's type
 -- @function getRegType
 -- @param reg Register to query
--- @return The type of the register
+-- @return The type of the register, nil if error
+-- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegType(reg)
-    local rdtype = sendRegWait('rdtype', reg)
-    return typeMap[tonumber(rdtype, 16)]
+    return queryRegisterInformation(reg, 'type', function(data, err)
+        return typeMap[tonumber(data, 16) or -1], err
+    end, 'rdtype', reg)
 end
 
 -------------------------------------------------------------------------------
 -- Called to read a register's maximum value
 -- @function getRegMax
 -- @param reg Register to query
--- @return The type of the register
+-- @return The maximum value for the register, not converted to real, nil if error
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMax(reg)
-    return sendRegWait('rdrangemax', reg)
+    return queryRegisterInformation(reg, 'max', function(data, err)
+        return tonumber(data, 16), err
+    end, 'rdrangemax', reg)
 end
 
 -------------------------------------------------------------------------------
 -- Called to read a register's minimum value
 -- @function getRegMin
 -- @param reg Register to query
--- @return The type of the register
+-- @return The minimum value for the register, not converted to real, nil if error
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMin(reg)
-    return sendRegWait('rdrangemin', reg)
+    return queryRegisterInformation(reg, 'min', function(data, err)
+        return tonumber(data, 16), err
+    end, 'rdrangemin', reg)
+end
+
+-------------------------------------------------------------------------------
+-- Query all the information about a register.
+-- @param reg Register to query information about
+-- @return Table containing all the register information
+-- @usage
+-- local regInfo = device.getRegInfo('grossnet')
+-- print('grossnet decimals', regInfo.dp)
+function _M.getRegInfo(reg)
+    return {
+        name            = private.getRegName(reg),
+        type            = private.getRegType(reg),
+        min             = private.getRegMin(reg),
+        max             = private.getRegMax(reg),
+        decimalPlaces   = private.getRegDecimalPlaces(reg),
+        permissions     = private.getRegPermissions(reg)
+    }
 end
 
 -------------------------------------------------------------------------------
