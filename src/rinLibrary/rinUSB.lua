@@ -299,7 +299,6 @@ end
 -- dbg.info('legal USB keys:', usb.usbKeyboardGetKeys())
 function _M.getKeyboardKeys()
     if legalKeys == nil then
-    print'generating key table'
         legalKeys = {}
         for k in _M.usbKeyboardKeyIterator() do
             legalKeys[k] = k
