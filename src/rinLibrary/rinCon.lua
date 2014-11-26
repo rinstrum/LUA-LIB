@@ -192,7 +192,7 @@ end
 -- @param reply 'reply' (default) if reply required, sent with no reply otherwise
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @usage
--- stream.send('broadcast', device.CMD_RDLIT, 'grossnet', data, 'reply')
+-- stream.send('broadcast', 'rdlit', 'grossnet', data, 'reply')
 function private.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
     sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
