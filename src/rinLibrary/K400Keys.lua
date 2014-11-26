@@ -149,7 +149,7 @@ local usbMap = {
     up = KEY_UP,        down = KEY_DOWN,
     ['\n'] = KEY_OK,    ok = KEY_OK,
     esc = KEY_CANCEL,   ['\b']=KEY_CANCEL,  delete = KEY_CANCEL,
-    setup = KEY_SETUP,
+    --setup = KEY_SETUP,  -- magic button on the back isn't mapped
 }
 
 local usbControlMap = {
@@ -258,10 +258,10 @@ local function newKeyBinds()
         [KEY_F3]         = { 'primary', 'functions'                   },
         [KEY_PLUSMINUS]  = { 'cursor',  'keypad'                      },
         [KEY_DP]         = { 'cursor',  'keypad'                      },
-        [KEY_CANCEL]     = { 'arrow',   'cursor',  'keypad'           },
-        [KEY_UP]         = { 'arrow',   'cursor',  'keypad'           },
-        [KEY_DOWN]       = { 'arrow',   'cursor',  'keypad'           },
-        [KEY_OK]         = { 'arrow',   'cursor',  'keypad'           },
+        [KEY_CANCEL]     = { 'arrow',   'cursor', 'keypad'            },
+        [KEY_UP]         = { 'arrow',   'cursor', 'keypad'            },
+        [KEY_DOWN]       = { 'arrow',   'cursor', 'keypad'            },
+        [KEY_OK]         = { 'arrow',   'cursor', 'keypad'            },
         [KEY_SETUP]      = { 'primary'                                },
         [KEY_PWR_ZERO]   = { 'extended'                               },
         [KEY_PWR_TARE]   = { 'extended'                               },
