@@ -55,7 +55,7 @@ local firstKey = true    -- flag to catch any garbage
 -- @field up Key up (string)
 -- @field down Key down (string)
 -- @field ok Key ok (string)
--- @field setup Key setup (string)
+-- @field setup Setup button accessed via unit's rear (string)
 -- @field pwr_zero Key power &amp; zero pressed simultaneously (string)
 -- @field pwr_tare Key power &amp; tare pressed simultaneously (string)
 -- @field pwr_sel Key power &amp; sel pressed simultaneously (string)
