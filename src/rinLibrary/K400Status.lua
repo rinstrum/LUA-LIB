@@ -147,7 +147,7 @@ local REG_LUA_STAT_NET = 0x030A
 -- @see anyStatusSet
 -- @see allStatusSet
 -- @see waitStatus
-local statusUnmap, statusMap = {}, {
+local statusMap = {
     net         = 0x00000001,
     gross       = 0x00000002,
     zero        = 0x00000004,
@@ -197,9 +197,7 @@ local statusUnmap, statusMap = {}, {
     direrror    = private.k422(0x08000000),
     ilockerror  = private.k422(0x10000000),
 }
-for k, v in pairs(statusMap) do
-    statusUnmap[v] = k
-end
+local statusUnmap = utils.invert(statusMap)
 
 -- Extended status bits
 local ESTAT_HIRES           = 0x00000001
@@ -223,7 +221,7 @@ local ESTAT_RANGE_RS        = 3
 -- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 -- @see setEStatusCallback
 -- @see setEStatusMainCallback
-local estatusUnmap, estatusMap = {}, {
+local estatusMap = {
     hires       = ESTAT_HIRES,
     dispmode    = ESTAT_DISPMODE,
     range       = ESTAT_RANGE,
@@ -236,9 +234,7 @@ local estatusUnmap, estatusMap = {}, {
     ser1        = 0x10000000,
     ser2        = 0x20000000
 }
-for k, v in pairs(estatusMap) do
-    estatusUnmap[v] = k
-end
+local estatusUnmap = utils.invert(estatusMap)
 
 local statBinds = {}
 local statID = nil

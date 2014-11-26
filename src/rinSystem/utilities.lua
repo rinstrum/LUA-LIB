@@ -80,4 +80,15 @@ function _M.reboot()
     os.execute('reboot')
 end
 
+-------------------------------------------------------------------------------
+-- Invert a table returning a new table
+-- @param map Table containing the forward mapping
+function _M.invert(map)
+    local r = {}
+    for k, v in pairs(map) do
+        r[v] = k
+    end
+    return r
+end
+
 return _M

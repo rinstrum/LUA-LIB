@@ -9,6 +9,7 @@ local lpeg   = require "rinLibrary.lpeg"
 local ccitt  = require "rinLibrary.rinCCITT"
 local dbg    = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local invert = require('rinSystem.utilities').invert
 
 local string    = string
 local table     = table
@@ -61,7 +62,7 @@ local CMD_WRFINALHEX    = 0x12
 local CMD_WRFINALDEC    = 0x17
 local CMD_EX            = 0x10
 
-local commandUnmap, commandMap = {}, {
+local commandMap = {
     rdtype              = CMD_RDTYPE,
     rdrangemin          = CMD_RDRANGEMIN,
     rdrangemax          = CMD_RDRANGEMAX,
@@ -78,9 +79,7 @@ local commandUnmap, commandMap = {}, {
     wrfinaldec          = CMD_WRFINALDEC,
     ex                  = CMD_EX
 }
-for k, v in pairs(commandMap) do
-    commandUnmap[v] = k
-end
+local commandUnmap = invert(commandMap)
 
 --  Errors
 local ERR_UNKNOWN       = 0xC000
@@ -138,7 +137,7 @@ local function getcmd(s)
     end
 end
 
-local msgpat = P({
+local msgpat = P{
               (V"crc" + V"rns" + 1) * (P(1)^0   / function(s) excess = s end),
     crc     = P"\1" * (V"msgcrc" / function(s) delim="CRC"; tocrc = string.sub(s, 1, -5) end) * P"\4",
     msgcrc  = V"header" * ((P(1)-P"\4")^4       / datacrc),
@@ -149,7 +148,7 @@ local msgpat = P({
     cmd     = V"hd2"                            / getcmd,
     reg     = V"hd4"                            / function(s) reg  = tonumber(s, 16) end,
     hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
-})
+}
 
 -------------------------------------------------------------------------------
 -- Processes the message and feeds back the individual parts

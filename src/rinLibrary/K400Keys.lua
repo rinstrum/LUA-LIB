@@ -97,7 +97,7 @@ local KEY_PWR_F3           = 0x001D
 local KEY_PWR_CANCEL       = 0x001E
 local KEY_IDLE             = 0x001F
 
-local keyUnmap, keyMap = {}, {
+local keyMap = {
     [0]         = KEY_0,
     [1]         = KEY_1,
     [2]         = KEY_2,
@@ -131,9 +131,7 @@ local keyUnmap, keyMap = {}, {
     pwr_cancel  = KEY_PWR_CANCEL,
     idle        = KEY_IDLE
 }
-for k, v in pairs(keyMap) do
-    keyUnmap[v] = k
-end
+local keyUnmap = utils.invert(keyMap)
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Various translation maps for USB keyboard events to display key presses.
