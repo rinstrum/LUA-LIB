@@ -9,6 +9,7 @@ local lpeg   = require "rinLibrary.lpeg"
 local ccitt  = require "rinLibrary.rinCCITT"
 local dbg    = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local canon  = naming.canonicalisation
 local invert = require('rinSystem.utilities').invert
 
 local string    = string
@@ -225,7 +226,7 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
         return nil
     end
 
-    if type(addr) == 'string' and string.lower(addr) == 'broadcast' then
+    if type(addr) == 'string' and canon(addr) == 'broadcast' then
         addr = ADDR_BROADCAST
     else
         addr = addr or ADDR_BROADCAST
