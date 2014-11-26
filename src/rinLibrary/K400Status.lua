@@ -344,10 +344,10 @@ function private.renewStatusBinds()
         v.lastStatus = nil
     end
     for _, v in pairs(statBinds) do
-        v.lastStatus = 0xFFFFFFFF
+        v.lastStatus = nil
     end
     for _, v in pairs(eStatBinds) do
-        v.lastStatus = 0xFFFFFFFF
+        v.lastStatus = nil
     end
 end
 
@@ -390,8 +390,8 @@ local function setEStatusCallback(eStatus, callback)
     local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}
-        eStatBinds[eStat]['f'] = callback
-        eStatBinds[eStat]['lastStatus'] = 0xFF
+        eStatBinds[eStat].f = callback
+        eStatBinds[eStat].lastStatus = nil
     end
 end
 
@@ -407,8 +407,8 @@ local function setEStatusMainCallback(eStatus, callback)
     local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
         eStatBinds[eStat] = eStatBinds[eStat] or {}
-        eStatBinds[eStat]['mainf'] = callback
-        eStatBinds[eStat]['lastStatus'] = 0xFF
+        eStatBinds[eStat].mainf = callback
+        eStatBinds[eStat].lastStatus = nil
     end
 end
 
@@ -452,8 +452,7 @@ function _M.setStatusCallback(status, callback)
     local stat = naming.convertNameToValue(status, statusMap)
     if stat then
         statBinds[stat] = {
-            f = callback,
-            lastStatus = 0xFF
+            f = callback
         }
     else
         setEStatusCallback(status, callback)
