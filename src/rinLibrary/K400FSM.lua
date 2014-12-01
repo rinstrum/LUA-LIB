@@ -422,7 +422,7 @@ function _M.stateMachine(args)
             file:write(...)
         end
 
-        w('digraph ', name, ' {\n')
+        w('digraph "', name, '" {\n')
         w(' graph [label="', name, '", labelloc=t, fontsize=20];\n')
         for _, s in pairs(states) do
             -- State
