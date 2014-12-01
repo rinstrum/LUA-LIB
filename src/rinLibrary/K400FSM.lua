@@ -281,6 +281,7 @@ function _M.stateMachine(args)
             local t = {
                 name        = name,
                 cond        = cb(args.cond, True),
+                cname       = args.cname,
                 time        = args.time,
                 status      = deepcopy(args.status),
                 io          = deepcopy(args.io),
@@ -466,7 +467,9 @@ function _M.stateMachine(args)
                 w('  "', s.ref, '" -> "', t.dest.ref, '"')
                 if t.time then a('t='..t.time, green) end
                 if t.event then a(t.event, red) end
-                if t.cond ~= True then a('Cond', dblue) end
+                if t.cond ~= True then
+                    a(t.cname or 'Cond', dblue)
+                end
                 bits(t.status, pink, '')
                 bits(t.io, blue, 'IO ')
                 bits(t.setpoint, orange, 'SP ')
