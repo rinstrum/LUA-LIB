@@ -477,6 +477,7 @@ function _M.stateMachine(args)
                     w('color="', col, '" label="', lbl, '" fontsize=10]')
                 end
                 w(';\n')
+                if not lbl then break end
             end
         end
         w('}\n')
