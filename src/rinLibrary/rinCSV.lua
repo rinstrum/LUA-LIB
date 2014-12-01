@@ -288,9 +288,8 @@ end
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
 function _M.saveCSV(t)
@@ -330,9 +329,8 @@ end
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
 function _M.loadCSV(t)
@@ -470,12 +468,12 @@ end
 -- @param t is table describing CSV data
 -- @param line is a row of data (1d array) to save
 -- @see addLineCSV
+-- @see undoLogLine
 -- @usage
 -- -- Append a line to the CSV file in storage but not in memory
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file', noLoad=true }
 --
--- csv.loadCSV(csvfile)
 -- csv.logLineCSV(csvfile, { 1, 2, 3 })
 function _M.logLineCSV(t, line)
     if t ~= nil and line ~= nil then
@@ -491,8 +489,38 @@ function _M.logLineCSV(t, line)
             end
             appendrow(t, line)
             t.data = nil
+            t.hasUndoLogRecord = true
         end
     end
+end
+
+-------------------------------------------------------------------------------
+-- Undo the previous logLineCSV call for the specified CSV file.
+--
+-- If there has been no line added to the CSV file using logLineCSV, this
+-- function does nothing.
+-- @param t is table describing CSV data
+-- @return Boolean, true indicates the last line was successfullyt removed.
+-- @see logLineCSV
+-- @usage
+-- -- Append a line to the CSV file in storage and then remove it.
+-- local csv = require('rinLibrary.rinCSV')
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file', noLoad=true }
+--
+-- csv.logLineCSV(csvfile, { 1, 2, 3 })
+-- csv.undoLogLineCSV(csvfile)
+function _M.undoLogLineCSV(t)
+    if t.hasUndoLogRecord then
+        t.hasUndoLogRecord = false
+        local l, kind = _M.loadCSV { fname = t.fname, labels = t.labels }
+        local last = _M.numRowsCSV(l)
+        if last > 0 then
+            _M.remLineCSV(l, last)
+            _M.saveCSV(l)
+            return true
+        end
+    end
+    return false
 end
 
 -------------------------------------------------------------------------------
@@ -505,9 +533,8 @@ end
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
 function _M.addLineCSV(t, line)
@@ -555,9 +582,8 @@ end
 -- @usage
 -- -- Remove all lines from the CSV table
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- while csv.numRowsCSV(csvfile) > 0 do
 --     csv.remLineCSV(csvfile)
 -- end
@@ -594,9 +620,7 @@ end
 -- @see getRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
---
--- csv.loadCSV(csvfile)
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
 -- -- Search for the value 3.14159 in the third column
 -- local row, data = csv.getLineCSV(csvfile, 3.14159, 3)
@@ -625,9 +649,8 @@ end
 -- @see getLineCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file', labels = { 'a', 'b', 'c' } }
---
--- csv.loadCSV(csvfile)
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file',
+--                               labels = { 'a', 'b', 'c' } }
 --
 -- -- Search for the value 3.14159 in the C column
 -- local row = csv.getRecordCSV(csvfile, 3.14159, 'c')
@@ -746,9 +769,8 @@ end
 -- @param t CSV table to convert
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- csv.cleanCSV(csvTable)
 -- csv.saveCSV(csvfile)
 function _M.cleanCSV(t)
@@ -809,9 +831,8 @@ end
 -- @param line is the line of data
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- csv.replaceLineCSV(csvfile, 3, { 1, 4, 9, 16 })
 -- csv.saveCSV(csvfile)
 function _M.replaceLineCSV(t, row, line)
@@ -831,9 +852,8 @@ end
 -- @return column number of the label or nil if not found
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- print('The materials column is ' .. csv.labelCol(csvfile, 'material'))
 function _M.labelCol(t, label)
     if label ~= nil and isCSV(t) then
@@ -855,9 +875,8 @@ end
 -- @return string
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- print(csv.tostringCSV(csvtile))
 function _M.tostringCSV(t, w)
     local csvtab = {}
@@ -922,9 +941,8 @@ end
 -- @see numColsCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- print("the table has " .. csv.numRowsCSV(csvfile) .. " rows")
 function _M.numRowsCSV(t)
     return hasData(t) and #t.data or 0
@@ -937,9 +955,8 @@ end
 -- @see numRowsCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
 --
--- csv.loadCSV(csvfile)
 -- print("the table has " .. csv.numRowsCSV(csvfile) .. " columns")
 function _M.numColsCSV(t)
     return isCSV(t) and #t.labels or 0
