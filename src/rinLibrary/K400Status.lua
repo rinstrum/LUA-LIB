@@ -73,22 +73,25 @@ return function (_M, private, deprecated)
 -- @field tilty Tilt Y high (K491 only)
 -- @see checkAnySystemStatus
 -- @see checkAllSystemStatus
-local sysStatusMap = {
-    adcinprogress   = 0x00080000,
-    lastadcokay     = 0x00040000,
-    overload        = 0x00020000,
-    underload       = 0x00010000,
-    err             = 0x00008000,
-    setup           = 0x00004000,
-    calinprog       = 0x00002000,
-    motion          = 0x00001000,
-    centreofzero    = 0x00000800,
-    zero            = 0x00000400,
-    net             = 0x00000200,
-    tiltxy          = private.k491(0x00100000),
-    tiltx           = private.k491(0x00200000),
-    tilty           = private.k491(0x00400000)
-}
+local sysStatusMap
+private.registerDeviceInitialiser(function()
+    sysStatusMap = {
+        adcinprogress   = 0x00080000,
+        lastadcokay     = 0x00040000,
+        overload        = 0x00020000,
+        underload       = 0x00010000,
+        err             = 0x00008000,
+        setup           = 0x00004000,
+        calinprog       = 0x00002000,
+        motion          = 0x00001000,
+        centreofzero    = 0x00000800,
+        zero            = 0x00000400,
+        net             = 0x00000200,
+        tiltxy          = private.k491(0x00100000),
+        tiltx           = private.k491(0x00200000),
+        tilty           = private.k491(0x00400000)
+    }
+end)
 
 local REG_LUA_STATUS   = 0x0329
 local REG_LUA_ESTAT    = 0x0305
@@ -147,57 +150,60 @@ local REG_LUA_STAT_NET = 0x030A
 -- @see anyStatusSet
 -- @see allStatusSet
 -- @see waitStatus
-local statusMap = {
-    net         = 0x00000001,
-    gross       = 0x00000002,
-    zero        = 0x00000004,
-    notzero     = 0x00000008,
-    coz         = 0x00000010,
-    notcoz      = 0x00000020,
-    motion      = 0x00000040,
-    notmotion   = 0x00000080,
-    range1      = 0x00000100,
-    range2      = 0x00000200,
-    pt          = 0x00000400,
-    notpt       = 0x00000800,
-    error       = 0x00001000,
-    uload       = 0x00002000,
-    oload       = 0x00004000,
-    noterror    = 0x00008000,
+local statusMap, statusUnmap
+private.registerDeviceInitialiser(function()
+    statusMap = {
+        net         = 0x00000001,
+        gross       = 0x00000002,
+        zero        = 0x00000004,
+        notzero     = 0x00000008,
+        coz         = 0x00000010,
+        notcoz      = 0x00000020,
+        motion      = 0x00000040,
+        notmotion   = 0x00000080,
+        range1      = 0x00000100,
+        range2      = 0x00000200,
+        pt          = 0x00000400,
+        notpt       = 0x00000800,
+        error       = 0x00001000,
+        uload       = 0x00002000,
+        oload       = 0x00004000,
+        noterror    = 0x00008000,
 -- Non-batching status bits
-    held        = private.nonbatching(0x00010000),
-    notheld     = private.nonbatching(0x00020000),
+        held        = private.nonbatching(0x00010000),
+        notheld     = private.nonbatching(0x00020000),
 -- Batching specific status bits
-    idle        = private.batching(0x00010000),
-    run         = private.batching(0x00020000),
-    pause       = private.batching(0x00040000),
-    slow        = private.batching(0x00080000),
-    med         = private.batching(0x00100000),
-    fast        = private.batching(0x00200000),
-    time        = private.batching(0x00400000),
-    input       = private.batching(0x00800000),
-    no_info     = private.batching(0x01000000),
-    fill        = private.batching(0x02000000),
-    dump        = private.batching(0x04000000),
-    pulse       = private.batching(0x08000000),
-    start       = private.batching(0x10000000),
-    no_type     = private.batching(0x20000000),
+        idle        = private.batching(0x00010000),
+        run         = private.batching(0x00020000),
+        pause       = private.batching(0x00040000),
+        slow        = private.batching(0x00080000),
+        med         = private.batching(0x00100000),
+        fast        = private.batching(0x00200000),
+        time        = private.batching(0x00400000),
+        input       = private.batching(0x00800000),
+        no_info     = private.batching(0x01000000),
+        fill        = private.batching(0x02000000),
+        dump        = private.batching(0x04000000),
+        pulse       = private.batching(0x08000000),
+        start       = private.batching(0x10000000),
+        no_type     = private.batching(0x20000000),
 -- K422 specific status bits
-    belowmin    = private.k422(0x00010000),
-    abovemin    = private.k422(0x00020000),
-    idle        = private.k422(0x00040000),
-    sampling    = private.k422(0x00080000),
-    captured    = private.k422(0x00100000),
-    waiting     = private.k422(0x00200000),
-    nodynerror  = private.k422(0x00400000),
-    fasterror   = private.k422(0x00800000),
-    slowerror   = private.k422(0x01000000),
-    traceerror  = private.k422(0x02000000),
-    weighterror = private.k422(0x04000000),
-    direrror    = private.k422(0x08000000),
-    ilockerror  = private.k422(0x10000000),
-}
-local statusUnmap = utils.invert(statusMap)
+        belowmin    = private.k422(0x00010000),
+        abovemin    = private.k422(0x00020000),
+        idle        = private.k422(0x00040000),
+        sampling    = private.k422(0x00080000),
+        captured    = private.k422(0x00100000),
+        waiting     = private.k422(0x00200000),
+        nodynerror  = private.k422(0x00400000),
+        fasterror   = private.k422(0x00800000),
+        slowerror   = private.k422(0x01000000),
+        traceerror  = private.k422(0x02000000),
+        weighterror = private.k422(0x04000000),
+        direrror    = private.k422(0x08000000),
+        ilockerror  = private.k422(0x10000000),
+    }
+    statusUnmap = utils.invert(statusMap)
+end)
 
 -- Extended status bits
 local ESTAT_HIRES           = 0x00000001
@@ -986,15 +992,15 @@ deprecated.REG_LUA_STAT_RTC = REG_LUA_STAT_RTC
 deprecated.REG_SETPSTATUS   = REG_SETPSTATUS
 deprecated.REG_LUA_STAT_NET = REG_LUA_STAT_NET
 
-deprecated.SYS_OVERLOAD     = sysStatusMap.overload
-deprecated.SYS_UNDERLOAD    = sysStatusMap.underload
-deprecated.SYS_ERR          = sysStatusMap.err
-deprecated.SYS_SETUP        = sysStatusMap.setup
-deprecated.SYS_CALINPROG    = sysStatusMap.calinprog
-deprecated.SYS_MOTION       = sysStatusMap.motion
-deprecated.SYS_CENTREOFZERO = sysStatusMap.centreofzero
-deprecated.SYS_ZERO         = sysStatusMap.zero
-deprecated.SYS_NET          = sysStatusMap.net
+deprecated.SYS_OVERLOAD     = 'overload'
+deprecated.SYS_UNDERLOAD    = 'underload'
+deprecated.SYS_ERR          = 'err'
+deprecated.SYS_SETUP        = 'setup'
+deprecated.SYS_CALINPROG    = 'calinprog'
+deprecated.SYS_MOTION       = 'motion'
+deprecated.SYS_CENTREOFZERO = 'centreofzero'
+deprecated.SYS_ZERO         = 'zero'
+deprecated.SYS_NET          = 'net'
 
 -- These are strings rather than numerics so that comparisons against them
 -- work in call backs

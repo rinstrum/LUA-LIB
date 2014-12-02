@@ -27,7 +27,10 @@ private.addRegisters{
     none                    = 0,        -- not a register
     keybuffer               = 0x0008,
     lcd                     = 0x0009,
+}
 
+private.registerDeviceInitialiser(function()
+    private.addRegisters{
 --- Instrument Reading Registers.
 --@table rdgRegisters
 -- @field adcsample Sample number of current reading
@@ -47,24 +50,23 @@ private.addRegisters{
 -- @field fullscale Fullscale weight
 -- @field piececount Piece count
 -- @field unfiltered_weight Raw weight readings
-
-    adcsample               = 0x0020,
-    sysstatus               = 0x0021,
-    syserr                  = 0x0022,
-    absmvv                  = 0x0023, 
-    grossnet                = 0x0025,
-    gross                   = 0x0026,
-    net                     = 0x0027,
-    tare                    = 0x0028,
-    peakhold                = private.nonbatching(0x0029),
-    manhold                 = private.nonbatching(0x002A),
-    grandtotal              = 0x002B,
-    altgross                = private.nonbatching(0x002C),
-    rawadc                  = 0x002D,
-    altnet                  = private.nonbatching(0x002E),
-    fullscale               = 0x002F,
-    piececount              = private.nonbatching(0x0053),
-    unfiltered_weight       = private.k422(0x0055),
+        adcsample               = 0x0020,
+        sysstatus               = 0x0021,
+        syserr                  = 0x0022,
+        absmvv                  = 0x0023, 
+        grossnet                = 0x0025,
+        gross                   = 0x0026,
+        net                     = 0x0027,
+        tare                    = 0x0028,
+        peakhold                = private.nonbatching(0x0029),
+        manhold                 = private.nonbatching(0x002A),
+        grandtotal              = 0x002B,
+        altgross                = private.nonbatching(0x002C),
+        rawadc                  = 0x002D,
+        altnet                  = private.nonbatching(0x002E),
+        fullscale               = 0x002F,
+        piececount              = private.nonbatching(0x0053),
+        unfiltered_weight       = private.k422(0x0055),
 
 --- Product Registers.
 --@table productRegisters
@@ -76,16 +78,16 @@ private.addRegisters{
 -- @field select_product_name Read the Selected Product Name, Write to set the Selected product by Name
 -- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
 -- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
-
-    active_product_no       = 0xB000,
-    active_product_name     = 0xB006,
-    clr_all_totals          = 0xB002,
-    clr_docket_totals       = 0xB004,
-    select_product_no       = 0xB00F,
-    select_product_name     = 0xB010,
-    select_product_delete   = 0xB011,
-    select_product_rename   = 0xB012
-}
+        active_product_no       = 0xB000,
+        active_product_name     = 0xB006,
+        clr_all_totals          = 0xB002,
+        clr_docket_totals       = 0xB004,
+        select_product_no       = 0xB00F,
+        select_product_name     = 0xB010,
+        select_product_delete   = 0xB011,
+        select_product_rename   = 0xB012
+    }
+end)
 
 local REG_HEARTBEAT         = 0x032F
 

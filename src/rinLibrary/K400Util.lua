@@ -60,14 +60,13 @@ local settings = {
     curRange = 1
 }
 
-local instrumentModel = ''
+local instrumentModel = nil
 local instrumentSerialNumber = nil
 local instrumentSoftwareVersion = nil
 
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
 -- The rinApp framework takes care of calling this function for you.
--- @param model Software model expected for the instrument (eg "K401")
 -- @param sockA TCP sockets to connect SERA port
 -- @param sockB TCP sockets to connect SERB port
 -- @param app application framework
@@ -78,9 +77,8 @@ local instrumentSoftwareVersion = nil
 -- local sA = sockets.createTCPsocket('1.1.1.1', 2222, 0.001)
 -- local sB = sockets.createTCPsocket('1.1.1.1', 2223, 0.001)
 --
--- device.connect('K401', sA, sB, me)
-function _M.connect(model, sockA, sockB, app)
-    instrumentModel = model
+-- device.connect(sA, sB, me)
+function _M.connect(sockA, sockB, app)
     _M.socketA = sockA
     _M.socketB = sockB
     _M.app = app
@@ -225,19 +223,18 @@ function _M.initialisation(model)
         instrumentModel = s
         instrumentSerialNumber, err = private.readRegLiteral(private.REG_SERIALNO)
     end
-
     dbg.info(instrumentModel, instrumentSerialNumber)
 
     if err then
         instrumentModel = ''
         return err
-    elseif model ~= instrumentModel then
-        dbg.error('K400:', 'wrong software model '..model..' (device is '..instrumentModel..')')
-        --_M.model = instrumentModel
-        return "Wrong Software Model"
-    else
-        return nil
+    elseif model ~= nil and model ~= instrumentModel then
+        dbg.warn('K400:', 'wrong software model '..model..' (device is '..instrumentModel..')')
     end
+
+    private.deviceType = string.lower(instrumentModel)
+    private.processDeviceInitialisers()
+    return nil
 end
 
 -------------------------------------------------------------------------------

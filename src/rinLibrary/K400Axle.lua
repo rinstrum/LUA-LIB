@@ -11,10 +11,12 @@ return function (_M, private, deprecated)
 
 local REG_DYNAMIC_MODE      = 0xA708
 
-private.addRegisters{
-    dynamic_scale           = private.k422(0xA713),
-    axle_timeout            = private.k422(0xA705)
-}
+private.registerDeviceInitialiser(function()
+    private.addRegisters{
+        dynamic_scale           = private.k422(0xA713),
+        axle_timeout            = private.k422(0xA705)
+    }
+end)
 
 --- Axle Modes.
 --@table axleModes
@@ -34,9 +36,11 @@ local axleModeOptions = {
 -- device.setAxleMode('off')
 -- device.selectOption(...)
 -- device.setAxleMode('dynamic')
-private.exposeFunction('setAxleMode', private.k422(true), function(mode)
-    local s = naming.convertNameToValue(mode, axleModeOptions, 0, 0, 2)
-    private.writeReg(REG_DYNAMIC_MODE, s)
+private.registerDeviceInitialiser(function()
+    private.exposeFunction('setAxleMode', private.k422(true), function(mode)
+        local s = naming.convertNameToValue(mode, axleModeOptions, 0, 0, 2)
+        private.writeReg(REG_DYNAMIC_MODE, s)
+    end)
 end)
 
 end

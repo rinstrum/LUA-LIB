@@ -333,13 +333,16 @@ local display = {
 -- @field lua Communication mode, necessary for LUA control
 -- @field master Change to master display mode
 -- @field product Change to product display mode
-local lcdModes, currentLcdMode = {
-    default = private.k410(0) or private.k422(0) or 1,
-    dual    = private.k410(0) or 1,                             -- dynamic
-    lua     = private.k410(1) or 2,
-    master  = private.k410(2) or 3,
-    product = private.valueByDevice{ k402=0, k422=0, k491=0 }   -- normal
-}, 'default'
+local currentLcdMode, lcdModes = 'default'
+private.registerDeviceInitialiser(function()
+    lcdModes = {
+        default = private.k410(0) or private.k422(0) or 1,
+        dual    = private.k410(0) or 1,                             -- dynamic
+        lua     = private.k410(1) or 2,
+        master  = private.k410(2) or 3,
+        product = private.valueByDevice{ k402=0, k422=0, k491=0 }   -- normal
+    }
+end)
 
 -------------------------------------------------------------------------------
 -- Called to setup LCD control.
@@ -751,9 +754,12 @@ end
 -- Set to 0 to enable direct control of the area.
 -- @usage
 -- device.writeAutoTopAnnun(0)
-local writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', REG_DISP_AUTO_TOP_ANNUN, function(register)
-    local r = private.getRegisterNumber(register)
-    private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
+local writeAutoTopAnnun
+private.registerDeviceInitialiser(function()
+    writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', REG_DISP_AUTO_TOP_ANNUN, function(register)
+        local r = private.getRegisterNumber(register)
+        private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
+    end)
 end)
 
 --- LCD Annunciators

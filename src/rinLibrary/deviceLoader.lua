@@ -11,14 +11,15 @@ local dbg = require "rinLibrary.rinDebug"
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
 return function (device, modules)
-    local deviceColon = device .. ':'
     local _M, kt = {}, {}
     local deprecated, dwarned = {}, {}
 
     _M.model = device
-    local private = {   deviceType = string.lower(device),
-                        modules = { utilities = true }
-                    }
+    local private = { modules = { utilities = true } }
+
+    local function devColon()
+        return (private.deviceType or device or 'unknown') .. ':'
+    end
 
     -- Populate the utility functions
     require('rinLibrary.utilities')(_M, private, deprecated)
@@ -32,7 +33,7 @@ return function (device, modules)
                 if kt[k] == nil then
                     kt[k] = v
                 else
-                    dbg.fatal(deviceColon, "redefinition of ".. k .. " as", v)
+                    dbg.fatal(devColon(), "redefinition of ".. k .. " as", v)
                     os.exit(1)
                 end
             end
@@ -59,12 +60,13 @@ return function (device, modules)
             function(t, k)
                 if deprecated[k] ~= nil then
                     if not dwarned[k] then
-                        dbg.warn(deviceColon, "access of deprecated field: " .. tostring(k))
+                        dbg.warn(devColon(), "access of deprecated field: " .. tostring(k))
                         dwarned[k] = true
                     end
                     return deprecated[k]
                 end
-                dbg.warn(deviceColon, "attempt to access undefined field: " .. tostring(k))
+                dbg.warn(devColon(), "attempt to access undefined field: " .. tostring(k))
+                error('fnord')
                 return nil
             end,
 
@@ -72,7 +74,7 @@ return function (device, modules)
             function(t, k, v)
                 if deprecated[k] ~= nil then
                     if not dwarned[k] then
-                        dbg.warn(deviceColon, "write to deprecated field: " .. tostring(k))
+                        dbg.warn(devColon(), "write to deprecated field: " .. tostring(k))
                         dwarned[k] = true
                     end
                     deprecated[k] = v

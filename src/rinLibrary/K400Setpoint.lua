@@ -89,16 +89,19 @@ local timingMap = {
 -- @field reg Setpoint uses the value from the supplied register
 local SOURCE_REG        = 7
 
-local sourceMap = {
-    gross     = 0,
-    net       = 1,
-    disp      = 2,
-    alt_gross = private.nonbatching(3),
-    alt_net   = private.nonbatching(4),
-    alt_disp  = private.nonbatching(5),
-    piece     = private.nonbatching(6),
-    reg       = private.nonbatching(SOURCE_REG)
-}
+local sourceMap
+private.registerDeviceInitialiser(function()
+    sourceMap = {
+        gross     = 0,
+        net       = 1,
+        disp      = 2,
+        alt_gross = private.nonbatching(3),
+        alt_net   = private.nonbatching(4),
+        alt_disp  = private.nonbatching(5),
+        piece     = private.nonbatching(6),
+        reg       = private.nonbatching(SOURCE_REG)
+    }
+end)
 
 --- Setpoint Types.
 --@table Types
@@ -122,28 +125,31 @@ local sourceMap = {
 -- @field run Setpoint is active when (batching units only)
 -- @field fill Setpoint is active when (batching units only)
 -- @field buzzer Setpoint is active when the buzzer is beeping
-local typeMap = {
-    off         = 0,
-    on          = 1,
-    over        = 2,
-    under       = 3,
-    coz         = 4,
-    zero        = 5,
-    net         = 6,
-    motion      = 7,
-    error       = 8,
-    logic_and   = 9,
-    logic_or    = 10,
-    logic_xor   = 11,
-    scale_ready = private.nonbatching(12),
-    scale_exit  = private.nonbatching(13),
-    tol         = private.batching(12),
-    pause       = private.batching(13),
-    wait        = private.batching(14),
-    run         = private.batching(15),
-    fill        = private.batching(16),
-    buzzer      = private.batching(17) or 14
-}
+local typeMap
+private.registerDeviceInitialiser(function()
+    typeMap = {
+        off         = 0,
+        on          = 1,
+        over        = 2,
+        under       = 3,
+        coz         = 4,
+        zero        = 5,
+        net         = 6,
+        motion      = 7,
+        error       = 8,
+        logic_and   = 9,
+        logic_or    = 10,
+        logic_xor   = 11,
+        scale_ready = private.nonbatching(12),
+        scale_exit  = private.nonbatching(13),
+        tol         = private.batching(12),
+        pause       = private.batching(13),
+        wait        = private.batching(14),
+        run         = private.batching(15),
+        fill        = private.batching(16),
+        buzzer      = private.batching(17) or 14
+    }
+end)
 
 local lastOutputs = nil
 local timedOutputs = 0   -- keeps track of which IO are already running off timers
@@ -423,15 +429,16 @@ end
 -- @usage
 -- -- name setpoint 6 fred
 -- device.setpName(6, 'fred')
-if private.batching(true) then
-    function _M.setpName(setp, v)
-        dbg.error("K400Setpoint:", "unable to name setpoints on this device")
-    end
-else
-    function _M.setpName(setp, v)
-        setpParam(setp, REG_SETP_NAME, v)
-    end
+function _M.setpName(setp, v)
+    dbg.error("K400Setpoint:", "unable to name setpoints on this device")
 end
+private.registerDeviceInitialiser(function()
+    if private.nonbatching(true) then
+        _M.setpName = function(setp, v)
+            setpParam(setp, REG_SETP_NAME, v)
+        end
+    end
+end)
 
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls.
@@ -504,42 +511,6 @@ deprecated.REG_SETP_RESET           = REG_SETP_RESET
 deprecated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
 deprecated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
 deprecated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
-
-deprecated.LOGIC_HIGH               = logicMap.high
-deprecated.LOGIC_LOW                = logicMap.low
-
-deprecated.ALARM_NONE               = alarmTypeMap.none
-deprecated.ALARM_SINGLE             = alarmTypeMap.single
-deprecated.ALARM_DOUBLE             = alarmTypeMap.double
-deprecated.ALARM_FLASH              = alarmTypeMap.flash
-
-deprecated.TIMING_LEVEL             = timingMap.level
-deprecated.TIMING_EDGE              = timingMap.edge
-deprecated.TIMING_PULSE             = timingMap.pulse
-deprecated.TIMING_LATCH             = timingMap.latch
-
-deprecated.SOURCE_GROSS             = sourceMap.gross
-deprecated.SOURCE_NET               = sourceMap.net
-deprecated.SOURCE_DISP              = sourceMap.disp
-deprecated.SOURCE_ALT_GROSS         = sourceMap.alt_gross
-deprecated.SOURCE_ALT_NET           = sourceMap.alt_net
-deprecated.SOURCE_ALT_DISP          = sourceMap.alt_disp
-deprecated.SOURCE_PIECE             = sourceMap.piece
-deprecated.SOURCE_REG               = sourceMap.reg
-
-deprecated.TYPE_OFF                 = typeMap.off
-deprecated.TYPE_ON                  = typeMap.on
-deprecated.TYPE_OVER                = typeMap.over
-deprecated.TYPE_UNDER               = typeMap.under
-deprecated.TYPE_COZ                 = typeMap.coz
-deprecated.TYPE_ZERO                = typeMap.zero
-deprecated.TYPE_NET                 = typeMap.net
-deprecated.TYPE_MOTION              = typeMap.motion
-deprecated.TYPE_ERROR               = typeMap.error
-deprecated.TYPE_LGC_AND             = typeMap.lgc_and
-deprecated.TYPE_LGC_OR              = typeMap.lgc_or
-deprecated.TYPE_LGC_XOR             = typeMap.lgc_xor
-deprecated.TYPE_BUZZER              = typeMap.buzzer
 
 end
 

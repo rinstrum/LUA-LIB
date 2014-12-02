@@ -152,7 +152,7 @@ function _M.addK400(model, ip, portA, portB)
     local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
     -- Connect to the K400, and attach system if using the system library
-    device.connect(device.model, sA, sB, _M)
+    device.connect(sA, sB, _M)
 
     -- Register the K400 with system
     socks.addSocket(device.socketA, device.socketACallback)

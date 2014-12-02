@@ -7,6 +7,7 @@
 -------------------------------------------------------------------------------
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 local lpeg = require "rinLibrary.lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
@@ -18,6 +19,7 @@ local min, max = math.min, math.max
 
 return function(mod, private, deprecated)
     local regMap, regUnmap = { [0] = 0 }, { [0] = 0 }
+    local deviceInitialisers = {}
 
 -------------------------------------------------------------------------------
 -- Check if a particular module or modules have been loaded.
@@ -202,7 +204,11 @@ return function(mod, private, deprecated)
 -- @return v or nil
 -- @local
     for _, d in pairs{'k401', 'k402', 'k410', 'k422', 'k491'} do
-        private[d] = (private.deviceType == d) and willy or nilly
+        private[d] = function(v)
+			assert(private.deviceType ~= nil)
+            private[d] =(private.deviceType == d) and willy or nilly
+            return private[d](v)
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -216,6 +222,7 @@ return function(mod, private, deprecated)
 -- @usage
 -- local code = valueByDevice{ k401 = 3, k491 = 2, k410 = 'nil', default = 6 }
     function private.valueByDevice(l)
+		assert(private.deviceType ~= nil)
         local r = l[private.deviceType] or l.default
         if r == 'nil' then return nil end
         return r
@@ -229,7 +236,11 @@ return function(mod, private, deprecated)
 -- @see nonbatching
 -- @see valueByDevice
 -- @local
-    private.batching = private.valueByDevice{ k410 = willy, default = nilly }
+    function private.batching(v)
+		assert(private.deviceType ~= nil)
+        private.batching = private.valueByDevice{ k410 = willy, default = nilly }
+        return private.batching(v)
+    end
 
 -------------------------------------------------------------------------------
 -- Filter a value based on a nonbatching device
@@ -239,7 +250,25 @@ return function(mod, private, deprecated)
 -- @see batching
 -- @see valueByDevice
 -- @local
-    private.nonbatching = private.valueByDevice{ default = willy, k410 = nilly }
+    function private.nonbatching(v)
+		assert(private.deviceType ~= nil)
+        private.nonbatching = private.valueByDevice{ default = willy, k410 = nilly }
+        return private.nonbatching(v)
+    end
+
+-------------------------------------------------------------------------------
+    function private.registerDeviceInitialiser(f, ...)
+        utils.checkCallback(f)
+        table.insert(deviceInitialisers, { func=f, args={...} })
+    end
+
+-------------------------------------------------------------------------------
+    function private.processDeviceInitialisers()
+        inits, deviceInitialisers = deviceInitialisers, {}
+        for _, v in ipairs(inits) do
+            utils.call(v.func, unpack(v.args))
+        end
+    end
 
     if _TEST then
         mod.getPrivate = function() return private end
