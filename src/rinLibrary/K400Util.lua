@@ -214,12 +214,12 @@ function private.readSettings()
 end
 
 -------------------------------------------------------------------------------
--- Called to configure the instrument library
+-- Called to initially set up the instrument library
 -- The rinApp framework takes care of calling this function for you.
 -- @return nil if ok or error string if model doesn't match
 -- @usage
--- device.configure('K401')
-function _M.configure(model)
+-- device.initialisation('K401')
+function _M.initialisation(model)
     local s, err = private.readRegLiteral(REG_SOFTMODEL)
     if not err then
         instrumentModel = s
@@ -228,19 +228,26 @@ function _M.configure(model)
 
     dbg.info(instrumentModel, instrumentSerialNumber)
 
-    private.readSettings()
-
-    private.exRegAsync(REG_COMMS_START)  -- clear start message
-
     if err then
         instrumentModel = ''
         return err
     elseif model ~= instrumentModel then
         dbg.error('K400:', 'wrong software model '..model..' (device is '..instrumentModel..')')
+        --_M.model = instrumentModel
         return "Wrong Software Model"
     else
         return nil
     end
+end
+
+-------------------------------------------------------------------------------
+-- Called to configure the instrument library
+-- The rinApp framework takes care of calling this function for you.
+-- @usage
+-- device.configure()
+function _M.configure()
+    private.readSettings()
+    private.exRegAsync(REG_COMMS_START)  -- clear start message
 end
 
 -------------------------------------------------------------------------------

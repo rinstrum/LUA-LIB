@@ -162,13 +162,15 @@ function _M.addK400(model, ip, portA, portB)
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
 	dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
 
+    device.initialisation(model)
+
     -- Flush the key presses
     device.flushKeys()
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.setupStatus()
     device.lcdControl('lua')
-    device.configure(device.model)
+    device.configure()
     return device
 end
 
