@@ -468,7 +468,7 @@ end
 -- @param t is table describing CSV data
 -- @param line is a row of data (1d array) to save
 -- @see addLineCSV
--- @see undoLogLine
+-- @see undoLogLineCSV
 -- @usage
 -- -- Append a line to the CSV file in storage but not in memory
 -- local csv = require('rinLibrary.rinCSV')
