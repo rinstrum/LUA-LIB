@@ -88,6 +88,7 @@ end
 -- @return key
 -- @return state ('short' or 'long')
 -- @return source ('display' or 'usb')
+-- @see rinLibrary.K400Keys.keygroups
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
@@ -243,6 +244,9 @@ end
 -- @param unitsOther optional other units to display
 -- @return value
 -- @return true if ok pressed at end
+-- @see edit
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local name = device.sEdit('NEW NAME', 'ZINC', 8)
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
@@ -395,6 +399,9 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value and true if ok pressed at end
+-- @see sEdit
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local qty = device.edit('QUANTITY', 123, 'integer')
 function _M.edit(prompt, def, typ, units, unitsOther)
@@ -530,6 +537,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return either 'ok' or 'cancel'
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
@@ -566,6 +575,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string if OK pressed or nil if CANCEL pressed
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local opt = selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
@@ -619,6 +630,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return array containing selected item names
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
 -- local options = multiselect()
@@ -675,6 +688,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected option string if OK pressed or nil if CANCEL pressed
+-- @see rinLibrary.K400LCD.Units
+-- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local opt = selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)

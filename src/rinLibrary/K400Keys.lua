@@ -188,6 +188,7 @@ local usbMetaMap = {
 -- @field ascii ASCII characters.
 -- @field extended Power + key combination keys (pwr_...)
 -- @field all All keys.
+-- @see rinLibrary.K400Dialog.getKey
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
     'keypad',   'numpad',   'primary',  'arrow',

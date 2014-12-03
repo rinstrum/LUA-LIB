@@ -146,6 +146,18 @@ local REG_LUA_STAT_NET = 0x030A
 -- @field weighterror the captured axle weight was below the minimum set K422 only
 -- @field direrror the truck was travelling in the wrong direction K422 only
 -- @field ilockerror there was an interlock error on the current truck K422 only
+--
+-- @field hires Weight is in high resolution (x10) mode
+-- @field dispmode Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
+-- @field range The current range/interval, 0 for range/interval 1, 1 for range/interval 2
+-- @field menu_active The user is currently in the menus
+-- @field prod_load The product has just been changed/loaded
+-- @field prod_save The product has just been updated/saved
+-- @field power_off The user is holding the power key down and the power off count-down is currently being displayed
+-- @field init The settings have been re-initialised
+-- @field rtc When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
+-- @field ser1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
+-- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
 -- @see setStatusCallback
 -- @see anyStatusSet
 -- @see allStatusSet
@@ -212,21 +224,10 @@ local ESTAT_DISPMODE_RS     = 1
 local ESTAT_RANGE           = 0x00000018
 local ESTAT_RANGE_RS        = 3
 
---- Status Bits for Extended Status.
---@table luaextendedstatus
--- @field hires Weight is in high resolution (x10) mode
--- @field dispmode Display mode in 2 bits of data, 0 for calibrated units, 1 for piece counting and 2 for alternate units
--- @field range The current range/interval, 0 for range/interval 1, 1 for range/interval 2
--- @field menu_active The user is currently in the menus
--- @field prod_load The product has just been changed/loaded
--- @field prod_save The product has just been updated/saved
--- @field power_off The user is holding the power key down and the power off count-down is currently being displayed
--- @field init The settings have been re-initialised
--- @field rtc When the RTC status has been enabled this value will toggle each second @see writeRTCStatus
--- @field ser1 When network 1 new message is enabled this will be set when there is a new message on network 1 @see writeNetStatus, not available in batching firmware
--- @field ser2 When network 2 new message is enabled this will be set when there is a new message on network 2 @see writeNetStatus, not available in batching firmware
--- @see setEStatusCallback
--- @see setEStatusMainCallback
+-- Status Bits for Extended Status.
+--
+-- You don't need to access these directly, the standard status routines know
+-- about both normal status and extended status (but not system status).
 local estatusMap = {
     hires       = ESTAT_HIRES,
     dispmode    = ESTAT_DISPMODE,
@@ -389,7 +390,6 @@ end
 -- Set the callback function for an extended status bit
 -- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
--- @see luaextendedstatus
 -- @see setEStatusMainCallback
 local function setEStatusCallback(eStatus, callback)
     utils.checkCallback(callback)
@@ -405,7 +405,6 @@ end
 -- Set the main library callback function for an extended status bit
 -- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
--- @see luaextendedstatus
 -- @see setEStatusCallback
 -- @local
 local function setEStatusMainCallback(eStatus, callback)

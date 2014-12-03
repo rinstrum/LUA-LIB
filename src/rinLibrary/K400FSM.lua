@@ -143,6 +143,8 @@ return function (_M, private, deprecated)
 -- this transition will trigger.  This is only a minimum, it is highly likely that more
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
+--
+-- @see rinLibrary.K400Status.luastatus
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
