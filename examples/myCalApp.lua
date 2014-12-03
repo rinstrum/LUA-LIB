@@ -16,8 +16,8 @@ local dbg = require 'rinLibrary.rinDebug'
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
-dwi.loadRIS("myCalApp.RIS")               -- load default instrument settings
+local dwi = rinApp.addK400()            --  make a connection to the instrument
+dwi.loadRIS("myCalApp.RIS")             -- load default instrument settings
 
 local mode = 'idle'
 

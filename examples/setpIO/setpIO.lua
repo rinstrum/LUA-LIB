@@ -13,7 +13,7 @@ local timers = requre 'rinSystem.rinTimers'
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwi = rinApp.addK400()           --  make a connection to the instrument
 dwi.loadRIS("setpIO.RIS")              -- load default instrument settings
 -- IO 1,2,3,4 configured in K401 for various setpoint functions
 

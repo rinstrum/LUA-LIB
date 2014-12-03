@@ -6,7 +6,7 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"
-local dwi = rinApp.addK400("K401")
+local dwi = rinApp.addK400()
 local dbg = require "rinLibrary.rinDebug"
 local system = require 'rinSystem'
 

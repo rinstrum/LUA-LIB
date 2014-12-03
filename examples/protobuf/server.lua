@@ -12,7 +12,7 @@ require "messages"
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwi = rinApp.addK400()        --  make a connection to the instrument
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application

@@ -16,7 +16,7 @@ local rinApp = require "rinApp"         --  load in the application framework
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400("K401")   --  make a connection to the instrument
+local device = rinApp.addK400()         --  make a connection to the instrument
 local timer
 
 local fsm = device.stateMachine { 'demoFSM', showState = true }

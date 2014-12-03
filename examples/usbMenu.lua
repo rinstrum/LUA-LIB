@@ -14,7 +14,7 @@ local csv = require 'rinLibrary.rinCSV'
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local device = rinApp.addK400("K401")           --  make a connection to the instrument
+local device = rinApp.addK400()                 --  make a connection to the instrument
 
 local productFile, materialFile
 local usbPresent = false

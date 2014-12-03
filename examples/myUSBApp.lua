@@ -17,7 +17,7 @@ local usb = require "rinLibrary.rinUSB"
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
+local dwi = rinApp.addK400()           --  make a connection to the instrument
 dwi.loadRIS("myApp.RIS")               -- load default instrument settings
 
 --=============================================================================

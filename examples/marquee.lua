@@ -14,8 +14,8 @@ local timers = require 'rinSystem.rinTimers'
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400("K401")     --  make a connection to the instrument
-dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+local dwi = rinApp.addK400()        --  make a connection to the instrument
+dwi.loadRIS("myApp.RIS")            -- load default instrument settings
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables

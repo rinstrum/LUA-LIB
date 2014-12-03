@@ -13,7 +13,7 @@ local usb = require "rinLibrary.rinUSB"
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local device = rinApp.addK400("K401")           --  make a connection to the instrument
+local device = rinApp.addK400()                 --  make a connection to the instrument
 
 --=============================================================================
 -- This function is called when the user chooses to write to the USB device

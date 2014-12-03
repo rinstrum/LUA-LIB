@@ -72,7 +72,7 @@ local random = math.random
 math.randomseed(os.time())      -- shake things up a bit
 
 -- Add control of an dwi at the given IP and port
-local dwi = rinApp.addK400("K401")
+local dwi = rinApp.addK400()
 
 -- Write to the LCD screen -- turn off automatic updates on the left
 -- We want complete control here.

@@ -11,7 +11,7 @@ local rinApp = require "rinApp"         --  load in the application framework
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400("K401")   --  make a connection to the instrument
+local device = rinApp.addK400()         --  make a connection to the instrument
 
 -- Sample menu hooked onto the F3 short press
 -- This includes examples of all the available field types

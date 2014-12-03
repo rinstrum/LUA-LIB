@@ -13,8 +13,8 @@ local rinApp = require "rinApp"     --  load in the application framework
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwiA = rinApp.addK400("K401")     --  make a connection to the instrument
-local dwiB = rinApp.addK400("K401", "10.0.0.2", 2222)
+local dwiA = rinApp.addK400()     --  make a connection to the instrument
+local dwiB = rinApp.addK400(nil, "10.0.0.2", 2222)
 
 --=============================================================================
 -- Main Application
