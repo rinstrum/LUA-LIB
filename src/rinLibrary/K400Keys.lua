@@ -575,6 +575,7 @@ end
 -- @param keyName to monitor
 -- @param callback Function to run when there is an event for that key.
 -- @param ... Events for which this callback should be used ('short', 'long', 'up', 'repeat')
+-- @see keys
 -- @usage
 -- -- Callback function parameters are key ('ok' etc) and state ('short', 'long', 'up' or 'repeat')
 -- local function F1Pressed(key, state)
@@ -613,11 +614,12 @@ end
 -- @param ... Events for which this callback should be used ('short', 'long', 'up')
 -- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
 -- Return true in the callback to prevent the handling from being passed along to the next keygroup
+-- @see keygroups
 -- @usage
--- -- Callback to handle F1 key event 
+-- -- Callback to handle F1 key event
 -- local function handleKey(key, state)
 --     showMarquee(string.format("%s Pressed ", key))
---     if key == 'cancel' and state == 'long' then 
+--     if key == 'cancel' and state == 'long' then
 --         rinApp.finish()
 --     end
 --     return true     -- key handled so don't send back to instrument
@@ -648,6 +650,7 @@ end
 -- Save all key call backs, optionally deleting all existing callbacks
 -- @param keep True if the existing callbacks should be maintained
 -- @return Function that when called restores the key handlers
+-- @usage
 -- local savedKeyHandlers = device.saveKeyCallbacks()
 -- ...
 -- savedKeyHandlers()
@@ -666,6 +669,7 @@ end
 -- Send an artificial key press to the instrument
 -- @param keyName Key to simulate
 -- @param status 'long' or 'short'
+-- @see keys
 -- @usage
 -- -- Send a short cancel key press to the display
 -- device.sendKey('cancel', 'short')
@@ -689,7 +693,7 @@ end
 -- @usage
 -- -- Send a short IO10 key press to the display
 -- device.sendIOKey(10, 'short')
-function _M.sendIOKey(io,status)
+function _M.sendIOKey(io, status)
     if io and io >= 1 and io <= 32 then
         local data = io + 0x1F -- IO1 is 0x20
         if status == 'long' then
