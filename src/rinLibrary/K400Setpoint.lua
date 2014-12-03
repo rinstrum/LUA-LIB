@@ -512,5 +512,43 @@ deprecated.REG_SETP_PULSE_NUM       = REG_SETP_PULSE_NUM
 deprecated.REG_SETP_TIMING_DELAY    = REG_SETP_TIMING_DELAY
 deprecated.REG_SETP_TIMING_ON       = REG_SETP_TIMING_ON
 
+private.registerDeviceInitialiser(function()
+    deprecated.LOGIC_HIGH           = logicMap.high
+    deprecated.LOGIC_LOW            = logicMap.low
+
+    deprecated.ALARM_NONE           = alarmTypeMap.none
+    deprecated.ALARM_SINGLE         = alarmTypeMap.single
+    deprecated.ALARM_DOUBLE         = alarmTypeMap.double
+    deprecated.ALARM_FLASH          = alarmTypeMap.flash
+
+    deprecated.TIMING_LEVEL         = timingMap.level
+    deprecated.TIMING_EDGE          = timingMap.edge
+    deprecated.TIMING_PULSE         = timingMap.pulse
+    deprecated.TIMING_LATCH         = timingMap.latch
+
+    deprecated.SOURCE_GROSS         = sourceMap.gross
+    deprecated.SOURCE_NET           = sourceMap.net
+    deprecated.SOURCE_DISP          = sourceMap.disp
+    deprecated.SOURCE_ALT_GROSS     = sourceMap.alt_gross
+    deprecated.SOURCE_ALT_NET       = sourceMap.alt_net
+    deprecated.SOURCE_ALT_DISP      = sourceMap.alt_disp
+    deprecated.SOURCE_PIECE         = sourceMap.piece
+    deprecated.SOURCE_REG           = sourceMap.reg
+
+    deprecated.TYPE_OFF             = typeMap.off
+    deprecated.TYPE_ON              = typeMap.on
+    deprecated.TYPE_OVER            = typeMap.over
+    deprecated.TYPE_UNDER           = typeMap.under
+    deprecated.TYPE_COZ             = typeMap.coz
+    deprecated.TYPE_ZERO            = typeMap.zero
+    deprecated.TYPE_NET             = typeMap.net
+    deprecated.TYPE_MOTION          = typeMap.motion
+    deprecated.TYPE_ERROR           = typeMap.error
+    deprecated.TYPE_LGC_AND         = typeMap.lgc_and
+    deprecated.TYPE_LGC_OR          = typeMap.lgc_or
+    deprecated.TYPE_LGC_XOR         = typeMap.lgc_xor
+    deprecated.TYPE_BUZZER          = typeMap.buzzer
+end)
+
 end
 
