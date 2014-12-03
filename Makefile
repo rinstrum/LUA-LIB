@@ -34,12 +34,6 @@ RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
 PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-M01.pdf
 CHECKSUM_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-checksum
 
-SRC_BASE = *.lua
-
-SRC_LOC_BASE = src
-
-LUA_FILES := $(shell find $(SRC_LOC_BASE)/ -type f -name '*.lua')
-
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
@@ -52,7 +46,8 @@ clean:
 	rm -rf $(M01_DIR) $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
 
 compile: 
-	luac -p $(LUA_FILES)
+	luac -p $(shell find src -type f -name '*.lua')
+	luac -p $(shell find examples -type f -name '*.lua')
 
 unit test:
 	busted -p 'lua$$' -m './src/?.lua' $(BUSTED_OPTS) tests/unit
