@@ -614,18 +614,20 @@ timers.addTimer(5.0, 0, private.writeRegAsync, REG_HEARTBEAT, 10)
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-private.registerDeprecated{
-    'keybuffer', 'lcd',
+private.registerDeviceInitialiser(function()
+    private.registerDeprecated{
+        'keybuffer', 'lcd',
 
-    'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
-    'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
-    'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
+        'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
+        'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
+        'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
 
-    'active_product_name', 'active_product_no', 'clr_all_totals',
-    'clr_docket_totals', 'select_product_delete',
-    'select_product_name', 'select_product_no',
-    'select_product_rename'
-}
+        'active_product_name', 'active_product_no', 'clr_all_totals',
+        'clr_docket_totals', 'select_product_delete',
+        'select_product_name', 'select_product_no',
+        'select_product_rename'
+    }
+end)
 
 deprecated.TYP_CHAR     = TYP_CHAR
 deprecated.TYP_UCHAR    = TYP_UCHAR

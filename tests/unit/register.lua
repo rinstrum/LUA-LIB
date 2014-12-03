@@ -57,6 +57,15 @@ describe("K400Reg #register", function()
         assert.equal(registers.manhold, p.getRegisterNumber(registers.manhold))
     end)
 
+    describe("deprecated", function()
+        local _, _, d = makeModule()
+        for k, v in pairs(registers) do
+            it("register"..k, function()
+                assert.equal(v, d['REG_'..string.upper(k)])
+            end)
+        end
+    end)
+
     it("getRegisterName", function()
         local m, p, d = makeModule()
         assert.equal('grandtotal', p.getRegisterName('GrandTotal'))
