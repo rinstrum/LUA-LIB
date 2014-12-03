@@ -257,14 +257,24 @@ return function(mod, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
+-- Register a call back that is to be called after the device type has been
+-- identified correctly.
+-- @function registerDeviceInitialiser
+-- @param f Function to call
+-- @param ... Arguments to be passed to the function
+-- @local
     function private.registerDeviceInitialiser(f, ...)
         utils.checkCallback(f)
         table.insert(deviceInitialisers, { func=f, args={...} })
     end
 
 -------------------------------------------------------------------------------
+-- Invoke the register device type dependent call backs
+-- @function processDeviceInitialisers
+-- @local
     function private.processDeviceInitialisers()
-        inits, deviceInitialisers = deviceInitialisers, {}
+        local inits = deviceInitialisers
+        deviceInitialisers = nil
         for _, v in ipairs(inits) do
             utils.call(v.func, unpack(v.args))
         end

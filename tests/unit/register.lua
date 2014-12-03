@@ -41,9 +41,10 @@ describe("K400Reg #register", function()
     }
 
     local function makeModule()
-        local m, p, d = {}, {}, {}
+        local m, p, d = {}, { deviceType='' }, {}
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.K400Reg")(m, p, d)
+        p.processDeviceInitialisers()
 
         regs.populate(p.regPopulate, m, p, d)
 
@@ -60,15 +61,6 @@ describe("K400Reg #register", function()
         local m, p, d = makeModule()
         assert.equal('grandtotal', p.getRegisterName('GrandTotal'))
         assert.equal('adcsample', p.getRegisterName(0x20))
-    end)
-
-    describe("deprecated", function()
-        local _, _, d = makeModule()
-        for k, v in pairs(registers) do
-            it("register"..k, function()
-                assert.equal(v, d['REG_'..string.upper(k)])
-            end)
-        end
     end)
 
     describe("registers", function()

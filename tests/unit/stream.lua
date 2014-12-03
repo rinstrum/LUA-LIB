@@ -9,12 +9,13 @@ describe("Streaming #stream", function ()
     local manual, auto, auto10, auto3, auto1, onchange = 0, 1, 2, 3, 4, 5
 
     local function makeModule()
-        local m, p, d = {}, {}, {}
+        local m, p, d = {}, { deviceType='' }, {}
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.rinCon")(m, p, d)
         require("rinLibrary.K400Reg")(m, p, d)
         require("rinLibrary.K400Stream")(m, p, d)
         require("rinLibrary.K400Setpoint")(m, p, d)
+        p.processDeviceInitialisers()
         return m, p, d
     end
 

@@ -66,7 +66,6 @@ return function (device, modules)
                     return deprecated[k]
                 end
                 dbg.warn(devColon(), "attempt to access undefined field: " .. tostring(k))
-                error('fnord')
                 return nil
             end,
 
