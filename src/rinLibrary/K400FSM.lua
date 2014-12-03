@@ -93,9 +93,9 @@ return function (_M, private, deprecated)
 
 --- State Transition Arguments
 --
--- A transition is the motion between two states.  This are triggered by a specified
--- condition and are automatically processed in the order in which they are defined.
--- The destination is mandatory and the from must either be an already
+-- A transition is the motion between two states.  These are triggered by a specified
+-- condition or conditions.  Transitions are automatically processed in the order in
+-- which they are defined.  The destination is mandatory and the from must either be
 -- defined state name or nil (mean all currently defined states).  All the rest of the
 -- arguments are optional.
 --
