@@ -28,7 +28,8 @@ local modules = {
     "K400Command",
     "K400Users",
     "K400Passcode",
-    "K400USB"
+    "K400USB",
+    "K400Weights"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
