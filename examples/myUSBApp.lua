@@ -17,8 +17,8 @@ local usb = require "rinLibrary.rinUSB"
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400()           --  make a connection to the instrument
-dwi.loadRIS("myApp.RIS")               -- load default instrument settings
+local device = rinApp.addK400()       --  make a connection to the instrument
+device.loadRIS("myApp.RIS")           -- load default instrument settings
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -31,34 +31,36 @@ local function handleNewWeight(data, err)
    curWeight = data
    print('Weight = ',curWeight)
 end
-dwi.addStream('grossnet', handleNewWeight, 'change')
+device.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to monitor motion status
 local function handleMotion(status, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
+-- status is a copy of the instrument status bits and active is true or false 
+-- to show if active or not
   if active then
      print ('motion')
   else
      print('stable')
    end
 end
-dwi.setStatusCallback('motion', handleMotion)
+device.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to capture changes to instrument status
 local function handleIO1(IO, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
+-- status is a copy of the instrument status bits and active is true or false 
+-- to show if active or not
   if active then
      print ('IO 1 is on ')
   else
      print ('IO 1 is off ')
   end
 end
-dwi.setIOCallback(1, handleIO1)
+device.setIOCallback(1, handleIO1)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
@@ -96,13 +98,13 @@ usb.setUSBKBDLineCallback(kbdLineHandler)
 -------------------------------------------------------------------------------
 -- toggle USB keyboard input between a simulated barcode reader and performing
 -- display functions.
-dwi.setKeyCallback('f2', function(key, state)
+device.setKeyCallback('f2', function(key, state)
     acceptKeyboardInput = not acceptKeyboardInput
-    dwi.usbProcessKeys(acceptKeyboardInput)
+    device.usbProcessKeys(acceptKeyboardInput)
     usb.setUSBKBDLineCallback(not acceptKeyboardInput and kbdLineHandler or nil)
 
     local m = 'KEYBOARD ' .. (acceptKeyboardInput and 'CONTROL' or 'BAR CODE') .. ' MODE'
-    dwi.write('bottomLeft', m, 'clear, time=1.5, restore')
+    device.write('bottomLeft', m, 'clear, time=1.5, restore')
 end, 'short')
 
 -------------------------------------------------------------------------------
@@ -126,12 +128,12 @@ usb.setStorageRemovedCallback(usbStorageDisappears)
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local tickerStart = 0.100    -- time in millisec until timer events start triggering
-local tickerRepeat = 0.200  -- time in millisec that the timer repeats
+local tickerStart = 0.10  -- time in seconds until timer events start triggering
+local tickerRepeat = 0.20 -- time in seconds that the timer repeats
 
 local function ticker()
 -- insert code here that you want to run on each timer event
-    dwi.rotWAIT(1)
+    device.rotWAIT(1)
 end
 timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
@@ -139,14 +141,14 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event
 local function F1Pressed(key, state)
-    print (dwi.edit(dwi,'NAME','FRED','string'))
-    return true    -- key handled here so don't send back to instrument for handling
+    print (device.edit(device,'NAME','FRED','string'))
+    return true -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f1', F1Pressed, 'short')
+device.setKeyCallback('f1', F1Pressed, 'short')
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================
@@ -155,8 +157,8 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.write('bottomLeft', 'USB APP', 'align=right')
-dwi.write('bottomRight', '.LUA')
+device.write('bottomLeft', 'USB APP', 'align=right')
+device.write('bottomRight', '.LUA')
 
 --=============================================================================
 -- run the application

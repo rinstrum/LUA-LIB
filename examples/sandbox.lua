@@ -14,7 +14,7 @@ dbg    = require 'rinLibrary.rinDebug'  -- load in a debugger
 
 --=============================================================================
 -- Connect to the instrument you want to control
-dwi = rinApp.addK400()                  -- local K401 instrument
+device = rinApp.addK400()                  -- local K401 instrument
 
 function callback(name, result)
     local msg = 'call back ' .. name .. ':'

@@ -14,8 +14,8 @@ local timers = require 'rinSystem.rinTimers'
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400()        --  make a connection to the instrument
-dwi.loadRIS("myApp.RIS")            -- load default instrument settings
+local device = rinApp.addK400()        --  make a connection to the instrument
+device.loadRIS("myApp.RIS")            -- load default instrument settings
 
 --=============================================================================
 -- Register All Event Handlers and establish local application variables
@@ -24,8 +24,8 @@ dwi.loadRIS("myApp.RIS")            -- load default instrument settings
 local msg = ''
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local slideStart = 0.100    -- time in seconds until timer events start triggering
-local slideRepeat = 0.400  -- time in seconds that the timer repeats
+local slideStart = 0.10   -- time in seconds until timer events start triggering
+local slideRepeat = 0.40  -- time in seconds that the timer repeats
 
 local function slide()
 
@@ -37,13 +37,13 @@ local function slide()
     -- If there's nothing left to move, clear the screen
     -- and write the msg to false so we know we're done
     if msg == '' then
-        dwi.write('bottomLeft', '')
+        device.write('bottomLeft', '')
         msg = false
 
     -- If there's something left to write, write a substring of 9 characters
     -- to the device and remove a character from the message
     else
-        dwi.write('bottomLeft', string.format('%-9s',string.upper(string.sub(msg,1,9))))
+        device.write('bottomLeft', string.format('%-9s',string.upper(string.sub(msg,1,9))))
         msg = string.sub(msg,2)
     end
 end
@@ -62,11 +62,11 @@ local function handleKey(key, state)
     showMarquee(string.format("%s Pressed ", key))
     return true     -- key handled so don't send back to instrument
 end
-dwi.setKeyGroupCallback('all', handleKey)
+device.setKeyGroupCallback('all', handleKey)
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================

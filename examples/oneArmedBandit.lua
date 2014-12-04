@@ -71,23 +71,23 @@ local timers = require 'rinSystem.rinTimers'
 local random = math.random
 math.randomseed(os.time())      -- shake things up a bit
 
--- Add control of an dwi at the given IP and port
-local dwi = rinApp.addK400()
+-- Add control of a device at the given IP and port
+local device = rinApp.addK400()
 
 -- Write to the LCD screen -- turn off automatic updates on the left
 -- We want complete control here.
-dwi.writeAuto('topLeft', 0)
-dwi.writeAuto('bottomLeft', 0)
+device.writeAuto('topLeft', 0)
+device.writeAuto('bottomLeft', 0)
 
--- The names of the faces of each wheel and the payouts for getting triples and pairs of
--- cherries.  We implement two different poker machines fairly close to those specified
--- on page 215 of ISBN 978-0935696028.  The payouts are alter very slightly for the eight
--- picture machine and a jackpot has been added.  The machines still favour the house not
--- the player.
+-- The names of the faces of each wheel and the payouts for getting triples and
+-- pairs of cherries.  We implement two different poker machines fairly close 
+-- to those specified on page 215 of ISBN 978-0935696028.  The payouts are 
+-- altered very slightly for the eight picture machine and a jackpot has been 
+-- added.  The machines still favour the house not the player.
 local nSides, longNames, shortNames, triplePay, cherryPay, welcomeMessages
 if random(10) > 7 then
-    -- This first set has eight pictures on each wheel and has better returns but a lower chance
-    -- winning on any individual spin.
+    -- This first set has eight pictures on each wheel and has better returns 
+    -- but a lower chance winning on any individual spin.
     nSides = 8
     longNames =     { "LEMON", "ORANGE", "BAR", "BELL", "Plum", "CHERRY", "ANCHOR", "Gold" }
     shortNames =    { "LE",    "Or",     "Ba",  "BE",   "Pl",   "Ch",     "An",     "Go"   }
@@ -95,8 +95,8 @@ if random(10) > 7 then
     cherryPay =     { 2,       4,        6,     8,      10,     24,       12,       14     }
     welcomeMessages = { { "ZOWIE", "POKIE", "GAME" }, { "PLAY", "FUN", "PROFIT" } }
 else
-    -- This set has six pictures on each wheel and has lower returns but individual wins are more
-    -- likely
+    -- This set has six pictures on each wheel and has lower returns but 
+    -- individual wins are more likely
     nSides = 6
     longNames =   { "LEMON", "ORANGE", "Plum", "BELL", "Gold", "CHERRY" }
     shortNames =  { "LE",    "Or",     "Pl",   "BE",   "Go",   "Ch"     }
@@ -130,7 +130,7 @@ end
 -- Display a message in the top right position.  It will be right justified.
 -- @param msg The message to display
 local function promptTR(msg)
-    dwi.write('topRight', JustifyRight(msg, 4))
+    device.write('topRight', JustifyRight(msg, 4))
 end
 
 -------------------------------------------------------------------------------
@@ -161,9 +161,9 @@ local function setjackpot(on)
     if on then
         local m = { "JACKPOT", JustifyRight("$ " .. math.floor(jackpot), 8) }
         timers.removeTimer(jackpottimer)
-        jackpottimer = flashMessage(m, dwi.writeBotLeft)
+        jackpottimer = flashMessage(m, device.writeBotLeft)
     else
-        dwi.write('bottomLeft', "")
+        device.write('bottomLeft', "")
         timers.removeTimer(jackpottimer)
         jackpottimer = nil
     end
@@ -172,7 +172,7 @@ end
 -------------------------------------------------------------------------------
 -- Schedule the game over flashing message
 local function beginGameOver()
-    flashMessage({ "GAME", JustifyRight("OVER", 8) }, dwi.writeBotLeft)
+    flashMessage({ "GAME", JustifyRight("OVER", 8) }, device.writeBotLeft)
 end
 
 -------------------------------------------------------------------------------
@@ -180,7 +180,7 @@ end
 local function setupWagerScreen()
     state = "bet"
     promptTR("$1-9")
-    dwi.write('topLeft', "WAGER?")
+    device.write('topLeft', "WAGER?")
     setjackpot(true)
 end
 
@@ -189,10 +189,10 @@ end
 -- @param delta The amount to add to the player's balance (can be zero or negative)
 local function updateBalance(delta)
     balance = balance + delta
-    dwi.write('bottomRight', JustifyRight("$" .. balance, 8))
+    device.write('bottomRight', JustifyRight("$" .. balance, 8))
 
     if balance > 10000 then
-        dwi.write('topLeft', "WINNER")
+        device.write('topLeft', "WINNER")
         beginGameOver()
         state = "win"
         setjackpot(false)
@@ -233,26 +233,26 @@ local function scoringCallback()
             payout = payout + math.floor(jackpot)
             jackpot = 0
             delay = 6
-            dwi.buzz(3)
+            device.buzz(3)
 
             local m = { "JACK", JustifyRight("POT", 6) }
-            jackpotwintimer = flashMessage(m, dwi.writeTopLeft, 2)
+            jackpotwintimer = flashMessage(m, device.writeTopLeft, 2)
         elseif jp == 1 then -- Little jackpot gets a flashing message too
             payout = payout + math.floor(jackpot / 2)
             jackpot = jackpot / 2
             delay = 5
-            dwi.buzz(2)
+            device.buzz(2)
 
             local m = { "Good", JustifyRight("Win", 6) }
-            jackpotwintimer = flashMessage(m, dwi.writeTopLeft, 2)
+            jackpotwintimer = flashMessage(m, device.writeTopLeft, 2)
         else
             delay = 3
         end
         updateBalance(payout)
-        dwi.write('topLeft', "$" .. payout)
+        device.write('topLeft', "$" .. payout)
     else
         delay = 2
-        dwi.write('topLeft', "SORRY")
+        device.write('topLeft', "SORRY")
         promptTR("LOSE")
     end
     jackpot = jackpot + wager / 20
@@ -264,7 +264,7 @@ local function scoringCallback()
         end
         timers.addTimer(0, delay, backToWager)
     else
-        dwi.write('topLeft', "BROKE")
+        device.write('topLeft', "BROKE")
         beginGameOver()
         state = "lose"
         setjackpot(false)
@@ -283,8 +283,8 @@ local function beginPlaying(delay)
     timers.addTimer(0, delay, setPlayModeCallback)
 
     local function playCallback()
-        dwi.write('topLeft', longNames[rng])
-        dwi.write('bottomLeft', rolls[1] .. " " .. rolls[2])
+        device.write('topLeft', longNames[rng])
+        device.write('bottomLeft', rolls[1] .. " " .. rolls[2])
     end
     playtimer = timers.addTimer(0.06, delay, playCallback)
 end
@@ -300,9 +300,9 @@ local function playOkay(key, st)
         rolls[nroll] = shortNames[r]
 
         nroll = nroll + 1
-        dwi.write('bottomLeft', rolls[1] .. " " .. rolls[2] .. " " .. rolls[3])
+        device.write('bottomLeft', rolls[1] .. " " .. rolls[2] .. " " .. rolls[3])
         timers.removeTimer(playtimer)
-        dwi.write('topLeft', longNames[r])
+        device.write('topLeft', longNames[r])
         promptTR("HOLD")
         if nroll < 4 then
             state = "pause"
@@ -314,14 +314,14 @@ local function playOkay(key, st)
     end
     return true
 end
-dwi.setKeyCallback('ok', playOkay, 'short')
+device.setKeyCallback('ok', playOkay, 'short')
 
 
 -------------------------------------------------------------------------------
 -- Add key to stop the program
 -- @param key Key code pressed (always okay)
 -- @param state Type of key press
-dwi.setKeyCallback('cancel', rinApp.finish, 'long')
+device.setKeyCallback('cancel', rinApp.finish, 'long')
 
 
 -------------------------------------------------------------------------------
@@ -347,11 +347,11 @@ local function numberPressed(key, st)
         promptTR("")
         if key > balance then
             state = "error"
-            dwi.write('topLeft', "CAN'T")
-            dwi.buzz(1)
+            device.write('topLeft', "CAN'T")
+            device.buzz(1)
             scheduleWager(2)
         else
-            dwi.write('topLeft', "BET $" .. tostring(key))
+            device.write('topLeft', "BET $" .. tostring(key))
             wager = key
             updateBalance(-wager)
             local function startplay()
@@ -371,13 +371,13 @@ end
 -- use the key group 'numpad' here and trap the zero key separately.
 -- An individual key handler overrides a key group handler and we do't want
 -- to see the zero key.
-dwi.setKeyGroupCallback('numpad', numberPressed, 'short')
-dwi.setKeyCallback(0, function(k, s) return true end, 'short')
+device.setKeyGroupCallback('numpad', numberPressed, 'short')
+device.setKeyCallback(0, function(k, s) return true end, 'short')
 
 -- Let's ignore all the rest of the keys.  The 'all' key group is the very
 -- last one looked for, so a handler here is only invoked when all else
 -- fails.
-dwi.setKeyGroupCallback('all', function(k, s) return true end, 'short', 'long')
+device.setKeyGroupCallback('all', function(k, s) return true end, 'short', 'long')
 
 -------------------------------------------------------------------------------
 -- The initial begin state displays a weclome message,
@@ -386,8 +386,8 @@ dwi.setKeyGroupCallback('all', function(k, s) return true end, 'short', 'long')
 local function weclomePlayer()
     local pos = 1
     local function show()
-        dwi.write('topLeft', welcomeMessages[1][pos])
-        dwi.write('bottomLeft', JustifyRight(welcomeMessages[2][pos], 8))
+        device.write('topLeft', welcomeMessages[1][pos])
+        device.write('bottomLeft', JustifyRight(welcomeMessages[2][pos], 8))
         pos = pos + 1
         if pos <= #(welcomeMessages[1]) then
             timers.addTimer(0, 1.5, show)
@@ -395,8 +395,8 @@ local function weclomePlayer()
             scheduleWager(1.5)
         end
     end
-    dwi.write('topRight', "")
-    dwi.write('bottomRight', "")
+    device.write('topRight', "")
+    device.write('bottomRight', "")
     show()
 end
 weclomePlayer()

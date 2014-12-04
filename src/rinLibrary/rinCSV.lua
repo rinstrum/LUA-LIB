@@ -705,12 +705,12 @@ end
 -- local csv = require('rinLibrary.rinCSV')
 --
 -- names = csv.getColCSV(db.material, 'material')           -- gather all material names
--- sel = dwi.selectOption('SELECT', names, names[1], true)  -- chose a material
+-- sel = device.selectOption('SELECT', names, names[1], true)  -- chose a material
 --
 -- -- alternatively, columns can be specified numerically:
 --
 -- names = csv.getColCSV(db.material, 'material')           -- gather all material names
--- sel = dwi.selectOption('SELECT', names, names[1], true)  -- chose a material
+-- sel = device.selectOption('SELECT', names, names[1], true)  -- chose a material
 function _M.getColCSV(csvtbl, col)
     local column = {}
     local t, c = csvtbl, lookupColumn(csvtbl, col)
@@ -734,12 +734,12 @@ end
 -- local csv = require('rinLibrary.rinCSV')
 --
 -- names = csv.getColCSV(db.material, 'material')                       -- gather all material names
--- sel = dwi.selectOption('SELECT', names, names[1], true)              -- chose a material
+-- sel = device.selectOption('SELECT', names, names[1], true)              -- chose a material
 --
 -- -- alternatively, columns can be specified numerically:
 --
 -- uniqueNames = csv.getUniqueColCSV(db.material, 'material')           -- gather all material names
--- sel = dwi.selectOption('SELECT', uniqueNames, uniqueNames[1], true)  -- chose a material
+-- sel = device.selectOption('SELECT', uniqueNames, uniqueNames[1], true)  -- chose a material
 function _M.getUniqueColCSV(csvtbl, col)
     local c = _M.getColCSV(csvtbl, col)
     if c == nil then

@@ -12,11 +12,11 @@ require "messages"
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400()        --  make a connection to the instrument
+local device = rinApp.addK400()        --  make a connection to the instrument
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================

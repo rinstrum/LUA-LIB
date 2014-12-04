@@ -13,8 +13,8 @@ local timers = requre 'rinSystem.rinTimers'
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local dwi = rinApp.addK400()           --  make a connection to the instrument
-dwi.loadRIS("setpIO.RIS")              -- load default instrument settings
+local device = rinApp.addK400()       --  make a connection to the instrument
+device.loadRIS("setpIO.RIS")          -- load default instrument settings
 -- IO 1,2,3,4 configured in K401 for various setpoint functions
 
 --=============================================================================
@@ -38,45 +38,47 @@ local function handleNewWeight(data, err)
    curWeight = data
    print('Weight = ',curWeight)
 end
-dwi.addStream('grossnet', handleNewWeight, 'change')
+device.addStream('grossnet', handleNewWeight, 'change')
 -- choose a different register if you want to track other than GROSSNET weight
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to capture changes to instrument status
 local function handleIO5(IO, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
+-- status is a copy of the instrument status bits and active is true or false 
+-- to show if active or not
   if active then
      print ('IO 5 is on ')
   else
      print ('IO 5 is off ')
   end
 end
-dwi.setIOCallback(5, handleIO5)
+device.setIOCallback(5, handleIO5)
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to monitor motion status
 local function handleMotion(status, active)
--- status is a copy of the instrument status bits and active is true or false to show if active or not
+-- status is a copy of the instrument status bits and active is true or false 
+-- to show if active or not
   if active then
      print ('motion')
   else
      print('stable')
    end
 end
-dwi.setStatusCallback('motion', handleMotion)
+device.setStatusCallback('motion', handleMotion)
 -------------------------------------------------------------------------------
 
 -- Setup Chimes
 
 local chimeTimes = {}  -- off time, on time in tenths of second
-local chimePos = 0           -- 0 for off, > 0 to keep track of chime position
-local chimeCounter = 0       -- counts down the chime ticks
+local chimePos = 0        -- 0 for off, > 0 to keep track of chime position
+local chimeCounter = 0    -- counts down the chime ticks
 
-local chimerStart  = 0.100    -- time in seconds until timer events start triggering
-local chimerRepeat = 0.100    -- time in second that the timer repeats
+local chimerStart  = 0.10 -- time in seconds until timer events start triggering
+local chimerRepeat = 0.10 -- time in second that the timer repeats
 
 local function chimer()
     if chimeCounter > 0 then
@@ -90,9 +92,9 @@ local function chimer()
           end
        end
        if (chimePos == 0) or (chimePos %2 ~= 0) then
-           dwi.turnOff(CHIME_OUTPUT)
+           device.turnOff(CHIME_OUTPUT)
        else
-           dwi.turnOn(CHIME_OUTPUT)
+           device.turnOn(CHIME_OUTPUT)
        end
     end
 end
@@ -102,19 +104,19 @@ timers.addTimer(chimerRepeat,chimerStart,chimer)
 -------------------------------------------------------------------------------
 -- Callback to monitor real time clock status
 local function handleRTC(status, active)
-   if (dwi.RTC.min % 15 == 0) and (dwi.RTC.sec == 0) then  -- every quarter hour
+   if (device.RTC.min % 15 == 0) and (device.RTC.sec == 0) then  -- every quarter hour
       chimeTimes = {}
-      if dwi.RTC.min == 0 then
+      if device.RTC.min == 0 then
           for i = 1,4 do                  -- add 4 fast chimes at the start
              table.insert(chimeTimes, 4)  -- off time
              table.insert(chimeTimes, 6)  -- on time
           end
-          for i = 1,dwi.RTC.hour%12 do    -- %12 to keep in 12 hour mode
+          for i = 1,device.RTC.hour%12 do -- %12 to keep in 12 hour mode
              table.insert(chimeTimes,5)   -- add in long chime for each hour
              table.insert(chimeTimes,20)
           end
       else
-          for i = 1,dwi.RTC.min/15 do     -- add fast chimes for each quarter hour
+          for i = 1,device.RTC.min/15 do  -- add fast chimes for each quarter hour
              table.insert(chimeTimes, 4)  -- off time
              table.insert(chimeTimes, 6)  -- on time
           end
@@ -123,9 +125,9 @@ local function handleRTC(status, active)
       chimeCounter = chimeTimes[chimePos]
       dbg.info('Chimes : ',chimeTimes, chimePos, chimeCounter)
    end
-   dbg.info('Clock : ',dwi.RTCtostring())
+   dbg.info('Clock : ',device.RTCtostring())
 end
-dwi.setStatusCallback('rtc', handleRTC)
+device.setStatusCallback('rtc', handleRTC)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -133,9 +135,9 @@ dwi.setStatusCallback('rtc', handleRTC)
 local function handleIO(IO, active)
     print(IO,active)
 end
-dwi.setIOCallback(1, handleIO)
-dwi.setIOCallback(2, handleIO)
-dwi.setIOCallback(CHIME_OUTPUT, handleIO)
+device.setIOCallback(1, handleIO)
+device.setIOCallback(2, handleIO)
+device.setIOCallback(CHIME_OUTPUT, handleIO)
 
 -- set callback to capture changes on IO1
 -------------------------------------------------------------------------------
@@ -147,7 +149,7 @@ local tickerRepeat = 0.200    -- time in sec that the timer repeats
 
 local function ticker()
 -- insert code here that you want to run on each timer event
-    dwi.rotWAIT(1)
+    device.rotWAIT(1)
 end
 timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
@@ -155,39 +157,39 @@ timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------
 -- Callback to handle F1 key event
 local function F1Pressed(key, state)
-    dbg.info('curIO: ',dwi.getCurIOStr())
-    dwi.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
-    dwi.setUserNumber(1, 1)  -- trigger pulses output on setpoint 4
-    dwi.setUserNumber(1, 0)
-    dwi.RTC.sec = 58
-    dwi.RTC.min = 59
-    return true    -- key handled here so don't send back to instrument for handling
+    dbg.info('curIO: ',device.getCurIOStr())
+    device.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
+    device.setUserNumber(1, 1)  -- trigger pulses output on setpoint 4
+    device.setUserNumber(1, 0)
+    device.RTC.sec = 58
+    device.RTC.min = 59
+    return true -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f1', F1Pressed)
+device.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to handle F2 key event
 local function F2Pressed(key, state)
-    target = dwi.edit('TARGET 5',target,'number')
-    return true    -- key handled here so don't send back to instrument for handling
+    target = device.edit('TARGET 5',target,'number')
+    return true -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f2', F2Pressed)
+device.setKeyCallback('f2', F2Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to handle F3 key event
 local function F3Pressed(key, state)
-    dwi.editReg(dwi.setpRegAddress(3, 'setp_target'))
-    dwi.releaseOutput(SETP_FILL)  -- let R420 drive the fill setpoint)
-    return true    -- key handled here so don't send back to instrument for handling
+    device.editReg(device.setpRegAddress(3, 'setp_target'))
+    device.releaseOutput(SETP_FILL)  -- let R420 drive the fill setpoint)
+    return true -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f3', F3Pressed)
+device.setKeyCallback('f3', F3Pressed)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================
@@ -196,17 +198,17 @@ dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 
-dwi.write('bottomLeft', 'SETP IO', 'align=right')
-dwi.write('bottomRight', '.LUA')
-dwi.enableOutput(OVER_OUTPUT,
+device.write('bottomLeft', 'SETP IO', 'align=right')
+device.write('bottomRight', '.LUA')
+device.enableOutput(OVER_OUTPUT,
                  PASS_OUTPUT,
                  CHIME_OUTPUT,
                  RESET_OUTPUT)
 
-dwi.enableOutput(SETP_FILL)     -- control SETP_FILL from Lua for now
-dwi.turnOff(SETP_FILL)
+device.enableOutput(SETP_FILL)     -- control SETP_FILL from Lua for now
+device.turnOff(SETP_FILL)
 
-dwi.sendKey('cancel','long')
+device.sendKey('cancel','long')
 --=============================================================================
 -- Main Application Loop
 --=============================================================================
@@ -217,22 +219,22 @@ local function mainLoop()
 
 -- turn on if over target and not motion or error
     if (curWeight > target) and
-       dwi.allStatusSet('notmotion', 'noterror') then
-         dwi.turnOn(OVER_OUTPUT)
+       device.allStatusSet('notmotion', 'noterror') then
+         device.turnOn(OVER_OUTPUT)
      else
-         dwi.turnOff(OVER_OUTPUT)
+         device.turnOff(OVER_OUTPUT)
      end
 
 -- turn on PASS_OUTPUT if the OVER and UNDER setpoints are off
-     if not dwi.anyIOSet(SETP_OVER, SETP_UNDER) then
-        dwi.turnOn(PASS_OUTPUT)
+     if not device.anyIOSet(SETP_OVER, SETP_UNDER) then
+        device.turnOn(PASS_OUTPUT)
      else
-        dwi.turnOff(PASS_OUTPUT)
+        device.turnOff(PASS_OUTPUT)
      end
 
 end
 rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.setCleanup(function()
-    dwi.releaseOutput(OVER_OUTPUT, PASS_OUTPUT, CHIME_OUTPUT, RESET_OUTPUT)
+    device.releaseOutput(OVER_OUTPUT, PASS_OUTPUT, CHIME_OUTPUT, RESET_OUTPUT)
 end)
 rinApp.run()                       -- run the application framework

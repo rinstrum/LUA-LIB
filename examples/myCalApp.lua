@@ -16,8 +16,8 @@ local dbg = require 'rinLibrary.rinDebug'
 -- Connect to the instruments you want to control
 -- Define any Application variables you wish to use
 --=============================================================================
-local dwi = rinApp.addK400()            --  make a connection to the instrument
-dwi.loadRIS("myCalApp.RIS")             -- load default instrument settings
+local device = rinApp.addK400()        --  make a connection to the instrument
+device.loadRIS("myCalApp.RIS")         -- load default instrument settings
 
 local mode = 'idle'
 
@@ -29,41 +29,41 @@ local mode = 'idle'
 -- Callback to handle F1 key event
 local function F1Pressed(key, state)
     mode = 'menu'
-    return true    -- key handled here so don't send back to instrument for handling
+    return true  -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f1', F1Pressed)
+device.setKeyCallback('f1', F1Pressed)
 -------------------------------------------------------------------------------
 -------------------------------------------------------------------------------
 -- Callback to handle F2 key event
-dwi.enableOutput(3)
+device.enableOutput(3)
 local function F2Pressed(key, state)
-    dwi.turnOnTimed(3,5.0)
-    return true    -- key handled here so don't send back to instrument for handling
+    device.turnOnTimed(3,5.0)
+    return true  -- key handled here, don't send back to instrument for handling
 end
-dwi.setKeyCallback('f2', F2Pressed)
+device.setKeyCallback('f2', F2Pressed)
 -------------------------------------------------------------------------------
 
 
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
-dwi.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback to handle changes in instrument settings
 local function settingsChanged(status, active)
 end
-dwi.setStatusCallback('init', settingsChanged)
+device.setStatusCallback('init', settingsChanged)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
 -- Callback for local timer
-local tickerStart = 0.100    -- time in millisec until timer events start triggering
-local tickerRepeat = 0.200  -- time in millisec that the timer repeats
+local tickerStart = 0.10  -- time in seconds until timer events start triggering
+local tickerRepeat = 0.20 -- time in seconds that the timer repeats
 local function ticker()
 -- insert code here that you want to run on each timer event
-    dwi.rotWAIT(1)
+    device.rotWAIT(1)
 end
 timers.addTimer(tickerRepeat, tickerStart, ticker)
 -------------------------------------------------------------------------------
@@ -76,10 +76,10 @@ timers.addTimer(tickerRepeat, tickerStart, ticker)
 --  This is a good place to put your initialisation code
 -- (eg, setup outputs or put a message on the LCD etc)
 -------------------------------------------------------------------------------
-dwi.setIdleCallback(dwi.abortDialog, 30)
+device.setIdleCallback(device.abortDialog, 30)
 
 local function prompt(msg)
-    dwi.write('bottomLeft', msg or '', 'time=1.5, wait')
+    device.write('bottomLeft', msg or '', 'time=1.5, wait')
 end
 
 --=============================================================================
@@ -93,62 +93,62 @@ local sel = 'ZERO'
 local function mainLoop()
 
    if mode == 'idle' then
-      dwi.write('topLeft', 'CAL.APP')
-      dwi.write('bottomLeft', 'F1-MENU')
-      dwi.write('bottomRight', '')
+      device.write('topLeft', 'CAL.APP')
+      device.write('bottomLeft', 'F1-MENU')
+      device.write('bottomRight', '')
    elseif mode == 'menu' then
-      dwi.write('topLeft')
-      dwi.write('bottomLeft', '')
-      sel = dwi.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
+      device.write('topLeft')
+      device.write('bottomLeft', '')
+      sel = device.selectOption('MENU',{'ZERO','SPAN','MVV ZERO','MVV SPAN','SET LIN', 'CLR LIN','PASSCODE','EXIT'},sel,true)
       if not sel or sel == 'EXIT' then
          mode = 'idle'
-         dwi.lockPasscode('full')
+         device.lockPasscode('full')
       elseif sel == 'PASSCODE' then
-          local pc = dwi.selectOption('ENTER PASSCODE',{'full','safe','oper'},'full',true)
+          local pc = device.selectOption('ENTER PASSCODE',{'full','safe','oper'},'full',true)
           if pc then
-               dwi.changePasscode(pc)
+               device.changePasscode(pc)
           end
-      elseif dwi.checkPasscode('full', nil, 5) then
+      elseif device.checkPasscode('full', nil, 5) then
           if sel == 'ZERO' then
-              msg, err = dwi.calibrateZero()
+              msg, err = device.calibrateZero()
               if err == nil then
-                  dbg.info('Zero MVV: ',dwi.readZeroMVV())
+                  dbg.info('Zero MVV: ',device.readZeroMVV())
               end
               prompt(msg)
 
           elseif sel == 'SPAN' then
-              msg, err = dwi.calibrateSpan(dwi.editReg('calibwgt'))
+              msg, err = device.calibrateSpan(device.editReg('calibwgt'))
               if err == nil then
-                  dbg.info('Span Calibration Weight: ',dwi.readSpanWeight())
-                  dbg.info('Span MVV: ',dwi.readSpanMVV())
+                  dbg.info('Span Calibration Weight: ',device.readSpanWeight())
+                  dbg.info('Span MVV: ',device.readSpanMVV())
               end
               prompt(msg)
 
           elseif sel == 'MVV SPAN' then
-              MVV = dwi.edit('MVV SPAN','2.0','number')
-              msg, err = dwi.calibrateSpanMVV(MVV)
+              MVV = device.edit('MVV SPAN','2.0','number')
+              msg, err = device.calibrateSpanMVV(MVV)
               prompt(msg)
 
           elseif sel == 'MVV ZERO' then
-              MVV = dwi.edit('MVV ZERO','0','number')
-              msg, err = dwi.calibrateZeroMVV(MVV)
+              MVV = device.edit('MVV ZERO','0','number')
+              msg, err = device.calibrateZeroMVV(MVV)
               prompt(msg)
 
           elseif sel == 'SET LIN' then
-              pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
+              pt = device.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
-                  msg, err = dwi.calibrateLin(pt, dwi.editReg('calibwgt'))
+                  msg, err = device.calibrateLin(pt, device.editReg('calibwgt'))
                   if not err then
-                      dbg.info('Linearisation Calibration: ', dwi.readLinCal())
+                      dbg.info('Linearisation Calibration: ', device.readLinCal())
                   end
                   prompt(msg)
               end
           elseif sel == 'CLR LIN' then
-              pt = dwi.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
+              pt = device.selectOption('LIN PT',{'1','2','3','4','5','6','7','8','9','10'},'1',true)
               if (pt) then
-                 msg, err = dwi.clearLin(pt)
+                 msg, err = device.clearLin(pt)
                  if not err then
-                      dbg.info('Linearisation Calibration: ', dwi.readLinCal())
+                      dbg.info('Linearisation Calibration: ', device.readLinCal())
                  end
                  prompt(msg)
               end
