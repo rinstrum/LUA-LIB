@@ -8,7 +8,8 @@
 -- The state machine diagram is saved as demoFSM.dot in the current directory.
 -- This can be converted into a PDF file via:
 --      dot -Tpdf >demoFSM.pdf <demoFSM.dot
--- A copy of the resultant PDF file is present as fsm.pdf in this directory.
+-- A copy of the resultant PDF file is present as fsm.pdf in 
+-- /home/lualib_examples
 -------------------------------------------------------------------------------
 local timers = require 'rinSystem.rinTimers'
 local rinApp = require "rinApp"         --  load in the application framework
