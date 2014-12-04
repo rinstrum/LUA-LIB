@@ -14,6 +14,7 @@ local timers = require 'rinSystem.rinTimers'
 local system = require 'rinSystem'
 local dbg = require "rinLibrary.rinDebug"
 local rinMsg = require 'rinLibrary.rinMessage'
+local canonical = require('rinLibrary.namings').canonicalisation
 local bit32 = require "bit"
 
 local lpeg = require "rinLibrary.lpeg"
@@ -564,7 +565,7 @@ end
 -- print('grossnet decimals', regInfo.dp)
 function _M.getRegInfo(reg)
     return {
-        name            = private.getRegName(reg),
+        name            = private.getRegName(reg) or canonical(reg),
         type            = private.getRegType(reg),
         min             = private.getRegMin(reg),
         max             = private.getRegMax(reg),
