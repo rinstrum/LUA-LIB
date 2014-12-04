@@ -14,7 +14,7 @@
 
 return function (_M, private, deprecated)
 -------------------------------------------------------------------------------
--- Get grossnet from instrument.
+-- Get gross or net weight from instrument.
 --
 -- This is the value that is usually displayed in the top left of the screen.
 -- @return gross or net weight
@@ -69,7 +69,7 @@ end
 
 private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
--- Get alternative gross from instrument.
+-- Get alternative gross weight from instrument.
 --
 -- This function is only available on non batching units.
 -- @function getAltGross
@@ -84,7 +84,7 @@ private.registerDeviceInitialiser(function()
     end)
 
 -------------------------------------------------------------------------------
--- Get alternative net from instrument.
+-- Get alternative net weight from instrument.
 --
 -- This function is only available on non batching units.
 -- @function getAltNet
