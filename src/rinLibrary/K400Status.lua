@@ -474,7 +474,7 @@ end
 -- @see waitStatus
 -- @usage
 -- device.enableOutput(5)
--- if device.anyStatusSet('motion, 'stat_err', 'oload', 'uload') then
+-- if device.anyStatusSet('motion', 'stat_err', 'oload', 'uload') then
 --     device.turnOn(5)  -- turn on output 5 if motion or any errors
 -- else
 --     device.turnOff(5)
