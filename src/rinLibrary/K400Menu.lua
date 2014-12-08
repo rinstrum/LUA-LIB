@@ -89,7 +89,7 @@ return function (_M, private, deprecated)
 -- @field leave Function to execute when leaving the top level menu, it is passed a boolean
 -- which indicates if the menu exited via an EXIT field item (true) or by cancelling at the
 -- top level (false).
--- @field loop Should a list or menu item loop from bottom to top?
+-- @field loop Should a list or menu item loop from bottom to top? Default is yes.
 -- @field max Maximum value a numeric, integer or passcode  field can take
 -- @field min Minimum value a numeric, integer or passcode field can take
 -- @field no The name of the no item in a boolean field (default: no).
@@ -153,7 +153,7 @@ local function makeMenu(args, parent, fields)
             uppercasePrompt = (args.uppercasePrompt == nil) and true or args.uppercasePrompt,
             units = args.units or 'none',
             unitsOther = args.unitsOther or 'none',
-            loop = args.loop,
+            loop = args.loop == nil and true or args.loop,
             secondary = args.secondary or typeName or '',
             readonly = args.readonly or false,
             exit = args.exit or false,
@@ -300,7 +300,6 @@ local function makeMenu(args, parent, fields)
         local item = newItem(args)
         local yesItem = args[3] or args.yes or 'YES'
         local noItem = args[4] or args.no or 'NO'
-        if args.loop == nil then item.loop = true end
 
         local function set(v)
             value = (canonical(v) == canonical(yesItem)) and yesItem or noItem

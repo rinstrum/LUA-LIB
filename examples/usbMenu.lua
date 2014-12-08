@@ -77,7 +77,7 @@ local function myNew(path)
     usbPresent = true
     local restore = device.saveDisplay()
 
-    device.createMenu { 'USB MENU', loop=true }
+    device.createMenu { 'USB MENU' }
         .item { 'PRODCT', secondary='UPDATE', run=updateProduct,
                           enabled=function() return usb.fileExists(productFile) end }
         .item { 'MATERL', secondary='UPDATE', run=updateMaterial,

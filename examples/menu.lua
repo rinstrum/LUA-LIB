@@ -15,11 +15,11 @@ local device = rinApp.addK400()         --  make a connection to the instrument
 
 -- Sample menu hooked onto the F3 short press
 -- This includes examples of all the available field types
-local menu = device.createMenu { 'TOP MENU' }       -- create a menu
+local menu = device.createMenu { 'TOP MENU', loop=false } -- create a menu
     .integer    { 'INT', 3, min=1, max=5 }          -- Add an integer item
     .integer    { 'ONE', 1 }                        -- Another integer without min and max limits
     .integer    { 'UNWRIT', 16, readonly=true }     -- An unmodifiable integer
-    .menu       { 'NUMBER', loop=true }             -- A submenu called NUMBERS
+    .menu       { 'NUMBER' }                        -- A submenu called NUMBERS
         .integer    { 'COUNT', 0, min=0, max=9 }
         .number     { 'SCALE', 1, min=0.9, max=1.1} -- A real number with limits
         .number     { 'FUDGE', 2.7182818 }          -- Another real number
@@ -32,8 +32,7 @@ local menu = device.createMenu { 'TOP MENU' }       -- create a menu
     .boolean    { 'OKAY?' }                         -- A yes/no field
     .boolean    { 'SURE?', 'YEP', 'YEP', 'NOPE' }   -- A two pick list
     .list       { 'PROD',                           -- A pick list of three elements
-                    { 'WHEAT', 'RICE', 'CORN' },
-                    loop = true }                   -- That wraps top to bottom
+                    { 'WHEAT', 'RICE', 'CORN' } }   -- That wraps top to bottom
     .menu       { 'REG', secondary = 'VIEWER' }
         .register   { 'USER 1', 'userid1' }
         .register   { 'USER 2', 'userid2', prompt = 'U2' }
