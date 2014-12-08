@@ -195,14 +195,14 @@ local function doCalibrate(reg, data, timeout)
         return nil, err
     end
 
-    local timeout = false
-    timers.addTimer(0, 300, function() timeout = true end)
+    local timedout = false
+    timers.addTimer(0, 300, function() timedout = true end)
 
-    while not timeout do
+    while not timedout do
         msg, err = private.getSystemStatus()
         if msg ~= nil then
             if not _M.checkAllSystemStatus(msg, 'calinprog') then
-                return cmdString[bit32.band(msg, 0x0F)], nil
+                return cmdString[msg % 16], nil
             end
         else
             return nil, err
