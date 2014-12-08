@@ -77,10 +77,11 @@ return function (_M, private, deprecated)
 --
 -- @table FiniteStateMachineStates
 -- @field enter A function that will be called whenever this field becomes active.  It
--- will only be called once per transition.
+-- will only be called once per transition.  An enter function cannot raise or clear
+-- any events.
 --
 -- @field leave A function that will be called whenever this field is transitioned
--- away from (i.e. becoming inactive).
+-- away from (i.e. becoming inactive).  A leave function cannot raise or clear any events.
 --
 -- @field name Name of this state.  Generally use the first positional argument instead
 -- of the <i>name=</i> form for brevity.
@@ -106,7 +107,8 @@ return function (_M, private, deprecated)
 -- @table FiniteStateMachineTransitions
 -- @field activate A function that will be execute after this transition activates.  The state
 -- machine will be in the destination state when this executes but the destination's entry
--- will not yet have been called, it is called after this run function returns.
+-- will not yet have been called, it is called after this run function returns.  An
+-- activate function cannot raise or clear any events.
 --
 -- @field cond The condition under which the transition will activate.  This function
 -- should return a boolean and if true, the transition will be taken.
@@ -117,11 +119,8 @@ return function (_M, private, deprecated)
 --
 -- @field event An event which causes this transition to activate.  Events are raised
 -- by other portions of the application.  The event should typically be a string for
--- readability purposes.  Events are processed the next time the finite state machine's
--- run procedure is executed, however an event is only processed if the current state
--- of the state machine has transitions defined that require the event.  Otherwise,
--- the event will be quietly lost.  Naturally, all other conditions must also be met
--- for the transition to activate.
+-- readability purposes.  Events that have been raised, remain raised until manually
+-- cleared or a state transition or change occurs.
 --
 -- @field from The state from which this transition will go.  Leaving this nil means
 -- all states which can be useful for error handling.  Generally specify this using the
@@ -171,7 +170,7 @@ function _M.stateMachine(args)
     local initial, warnNoState = nil, false
     local name = args[1] or args.name or 'FSM'
     local states, current = {}, nil
-    local events, raiseEvents = {}, {}
+    local events, raiseEvents, eventStatus = {}, {}, nil
     local showState, trace = args.showState or false, args.trace or false
     local fsm = {}
 
@@ -204,6 +203,27 @@ function _M.stateMachine(args)
     end
 
 -------------------------------------------------------------------------------
+-- Produce a warning meesage if an attempt is made to raise or clear an event
+-- from the enter, leave or activate callbacks or if the event isn't defined
+-- by any transition.
+-- @param name The name of the calling function
+-- @param verb The verb to use in the message
+-- @param event The event being raised or cleared
+-- @return true if all is okay, false otherwise
+-- @local
+    local function checkEventStatus(name, verb, event)
+        if eventStatus ~= nil then
+            dbg.error(ename(eventStatus), "Event '"..event.."' cannot be "..verb)
+            return false
+        end
+        if events[event] == nil then
+            dbg.error(ename(name), "Event '"..event.."' is not defined")
+            return false
+        end
+        return true
+    end
+
+-------------------------------------------------------------------------------
 -- Set the state of the finite state machine
 -- @param s State table
 -- @param f Function to call between states, optional
@@ -213,15 +233,17 @@ function _M.stateMachine(args)
         if trace then
             dbg.info('K400FSM', name..' state = ' ..s.name)
         end
+        raiseEvents = {}
         if current ~= nil then
             prevName = current.name
-            current.leave(s.name)
+            eventStatus = 'leave'   current.leave(s.name)
         end
         current = s
         current.activeTime = timers.monotonicTime()
-        utils.call(f)
+        eventStatus = 'activate'    utils.call(f)
         if showState then _M.write('topRight', s.short) end
-        current.enter(prevName)
+        eventStatus = 'enter'       current.enter(prevName)
+        eventStatus = nil
     end
 
 -------------------------------------------------------------------------------
@@ -355,19 +377,30 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Raise an event which will be processed later.
 -- The event must be one that has been defined in a transition.
--- There is no guarantee that the event will ever be acted upon, that depends on
--- the current state of the finite state machine and its transition definitions.
--- Events that are not processed immediately are lost.
+-- Events are cleared on a state transition or state change.
 -- @function raise
 -- @param event The event to raise
 -- @usage
 -- fsm.raise('begin')
     function fsm.raise(event)
         event = canonical(event)
-        if events[event] == nil then
-            dbg.error(ename'event', "Event '" .. event .. "' is not defined")
+        if checkEventStatus('raise', 'raised', event) then
+            raiseEvents[event] = true
         end
-        raiseEvents[event] = true
+    end
+
+-------------------------------------------------------------------------------
+-- Clear an event.
+-- The event must be one that has been defined in a transition.
+-- @function clear
+-- @param event The event to raise
+-- @usage
+-- fsm.clear('begin')
+    function fsm.clear(event)
+        event = canonical(event)
+        if checkEventStatus('clear', 'cleared', event) then
+            raiseEvents[event] = nil
+        end
     end
 
 -------------------------------------------------------------------------------
@@ -388,10 +421,8 @@ function _M.stateMachine(args)
             end
         else
             current.run()
-            local pending = raiseEvents
-            raiseEvents = {}
             for _, t in ipairs(current.trans) do
-                if t.cond() and checkEvent(t, pending) and checkBitConditions(t) and checkTime(t) then
+                if t.cond() and checkEvent(t, raiseEvents) and checkBitConditions(t) and checkTime(t) then
                     if trace then
                         dbg.info('K400FSM', name..' trans '..t.name)
                     end
