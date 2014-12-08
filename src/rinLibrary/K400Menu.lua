@@ -294,7 +294,7 @@ local function makeMenu(args, parent, fields)
 -- @usage
 -- local mymenu = device.createMenu { 'MYMENU' }
 --                      .boolean { 'OKAY?' }
---                      .boolean { 'COLOUR', true, 'RED', 'BLUE' }
+--                      .boolean { 'COLOUR', 'RED', 'RED', 'BLUE' }
     function menu.boolean(args)
         local value
         local item = newItem(args)
@@ -497,7 +497,10 @@ local function makeMenu(args, parent, fields)
 -- @usage
 -- menu.enable('name')
         function menu.enable(ref, state)
-            menu.findField(ref).enabled = state and True or False
+            local r = menu.findField(ref)
+            if r then
+                r.enabled = state and True or False
+            end
         end
 
 -------------------------------------------------------------------------------
@@ -521,7 +524,10 @@ local function makeMenu(args, parent, fields)
 -- @usage
 -- menu.setReadonly('name')
         function menu.setReadonly(ref, state)
-            menu.findField(ref).readonly = state and true or false
+            local r = menu.findField(ref)
+            if r then
+                r.readonly = state and true or false
+            end
         end
 
 -------------------------------------------------------------------------------
