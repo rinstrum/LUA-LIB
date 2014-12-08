@@ -203,7 +203,7 @@ local function makeMenu(args, parent, fields)
 -- @local
     local function numericEdit(args, type)
         local item = newItem(args)
-        local value = args[2] or args.value or 0
+        local value = tonumber(args[2] or args.value or 0)
         local min, max = args.min, args.max
 
         item.run = ro(item, function()
@@ -211,11 +211,11 @@ local function makeMenu(args, parent, fields)
             if ok then
                 if min then v = math.max(min, v) end
                 if max then v = math.min(max, v) end
-                value = v
+                item.setValue(v)
             end
         end)
         item.getValue = function() return value end
-        item.setValue = function(v) value = v end
+        item.setValue = function(v) value = tonumber(v) end
         if type == 'passcode' then
             item.update = cb(args.update, function()
                 _M.write('bottomLeft', string.rep('+', #tostring(value)), 'align=right')
