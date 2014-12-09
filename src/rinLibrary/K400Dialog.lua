@@ -367,8 +367,12 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                         strTab[i] = strTab[i+1]         -- shuffle characters along
                     end
                 end
-                strTab[sLen] = nil                  -- clear last character
-                sEditIndex = sEditIndex - 1   -- decrease length of string
+                if sLen > 1 then					-- if string is more than 1 character long
+					strTab[sLen] = nil					-- clear last character
+					sEditIndex = sEditIndex - 1			-- decrease character position
+				else								-- otherwise we are deleting the first character
+					strTab[sLen] = ' '					-- clear current character
+				end
                 pKey = key                          -- remember the key pressed
             end
         elseif state == "long" then         -- long key press only for cancelling editing
