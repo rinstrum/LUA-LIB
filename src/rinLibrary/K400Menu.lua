@@ -528,6 +528,18 @@ local function makeMenu(args, parent, fields)
         end
 
 -------------------------------------------------------------------------------
+-- Set the list contents of the named field to the specified list
+-- @function setList
+-- @param ref Name of field
+-- @param list Contents of the list field
+-- @usage
+-- menu.setList('items', { 'apple', 'orange', 'pear' })
+        function menu.setList(ref, list)
+            local r = menu.findField(ref)
+            if r and r.setList then r.setList(list) end
+        end
+
+-------------------------------------------------------------------------------
 -- Query if a field is currently enabled
 -- @function enabled
 -- @param ref Name of field
