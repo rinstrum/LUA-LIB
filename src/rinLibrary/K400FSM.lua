@@ -349,6 +349,7 @@ function _M.stateMachine(args)
 -- and leave callbacks properly.
 -- @function setState
 -- @param s State to set to
+-- @return True
 -- @see getState
 -- @see reset
 -- @usage
@@ -360,6 +361,7 @@ function _M.stateMachine(args)
         else
             dbg.error(ename'setState', 'Unknown state '..s)
         end
+        return true
     end
 
 -------------------------------------------------------------------------------
@@ -367,11 +369,13 @@ function _M.stateMachine(args)
 -- This function ignores all the defined transitions but still calls the enter
 -- and leave callbacks properly.
 -- @function reset
+-- @return True
 -- @see setState
 -- @usage
 -- fsm.reset()
     function fsm.reset()
         setState(initial)
+        return true
     end
 
 -------------------------------------------------------------------------------
@@ -379,6 +383,7 @@ function _M.stateMachine(args)
 -- The event must be one that has been defined in a transition.
 -- Events are cleared on a state transition or state change.
 -- @function raise
+-- @return True
 -- @param event The event to raise
 -- @usage
 -- fsm.raise('begin')
@@ -387,12 +392,14 @@ function _M.stateMachine(args)
         if checkEventStatus('raise', 'raised', event) then
             raiseEvents[event] = true
         end
+        return true
     end
 
 -------------------------------------------------------------------------------
 -- Clear an event.
 -- The event must be one that has been defined in a transition.
 -- @function clear
+-- @return True
 -- @param event The event to raise
 -- @usage
 -- fsm.clear('begin')
@@ -401,6 +408,7 @@ function _M.stateMachine(args)
         if checkEventStatus('clear', 'cleared', event) then
             raiseEvents[event] = nil
         end
+        return true
     end
 
 -------------------------------------------------------------------------------
@@ -411,6 +419,7 @@ function _M.stateMachine(args)
 -- You will usually want to call the finite state machine's run function from your
 -- main loop.
 -- @function run
+-- @return True
 -- @usage
 -- device.setMainLoop(fsm.run)
     function fsm.run()
@@ -431,6 +440,7 @@ function _M.stateMachine(args)
                 end
             end
         end
+        return true
     end
 
 -------------------------------------------------------------------------------
