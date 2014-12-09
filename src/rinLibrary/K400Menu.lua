@@ -405,6 +405,12 @@ local function makeMenu(args, parent, fields)
                 _M.write('bottomLeft', v, 'align=right')
             end
         end)
+        item.getValue = function()
+            return (private.readRegHex(reg))
+        end
+        item.setValue = function(v)
+            private.writeRegHexAsync(reg, v)
+        end
         return add(item)
     end
 
