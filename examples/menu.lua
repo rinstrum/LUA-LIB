@@ -39,7 +39,7 @@ local menu = device.createMenu { 'TOP MENU', loop=false } -- create a menu
         .register   { 'MVV', 'absmvv' }
         .fin()
     .item       { 'PRESS', secondary = 'ME NOW',
-                    run=function() print('hello user') end }
+                    onRun=function() print('hello user') end }
     .item       { 'quit', uppercasePrompt = false, exit=true } -- don't upper case this one
 
 device.write('bottomLeft', 'WELCOME TO THE MENU EXAMPLE')
@@ -65,11 +65,11 @@ enableMenu = device.createMenu { 'ENABLE MENU' }
         .fin()
     -- Menu items that turn on and off other items
     -- Also an item that toggles the read only status of another
-    .item       { '+  D', run=function() enableMenu.enable('D', true)  end,
+    .item       { '+  D', onRun=function() enableMenu.enable('D', true)  end,
                           enabled=function() return not enableMenu.enabled('D') end }
-    .item       { '-  D', run=function() enableMenu.enable('D', false) end,
+    .item       { '-  D', onRun=function() enableMenu.enable('D', false) end,
                           enabled=function() return enableMenu.enabled('D') end }
-    .item       { 'ro D', run=function() enableMenu.setReadonly('D', not enableMenu.isReadonly('D'))  end }
+    .item       { 'ro D', onRun=function() enableMenu.setReadonly('D', not enableMenu.isReadonly('D'))  end }
     .integer    { 'D', 5 }
     .item       { 'QUIT', exit=true }
 device.setKeyCallback('f2', enableMenu.run, 'short')

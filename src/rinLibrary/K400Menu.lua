@@ -68,6 +68,42 @@ local function getPrompt(item)
     return p
 end
 
+-------------------------------------------------------------------------------
+-- Function to run an item
+-- @param item Item to run
+-- @local
+local function run(item)
+    item.onRun()
+    item.run()
+end
+
+-------------------------------------------------------------------------------
+-- Function to show an item
+-- @param item Item to show
+-- @local
+local function show(item)
+    item.show()
+    item.onShow()
+end
+
+-------------------------------------------------------------------------------
+-- Function to hide an item
+-- @param item Item to hide
+-- @local
+local function hide(item)
+    item.onHide()
+    item.hide()
+end
+
+-------------------------------------------------------------------------------
+-- Function to update an item
+-- @param item Item to update
+-- @local
+local function update(item)
+    item.update()
+    item.onUpdate()
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -85,7 +121,9 @@ return function (_M, private, deprecated)
 -- field should be visible or not.
 -- @field exit Boolean, true means selecting this item exits the containing menu.
 -- @field getValue Function to return the value of a field's contents.
--- @field hide Function to execute when field is moved away from.
+-- @field hide Function to execute when field is moved away from.  This function is used
+-- internally by the memnu subsystem and generally shouldn't be replaced.  Use the <i>onHide</i>
+-- call back instead.
 -- @field leave Function to execute when leaving the top level menu, it is passed a boolean
 -- which indicates if the menu exited via an EXIT field item (true) or by cancelling at the
 -- top level (false).
@@ -93,19 +131,29 @@ return function (_M, private, deprecated)
 -- @field max Maximum value a numeric, integer or passcode  field can take
 -- @field min Minimum value a numeric, integer or passcode field can take
 -- @field no The name of the no item in a boolean field (default: no).
+-- @field onHide Function to call before the menu system's hide call.
+-- @field onRun Function that is called by the menu systems run call.
+-- @field onShow Function to call after the menu system's show call.
+-- @field onUpdate Function to call repeatedly during the display of a field.
 -- @field prompt Prompt to be displayed when this field is being edited or viewed.
 -- @field readonly Boolean indicating is the field is immutable or not (default false).
 -- @field ref Reference name used to identify a field, this defaults to the name and must be
 -- unique through the entire menu and submenus.
 -- @field rememberPosition Does this menu remember its position between invocations or not.
--- @field run Function to execute when field is activated.
+-- @field run Function to execute when field is activated.  This function is used
+-- internally by the memnu subsystem and generally shouldn't be replaced.  Use the <i>onRun</i>
+-- call back instead.
 -- @field secondary Name of type of item which is displayed in the value area if field has no value.
 -- @field setList Function to set the contents of a list field.
 -- @field setValue Function to set the field's contents.
--- @field show Function to execute when field is displayed.
+-- @field show Function to execute when field is displayed.  This function is used
+-- internally by the memnu subsystem and generally shouldn't be replaced.  Use the <i>onShow</i>
+-- call back instead.
 -- @field unitsOther Extra units annunciators to display when active.
 -- @field units Units annunciators to display when this field is active.
--- @field update Function that is called, until it returns false, while field is displayed.
+-- @field update Function that is called while field is displayed.  This function is used
+-- internally by the memnu subsystem and generally shouldn't be replaced.  Use the <i>onUpdate</i>
+-- call back instead.
 -- @field uppercasePrompt Boolean to force the prompt to be upper case or not (default: true for upper case)
 -- @field yes The name of the yes item in a boolean field (default: yes).
 -- @field length Length of a string field (usually the third positional argumnet would be used for this)
@@ -170,6 +218,10 @@ local function makeMenu(args, parent, fields)
                     _M.write('bottomLeft', m, 'align=right')
                     return false
                 end),
+            onRun = cb(args.onRun, null),
+            onShow = cb(args.onShow, null),
+            onHide = cb(args.onHide, null),
+            onUpdate = cb(args.onUpdate, null),
             enabled = enabled
         }
         return r
@@ -586,9 +638,9 @@ local function makeMenu(args, parent, fields)
         for i = 1, #menu do
             p = private.addModBase1(p, dirn, #menu, menu.loop)
             if menu[p].enabled() then
-                menu[posn].hide()
+                hide(menu[posn])
                 posn = p
-                menu[posn].show()
+                show(menu[posn])
                 break
             end
         end
@@ -608,7 +660,7 @@ local function makeMenu(args, parent, fields)
                 break
             end
         end
-        menu[posn].show()
+        show(menu[posn])
     end
 
 -------------------------------------------------------------------------------
@@ -622,7 +674,7 @@ local function makeMenu(args, parent, fields)
         findEnabled()
         _M.write('bottomRight', getPrompt(menu))
         while _M.app.isRunning() and menu.inProgress do
-            menu[posn].update()
+            update(menu[posn])
             local key = _M.getKey('arrow')
             if key == 'down' then
                 move(1)
@@ -630,7 +682,7 @@ local function makeMenu(args, parent, fields)
                 move(-1)
             elseif key == 'ok' then
                 local m = menu[posn]
-                m.hide()    m.run()     findEnabled()
+                hide(m)     run(m)      findEnabled()
                 _M.write('bottomRight', getPrompt(menu))
                 if m.exit == true then menu.finish() end
             end
@@ -639,7 +691,7 @@ local function makeMenu(args, parent, fields)
                 okay = false
             end
         end
-        menu[posn].hide()
+        hide(menu[posn])
         return okay
     end
 
