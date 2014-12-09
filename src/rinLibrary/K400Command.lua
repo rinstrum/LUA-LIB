@@ -79,9 +79,10 @@ local CMD_RESLOW    = 8
 local CMD_COMMAND   = 9
 local CMD_DUPLIC    = 10
 local CMD_HIRES     = 11
+local OK            = 'ok'
 
 local cmdString = {
-    [CMD_OK]        = 'ok',
+    [CMD_OK]        = OK,
     [CMD_CANCEL]    = 'cancel',
     [CMD_INPROG]    = 'in_prog',
     [CMD_ERROR]     = 'error',
@@ -103,6 +104,20 @@ local REG_LINPC    = 0x0115
 local NUM_LINPTS   = 10
 
 -------------------------------------------------------------------------------
+-- Convert an exReg result pair into a return string and error
+-- @param msg Message result from exReg
+-- @param err Error result from exReg
+-- @return Command string, nil on error
+-- @return Error string, nil if no error
+-- @local
+local function resultExReg(msg, err)
+    if err == nil then
+        return cmdString[tonumber(msg)], nil
+    end
+    return nil, err
+end
+
+-------------------------------------------------------------------------------
 -- Called to execute one of the command below
 -- @param reg register to execute
 -- @param data to send
@@ -111,13 +126,7 @@ local NUM_LINPTS   = 10
 -- @return error string, nil if no error
 -- @local
 local function doCmd(reg, data, timeout)
-    local msg, err = private.exReg(reg, data, timeout)
-    if msg then
-        msg = tonumber(msg)
-        return cmdString[msg], nil
-    else
-        return nil, err
-    end
+    return resultExReg(private.exReg(reg, data, timeout))
 end
 
 -------------------------------------------------------------------------------
@@ -190,9 +199,9 @@ end
 -- @return error code or nil for none
 -- @local
 local function doCalibrate(reg, data, timeout)
-    local msg, err = private.exReg(reg, data, timeout)
-    if not msg then
-        return nil, err
+    local msg, err = resultExReg(private.exReg(reg, data, timeout))
+    if err or msg ~= OK then
+        return msg, err
     end
 
     local timedout = false
