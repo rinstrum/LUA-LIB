@@ -67,6 +67,40 @@ function _M.getTare()
     return private.readReg 'tare'
 end
 
+-------------------------------------------------------------------------------
+-- Get full scale reading from instrument.
+-- @return full scale
+-- @return err error string if error received, nil otherwise
+-- @usage
+-- local fullScale = getFullScale()
+function _M.getFullScale()
+    return private.readReg 'fullscale'
+end
+
+-------------------------------------------------------------------------------
+-- Get raw mV/V from instrument.
+-- @return mV/V
+-- @return err error string if error received, nil otherwise
+-- @see rinLibrary.K400Stream.addStream
+-- @see getRawADC
+-- @usage
+-- local mvv = getMVV()
+function _M.getMVV()
+    return private.readReg 'absmvv'
+end
+
+-------------------------------------------------------------------------------
+-- Get raw ADC reading from instrument.
+-- @return raw ADC reading
+-- @return err error string if error received, nil otherwise
+-- @see rinLibrary.K400Stream.addStream
+-- @see getMVV
+-- @usage
+-- local rawAdc = getRawADC()
+function _M.getRawADC()
+    return private.readReg 'rawadc'
+end
+
 private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Get alternative gross weight from instrument.
