@@ -29,7 +29,7 @@ local utils = require 'rinSystem.utilities'
 -- local t = ini.saveINI('config.ini',config)  -- save INI file to disk using config table
 
 function _M.saveINI(fname, t)
-    local f = io.open(fname, "w+")
+    local f = io.open(fname, "w")
     if f == nil then
         return nil, [['Can't find ]] .. fname
     end
@@ -76,7 +76,7 @@ function _M.loadINI(fname, def)
     local name, pos, val
     local extra = false
 
-    local f = io.open(fname,"r")
+    local f = io.open(fname, "r")
     if f == nil then
         if def == nil then  return nil end
         return _M.saveINI(fname,def)
