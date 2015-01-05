@@ -444,7 +444,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
         if not _M.dialogRunning() then    -- editing aborted so return default
             ok = false
             editing = false
-            sEditVal = def
+            editVal = def
         elseif state == 'short' then
             if type(key) == 'number' then
                 if first then

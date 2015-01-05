@@ -819,7 +819,7 @@ end
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @local
 local function IOsWait(t, bit, state)
-    if bit < 1 or bit > t.max then
+    if bit < 1 or bit > t.max() then
         dbg.error('IOsWait '..t.name..' invalid:', bit)
         return false
     end
