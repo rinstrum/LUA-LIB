@@ -527,7 +527,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true
--- @param ... Status bits to wait for
+-- @param ... Status bits to wait for, number to specify an optional timeout
+-- @return true if the wait succeeded and false otherwise
 -- @see luastatus
 -- @see setStatusCallback
 -- @see anyStatusSet
@@ -538,11 +539,18 @@ end
 -- device.waitStatus('coz')                 -- wait for Centre of zero
 -- device.waitStatus('zero', 'notmotion')   -- wait for no motion and zero
 function _M.waitStatus(...)
-    local stat = 0
+    local stat, finished = 0, False
     for _, v in pairs({...}) do
-        stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
+        if type(v) == 'number' and v > 0 and finished == False then
+            finished = timers.addOneShot(v)
+        else
+            stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
+        end
     end
-    _M.app.delayUntil(function() return bit32.band(curStatus, stat) == stat end)
+    _M.app.delayUntil(function()
+        return bit32.band(curStatus, stat) == stat or finished()
+    end)
+    return not finished()
 end
 
 -------------------------------------------------------------------------------
