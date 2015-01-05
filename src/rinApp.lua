@@ -403,9 +403,7 @@ end
 -- @usage
 -- rinApp.delay(0.1)    -- pause for 100 ms
 function _M.delay(t)
-    local finished = false
-    local tmr = timers.addTimer(0, t, function () finished = true end)
-    _M.delayUntil(function() return finished end)
+    _M.delayUntil(timers.addOneShot(t))
 end
 
 -------------------------------------------------------------------------------

@@ -206,6 +206,25 @@ function _M.addEvent(callback, ...)
 end
 
 -------------------------------------------------------------------------------
+-- Add a one shot event timer to the timer list.  One shots are functions that
+-- return true after the specified time has elapsed and false otherwise.
+-- @param delay Initial delay for timer in seconds
+-- @return one shot function
+-- @see addTimer
+-- @see addEvent
+-- @usage
+-- local timers = require 'rinSystem.rinTimers'
+--
+-- This does the same thing as delay(3):
+-- local os = timers.addOneShot(3)
+-- app.delayUntil(os)
+function _M.addOneShot(delay)
+    local fired = false
+    internalAddTimer(0, delay, false, function() fired = true end, {})
+    return function() return fired end
+end
+
+-------------------------------------------------------------------------------
 -- Remove a timer from the timer list
 -- @param key Key for a timer
 -- @see addTimer
