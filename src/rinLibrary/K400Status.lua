@@ -824,6 +824,7 @@ end
 -- @param bit 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @param timeout the maximum time to wait, default to wait forever
+-- @return true if the wait succeeded and false otherwise
 -- @local
 local function IOsWait(t, bit, state, timeout)
     if bit < 1 or bit > t.max() then
@@ -837,7 +838,7 @@ local function IOsWait(t, bit, state, timeout)
         local data = bit32.band(t.current, mask)
         return (state and data ~= 0 or not state and data == 0) or finished()
     end)
-    return true
+    return not finished()
 end
 
 -------------------------------------------------------------------------------
@@ -845,6 +846,7 @@ end
 -- @param IO 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
 -- @param timeout the maximum time to wait for the IOs, default to wait forever
+-- @return true if the wait succeeded and false otherwise
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -861,7 +863,7 @@ end
 -- @param SETP 1 .. setPointCount()
 -- @param state true to wait for SETP to come on or false to wait for it to go off
 -- @param timeout the maximum time to wait for the setpoints, default to wait forever
--- @return true is the wait succeeded and false otherwise
+-- @return true if the wait succeeded and false otherwise
 -- @see setSETPCallback
 -- @see setAllSETPCallback
 -- @see anySETPSet
