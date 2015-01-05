@@ -51,6 +51,12 @@ local function allBitSet(data, ...)
     return true
 end
 
+-------------------------------------------------------------------------------
+-- A function that always returns false
+-- @return false
+-- @local
+local function False()   return false     end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -817,16 +823,19 @@ end
 -- @param t Table defining the type of bit event
 -- @param bit 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
+-- @param timeout the maximum time to wait, default to wait forever
 -- @local
-local function IOsWait(t, bit, state)
+local function IOsWait(t, bit, state, timeout)
     if bit < 1 or bit > t.max() then
         dbg.error('IOsWait '..t.name..' invalid:', bit)
         return false
     end
     local mask = bit32.lshift(0x00000001, bit-1)
+    local finished = (timeout or 0) > 0 and timers.addOneShot(timeout) or False
+
     _M.app.delayUntil(function()
         local data = bit32.band(t.current, mask)
-        return state and data ~= 0 or not state and data == 0
+        return (state and data ~= 0 or not state and data == 0) or finished()
     end)
     return true
 end
@@ -835,6 +844,7 @@ end
 -- Wait until IO is in a particular state
 -- @param IO 1..32
 -- @param state true to wait for IO to come on or false to wait for it to go off
+-- @param timeout the maximum time to wait for the IOs, default to wait forever
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -842,14 +852,15 @@ end
 -- @see allIOSet
 -- @usage
 -- device.waitIO(1, true) -- wait until IO1 turns on
-function _M.waitIO(IO, state)
-    return IOsWait(ioTable, IO, state)
+function _M.waitIO(IO, state, timeout)
+    return IOsWait(ioTable, IO, state, timeout)
 end
 
 -------------------------------------------------------------------------------
 -- Wait until SETP is in a particular state
 -- @param SETP 1 .. setPointCount()
 -- @param state true to wait for SETP to come on or false to wait for it to go off
+-- @param timeout the maximum time to wait for the setpoints, default to wait forever
 -- @return true is the wait succeeded and false otherwise
 -- @see setSETPCallback
 -- @see setAllSETPCallback
@@ -858,8 +869,8 @@ end
 -- @see waitSETP
 -- @usage
 -- device.waitSETP(1, true) -- wait until Setpoint 1 turns on
-function _M.waitSETP(SETP, state)
-    return IOsWait(setpointTable, IO, state)
+function _M.waitSETP(SETP, state, timeout)
+    return IOsWait(setpointTable, IO, state, timeout)
 end
 
 -------------------------------------------------------------------------------
