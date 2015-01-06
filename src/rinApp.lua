@@ -363,6 +363,24 @@ function _M.addIdleEvent(callback, ...)
 end
 
 -------------------------------------------------------------------------------
+-- Add an event that will be processed only when all dialogs, editing and
+-- main loop processing is finished.  The event named to ensure that only
+-- one such event is allowed each time through the main loop.  If multiple
+-- are specified with the same name, only the first scheduled is executed.
+-- @param name Name of this unique event
+-- @param callback Function to run when timer is complete
+-- @param ... Function arguments
+-- @usage
+-- rinApp.addUniqueEvent('enlightenment', print, 'things have calmed down')
+function _M.addUniqueEvent(name, callback, ...)
+    local n = type(name) == 'number' and tostring(name) or name
+    if userEvents[n] == nil then
+        table.insert(userEvents, { cb = callback, args = {...} })
+        userEvents[n] = true
+    end
+end
+
+-------------------------------------------------------------------------------
 -- One iteration of the rinApp main loop.
 -- @local
 local function step()
@@ -374,6 +392,11 @@ local function step()
         userEvents = {}
         for _, e in ipairs(evts) do
             e.cb(unpack(e.args))
+        end
+
+        -- New events means we've got to force the event loop to exit quickly
+        if #userEvents ~= 0 then
+            timers.addEvent(function() end)
         end
     end
     system.handleEvents()           -- handleEvents runs the event handlers
