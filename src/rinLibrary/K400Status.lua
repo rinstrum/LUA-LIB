@@ -19,11 +19,13 @@ local timers = require 'rinSystem.rinTimers'
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
 -- @param data The value to check against.
+-- @param checkf Function to validate each bit
 -- @param ... The bit positions of interest.
 -- @return true iff one of the bits is set.
 -- @local
-local function anyBitSet(data, ...)
+local function anyBitSet(data, checkf, ...)
     for i,v in ipairs{...} do
+        checkf(v)
         if bit32.band(bit32.lshift(0x01, v-1), data) ~= 0 then
             return true
         end
@@ -34,22 +36,30 @@ end
 -------------------------------------------------------------------------------
 -- Function to test if all of the specified bits are set in the data.
 -- @param data The value to check against.
+-- @param checkf Function to validate each bit
 -- @param ... The bit positions of interest.
 -- @return true iff all of the bits is set.
 -- @local
-local function allBitSet(data, ...)
+local function allBitSet(data, checkf, ...)
     local args = {...}
     if #args == 0 then
         return false
     end
 
     for i,v in ipairs(args) do
+        checkf(v)
         if bit32.band(bit32.lshift(0x01, v-1), data) == 0 then
             return false
         end
     end
     return true
 end
+
+-------------------------------------------------------------------------------
+-- A function that always returns true
+-- @return true
+-- @local
+local function True()   return true     end
 
 -------------------------------------------------------------------------------
 -- A function that always returns false
@@ -277,6 +287,58 @@ local SETPID = nil
 local curStatus
 
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
+
+local ioState = {}
+
+-------------------------------------------------------------------------------
+-- Check if the specified IO is an input
+-- @function checkInput
+-- @param io IO to be checked
+-- @param msg Error message if IO is an output (optional)
+-- @return true iff the IO is an input
+-- @local
+function private.checkInput(io, msg)
+    if ioState[io] then
+        local f = dbg.error
+        if not msg then
+            msg = 'using output as an input is ill advised'
+            f = dbg.warn
+        end
+        if not ioState[msg] then
+            ioState[msg] = true
+            f('IO'..io..':', msg)
+        end
+        return false
+    end
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Check if the specified IO is an output
+-- @function checkOutput
+-- @param io IO to be checked
+-- @return true iff the IO is an output
+-- @local
+function private.checkOutput(io)
+    if not ioState[io] then
+        if not ioState.warnOutput then
+            ioState.warnOutput = true
+            dbg.error('IO'..io..':', 'outputs cannot be used as inputs')
+        end
+        return false
+    end
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Set an IO to be an output or input
+-- @function setIOkind
+-- @param io IO to set
+-- @param output Boolean, true means output
+-- @local
+function private.setIOkind(io, output)
+    ioState[io] = output
+end
 
 -------------------------------------------------------------------------------
 -- Query the current system status.
@@ -637,6 +699,7 @@ end
 -- end
 -- device.setIOCallback(1, handleIO1)
 function _M.setIOCallback(io, callback)
+    private.checkInput(io)
     return addIOsCallback(ioTable, io, callback)
 end
 
@@ -755,7 +818,7 @@ end
 --     device.turnOff(3)
 -- end
 function _M.anyIOSet(...)
-    return anyBitSet(ioTable.current, ...)
+    return anyBitSet(ioTable.current, private.checkInput, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -775,7 +838,7 @@ end
 --     device.turnOff(3)
 -- end
 function _M.allIOSet(...)
-    return allBitSet(ioTable.current, ...)
+    return allBitSet(ioTable.current, private.checkInput, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -803,7 +866,7 @@ end
 --     device.turnOff(1)
 -- end
 function _M.anySETPSet(...)
-    return anyBitSet(setpointTable.current,...)
+    return anyBitSet(setpointTable.current, True, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -823,7 +886,7 @@ end
 --     device.turnOff(1)
 -- end
 function _M.allSETPSet(...)
-    return allBitSet(setpointTable.current,...)
+    return allBitSet(setpointTable.current, True, ...)
 end
 
 -------------------------------------------------------------------------------
@@ -863,6 +926,7 @@ end
 -- @usage
 -- device.waitIO(1, true) -- wait until IO1 turns on
 function _M.waitIO(IO, state, timeout)
+    private.checkInput(IO, 'waiting on an output is a very bad idea')
     return IOsWait(ioTable, IO, state, timeout)
 end
 

@@ -198,12 +198,9 @@ end
 -- -- set IOs 3 and 4 on
 -- device.turnOn(3, 4)
 function _M.turnOn(...)
-    if arg.n == 0 then
-        return
-    end
     local curOutputs = lastOutputs or 0
-    for _,v in ipairs(arg) do
-        if v < 32 and v > 0 then
+    for _,v in ipairs{...} do
+        if v < 32 and v > 0 and private.checkOutput(v) then
             curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
         end
     end
@@ -219,12 +216,9 @@ end
 -- -- set IOs 3 and 4 off
 -- device.turnOff(3, 4)
 function _M.turnOff(...)
-    if arg.n == 0 then
-        return
-    end
     local curOutputs = lastOutputs or 0
-    for _,v in ipairs(arg) do
-        if v < 32 and v > 0 then
+    for _,v in ipairs{...} do
+        if v < 32 and v > 0 and private.checkOutput(v) then
             curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
         end
     end
@@ -241,18 +235,19 @@ end
 -- -- turn IO 1 on for 5 seconds
 -- device.turnOnTimed(1, 5)
 function _M.turnOnTimed(IO, t)
-  local IOMask =  bit32.lshift(0x0001,(IO-1))
-  if bit32.band(timedOutputs, IOMask) == 0 then
-      _M.turnOn(IO)
-      timers.addTimer(0, t,
-             function ()
-                   timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask))
-                   _M.turnOff(IO)
-             end)
-      timedOutputs = bit32.bor(timedOutputs, IOMask)
-  else
-     dbg.warn('IO Timer overlap: ', IO)
-  end
+    if private.checkOutput(IO) then
+        local IOMask = bit32.lshift(0x0001,(IO-1))
+        if bit32.band(timedOutputs, IOMask) == 0 then
+            _M.turnOn(IO)
+            timers.addTimer(0, t, function ()
+                timedOutputs = bit32.band(timedOutputs, bit32.bnot(IOMask))
+                _M.turnOff(IO)
+            end)
+            timedOutputs = bit32.bor(timedOutputs, IOMask)
+        else
+            dbg.warn('IO Timer overlap: ', IO)
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -272,7 +267,8 @@ function _M.enableOutput(...)
     for i,v in ipairs(arg) do
         v = tonumber(v)
         curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
-       end
+        private.setIOkind(v, true)
+    end
 
     setOutputEnable(curIOEnable)
 end
@@ -294,7 +290,8 @@ function _M.releaseOutput(...)
         v = tonumber(v)
         curIOEnable = bit32.band(curIOEnable,
                                    bit32.bnot(bit32.lshift(0x0001,(v-1))))
-       end
+        private.setIOkind(v, false)
+    end
 
     setOutputEnable(curIOEnable)
 end

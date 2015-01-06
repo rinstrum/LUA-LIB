@@ -212,7 +212,7 @@ local display = {
         units = nil,
         auto = nil,       saveAuto = 0
     },
-    
+
     topright = {
         top = true, right = true, localDisplay = true,
         length = 4,
