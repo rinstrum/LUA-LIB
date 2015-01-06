@@ -25,6 +25,7 @@ local utils = require 'rinSystem.utilities'
 local ini = require "rinLibrary.rinINI"
 local usb = require "rinLibrary.rinUSB"
 local dbg = require "rinLibrary.rinDebug"
+local canonical = require('rinLibrary.namings').canonicalisation
 
 local deprecatedFields, warned = {
     system = system,
@@ -353,31 +354,27 @@ end
 
 -------------------------------------------------------------------------------
 -- Add an event that will be processed only when all dialogs, editing and
--- main loop processing is finished.
+-- main loop processing is finished.  The optional name prevents multiple
+-- events from being scheduled simultaneously.  Only the first scheduled event
+-- of a specific name is execute each time around the main loop.
+-- @param name Name of this event, optional
 -- @param callback Function to run when timer is complete
 -- @param ... Function arguments
 -- @usage
 -- rinApp.addIdleEvent(print, 'things have calmed down')
-function _M.addIdleEvent(callback, ...)
-    table.insert(userEvents, { cb = callback, args = {...} })
-end
-
--------------------------------------------------------------------------------
--- Add an event that will be processed only when all dialogs, editing and
--- main loop processing is finished.  The event named to ensure that only
--- one such event is allowed each time through the main loop.  If multiple
--- are specified with the same name, only the first scheduled is executed.
--- @param name Name of this unique event
--- @param callback Function to run when timer is complete
--- @param ... Function arguments
--- @usage
--- rinApp.addUniqueEvent('enlightenment', print, 'things have calmed down')
-function _M.addUniqueEvent(name, callback, ...)
-    local n = type(name) == 'number' and tostring(name) or name
-    if userEvents[n] == nil then
-        table.insert(userEvents, { cb = callback, args = {...} })
+function _M.addIdleEvent(name, callback, ...)
+    local args
+    if utils.callable(name) then
+        args, callback = { callback, ... }, name
+    else
+        local n = canonical(name)
+        if userEvents[n] ~= nil then
+            return
+        end
         userEvents[n] = true
+        args = {...}
     end
+    table.insert(userEvents, { cb = callback, args = args })
 end
 
 -------------------------------------------------------------------------------
