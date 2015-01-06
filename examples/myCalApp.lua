@@ -61,11 +61,7 @@ device.setStatusCallback('init', settingsChanged)
 -- Callback for local timer
 local tickerStart = 0.10  -- time in seconds until timer events start triggering
 local tickerRepeat = 0.20 -- time in seconds that the timer repeats
-local function ticker()
--- insert code here that you want to run on each timer event
-    device.rotWAIT(1)
-end
-timers.addTimer(tickerRepeat, tickerStart, ticker)
+timers.addTimer(tickerRepeat, tickerStart, device.rotWAIT, 1)
 -------------------------------------------------------------------------------
 
 
@@ -158,16 +154,7 @@ local function mainLoop()
 end
 
 --=============================================================================
--- Clean Up
---=============================================================================
--- Define anything for the Application to do when it exits
--- cleanup() gets called by framework when the application finishes
-local function cleanup()
-end
-
---=============================================================================
 -- run the application
 rinApp.setMainLoop(mainLoop)
-rinApp.setCleanup(cleanup)
 rinApp.run()
 --=============================================================================
