@@ -830,7 +830,7 @@ end
 -- Wait until IO is in a particular state
 -- @param t Table defining the type of bit event
 -- @param bit 1..32
--- @param state true to wait for IO to come on or false to wait for it to go off
+-- @param state true to wait for IO to come on or false to wait for it to go off, default off
 -- @param timeout the maximum time to wait, default to wait forever
 -- @return true if the wait succeeded and false otherwise
 -- @local
@@ -841,10 +841,10 @@ local function IOsWait(t, bit, state, timeout)
     end
     local mask = bit32.lshift(0x00000001, bit-1)
     local finished = (timeout or 0) > 0 and timers.addOneShot(timeout) or False
+    local ns = not state
 
     _M.app.delayUntil(function()
-        local data = bit32.band(t.current, mask)
-        return (state and data ~= 0 or not state and data == 0) or finished()
+        return ns == (bit32.band(t.current, mask) == 0) or finished()
     end)
     return not finished()
 end
@@ -852,7 +852,7 @@ end
 -------------------------------------------------------------------------------
 -- Wait until IO is in a particular state
 -- @param IO 1..32
--- @param state true to wait for IO to come on or false to wait for it to go off
+-- @param state true to wait for IO to come on or false to wait for it to go off, default off
 -- @param timeout the maximum time to wait for the IOs, default to wait forever
 -- @return true if the wait succeeded and false otherwise
 -- @see setIOCallback
@@ -869,7 +869,7 @@ end
 -------------------------------------------------------------------------------
 -- Wait until SETP is in a particular state
 -- @param SETP 1 .. setPointCount()
--- @param state true to wait for SETP to come on or false to wait for it to go off
+-- @param state true to wait for SETP to come on or false to wait for it to go off, default off
 -- @param timeout the maximum time to wait for the setpoints, default to wait forever
 -- @return true if the wait succeeded and false otherwise
 -- @see setSETPCallback
