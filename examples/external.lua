@@ -151,13 +151,4 @@ end
 timers.addTimer(1.324, 0.3, unidirectionalTimedMessages)
 sockets.createServerSocket(1112, socketUnidirectionalAccept)
 
---=============================================================================
--- Main Application Loop
---=============================================================================
--- mainLoop gets continually called by the framework
--- Main Application logic goes here
-local function mainLoop()
-
-end
-rinApp.setMainLoop(mainLoop)       -- register mainLoop with the framework
 rinApp.run()                       -- run the application framework
