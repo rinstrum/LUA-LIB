@@ -629,10 +629,12 @@ end
 function _M.getLineCSV(t, val, col)
     if hasData(t) then
         col = lookupColumn(t, col)
-        val = canonical(val)
-        for k, v in ipairs(t.data) do
-            if canonical(v[col]) == val then
-                return k, v
+        if col ~= nil then
+            val = canonical(val)
+            for k, v in ipairs(t.data) do
+                if canonical(v[col]) == val then
+                    return k, v
+                end
             end
         end
     end
@@ -660,10 +662,12 @@ function _M.getRecordCSV(t, val, col)
         local ret, line = {}
 
         _, line = _M.getLineCSV(t, val, col)
-        for i = 1, _M.numColsCSV(t) do
-            ret[canonical(t.labels[i])] = line[i]
+        if line ~= nil then
+            for i = 1, _M.numColsCSV(t) do
+                ret[canonical(t.labels[i])] = line[i]
+            end
+            return ret
         end
-        return ret
     end
     return nil
 end
