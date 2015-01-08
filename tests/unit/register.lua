@@ -20,8 +20,6 @@ describe("K400Reg #register", function()
         grandtotal              = 0x002B,
         gross                   = 0x0026,
         grossnet                = 0x0025,
-        keybuffer               = 0x0008,
-        lcd                     = 0x0009,
         manhold                 = 0x002A,
         net                     = 0x0027,
         peakhold                = 0x0029,
@@ -53,7 +51,7 @@ describe("K400Reg #register", function()
 
     it("getRegisterNumber", function()
         local m, p = makeModule()
-        assert.equal(registers.keybuffer, p.getRegisterNumber('KeyBuffer'))
+        assert.equal(registers.fullscale, p.getRegisterNumber('FullScale'))
         assert.equal(registers.manhold, p.getRegisterNumber(registers.manhold))
     end)
 
