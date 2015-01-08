@@ -666,24 +666,37 @@ function _M.saveKeyCallbacks(keep)
 end
 
 -------------------------------------------------------------------------------
+-- Send an artificial key press to the given instrument register
+-- @param keyName Key to simulate
+-- @param status 'long' or 'short'
+-- @param register Register to send the key press to
+-- @return true
+-- @see keys
+-- @local
+local function sendKeyToRegister(keyName, status, register)
+    local key = naming.convertNameToValue(keyName, keyMap)
+    if key then
+        if status == 'long' then
+            key = bit32.bor(key, 0x80)
+        end
+        private.writeRegAsync(register, key)
+    else
+        dbg.warn('Unknown key :', keyName)
+    end
+    return true
+end
+
+-------------------------------------------------------------------------------
 -- Send an artificial key press to the instrument
 -- @param keyName Key to simulate
 -- @param status 'long' or 'short'
+-- @return true
 -- @see keys
 -- @usage
 -- -- Send a short cancel key press to the display
 -- device.sendKey('cancel', 'short')
 function _M.sendKey(keyName, status)
-    local key = naming.convertNameToValue(keyName, keyMap)
-    if key then
-        local data = key
-        if status == 'long' then
-            data = bit32.bor(data, 0x80)
-        end
-        private.writeRegAsync(REG_APP_DO_KEYS, data)
-    else
-        dbg.warn('Unknown key :', keyName)
-    end
+    return sendKeyToRegister(keyName, status, REG_APP_DO_KEYS)
 end
 
 -------------------------------------------------------------------------------
@@ -703,12 +716,30 @@ function _M.sendIOKey(io, status)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Send an artificial key press to the instrument's key buffer.
+-- This differs from sendKey in that the entire key processing sequence
+-- occurs.  This means that this Lua application will see the key come back.
+-- You will almost always want to use sendKey not this function.
+-- @param keyName Key to simulate
+-- @param status 'long' or 'short'
+-- @return true
+-- @see keys
+-- @see sendKey
+-- @usage
+-- -- Send a short cancel key press to the display for return here
+-- device.sendKeyBuffer('cancel', 'short')
+function _M.sendKeyBuffer(keyName, status)
+    return sendKeyToRegister(keyName, status, REG_KEY_BUFFER_ENTRY)
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 deprecated.REG_GET_KEY          = REG_GET_KEY
 deprecated.REG_FLUSH_KEYS       = REG_FLUSH_KEYS
 deprecated.REG_APP_DO_KEYS      = REG_APP_DO_KEYS
 deprecated.REG_APP_KEY_HANDLER  = REG_APP_KEY_HANDLER
+deprecated.REG_KEYBUFFER        = REG_KEY_BUFFER_ENTRY
 
 -- Use names not code here so comparison outside are possible.
 deprecated.KEY_0            = 0

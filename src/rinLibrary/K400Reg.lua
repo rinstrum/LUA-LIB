@@ -25,9 +25,7 @@ local space, digit, P, S = lpeg.space, lpeg.digit, lpeg.P, lpeg.S
 return function (_M, private, deprecated)
 
 private.addRegisters{
-    none                    = 0,        -- not a register
-    keybuffer               = 0x0008,
-    lcd                     = 0x0009,
+    none                    = 0         -- not a register
 }
 
 private.registerDeviceInitialiser(function()
@@ -153,7 +151,7 @@ local regCache      -- Maintain a cache of register attributes
 -- @param cmd command
 -- @param reg register
 -- @param data to send
--- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @local
 local function sendReg(cmd, reg, data, crc)
     if reg ~= nil then
@@ -168,7 +166,7 @@ end
 -- @param reg register
 -- @param data to send
 -- @param t timeout in sec
--- @param crc 'crc' if message sent with crc, false (default) otherwise
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
@@ -314,11 +312,12 @@ end
 -- @param reg register
 -- @param data to send
 -- @param timeout timeout for send operation
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
-function private.writeReg(reg, data, timeout)
-    return sendRegWait('wrfinaldec', reg, data, timeout)
+function private.writeReg(reg, data, timeout, crc)
+    return sendRegWait('wrfinaldec', reg, data, timeout, crc)
 end
 
 -------------------------------------------------------------------------------
@@ -326,11 +325,12 @@ end
 -- @param reg register
 -- @param data to send
 -- @param timeout timeout for send operation
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @return reply received from instrument, nil if error
 -- @return err error string if error received, nil otherwise
 -- @local
-function private.writeRegHex(reg, data, timeout)
-    return sendRegWait('wrfinalhex', reg, data, timeout)
+function private.writeRegHex(reg, data, timeout, crc)
+    return sendRegWait('wrfinalhex', reg, data, timeout, crc)
 end
 
 -------------------------------------------------------------------------------
@@ -338,9 +338,10 @@ end
 -- @function writeRegAsync
 -- @param reg register
 -- @param data to send
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @local
-function private.writeRegAsync(reg, data)
-    sendReg('wrfinaldec', reg, data)
+function private.writeRegAsync(reg, data, crc)
+    sendReg('wrfinaldec', reg, data, crc)
 end
 
 -------------------------------------------------------------------------------
@@ -348,9 +349,10 @@ end
 -- @function writeRegHexAsync
 -- @param reg register
 -- @param data to send
+-- @param crc 'crc' if message sent with crc, not otherwise (default)
 -- @local
-function private.writeRegHexAsync(reg, data)
-    sendReg('wrfinalhex', reg, data)
+function private.writeRegHexAsync(reg, data, crc)
+    sendReg('wrfinalhex', reg, data, crc)
 end
 
 -------------------------------------------------------------------------------

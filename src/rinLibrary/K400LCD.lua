@@ -178,6 +178,7 @@ end
 return function (_M, private, deprecated)
 
 --LCD display registers
+local REG_LCD                  = 0x0009
 local REG_LCDMODE              = 0x000D
 local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
 local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
@@ -191,6 +192,7 @@ local REG_DISP_BOTTOM_UNITS    = 0x00B5
 local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
 local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
 local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
+local REG_MASTER               = 0x00B9
 
 --local REG_DEFAULTMODE          = 0x0166
 
@@ -1028,6 +1030,38 @@ function _M.restoreLcd()
 end
 
 -------------------------------------------------------------------------------
+-- Load a raw binary dump of the current LCD display segments.
+-- @return Binary blob representing the current display
+-- @usage
+--  local data, err = master.getRawLCD()
+--
+--  if err then
+--      dbg.warn('Screen Duplicate:', err)
+--  else
+--      slave.setRawLCD(data)
+--  end
+function _M.getRawLCD()
+    return private.readRegDec(REG_LCD)
+end
+
+-------------------------------------------------------------------------------
+-- Store a raw binary dump to the current LCD display segments.  It is the
+-- users' responsibility to ensure that the binary blob is suitable for the
+-- destination display.
+-- @param data Binary blob representing the desired display
+-- @usage
+--  local data, err = master.getRawLCD()
+--
+--  if err then
+--      dbg.warn('Screen Duplicate:', err)
+--  else
+--      slave.setRawLCD(data)
+--  end
+function _M.setRawLCD(data)
+    private.writeRegAsync(REG_MASTER, data, 'crc')
+end
+
+-------------------------------------------------------------------------------
 -- Notify the library that there is a remote display attached
 -- @param name Name to be assigned to this display
 -- @param type Type of the display
@@ -1051,6 +1085,8 @@ deprecated.REG_DISP_BOTTOM_UNITS        = REG_DISP_BOTTOM_UNITS
 deprecated.REG_DISP_AUTO_TOP_ANNUN      = REG_DISP_AUTO_TOP_ANNUN
 deprecated.REG_DISP_AUTO_TOP_LEFT       = REG_DISP_AUTO_TOP_LEFT
 deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
+deprecated.REG_LCD                      = REG_LCD
+
 
 deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
 deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
