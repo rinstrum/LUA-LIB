@@ -82,7 +82,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup The key group, 'all' is default
+-- @param keyGroup The key group, 'all' is default. A list of key groups is also
+-- allowed here and the legal keys are a union of these.
 -- @param keep True if the existing callbacks should be maintained, this can
 -- cause some interference issues unless used prudently.
 -- @return key
@@ -94,18 +95,25 @@ end
 -- print('key pressed was:', device.getKey())
 function _M.getKey(keyGroup, keep)
     keyGroup = keyGroup or 'all'
+    if type(keyGroup) == 'string' then keyGroup = { keyGroup } end
+
     local getKeyState, getKeyPressed, getKeySource
 
     local savedKeyHandlers = _M.saveKeyCallbacks(keep)
+    local allHandled = false
 
-    _M.setKeyGroupCallback(keyGroup,
-        function(key, state)
-            getKeyPressed = key
-            getKeyState = state
-            getKeySource = 'display'
-            return true
-        end, 'short', 'long')
-    if keyGroup ~= 'all' then
+    local function handler(key, state, source, modifiers)
+        dbg.info('getkey', key, source, modifiers)
+        getKeyPressed = key
+        getKeyState = state
+        getKeySource = source
+        return true
+    end
+    for _, g in pairs(keyGroup) do
+        allHandled = allHandled or (g == 'all')
+        _M.setKeyGroupCallback(g, handler, 'short', 'long')
+    end
+    if not allHandled then
         _M.setKeyGroupCallback('all', function() return true end)
     end
 
@@ -252,7 +260,7 @@ end
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     editing = true                  -- is editing occurring
-    local key, state                -- instrument key values
+    local key, state, source        -- instrument key values
     local pKey = nil                -- previous key pressed
     local presses = 0               -- number of consecutive presses of a key
 
@@ -289,7 +297,8 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        key, state = _M.getKey('keypad')  -- wait for a key press
+        key, state, source = _M.getKey{'keypad', 'ascii'}  -- wait for a key press
+        print(key, source)
         if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
@@ -299,7 +308,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             editing = false
             sEditVal = default
         elseif state == "short" then                            -- short key presses for editing
-            if type(key) == 'number' then     -- keys 0 to 9 on the keypad
+            if type(key) == 'number' and source == 'display' then     -- keys 0 to 9 on the keypad
 --              print('i:' .. sEditIndex .. ' l:' .. sLen)   -- debug
                 if key == pKey then         -- if same as the previous key pressed
                     presses = presses + 1   -- add 1 to number of presses of this key
@@ -374,6 +383,12 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 					strTab[sLen] = ' '					-- clear current character
 				end
                 pKey = key                          -- remember the key pressed
+            else                            -- ASCII key
+                if pKey and (sEditIndex >= sLen) and (strTab[sEditIndex] ~= " ") then     -- if not first key pressed
+                    sEditIndex = sEditIndex + 1       -- new key pressed, increment the character position
+                end
+                strTab[sEditIndex] = string.upper(key)      -- update the string (table) with the new character
+                pKey = key                                  -- remember the key pressed
             end
         elseif state == "long" then         -- long key press only for cancelling editing
             if key == 'cancel' then    -- cancel key
@@ -384,7 +399,6 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
         if editing or ok then                       -- if editing or OK is selected
             sEditVal = table.concat(strTab)      -- update edited string
             sLen = #sEditVal
---          print('eVal = \'' .. sEditVal .. '\'')   -- debug
         end
     end
     finished()
