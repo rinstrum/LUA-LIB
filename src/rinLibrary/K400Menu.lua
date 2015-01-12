@@ -645,7 +645,44 @@ local function makeMenu(args, parent, fields)
                 menu.setValue(names[i], values[i])
             end
         end
+
+-------------------------------------------------------------------------------
+-- Save menu values into a table.
+-- @function getValues
+-- @return Table containing all the fields from this menu
+-- @see setValues
+-- @see toCSV
+-- @usage
+-- local values = myMenu.setValues()
+        function menu.getValues()
+            local r = {}
+            for k, v in pairs(fields) do
+                if v.getValue then
+                    r[k] = v.getValue()
+                end
+            end
+            return r
+        end
     end
+
+-------------------------------------------------------------------------------
+-- Load values from the table into this menu
+-- @function setValues
+-- @param t Table of values
+-- @see getValues
+-- @see fromCSV
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local csvTable = csv.loadCSV { fname = 'settings.csv', labels = { 'name', 'value' } }
+--
+-- myMenu.fromCSV(csvTable)
+        function menu.setValues(t)
+            for k, v in pairs(t) do
+                if fields[k] and fields[k].setValue then
+                    fields[k].setValue(v)
+                end
+            end
+        end
 
 -------------------------------------------------------------------------------
 -- Move the current position in the menu inthe direction indicated
