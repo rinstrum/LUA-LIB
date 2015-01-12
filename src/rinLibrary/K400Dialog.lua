@@ -103,7 +103,6 @@ function _M.getKey(keyGroup, keep)
     local allHandled = false
 
     local function handler(key, state, source, modifiers)
-        dbg.info('getkey', key, source, modifiers)
         getKeyPressed = key
         getKeyState = state
         getKeySource = source
