@@ -223,16 +223,19 @@ end
 -- @function toFloat
 -- @param data returned from _rdfinalhex or from stream
 -- @param dp decimal position (if nil then instrument dp used)
--- @return floating point number
+-- @return floating point number or nil on error
 -- @local
 function private.toFloat(data, dp)
     local dp = dp or _M.getDispModeDP('primary')  -- use instrument dp if not specified otherwise
 
     data = tonumber(data, 16)
-    if data > 0x7FFFFFFF then
-        data = data - 0xFFFFFFFF - 1
+    if data then
+        if data > 0x7FFFFFFF then
+            data = data - 4294967296    -- 4294967296 = 2^32 = 0xFFFFFFFF + 1
+        end
+        return data / powersOfTen[dp]
     end
-    return data / powersOfTen[dp]
+    return nil
 end
 
 -------------------------------------------------------------------------------

@@ -157,7 +157,7 @@ local function convertCallbackArg(s, v)
         return nil
     end
     if v.typ == 'weight' and _M.isHiRes() then
-        return private.toFloat(substr, v.dp+1)
+        return private.toFloat(s, v.dp+1)
     end
     return private.toFloat(s, v.dp)
 end
