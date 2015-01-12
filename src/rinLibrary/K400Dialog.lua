@@ -20,6 +20,18 @@ local system = require 'rinSystem'
 local dbg = require 'rinLibrary.rinDebug'
 local utils = require 'rinSystem.utilities'
 
+-------------------------------------------------------------------------------
+-- A null function for use as a dummy callback
+-- @return nil
+-- @local
+local function null()   return nil      end
+
+-------------------------------------------------------------------------------
+-- A function that always returns true
+-- @return true
+-- @local
+local function True()   return true     end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -54,12 +66,6 @@ end
 -- @local
 function _M.abortDialog()
     dialogRunning = false
-end
-
--------------------------------------------------------------------------------
--- Null function
--- @local
-local function null()
 end
 
 -------------------------------------------------------------------------------
@@ -100,7 +106,7 @@ function _M.getKey(keyGroup, keep)
     local getKeyState, getKeyPressed, getKeySource
 
     local savedKeyHandlers = _M.saveKeyCallbacks(keep)
-    local allHandled = false
+    _M.setKeyGroupCallback('all', True)
 
     local function handler(key, state, source, modifiers)
         getKeyPressed = key
@@ -109,11 +115,7 @@ function _M.getKey(keyGroup, keep)
         return true
     end
     for _, g in pairs(keyGroup) do
-        allHandled = allHandled or (g == 'all')
         _M.setKeyGroupCallback(g, handler, 'short', 'long')
-    end
-    if not allHandled then
-        _M.setKeyGroupCallback('all', function() return true end)
     end
 
     local finished = _M.startDialog()
@@ -297,7 +299,6 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
         key, state, source = _M.getKey{'keypad', 'ascii'}  -- wait for a key press
-        print(key, source)
         if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
             pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
         end
