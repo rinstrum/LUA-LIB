@@ -15,7 +15,7 @@ return function (_M, private, deprecated)
 -- @return Number of material slots in display's database
 -- @usage
 -- print('We can deal with '..device.getMaterialCount()..' materials.')
-function _M.getMaterialCount()
+function _M.getMaxMaterialCount()
     return 1
 end
 
@@ -24,7 +24,7 @@ end
 -- @return Number of batching stages in display's database
 -- @usage
 -- print('We can deal with '..device.getStageCount()..' stages.')
-function _M.getStageCount()
+function _M.getMaxStageCount()
     return 0
 end
 
@@ -38,8 +38,8 @@ private.registerDeviceInitialiser(function()
 
         local numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
 
-        _M.getStageCount =      function() return 10 end
-        _M.getMaterialCount =   function() return numMaterials end
+        _M.getMaxStageCount =       function() return 10 end
+        _M.getMaxMaterialCount =    function() return numMaterials end
 
         for i = 1, numMaterials do
             private.addRegisters{ ['material'..i..'_name'] = 0xC080 + i }
