@@ -203,7 +203,11 @@ return function(mod, private, deprecated)
 -- @param v Value to return if we're the specified device
 -- @return v or nil
 -- @local
-    for _, d in pairs{'k401', 'k402', 'k410', 'k422', 'k491'} do
+    for _, d in pairs{
+        'k401', 'k402',
+        'k410', 'k411', 'k412', 'k415',
+        'k422', 'k491'
+    } do
         private[d] = function(v)
 			assert(private.deviceType ~= nil)
             private[d] =(private.deviceType == d) and willy or nilly
@@ -238,7 +242,11 @@ return function(mod, private, deprecated)
 -- @local
     function private.batching(v)
 		assert(private.deviceType ~= nil)
-        private.batching = private.valueByDevice{ k410 = willy, default = nilly }
+        private.batching = private.valueByDevice{
+            k410 = willy,   k411 = willy,
+            k412 = willy,   k415 = willy,
+            default = nilly
+        }
         return private.batching(v)
     end
 
@@ -252,7 +260,11 @@ return function(mod, private, deprecated)
 -- @local
     function private.nonbatching(v)
 		assert(private.deviceType ~= nil)
-        private.nonbatching = private.valueByDevice{ default = willy, k410 = nilly }
+        private.nonbatching = private.valueByDevice{
+            k410 = nilly,   k411 = nilly,
+            k412 = nilly,   k415 = nilly,
+            default = willy
+        }
         return private.nonbatching(v)
     end
 

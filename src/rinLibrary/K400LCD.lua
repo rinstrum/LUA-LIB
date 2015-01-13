@@ -338,10 +338,10 @@ local display = {
 local currentLcdMode, lcdModes = 'default'
 private.registerDeviceInitialiser(function()
     lcdModes = {
-        default = private.k410(0) or private.k422(0) or 1,
-        dual    = private.k410(0) or 1,                             -- dynamic
-        lua     = private.k410(1) or 2,
-        master  = private.k410(2) or 3,
+        default = private.batching(0) or private.k422(0) or 1,
+        dual    = private.batching(0) or 1,                         -- dynamic
+        lua     = private.batching(1) or 2,
+        master  = private.batching(2) or 3,
         product = private.valueByDevice{ k402=0, k422=0, k491=0 }   -- normal
     }
 end)
