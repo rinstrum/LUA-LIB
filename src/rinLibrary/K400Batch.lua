@@ -10,6 +10,13 @@
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
+private.addRegisters{
+    product_total_weight            = 0xB102,
+    product_total_alt_weight        = 0xB103,
+    product_total_count             = 0xB104,
+    product_total_number            = 0xB105
+}
+
 -------------------------------------------------------------------------------
 -- Query the number of materials available in the display.
 -- @return Number of material slots in display's database
@@ -33,16 +40,23 @@ end
 private.registerDeviceInitialiser(function()
     if private.batching(true) then
         private.addRegisters{
-            material_spec       = 0xC100,
+            product_time            = 0xB106,
+            product_time_average    = 0xB107,
+            product_error           = 0xB108,
+            product_error_pc        = 0xB109,
+            product_error_average   = 0xB10A,
+            product_menu_op_stages  = 0xB10B,
+            material_spec           = 0xC100,
         }
 
+        local numStages = 10
         local numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
 
-        _M.getMaxStageCount =       function() return 10 end
+        _M.getMaxStageCount =       function() return numStages end
         _M.getMaxMaterialCount =    function() return numMaterials end
 
-        for i = 1, numMaterials do
-            private.addRegisters{ ['material'..i..'_name'] = 0xC080 + i }
+        for i = 1, numMaterials do          -- Material registers for each material
+            private.addRegisters{ ['material_name'..i] = 0xC080 + i }
             local f = (i-1) * 0x10
             for k, v in pairs{
                 flt                 = 0xC101,
@@ -54,7 +68,7 @@ private.registerDeviceInitialiser(function()
                 error_pc            = 0xC107,
                 error_average       = 0xC108
             } do
-                private.addRegisters{ ['material'..i..'_'..k] = v + f }
+                private.addRegisters{ ['material_'..k..i] = v + f }
             end
         end
 
@@ -112,8 +126,8 @@ private.registerDeviceInitialiser(function()
             pulse_input         = 0xC46A,
             pulse_timer         = 0xC46B
         } do
-            for stage = 1, _M.getStageCount() do
-                private.addRegisters{ ['stage'..stage..'_'..k] = v + (stage - 1) * 0x0100 }
+            for i = 1, numStages do
+                private.addRegisters{ ['stage_'..k..i] = v + (i - 1) * 0x0100 }
             end
         end
     end
