@@ -116,16 +116,6 @@ private.registerDeviceInitialiser(function()
                 private.addRegisters{ ['stage'..stage..'_'..k] = v + (stage - 1) * 0x0100 }
             end
         end
-
-        --[[
-        private.addRegisters{
-            uid_spin        = 0x0310, --  USR.ID for Supervisor pin code
-            cycle_dly       = 0xA40C, --  set point 1 copied from  REG_CHK_DLY
-            scale_filter    = 0x1131, --  K410 SCALE:OPTION:FILTER
-            prd_cnt         = 0xB105, --  Product total number of items
-            clr_tot         = 0xB002, --  Clear all totals(execute)
-            bat_end         = 0xA313, --  PRINT.1 CUSTOM FORMAT BAT.END
-        } --]]
     end
 end)
 
