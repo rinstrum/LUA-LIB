@@ -30,7 +30,7 @@ function _M.add(displayTable, prefix)
   displayTable[prefix .. "topleft"] = {
     top = true, left = true, localDisplay = true,
     length = 6,
-    rightJustify = function(s) return rightJustify(s, 6) end,
+    rightJustify = function(s) return dispHelp.rightJustify(s, 6) end,
     reg = _M.REG_DISP_TOP_LEFT,
     regUnits = _M.REG_DISP_TOP_UNITS,
     regAuto = _M.REG_DISP_AUTO_TOP_LEFT,
@@ -38,7 +38,8 @@ function _M.add(displayTable, prefix)
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
     units = nil,
-    auto = nil,       saveAuto = 0
+    auto = nil,
+    saveAuto = 0
   }
   
   displayTable[prefix .. "topright"] = {
@@ -54,7 +55,7 @@ function _M.add(displayTable, prefix)
   displayTable[prefix .. "bottomleft"] = {
       bottom = true,  left = true, localDisplay = true,
       length = 9,
-      rightJustify = function(s) return rightJustify(s, 9) end,
+      rightJustify = function(s) return dispHelp.rightJustify(s, 9) end,
       reg = _M.REG_DISP_BOTTOM_LEFT,
       regUnits = _M.REG_DISP_BOTTOM_UNITS,
       regAuto = _M.REG_DISP_AUTO_BOTTOM_LEFT,
@@ -62,7 +63,8 @@ function _M.add(displayTable, prefix)
       finalFormat = dispHelp.padDots,
       strsub = dispHelp.strSubLCD,
       units = nil,
-      auto = nil,       saveAuto = 0
+      auto = nil,
+      saveAuto = 0
   }
   
   displayTable[prefix .. "bottomright"] = {
