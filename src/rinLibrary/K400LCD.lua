@@ -6,9 +6,16 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+--
 local tonumber = tonumber
 local math = math
 local string = string
+local table = table
+local tostring = tostring
+local type = type
+local pairs = pairs
+local ipairs = ipairs
+
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local naming = require 'rinLibrary.namings'
@@ -17,6 +24,11 @@ local dbg = require "rinLibrary.rinDebug"
 local system = require "rinSystem"
 local utils = require 'rinSystem.utilities'
 local deepcopy = require 'rinLibrary.deepcopy'
+local dispHelp = require 'rinLibrary.displayHelper'
+
+-- This shouldn't need to be here, but supports depreciated functions.
+-- Remove when possible
+local R400Reg = require 'rinLibrary.display.R400'    
 
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
@@ -36,74 +48,6 @@ local writeArgPat = P{
     time =  (Pi'time' * equals)^-1 * Cg(lpeg.float / tonumber, 'time'),
     align = Pi'align' * equals * Cg(nameArg'left' + nameArg'right', 'align')
 }
-
--------------------------------------------------------------------------------
--- Return the number of LCD characters a string will consume.
--- @function strLenR400
--- @param s The string to assess
--- @return The number of display characters
--- @see padDots
--- @see strSubR400
--- @local
-local strLenPat = Cs((scdot / ' ' + sdot)^0)
-local function strLenR400(s)
-    return #strLenPat:match(s)
-end
-
--------------------------------------------------------------------------------
--- Takes a string and pads ... with . . . for R420 to handle.
--- @function padDots
--- @param s String
--- @return Padded string
--- @see strSubR400
--- @see strLenR400
--- @local
-local padDotsPat = Cs((scdot + sdot / ' .')^0)
-local function padDots(s)
-    return padDotsPat:match(s)
-end
-
--------------------------------------------------------------------------------
--- Extract a substring based on the LCD width.
--- @param s String to substring
--- @param stPos Starting position
--- @param endPos Ending position, nil for end of string
--- @return The substring between display positions stPos and endPos
--- @see padDots
--- @see strLenR400
--- @local
-local function strSubR400(s, stPos, endPos)
-    if endPos == nil then
-        endPos = #s
-    end
-
-    local n = 0
-    local function process(s)
-        n = n + 1
-        return n >= stPos and n <= endPos and s or ''
-    end
-    return Cs(((scdot + sdot) / process)^0):match(s)
-end
-
--------------------------------------------------------------------------------
--- Right justify a string in a given field
--- @param s string to justify
--- @param w width to justify to
--- @return justified string
--- @usage
--- if device.rightJustify('hello', 6) == ' hello' then
---     print('yes')
--- end
--- @local
-local function rightJustify(s, w)
-    s = tostring(s)
-    local l = strLenR400(s)
-    if l >= w then
-        return s
-    end
-    if s:sub(1, 1) == '.' then l = l - 1 end
-    return string.rep(" ", w-l) .. s
-end
 
 -------------------------------------------------------------------------------
 -- Helper function to apply a callback to every element of the specified array
@@ -177,109 +121,35 @@ end
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
---LCD display registers
+--local REG_DEFAULTMODE          = 0x0166
 local REG_LCD                  = 0x0009
 local REG_LCDMODE              = 0x000D
-local REG_DISP_BOTTOM_LEFT     = 0x000E    -- Takes string
-local REG_DISP_BOTTOM_RIGHT    = 0x000F    -- Takes string
-local REG_DISP_TOP_LEFT        = 0x00B0    -- Takes string
-local REG_DISP_TOP_RIGHT       = 0x00B1    -- Takes string
-local REG_DISP_TOP_ANNUN       = 0x00B2
-local REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
-local REG_DISP_BOTTOM_ANNUN    = 0x00B4
-local REG_DISP_BOTTOM_UNITS    = 0x00B5
-
-local REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
-local REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
-local REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
 local REG_MASTER               = 0x00B9
-
---local REG_DEFAULTMODE          = 0x0166
 
 local botAnnunState = 0
 local topAnnunState = 0
 local waitPos = 1
 
-local display = {
-    topleft = {
-        top = true, left = true, localDisplay = true,
-        length = 6,
-        rightJustify = function(s) return rightJustify(s, 6) end,
-        reg = REG_DISP_TOP_LEFT,
-        regUnits = REG_DISP_TOP_UNITS,
-        regAuto = REG_DISP_AUTO_TOP_LEFT,
-        strlen = strLenR400,
-        finalFormat = padDots,
-        strsub = strSubR400,
-        units = nil,
-        auto = nil,       saveAuto = 0
-    },
+local display = {}
 
-    topright = {
-        top = true, right = true, localDisplay = true,
-        length = 4,
-        rightJustify = function(s) return rightJustify(s, 4) end,
-        reg = REG_DISP_TOP_RIGHT,
-        strlen = strLenR400,        -- need to fix these to match the weird display '8.8-8.8'
-        finalFormat = padDots,
-        strsub = strSubR400
-    },
-
-    bottomleft = {
-        bottom = true,  left = true, localDisplay = true,
-        length = 9,
-        rightJustify = function(s) return rightJustify(s, 9) end,
-        reg = REG_DISP_BOTTOM_LEFT,
-        regUnits = REG_DISP_BOTTOM_UNITS,
-        regAuto = REG_DISP_AUTO_BOTTOM_LEFT,
-        strlen = strLenR400,
-        finalFormat = padDots,
-        strsub = strSubR400,
-        units = nil,
-        auto = nil,       saveAuto = 0
-    },
-
-    bottomright = {
-        bottom = true,  right = true, localDisplay = true,
-        length = 8,
-        rightJustify = function(s) return rightJustify(s, 8) end,
-        reg = REG_DISP_BOTTOM_RIGHT,
-        strlen = strLenR400,
-        finalFormat = padDots,
-        strsub = strSubR400
-    },
---[[
-    pcmode = {
-        remote = true,
-        length = 7,
-        rightJustify = function(s)
-            if #s > 6 and s:sub(1,1) == '-' then
-                return s
-            end
-            return string.sub('       ' .. s, -7)
-        end,
-        reg = 0xA205,
-        strlen = function(s)
-            if #s > 0 and s:sub(1,1) == '-' then
-                return #s - 1
-            end
-            return #s
-        end,
-        finalFormat = function(s)
-            if #s > 1 and s:sub(1,1) ~= '-' then
-                s = ' ' .. s
-            end
-            return '\002' .. string.sub(s .. '        ', 1, 8) .. ' 00\003'
-        end,
-        strsub = function(s, stPos, endPos)
-            if #s > 1 and s:sub(1,1) == '-' then
-                endPos = endPos + 1
-            end
-            return s:sub(stPos, endPos)
-        end
-    }
---]]
-}
+-------------------------------------------------------------------------------
+-- Called to add a display to the framework
+-- @param type Type of display to add. These are stored in rinLibrary.display
+-- @return boolean showing success of adding the framework, error message
+-- @usage
+-- local succeeded, err = device.addDisplay('R400')
+function _M.addDisplay(type, prefix, address)
+  prefix = prefix or ''
+  
+  local disp = require("rinLibrary.display." .. type)
+  if (disp == nil) then
+    return false, "Display does not exist"
+  end
+  
+  display = disp.add(display, prefix)
+  
+  return true
+end
 
 --- Display Control Modes.
 --
@@ -733,9 +603,9 @@ end
 -- Set the bottom annunciators directly.
 -- @local
 local function writeBotAnnuns()
-    private.writeRegHexAsync(REG_DISP_BOTTOM_ANNUN, botAnnunState)
+    private.writeRegHexAsync(R400Reg.REG_DISP_BOTTOM_ANNUN, botAnnunState)
 end
-if REG_DISP_BOTTOM_ANNUN == nil then
+if R400Reg.REG_DISP_BOTTOM_ANNUN == nil then
     writeBotAnnuns = function() end
 end
 
@@ -743,9 +613,9 @@ end
 -- Set the top annunciators directly.
 -- @local
 local function writeTopAnnuns()
-    private.writeRegHexAsync(REG_DISP_TOP_ANNUN, topAnnunState)
+    private.writeRegHexAsync(R400Reg.REG_DISP_TOP_ANNUN, topAnnunState)
 end
-if REG_DISP_TOP_ANNUN == nil then
+if R400Reg.REG_DISP_TOP_ANNUN == nil then
     writeTopAnnuns = function() end
 end
 
@@ -758,9 +628,9 @@ end
 -- device.writeAutoTopAnnun(0)
 local writeAutoTopAnnun
 private.registerDeviceInitialiser(function()
-    writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', REG_DISP_AUTO_TOP_ANNUN, function(register)
+    writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', R400Reg.REG_DISP_AUTO_TOP_ANNUN, function(register)
         local r = private.getRegisterNumber(register)
-        private.writeRegHexAsync(REG_DISP_AUTO_TOP_ANNUN, r)
+        private.writeRegHexAsync(R400Reg.REG_DISP_AUTO_TOP_ANNUN, r)
     end)
 end)
 
@@ -1073,19 +943,19 @@ end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
-deprecated.REG_LCDMODE                  = REG_LCDMODE
-deprecated.REG_DISP_BOTTOM_LEFT         = REG_DISP_BOTTOM_LEFT
-deprecated.REG_DISP_BOTTOM_RIGHT        = REG_DISP_BOTTOM_RIGHT
-deprecated.REG_DISP_TOP_LEFT            = REG_DISP_TOP_LEFT
-deprecated.REG_DISP_TOP_RIGHT           = REG_DISP_TOP_RIGHT
-deprecated.REG_DISP_TOP_ANNUN           = REG_DISP_TOP_ANNUN
-deprecated.REG_DISP_TOP_UNITS           = REG_DISP_TOP_UNITS
-deprecated.REG_DISP_BOTTOM_ANNUN        = REG_DISP_BOTTOM_ANNUN
-deprecated.REG_DISP_BOTTOM_UNITS        = REG_DISP_BOTTOM_UNITS
-deprecated.REG_DISP_AUTO_TOP_ANNUN      = REG_DISP_AUTO_TOP_ANNUN
-deprecated.REG_DISP_AUTO_TOP_LEFT       = REG_DISP_AUTO_TOP_LEFT
-deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = REG_DISP_AUTO_BOTTOM_LEFT
-deprecated.REG_LCD                      = REG_LCD
+deprecated.REG_LCDMODE                  = R400Reg.REG_LCDMODE
+deprecated.REG_DISP_BOTTOM_LEFT         = R400Reg.REG_DISP_BOTTOM_LEFT
+deprecated.REG_DISP_BOTTOM_RIGHT        = R400Reg.REG_DISP_BOTTOM_RIGHT
+deprecated.REG_DISP_TOP_LEFT            = R400Reg.REG_DISP_TOP_LEFT
+deprecated.REG_DISP_TOP_RIGHT           = R400Reg.REG_DISP_TOP_RIGHT
+deprecated.REG_DISP_TOP_ANNUN           = R400Reg.REG_DISP_TOP_ANNUN
+deprecated.REG_DISP_TOP_UNITS           = R400Reg.REG_DISP_TOP_UNITS
+deprecated.REG_DISP_BOTTOM_ANNUN        = R400Reg.REG_DISP_BOTTOM_ANNUN
+deprecated.REG_DISP_BOTTOM_UNITS        = R400Reg.REG_DISP_BOTTOM_UNITS
+deprecated.REG_DISP_AUTO_TOP_ANNUN      = R400Reg.REG_DISP_AUTO_TOP_ANNUN
+deprecated.REG_DISP_AUTO_TOP_LEFT       = R400Reg.REG_DISP_AUTO_TOP_LEFT
+deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = R400Reg.REG_DISP_AUTO_BOTTOM_LEFT
+deprecated.REG_LCD                      = R400Reg.REG_LCD
 
 
 deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
@@ -1187,9 +1057,9 @@ function deprecated.restoreBot()
 end
 
 if _TEST then
-    _M.strLenR400 = strLenR400
-    _M.strSubR400 = strSubR400
-    _M.padDots    = padDots
+    _M.strLenR400 = dispHelp.strLenLCD
+    _M.strSubR400 = dispHelp.strSubLCD
+    _M.padDots    = dispHelp.padDots
     _M.splitWords = splitWords
     _M.convertAnnunciatorBits = convertAnnunciatorBits
 end
