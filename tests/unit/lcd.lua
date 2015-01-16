@@ -126,7 +126,7 @@ describe("LCD #lcd", function ()
         }
         for i = 1, #tc do
             it("test "..i, function()
-                assert.equal(tc[i].r, m.strLenR400(tc[i].s))
+                assert.equal(tc[i].r, m.strLenLCD(tc[i].s))
             end)
         end
     end)
@@ -154,7 +154,7 @@ describe("LCD #lcd", function ()
         }
         for i = 1, #tc do
             it("test "..i, function()
-                assert.equal(tc[i].r, m.strSubR400(unpack(tc[i].a)))
+                assert.equal(tc[i].r, m.strSubLCD(unpack(tc[i].a)))
             end)
         end
     end)

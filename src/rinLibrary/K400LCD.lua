@@ -15,6 +15,7 @@ local tostring = tostring
 local type = type
 local pairs = pairs
 local ipairs = ipairs
+local pcall = pcall
 
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
@@ -141,12 +142,13 @@ local display = {}
 function _M.addDisplay(type, prefix, address)
   prefix = prefix or ''
   
-  local disp = require("rinLibrary.display." .. type)
-  if (disp == nil) then
-    return false, "Display does not exist"
+  --local success, disp  = pcall(require("rinLibrary.display." .. type))
+  local success, disp = true, require("rinLibrary.display." .. type)
+  if (success == false) then
+    return false, disp
   end
   
-  display = disp.add(display, prefix)
+  display = disp.add(private, display, prefix)
   
   return true
 end
@@ -332,7 +334,7 @@ local function write(f, s, params)
             local wait = t.wait
             local once = t.once or wait or t.clear or t.restore or t.finish
             local time = math.max(t.time or 0.8, 0.2)
-            local showText = t.sync and private.writeRegHex or private.writeRegHexAsync
+            local showText = t.sync and f.writeSync or f.writeAsync
 
             if not t.finish then
                 if t.restore then
@@ -343,7 +345,7 @@ local function write(f, s, params)
                     end
                 elseif t.clear then
                     t.finish = function()
-                        private.writeRegHexAsync(f.reg, xform({''}, f.finalFormat)[1])
+                        f.writeAsync(xform({''}, f.finalFormat)[1])
                         f.params, f.current, f.currentReg = nil, '', nil
                     end
                 end
@@ -356,11 +358,11 @@ local function write(f, s, params)
             local function writeToDisplay(s)
                 if f.currentReg ~= s then
                     f.currentReg = s
-                    showText(f.reg, s)
+                    showText(s)
                 end
             end
             writeToDisplay(slideWords[1])
-
+            
             f.slideTimer = timers.addTimer(time, time, function()
                 slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
                 if slidePos == 1 and once then
@@ -377,6 +379,7 @@ local function write(f, s, params)
         elseif f.auto == nil or f.auto == 0 then
             writeAuto(f, f.saveAuto)
         end
+
     end
 end
 
@@ -1057,8 +1060,8 @@ function deprecated.restoreBot()
 end
 
 if _TEST then
-    _M.strLenR400 = dispHelp.strLenLCD
-    _M.strSubR400 = dispHelp.strSubLCD
+    _M.strLenLCD = dispHelp.strLenLCD
+    _M.strSubLCD = dispHelp.strSubLCD
     _M.padDots    = dispHelp.padDots
     _M.splitWords = splitWords
     _M.convertAnnunciatorBits = convertAnnunciatorBits
