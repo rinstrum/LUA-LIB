@@ -6,7 +6,7 @@
 
 describe("LCD #lcd", function ()
     local dregs = {
-        lcdmode                 = 0x000D,
+        --lcdmode                 = 0x000D,
         disp_bottom_left        = 0x000E,
         disp_bottom_right       = 0x000F,
         disp_top_left           = 0x00B0,
