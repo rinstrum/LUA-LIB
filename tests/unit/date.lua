@@ -153,7 +153,7 @@ describe('Date tests #date', function()
             { res = 365,    change = {'british'},       dates = yr(1582) },
             { res = 366,    change = {'european'},      dates = yr(1752) },
             { res = 355,    change = {'european'},      dates = yr(1582) },
-            { res = 354,    change = {'japan'},         dates = yr(1872) },
+            { res = 352,    change = {'japan'},         dates = yr(1918) },
             { res = 354,    change = { 1750,  2,  2 },  dates = yr(1750) },
             { res = 366,    change = {'julian'},        dates = yr(9900) },
             { res = 365,    change = {'china'},         dates = yr(9900) },
