@@ -12,22 +12,7 @@ local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local date = require 'rinLibrary.date'
 
--------------------------------------------------------------------------------
--- Return the length of a month in a given year
--- @param y Year
--- @param m Month
--- @return The number of days in the month
--- @local
-local function monthLength(y, m)
-    if m ~= 2 then
-        return ({ 31, nil, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 })[m]
-    end
-
-    if y%4 == 0 and (y%100 ~= 0 or y%400 == 0) then
-        return 29
-    end
-    return 28
-end
+local monthLength = date.monthLength
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
