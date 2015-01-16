@@ -4,6 +4,8 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local date = require 'rinLibrary.date'
+
 describe("RTC #rtc", function ()
     local dmy, dmyy, mdy, mdyy, ymd, yymd = 0, 1, 2, 3, 4, 5
     local dregs = {
@@ -156,7 +158,7 @@ describe("RTC #rtc", function ()
 
     it("format", function()
         local z = require "tests.messages"
-        local m = makeModule()
+        local m, _, d = makeModule()
         local yr, mo, da, ho, mi, se = 2022, 1, 2, 3, 4, 5
         local results = makeResults(yr, mo, da, ho, mi, se)
 
@@ -165,21 +167,21 @@ describe("RTC #rtc", function ()
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
         assert.is_equal("02/01/2022 03:04:05", m.RTCtostring())
-        assert.is_same({ "day", "month", "year", n=3 },  table.pack(m.RTCgetDateFormat()))
+        assert.is_same({ "day", "month", "year" }, {date.getDateFormat()})
 
-        m.RTCdateFormat('month', 'day', 'year')
+        date.setDateFormat('month', 'day', 'year')
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
         assert.is_equal("01/02/2022 03:04:05", m.RTCtostring())
-        assert.is_same({ "month", "day", "year", n=3 },  table.pack(m.RTCgetDateFormat()))
+        assert.is_same({ "month", "day", "year" }, {date.getDateFormat()})
 
-        m.RTCdateFormat('year', 'month', 'day')
+        date.setDateFormat('year', 'month', 'day')
         assert.is_equal("2022/01/02 03:04:05", m.RTCtostring())
-        assert.is_same({ "year", "month", "day", n=3 },  table.pack(m.RTCgetDateFormat()))
+        assert.is_same({ "year", "month", "day" }, {date.getDateFormat()})
 
-        m.RTCdateFormat('day', 'month', 'year')
+        date.setDateFormat('day', 'month', 'year')
         assert.is_equal("02/01/2022 03:04:05", m.RTCtostring())
-        assert.is_same({ "day", "month", "year", n=3 },  table.pack(m.RTCgetDateFormat()))
+        assert.is_same({ "day", "month", "year" }, {date.getDateFormat()})
     end)
 
     it("rtc read", function()

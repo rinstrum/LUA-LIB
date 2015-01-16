@@ -10,6 +10,7 @@ local string = string
 local tonumber = tonumber
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local date = require 'rinLibrary.date'
 
 -------------------------------------------------------------------------------
 -- Return the length of a month in a given year
@@ -130,11 +131,11 @@ end
 -- @local
 local function setDateFormat(fmt)
     if fmt == TM_DDMMYYYY or fmt == TM_DDMMYY then
-        _M.RTCdateFormat('day', 'month', 'year')
+        date.setDateFormat('day', 'month', 'year')
     elseif fmt == TM_MMDDYYYY or fmt == TM_MMDDYY then
-        _M.RTCdateFormat('month', 'day', 'year')
+        date.setDateFormat('month', 'day', 'year')
     else
-        _M.RTCdateFormat('year', 'month', 'day')
+        date.setDateFormat('year', 'month', 'day')
     end
 end
 
@@ -333,16 +334,16 @@ function private.RTCtick()
         end
     end
 end
+
 -------------------------------------------------------------------------------
 -- Returns formated date string
 -- @return Formatted date string
 -- @see RTCtime
--- @see RTCdateFormat
 -- @see RTCtostring
 -- @usage
 -- print(device.RTCdate())
 function _M.RTCdate()
-    return string.format("%02d/%02d/%02d", RTC[RTC.first], RTC[RTC.second], RTC[RTC.third])
+    return date.formatDate(RTC.year, RTC.month, RTC.day)
 end
 
 -------------------------------------------------------------------------------
@@ -362,56 +363,10 @@ end
 -- @return Formatted date and time string
 -- @see RTCtime
 -- @see RTCdate
--- @see RTCdateFormat
 -- @usage
 -- print(device.RTCtostring())
 function _M.RTCtostring()
     return _M.RTCdate() .. ' ' .. _M.RTCtime()
-end
-
--------------------------------------------------------------------------------
--- Sets the order of the date string
--- @param first  = 'day', 'month' or 'year'
--- @param second  = 'day', 'month' or 'year'
--- @param third = 'day','month' or 'year'
--- @see RTCgetDateFormat
--- @usage
--- -- Set the current date format to year then day then month
--- -- This isn't written to back to the display and is only
--- -- used for formatting output.
--- device.RTCdateFormat('year', 'day', 'month')
-function _M.RTCdateFormat(first,second,third)
-    local first = first or 'day'
-    local second = second or 'month'
-    local third = third or 'year'
-
-    local check = { day = 0, month = 0, year = 0 }
-    check[first] = check[first] + 1
-    check[second] = check[second] + 1
-    check[third] = check[third] + 1
-
-    if check.day == 1 and check.month == 1 and check.year == 1 then
-        RTC.first = first
-        RTC.second = second
-        RTC.third = third
-    else
-        dbg.warn('K400: illegal date format specified:', first, second, third)
-    end
-end
-
--------------------------------------------------------------------------------
--- Gets the order of the date string
--- @return first field
--- @return second field
--- @return third field
--- @see RTCdateFormat
--- @usage
--- local first, second, third = device.RTCgetDateFormat()
--- if first == 'year' and second == 'day' and third == 'month' then
---     print('Someone is being silly with the date formatting')
--- end
-function _M.RTCgetDateFormat()
-    return RTC.first, RTC.second, RTC.third
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -436,6 +391,25 @@ deprecated.TM_YYYYMMDD      = TM_YYYYMMDD
 
 deprecated.RTC              = RTC
 deprecated.RTCread          = private.RTCread
+
+local warnSetDateFormat = true
+function deprecated.RTCdateFormat(first, second, third)
+    if warnSetDateFormat then
+        dbg.warn('K400RTC:', 'RTCdateFormat deprecated, use rinLibary.date.setDateFormat instead')
+        warnSetDateFormat = false
+    end
+    date.setDateFormat(first, second, third)
+end
+
+local warnGetDateFormat = true
+function deprecated.RTCgetDateFormat()
+    if warnGetDateFormat then
+        dbg.warn('K400RTC:', 'RTCgetDateFormat deprecated, use rinLibary.date.getDateFormat instead')
+        warnGetDateFormat = false
+    end
+    return date.getDateFormat()
+end
+
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Expose some internals for testing purposes
