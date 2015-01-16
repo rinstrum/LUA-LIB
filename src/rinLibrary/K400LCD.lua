@@ -135,6 +135,8 @@ local display = {}
 -------------------------------------------------------------------------------
 -- Called to add a display to the framework
 -- @param type Type of display to add. These are stored in rinLibrary.display
+-- @param prefix Name prefix for added display fields
+-- @param address Extra addressing information
 -- @return boolean showing success of adding the framework, error message
 -- @usage
 -- local succeeded, err = device.addDisplay('R400')

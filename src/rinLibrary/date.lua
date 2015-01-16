@@ -150,7 +150,7 @@ end
 -- The default is the British change over date in 1752.  
 -- @param year The year of the final day of the Julian calendar or the name of the country
 -- @param month The month of the final day of the Julian calendar or nil if specified by country
--- @param dat The last day of the Julian calendar or nil if specified by country
+-- @param day The last day of the Julian calendar or nil if specified by country
 -- @usage
 -- -- local date = require'rinLibrary.date'
 --

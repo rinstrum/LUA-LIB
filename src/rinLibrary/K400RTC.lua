@@ -339,7 +339,6 @@ end
 -- Returns formated date string
 -- @return Formatted date string
 -- @see RTCtime
--- @see RTCdateFormat
 -- @see RTCtostring
 -- @usage
 -- print(device.RTCdate())
@@ -364,7 +363,6 @@ end
 -- @return Formatted date and time string
 -- @see RTCtime
 -- @see RTCdate
--- @see RTCdateFormat
 -- @usage
 -- print(device.RTCtostring())
 function _M.RTCtostring()
