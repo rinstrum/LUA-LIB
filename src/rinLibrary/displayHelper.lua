@@ -86,5 +86,4 @@ function _M.rightJustify(s, w)
     return string.rep(" ", w-l) .. s
 end
 
-
 return _M

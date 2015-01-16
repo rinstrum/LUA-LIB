@@ -25,36 +25,41 @@ _M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
 _M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
 
 
-function _M.add(displayTable, prefix)
-
+function _M.add(private, displayTable, prefix)
+  
   displayTable[prefix .. "topleft"] = {
     top = true, left = true, localDisplay = true,
     length = 6,
-    rightJustify = function(s) return rightJustify(s, 6) end,
-    reg = _M.REG_DISP_TOP_LEFT,
+    rightJustify = function(s) return dispHelp.rightJustify(s, 6) end,
+    reg = regValue,
     regUnits = _M.REG_DISP_TOP_UNITS,
     regAuto = _M.REG_DISP_AUTO_TOP_LEFT,
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
     units = nil,
-    auto = nil,       saveAuto = 0
+    auto = nil,
+    saveAuto = 0,
+    writeSync = function (s) return private.writeRegHex(_M.REG_DISP_TOP_UNITS, s) end,
+    writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_TOP_UNITS, s) end
   }
-  
+
   displayTable[prefix .. "topright"] = {
       top = true, right = true, localDisplay = true,
       length = 4,
       rightJustify = function(s) return dispHelp.rightJustify(s, 4) end,
-      reg = _M.REG_DISP_TOP_RIGHT,
+      reg = regValue,
       strlen = dispHelp.strLenLCD, -- need to fix these to match the weird display '8.8-8.8'
       finalFormat = dispHelp.padDots,
-      strsub = dispHelp.strSubLCD
+      strsub = dispHelp.strSubLCD,
+      writeSync = function (s) return private.writeRegHex(_M.REG_DISP_TOP_RIGHT, s) end,
+      writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_TOP_RIGHT, s) end
   }
   
   displayTable[prefix .. "bottomleft"] = {
       bottom = true,  left = true, localDisplay = true,
       length = 9,
-      rightJustify = function(s) return rightJustify(s, 9) end,
+      rightJustify = function(s) return dispHelp.rightJustify(s, 9) end,
       reg = _M.REG_DISP_BOTTOM_LEFT,
       regUnits = _M.REG_DISP_BOTTOM_UNITS,
       regAuto = _M.REG_DISP_AUTO_BOTTOM_LEFT,
@@ -62,7 +67,10 @@ function _M.add(displayTable, prefix)
       finalFormat = dispHelp.padDots,
       strsub = dispHelp.strSubLCD,
       units = nil,
-      auto = nil,       saveAuto = 0
+      auto = nil,
+      saveAuto = 0,
+      writeSync = function (s) return private.writeRegHex(_M.REG_DISP_BOTTOM_LEFT, s) end,
+      writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_BOTTOM_LEFT, s) end
   }
   
   displayTable[prefix .. "bottomright"] = {
@@ -72,7 +80,9 @@ function _M.add(displayTable, prefix)
       reg = _M.REG_DISP_BOTTOM_RIGHT,
       strlen = dispHelp.strLenLCD,
       finalFormat = dispHelp.padDots,
-      strsub = dispHelp.strSubLCD
+      strsub = dispHelp.strSubLCD,
+      writeSync = function (s) return private.writeRegHex(_M.REG_DISP_BOTTOM_RIGHT, s) end,
+      writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_BOTTOM_RIGHT, s) end
   }
   
   return displayTable
