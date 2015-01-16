@@ -9,13 +9,7 @@
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
-
-private.addRegisters{
-    product_total_weight            = 0xB102,
-    product_total_alt_weight        = 0xB103,
-    product_total_count             = 0xB104,
-    product_total_number            = 0xB105
-}
+local numStages, numMaterials = 0, 1
 
 -------------------------------------------------------------------------------
 -- Query the number of materials available in the display.
@@ -23,7 +17,7 @@ private.addRegisters{
 -- @usage
 -- print('We can deal with '..device.getMaterialCount()..' materials.')
 function _M.getMaxMaterialCount()
-    return 1
+    return numMaterials
 end
 
 -------------------------------------------------------------------------------
@@ -32,7 +26,7 @@ end
 -- @usage
 -- print('We can deal with '..device.getStageCount()..' stages.')
 function _M.getMaxStageCount()
-    return 0
+    return numStages
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -49,11 +43,8 @@ private.registerDeviceInitialiser(function()
             material_spec           = 0xC100,
         }
 
-        local numStages = 10
-        local numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
-
-        _M.getMaxStageCount =       function() return numStages end
-        _M.getMaxMaterialCount =    function() return numMaterials end
+        numStages = 10
+        numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
 
         for i = 1, numMaterials do          -- Material registers for each material
             private.addRegisters{ ['material_name'..i] = 0xC080 + i }
@@ -133,4 +124,77 @@ private.registerDeviceInitialiser(function()
     end
 end)
 
+--- Batching Registers
+--
+-- These registers define the extra information about materials and the batch stages.
+-- In all cases below, replace the <i>X</i> by an integer 1 .. ? that represents the
+-- material or stage of interest.
+--@table batchingRegisters
+-- @field material_spec ?
+-- @field material_fltX flt for the Xth material
+-- @field material_mediumX medium for the Xth material
+-- @field material_fastX fast for the Xth material
+-- @field material_totalX total for the Xth material
+-- @field material_numX num for the Xth material
+-- @field material_errorX error for the Xth material
+-- @field material_error_pcX error_pc for the Xth material
+-- @field material_error_averageX error_average for the Xth material
+-- @field product_time ?
+-- @field product_time_average ?
+-- @field product_error ?
+-- @field product_error_pc ?
+-- @field product_error_average ?
+-- @field product_menu_op_stages ?
+-- @field stage_typeX for the Xth stage
+-- @field stage_fill_slowX for the Xth stage
+-- @field stage_fill_mediumX for the Xth stage
+-- @field stage_fill_fastX for the Xth stage
+-- @field stage_fill_ilockX for the Xth stage
+-- @field stage_fill_outputX for the Xth stage
+-- @field stage_fill_feederX for the Xth stage
+-- @field stage_fill_materialX for the Xth stage
+-- @field stage_fill_start_actionX for the Xth stage
+-- @field stage_fill_correctionX for the Xth stage
+-- @field stage_fill_jog_onX for the Xth stage
+-- @field stage_fill_jog_offX for the Xth stage
+-- @field stage_fill_jog_setX for the Xth stage
+-- @field stage_fill_delay_startX for the Xth stage
+-- @field stage_fill_delay_checkX for the Xth stage
+-- @field stage_fill_delay_endX for the Xth stage
+-- @field stage_fill_max_setX for the Xth stage
+-- @field stage_fill_inputX for the Xth stage
+-- @field stage_fill_directionX for the Xth stage
+-- @field stage_fill_input_waitX for the Xth stage
+-- @field stage_fill_sourceX for the Xth stage
+-- @field stage_fill_pulse_scaleX for the Xth stage
+-- @field stage_fill_tol_loX for the Xth stage
+-- @field stage_fill_tol_highX for the Xth stage
+-- @field stage_fill_tol_targetX for the Xth stage
+-- @field stage_dump_dumpX for the Xth stage
+-- @field stage_dump_outputX for the Xth stage
+-- @field stage_dump_enableX for the Xth stage
+-- @field stage_dump_ilockX for the Xth stage
+-- @field stage_dump_typeX for the Xth stage
+-- @field stage_dump_correctionX for the Xth stage
+-- @field stage_dump_delay_startX for the Xth stage
+-- @field stage_dump_delay_checkX for the Xth stage
+-- @field stage_dump_delay_endX for the Xth stage
+-- @field stage_dump_jog_on_timeX for the Xth stage
+-- @field stage_dump_jog_off_timeX for the Xth stage
+-- @field stage_dump_jog_setX for the Xth stage
+-- @field stage_dump_targetX for the Xth stage
+-- @field stage_dump_pulse_timeX for the Xth stage
+-- @field stage_dump_on_tolX for the Xth stage
+-- @field stage_dump_off_tolX for the Xth stage
+-- @field stage_pulse_outputX for the Xth stage
+-- @field stage_pulse_pulseX for the Xth stage
+-- @field stage_pulse_delay_startX for the Xth stage
+-- @field stage_pulse_delay_endX for the Xth stage
+-- @field stage_pulse_start_actionX for the Xth stage
+-- @field stage_pulse_linkX for the Xth stage
+-- @field stage_pulse_timeX for the Xth stage
+-- @field stage_pulse_nameX for the Xth stage
+-- @field stage_pulse_promptX for the Xth stage
+-- @field stage_pulse_inputX for the Xth stage
+-- @field stage_pulse_timerX for the Xth stage
 end

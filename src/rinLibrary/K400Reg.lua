@@ -77,6 +77,10 @@ private.registerDeviceInitialiser(function()
 -- @field select_product_name Read the Selected Product Name, Write to set the Selected product by Name
 -- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
 -- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
+-- @field product_total_weight ?
+-- @field product_total_alt_weight ?
+-- @field product_total_count ?
+-- @field product_total_number ?
         active_product_no       = 0xB000,
         active_product_name     = 0xB006,
         clr_all_totals          = 0xB002,
@@ -84,7 +88,12 @@ private.registerDeviceInitialiser(function()
         select_product_no       = 0xB00F,
         select_product_name     = 0xB010,
         select_product_delete   = 0xB011,
-        select_product_rename   = 0xB012
+        select_product_rename   = 0xB012,
+
+        product_total_weight    = 0xB102,
+        product_total_alt_weight= 0xB103,
+        product_total_count     = 0xB104,
+        product_total_number    = 0xB105
     }
 end)
 

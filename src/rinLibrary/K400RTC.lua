@@ -357,7 +357,6 @@ function _M.RTCtime()
     return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
 end
 
-
 -------------------------------------------------------------------------------
 -- Returns formated date/time string
 -- @return Formatted date and time string
