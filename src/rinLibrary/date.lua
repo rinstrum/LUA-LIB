@@ -38,6 +38,7 @@ local months = {
 local reformationDates = {
     british     = { 1752,  9,  2 },
     european    = { 1582, 10,  4 },
+    julian      = { 9e99, 12, 31 },
 
     austria     = { 1583, 10,  5 },
     bulgaria    = { 1916,  3, 31 },
@@ -140,9 +141,10 @@ end
 -- marked the final day of the Julian calendar in most Catholic European
 -- countries and the second of September 1752 was the final day of the
 -- Julian calendar in the British empire countries.  These can be specified
--- via the short names <i>British</i> and <i>European<i>.
+-- via the short names <i>British</i> and <i>European<i>.  Additionally, the
+-- Julian calendar can be force for all time by specifying <i>Julian</i>.
 --
--- The default is the British change over date in 1752.  
+-- The default is the British change over date in 1752.
 -- @param year The year of the final day of the Julian calendar or the name of the country
 -- @param month The month of the final day of the Julian calendar or nil if specified by country
 -- @param day The last day of the Julian calendar or nil if specified by country
