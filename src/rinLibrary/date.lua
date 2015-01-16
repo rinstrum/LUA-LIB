@@ -6,11 +6,9 @@
 -------------------------------------------------------------------------------
 
 local _M = {}
-
-local ukGregorian = true
-local namings = require 'rinLibrary.namings'
-
 local floor = math.floor
+
+local namings = require 'rinLibrary.namings'
 
 local weekDays = {
     { 'Monday',     'MON' },
@@ -75,9 +73,6 @@ local date_first, date_second, date_third = 'day', 'month', 'year'
 -- @local
 local function isGregorian(year, month, day)
     local y, m, d = unpack(gregorianChange)
---    local y = ukGregorian and 1752 or 1582
---    local m = ukGregorian and 9 or 10
---    local d = ukGregorian and 14 or 15
 
     if year > y then return true
     elseif year < y then return false
@@ -114,7 +109,7 @@ end
 -- @return day Day in month
 -- @local
 local function jdnToYmd(j)
-    local threshold = gregorianFirstDay --ukGregorian and 2361222 or 2299161
+    local threshold = gregorianFirstDay
     local b, c = 0, j + 32082
 
     if j > gregorianFirstDay then
@@ -190,7 +185,7 @@ _M.setReformation('british')
 -- print('The year 2000 is a '..(date.isLeapYear(2000) and 'leap' or 'standard')..' year')
 function _M.isLeapYear(year)
     if year % 4 == 0 then
-        if isGregorian(year, 1, 1)then
+        if isGregorian(year, 1, 1) then
             if year % 100 == 0 then
                 return year % 400 == 0
             end
@@ -217,7 +212,6 @@ end
 function _M.deltaDays(y1, m1, d1, y2, m2, d2)
     return ymdToJdn(y2, m2, d2) - ymdToJdn(y1, m1, d1)
 end
-
 
 -------------------------------------------------------------------------------
 -- Add a number of days to a given date
@@ -256,7 +250,6 @@ function _M.dayOfWeek(year, month, day)
     return day, unpack(weekDays[day])
 end
 
-
 -------------------------------------------------------------------------------
 -- Function to return the length of a month in a given year
 -- @param year Year of interest
@@ -281,7 +274,6 @@ end
 function _M.monthName(month)
     return unpack(months[month])
 end
-
 
 -------------------------------------------------------------------------------
 -- Sets the order of the date string
