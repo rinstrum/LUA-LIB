@@ -18,6 +18,8 @@ local device = rinApp.addK400('k410')
 
 local recipeMenu, managementMenu
 
+-- Our recipe has its own menu for creation and editing.  This defined the
+-- fields and registers in the recipe.
 recipeMenu = device.createMenu { 'RECIPES' }
         .menu { 'TIMERS' }
             .string   { 'recipe', '', prompt='NAME' }
@@ -27,22 +29,26 @@ recipeMenu = device.createMenu { 'RECIPES' }
             .fin()
 
 
+-- Load the recipe database
 local _, menuColumns = recipeMenu.getValues(true)
 local recipeDatabase = csv.loadCSV{
     fname = 'recipes.csv',
     labels = menuColumns
 }
+local recipeCol = csv.labelCol(recipeDatabase, 'RECIPE')
 
-
+-- Utility function to commit changes to flash
 local function commit()
     csv.saveCSV(recipeDatabase)
 end
 
+-- Populate the recipe list field in the management menu
 local function populateRecipes()
     local r = csv.getColCSV(recipeDatabase, 'recipe')
     managementMenu.setList('RECIPE', r or {})
 end
 
+-- Pick a recipe from the pick list of recipe names
 local function pickByName()
     local r = managementMenu.getValue'RECIPE'
     local rec = csv.getRecordCSV(recipeDatabase, r, 'RECIPE')
@@ -51,6 +57,7 @@ local function pickByName()
     end
 end
 
+-- Delete the current recipe from the database
 local function deleteRecipe()
     local recipe = managementMenu.getValue'RECIPE'
     local n = csv.getLineCSV(recipeDatabase, recipe, 'RECIPE')
@@ -60,8 +67,15 @@ local function deleteRecipe()
     end
 end
 
+-- Copy the current settings into a new recipe
 local function addRecipe()
-    local row = recipeMenu.getValues()
+    local val = recipeMenu.getValues()
+    local row = {}
+
+    for _, v in ipairs(menuColumns) do
+        row[csv.labelCol(recipeDatabase, v)] = val[v]
+    end
+
     local ids = csv.getColCSV(recipeDatabase, 'RECIPE')
 
     -- The search for a missing slot can be done a lot more efficiently
@@ -74,7 +88,7 @@ local function addRecipe()
             end
         end
         if not again then
-            row[csv.labelCol(recipeDatabase, 'RECIPE')] = new
+            row[recipeCol] = new
             csv.addLineCSV(recipeDatabase, row)
             commit()
             return
@@ -82,18 +96,25 @@ local function addRecipe()
     end
 end
 
+-- The recipe management menu
 managementMenu = device.createMenu{ 'RECIPES' }
             .list { 'RECIPE', {}, onShow=populateRecipes, onHide=pickByName }
             .item { 'ADD', run=addRecipe }
             .item { 'DELETE', run=deleteRecipe }
             .item { 'QUIT', exit=true }
 
+-- Provide a default recipe (the first one if any are present)
+if csv.numRowsCSV(recipeDatabase) > 0 then
+    managementMenu.setValue('RECIPE', recipeDatabase.data[1][recipeCol])
+end
 
-device.setKeyCallback('f1', recipeMenu.run, 'short')
+-- Hook up the user interface menus to the keys
+device.setKeyCallback('f1', function() recipeMenu.run() commit() end, 'short')
 device.setKeyCallback('f2', managementMenu.run, 'short')
 
-
+-- Produce some welcome text
 device.write('topleft', 'RECIPE DATA BASE')
 device.write('bottomleft', 'PRESS F1 FOR EDIT OR F2 TO PICK')
 
+-- And go
 rinApp.run()
