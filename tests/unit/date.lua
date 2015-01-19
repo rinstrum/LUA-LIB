@@ -32,6 +32,23 @@ describe('Date tests #date', function()
             { res = 29, date = { 2000, 2 } },
             { res = 19, date = { 1752, 9 } },
             { res = 29, date = { 1300, 2 } },
+            { res = 29, date = { 2000, 2 } },
+            { res = 28, date = { 1900, 2 } },
+            { res = 28, date = { 1800, 2 } },
+            { res = 29, date = { 1700, 2 } },   -- Julian Calendar here
+            { res = 29, date = { 1600, 2 } },
+            { res = 29, date = { 1004, 2 } },
+            { res = 31, date = {  999, 1 } },
+            { res = 31, date = { 2000, 3 } },
+            { res = 30, date = { 1003, 4 } },
+            { res = 31, date = { 2654, 5 } },
+            { res = 30, date = { 9999, 6 } },
+            { res = 31, date = {    1, 7 } },
+            { res = 31, date = { 1999, 8 } },
+            { res = 30, date = { 2014, 9 } },
+            { res = 31, date = { 2015, 10 } },
+            { res = 30, date = { 2016, 11 } },
+            { res = 31, date = { 2016, 12 } }
         }
 
         for i = 1, #monlengths do
@@ -41,6 +58,18 @@ describe('Date tests #date', function()
             end)
         end
     end)
+
+    describe("month lengths #monlen", function()
+        local tc = {
+        }
+
+        for k,t in ipairs(tc) do
+            it("test "..k, function()
+                assert.equal(t.r, makeModule().monthLength(t.y, t.m))
+            end)
+        end
+    end)
+
 
     -- test names of months
     describe('names of month #monlen', function()
@@ -124,8 +153,10 @@ describe('Date tests #date', function()
             { res = 365,    change = {'british'},       dates = yr(1582) },
             { res = 366,    change = {'european'},      dates = yr(1752) },
             { res = 355,    change = {'european'},      dates = yr(1582) },
-            { res = 354,    change = {'japan'},         dates = yr(1872) },
+            { res = 352,    change = {'japan'},         dates = yr(1918) },
             { res = 354,    change = { 1750,  2,  2 },  dates = yr(1750) },
+            { res = 366,    change = {'julian'},        dates = yr(9900) },
+            { res = 365,    change = {'china'},         dates = yr(9900) },
             { res = 365,    change = {'british'},       dates = yr(2100) },
        }
 

@@ -6,11 +6,9 @@
 -------------------------------------------------------------------------------
 
 local _M = {}
-
-local ukGregorian = true
-local namings = require 'rinLibrary.namings'
-
 local floor = math.floor
+
+local namings = require 'rinLibrary.namings'
 
 local weekDays = {
     { 'Monday',     'MON' },
@@ -40,27 +38,46 @@ local months = {
 local reformationDates = {
     british     = { 1752,  9,  2 },
     european    = { 1582, 10,  4 },
+    julian      = { 9e99, 12, 31 },
 
+	albania     = { 1912, 11, 30 },
+	australia   = { 1752,  9,  2 },
     austria     = { 1583, 10,  5 },
-    bulgaria    = { 1916,  3, 31 },
+	belgium     = { 1582, 12, 14 },
+    bulgaria    = { 1916,  3, 18 },
     canada      = { 1752,  9,  2 },
     china       = { 1912, 12, 18 },
+	czech       = { 1584,  1,  6 },
+	denmark     = { 1700,  2, 18 },
     england     = { 1752,  9,  2 },
     estonia     = { 1918,  1, 31 },
+	finland     = { 1753,  2, 17 },
     france      = { 1582, 12,  9 },
-    germany     = { 1582, 12, 31 },
-    greece      = { 1923,  2, 15 },
+    germany     = { 1700,  2, 18 },
+    greece      = { 1924,  3,  9 },
     hungary     = { 1587, 10, 21 },
+	iceland     = { 1700, 11, 16 },
     italy       = { 1582, 10,  4 },
-    japan       = { 1872, 12, 19 },
+    japan       = { 1918, 12, 18 },
     korea       = { 1894, 12, 19 },
+	latvia      = { 1918,  2,  1 },
+	lithuania   = { 1918,  2,  1 },
+	luxembourg  = { 1582, 12, 14 },
+	netherlands = { 1582, 12, 14 },
+	norway      = { 1700,  2, 18 },
     poland      = { 1582, 10,  4 },
     portugal    = { 1582, 10,  4 },
     prussia     = { 1610,  8, 22 },
+	romania     = { 1919,  3, 31 },
     russia      = { 1918,  1, 31 },
+	slovenia    = { 1919,  3,  4 },
     spain       = { 1582, 10,  4 },
+	sweden      = { 1753,  2, 17 },
+	switzerland = { 1655,  2, 28 },
     turkey      = { 1926, 12, 18 },
-    usa         = { 1752,  9,  2 }
+	uk          = { 1752,  9,  2 },
+    usa         = { 1752,  9,  2 },
+	yugoslavia  = { 1919,  3,  4 }
 }
 
 local gregorianChange, gregorianFirstDay
@@ -75,9 +92,6 @@ local date_first, date_second, date_third = 'day', 'month', 'year'
 -- @local
 local function isGregorian(year, month, day)
     local y, m, d = unpack(gregorianChange)
---    local y = ukGregorian and 1752 or 1582
---    local m = ukGregorian and 9 or 10
---    local d = ukGregorian and 14 or 15
 
     if year > y then return true
     elseif year < y then return false
@@ -114,7 +128,7 @@ end
 -- @return day Day in month
 -- @local
 local function jdnToYmd(j)
-    local threshold = gregorianFirstDay --ukGregorian and 2361222 or 2299161
+    local threshold = gregorianFirstDay
     local b, c = 0, j + 32082
 
     if j > gregorianFirstDay then
@@ -145,9 +159,10 @@ end
 -- marked the final day of the Julian calendar in most Catholic European
 -- countries and the second of September 1752 was the final day of the
 -- Julian calendar in the British empire countries.  These can be specified
--- via the short names <i>British</i> and <i>European<i>.
+-- via the short names <i>British</i> and <i>European<i>.  Additionally, the
+-- Julian calendar can be force for all time by specifying <i>Julian</i>.
 --
--- The default is the British change over date in 1752.  
+-- The default is the British change over date in 1752.
 -- @param year The year of the final day of the Julian calendar or the name of the country
 -- @param month The month of the final day of the Julian calendar or nil if specified by country
 -- @param day The last day of the Julian calendar or nil if specified by country
@@ -190,7 +205,7 @@ _M.setReformation('british')
 -- print('The year 2000 is a '..(date.isLeapYear(2000) and 'leap' or 'standard')..' year')
 function _M.isLeapYear(year)
     if year % 4 == 0 then
-        if isGregorian(year, 1, 1)then
+        if isGregorian(year, 1, 1) then
             if year % 100 == 0 then
                 return year % 400 == 0
             end
@@ -217,7 +232,6 @@ end
 function _M.deltaDays(y1, m1, d1, y2, m2, d2)
     return ymdToJdn(y2, m2, d2) - ymdToJdn(y1, m1, d1)
 end
-
 
 -------------------------------------------------------------------------------
 -- Add a number of days to a given date
@@ -256,7 +270,6 @@ function _M.dayOfWeek(year, month, day)
     return day, unpack(weekDays[day])
 end
 
-
 -------------------------------------------------------------------------------
 -- Function to return the length of a month in a given year
 -- @param year Year of interest
@@ -281,7 +294,6 @@ end
 function _M.monthName(month)
     return unpack(months[month])
 end
-
 
 -------------------------------------------------------------------------------
 -- Sets the order of the date string

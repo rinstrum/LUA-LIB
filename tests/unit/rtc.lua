@@ -50,34 +50,6 @@ describe("RTC #rtc", function ()
         assert.equal(yymd,  d.TM_YYYYMMDD)
     end)
 
-    describe("month lengths #monlen", function()
-        local tc = {
-            { y = 2000, m =  2, r = 29 },
-            { y = 1900, m =  2, r = 28 },
-            { y = 1800, m =  2, r = 28 },
-            { y = 1700, m =  2, r = 28 },
-            { y = 1600, m =  2, r = 29 },
-            { y = 1004, m =  2, r = 29 },
-            { y =  999, m =  1, r = 31 },
-            { y = 2000, m =  3, r = 31 },
-            { y = 1003, m =  4, r = 30 },
-            { y = 2654, m =  5, r = 31 },
-            { y = 9999, m =  6, r = 30 },
-            { y =    1, m =  7, r = 31 },
-            { y = 1999, m =  8, r = 31 },
-            { y = 2014, m =  9, r = 30 },
-            { y = 2015, m = 10, r = 31 },
-            { y = 2016, m = 11, r = 30 },
-            { y = 2016, m = 12, r = 31 }
-        }
-
-        for k,t in ipairs(tc) do
-            it("test "..k, function()
-                assert.equal(t.r, makeModule().monthLength(t.y, t.m))
-            end)
-        end
-    end)
-
     local function makeResults(yr, mo, da, ho, mi, se)
         local results = {}
         if yr ~= nil then table.insert(results, { r=dregs.timeyear, yr }) end
