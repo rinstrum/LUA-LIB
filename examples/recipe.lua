@@ -33,6 +33,12 @@ local recipeDatabase = csv.loadCSV{
     fname = 'recipes.csv',
     labels = menuColumns
 }
+-- Utility function to commit changes to flash
+local function commit()
+    csv.saveCSV(recipeDatabase)
+end
+commit()
+
 local recipeCol = csv.labelCol(recipeDatabase, 'RECIPE')
 local currentRecipe = 1
 
@@ -42,11 +48,6 @@ local function getRecipeName(n)
         return recipeDatabase.data[n][recipeCol]
     end
     return ''
-end
-
--- Utility function to commit changes to flash
-local function commit()
-    csv.saveCSV(recipeDatabase)
 end
 
 -- Populate the recipe list field in the management menu
