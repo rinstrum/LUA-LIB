@@ -247,7 +247,7 @@ describe("CSV tests #csv", function()
             { l = {1},      r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } }, msg = "incorrect number of columns.  Expected 2 have 1" },
             { l = {1,2,3},  r = { {1, 2}, {4, 3}, {5, 6} },         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } }, msg = "incorrect number of columns.  Expected 2 have 3" },
             { l = {8, 9},   r = { {1, 2}, {4, 3}, {5, 6} },         t = {                        data = { {1, 2}, {4, 3}, {5, 6} } } },
-            { l = {8, 9},   r = nil,                                t = { labels = { "a", "b" }, } },
+            { l = {8, 9},   r = { {8, 9} },                         t = { labels = { "a", "b" }, } },
         }
 
         for i = 1, #addLineCsvTests do

@@ -523,6 +523,25 @@ function _M.undoLogLineCSV(t)
     return false
 end
 
+
+-------------------------------------------------------------------------------
+-- Helper function to take a record with field names and produce a numerically
+-- indexed row vector
+-- @param t is table holding CSV data
+-- @param rec Record with field names
+-- @return Row vector
+-- @local
+local function recordToLine(t, rec)
+    local q, l = {}, {}
+    for k, v in pairs(rec) do
+        q[canonical(k)] = v
+    end
+    for i = 1, #t.labels do
+        table.insert(l, q[canonical(t.labels[i])])
+    end
+    return l
+end
+
 -------------------------------------------------------------------------------
 -- Adds line of data to a table
 -- @param t is table holding CSV data
@@ -538,13 +557,21 @@ end
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
 function _M.addLineCSV(t, line)
-    if hasData(t) and line ~= nil then
-        if #line ~= _M.numColsCSV(t) then
-            dbg.warn("addLineCSV: ", "incorrect number of columns.  Expected " .. _M.numColsCSV(t) .. " have " .. #line)
-            return nil
+    if isCSV(t) then
+        if not hasData(t) then
+            t.data = {}
         end
-        table.insert(t.data, line)
-        return _M.numRowsCSV(t)
+        if line ~= nil then
+            if #line == 0 then
+                line = recordToLine(t, line)
+            end
+            if #line ~= _M.numColsCSV(t) then
+                dbg.warn("addLineCSV: ", "incorrect number of columns.  Expected " .. _M.numColsCSV(t) .. " have " .. #line)
+                return nil
+            end
+            table.insert(t.data, line)
+            return _M.numRowsCSV(t)
+        end
     end
     return nil
 end
@@ -843,8 +870,13 @@ function _M.replaceLineCSV(t, row, line)
     if row ~= nil and hasData(t) and row > 0 and row <= _M.numRowsCSV(t) then
         if line == nil then
             _M.remLineCSV(t, row)
-        elseif #line == _M.numColsCSV(t) then
-            t.data[row] = line
+        else
+            if #line == 0 then
+                line = recordToLine(t, line)
+            end
+            if #line == _M.numColsCSV(t) then
+                t.data[row] = line
+            end
         end
     end
 end
