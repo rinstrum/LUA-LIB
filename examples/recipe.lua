@@ -61,7 +61,7 @@ local function deleteRecipe()
 end
 
 local function addRecipe()
-    local row = paramsToRow()
+    local row = recipeMenu.getValues()
     local ids = csv.getColCSV(recipeDatabase, 'RECIPE')
 
     -- The search for a missing slot can be done a lot more efficiently
