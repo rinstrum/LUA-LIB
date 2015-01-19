@@ -38,7 +38,7 @@ local currentRecipe = 1
 
 -- Get the name of the nth recipe or null if the index isn't valid
 local function getRecipeName(n)
-    if n > 0 and n <= csv.numRowsCSV(recipeDatabase) then
+    if n and n > 0 and n <= csv.numRowsCSV(recipeDatabase) then
         return recipeDatabase.data[n][recipeCol]
     end
     return ''
@@ -61,7 +61,7 @@ local function pickByName()
     local rec = csv.getRecordCSV(recipeDatabase, r, 'RECIPE')
     if rec ~= nil then
         recipeMenu.setValues(rec)
-        currentRecipe = res
+        currentRecipe = csv.getLineCSV(recipeDatabase, r, 'RECIPE')
     end
 end
 
@@ -79,13 +79,7 @@ end
 
 -- Copy the current settings into a new recipe
 local function addRecipe()
-    local val = recipeMenu.getValues()
-    local row = {}
-
-    for _, v in ipairs(menuColumns) do
-        row[csv.labelCol(recipeDatabase, v)] = val[v]
-        print('row', v, val[v])
-    end
+    local row = recipeMenu.getValues()
 
     local ids = csv.getColCSV(recipeDatabase, 'RECIPE')
 
@@ -101,8 +95,7 @@ local function addRecipe()
             end
         end
         if not again then
-            print('new', new)
-            row[recipeCol] = new
+            row.recipe = new
             csv.addLineCSV(recipeDatabase, row)
             currentRecipe = csv.numRowsCSV(recipeDatabase)
             commit()
@@ -129,12 +122,7 @@ local function editRecipe()
         addRecipe()
     end
     recipeMenu.run()
-    local val = recipeMenu.getValues()
-    local row = {}
-    for i = 1, #menuColumns do
-        table.insert(row, val[menuColumns[i]])
-    end
-    csv.replaceLineCSV(recipeDatabase, currentRecipe, row)
+    csv.replaceLineCSV(recipeDatabase, currentRecipe, recipeMenu.getValues())
     commit()
     populateRecipes()
     managementMenu.setValue('RECIPE', getRecipeName(currentRecipe))
