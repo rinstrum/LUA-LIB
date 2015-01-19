@@ -153,8 +153,8 @@ function _M.rangerC(string, status, motion, zero, range, units)
     weight = string.format("%-7s", weight)
   end
   
-  return '\002' .. sign .. weight .. vStatus .. vMotion .. vZero .. 
-      vRange .. vUnits .. '\003' 
+  return '\\02' .. sign .. weight .. vStatus .. vMotion .. vZero .. 
+      vRange .. vUnits .. '\\03' 
 
 end
 
