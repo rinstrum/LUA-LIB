@@ -31,7 +31,7 @@ function _M.add(private, displayTable, prefix)
     top = true, left = true, localDisplay = true,
     length = 6,
     rightJustify = function(s) return dispHelp.rightJustify(s, 6) end,
-    reg = regValue,
+    reg = _M.REG_DISP_TOP_LEFT,
     regUnits = _M.REG_DISP_TOP_UNITS,
     regAuto = _M.REG_DISP_AUTO_TOP_LEFT,
     strlen = dispHelp.strLenLCD,
@@ -40,15 +40,15 @@ function _M.add(private, displayTable, prefix)
     units = nil,
     auto = nil,
     saveAuto = 0,
-    writeSync = function (s) return private.writeRegHex(_M.REG_DISP_TOP_UNITS, s) end,
-    writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_TOP_UNITS, s) end
+    writeSync = function (s) return private.writeRegHex(_M.REG_DISP_TOP_LEFT, s) end,
+    writeAsync = function (s) return private.writeRegHexAsync(_M.REG_DISP_TOP_LEFT, s) end
   }
 
   displayTable[prefix .. "topright"] = {
       top = true, right = true, localDisplay = true,
       length = 4,
       rightJustify = function(s) return dispHelp.rightJustify(s, 4) end,
-      reg = regValue,
+      reg = _M.REG_DISP_TOP_RIGHT,
       strlen = dispHelp.strLenLCD, -- need to fix these to match the weird display '8.8-8.8'
       finalFormat = dispHelp.padDots,
       strsub = dispHelp.strSubLCD,
