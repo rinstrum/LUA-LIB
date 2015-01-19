@@ -649,19 +649,24 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Save menu values into a table.
 -- @function getValues
+-- @param doLabels True if the column labels are wanted, default not
 -- @return Table containing all the fields from this menu
+-- @return Labels for column headings, if doLabels is true
 -- @see setValues
 -- @see toCSV
 -- @usage
 -- local values = myMenu.setValues()
-        function menu.getValues()
-            local r = {}
+        function menu.getValues(doLabels)
+            local r, labels = {}, doLabels and {} or nil
             for k, v in pairs(fields) do
                 if v.getValue then
                     r[k] = v.getValue()
+                    if labels then
+                        table.insert(labels, k)
+                    end
                 end
             end
-            return r
+            return r, labels
         end
     end
 
