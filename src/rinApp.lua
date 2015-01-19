@@ -170,6 +170,7 @@ function _M.addK400(model, ip, portA, portB)
     device.streamCleanup()  -- Clean up any existing streams on connect
     device.setupKeys()
     device.addDisplay("R400")
+    device.addDisplay("console")
     device.setupStatus()
     device.lcdControl('lua')
     device.configure()

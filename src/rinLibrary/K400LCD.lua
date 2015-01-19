@@ -328,7 +328,7 @@ end
 -- @param params Display parameters
 -- @local
 local function write(f, s, params)
-    if f and f.reg ~= nil then
+    if f then
         removeSlideTimer(f)
         if s then
             local t = writeArgs(params)

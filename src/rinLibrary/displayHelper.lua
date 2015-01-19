@@ -11,6 +11,8 @@ local _M = {}
 local string = string
 local tostring = tostring
 
+local namings = require 'rinLibrary.namings'
+
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
 local P, Pi, R, S, V, spc = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V, lpeg.space
@@ -84,6 +86,76 @@ function _M.rightJustify(s, w)
     end
     if s:sub(1, 1) == '.' then l = l - 1 end
     return string.rep(" ", w-l) .. s
+end
+
+
+
+-------------------------------------------------------------------------------
+-- Convert a string to Ranger C
+-- @param string String to write to the display
+-- @param status Status to display. Can be one of gross/net/underload/overload/error/none
+-- @param motion Motion annunciator, can be 'motion' or 'stable'
+-- @param zero
+-- @param range
+-- @param units
+-- @return string on success, nil and error on failure
+function _M.rangerC(string, status, motion, zero, range, units)
+  local sign
+  local weight
+  
+  local sT = {gross='G', net='N', underload='U', overload='O', error='E', none=' '}
+  local mT = {motion='M', stable=' '}
+  local zT = {zero='Z', nonzero=' '}
+  local rT = {range1='1', range2='2', none='-'}
+  local uT = {kg=' kg', t='  t', none='   '}
+  
+  local vStatus = namings.convertNameToValue(status or 'none', sT)
+  local vMotion = namings.convertNameToValue(motion or 'stable', mT)
+  local vZero = namings.convertNameToValue(zero or 'nonzero', zT)
+  local vRange = namings.convertNameToValue(range or 'none', rT)
+  local vUnits = namings.convertNameToValue(units or 'none', uT)
+
+  if (vStatus == nil) then
+    return nil, "invalid status"
+  end
+ 
+  if (vMotion == nil) then
+    return nil, "invalid motion"
+  end
+  
+  if (vZero == nil) then
+    return nil, "invalid zero"
+  end
+  
+  if (vRange == nil) then
+    return nil, "invalid range"
+  end
+  
+  if (vUnits == nil) then
+    return nil, "invalid units"
+  end
+  
+  -- Check the length of the input
+  if (#string > 7) then
+    return nil, "string too long"
+  end
+  
+  -- Extract the sign name
+  if (string:sub(1,1) == '-') then
+    sign = '-'
+    weight = string:sub(2)
+  else
+    sign = ' '
+    weight = string
+  end
+  
+  if (#weight < 7) then
+    weight = string.format("%-7s", weight)
+  end
+  
+  return '\002' .. sign .. weight .. vStatus .. vMotion .. vZero .. 
+      vRange .. vUnits .. '\003' 
+
 end
 
 return _M
