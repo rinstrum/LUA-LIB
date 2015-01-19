@@ -538,13 +538,18 @@ end
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
 function _M.addLineCSV(t, line)
-    if hasData(t) and line ~= nil then
-        if #line ~= _M.numColsCSV(t) then
-            dbg.warn("addLineCSV: ", "incorrect number of columns.  Expected " .. _M.numColsCSV(t) .. " have " .. #line)
-            return nil
+    if isCSV(t) then
+        if not hasData(t) then
+            t.data = {}
         end
-        table.insert(t.data, line)
-        return _M.numRowsCSV(t)
+        if line ~= nil then
+            if #line ~= _M.numColsCSV(t) then
+                dbg.warn("addLineCSV: ", "incorrect number of columns.  Expected " .. _M.numColsCSV(t) .. " have " .. #line)
+                return nil
+            end
+            table.insert(t.data, line)
+            return _M.numRowsCSV(t)
+        end
     end
     return nil
 end
