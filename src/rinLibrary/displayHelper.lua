@@ -146,14 +146,28 @@ function _M.rangerC(string, status, motion, zero, range, units)
 end
 
 -------------------------------------------------------------------------------
--- Transmit a table using rangerC
-function _M.frameRangerC(displayItem, func)
-  return func(displayItem.reg, _M.rangerC(displayItem.curString, 
-                                          displayItem.curStatus, 
-                                          displayItem.curMotion, 
-                                          displayItem.curZero, 
-                                          displayItem.curRange, 
-                                          displayItem.curUnits))
+-- Build a transmittable message using rangerC
+function _M.frameRangerC(displayItem)
+  return _M.rangerC(displayItem.curString, 
+                    displayItem.curStatus, 
+                    displayItem.curMotion, 
+                    displayItem.curZero, 
+                    displayItem.curRange, 
+                    displayItem.curUnits)
+end
+
+-------------------------------------------------------------------------------
+-- Write a message to a register either synchronously or asynchronously
+-- @param private The private portion of a K400 device
+-- @param sync Boolean, true means synchronous writing
+-- @param reg Register to write to
+-- @param s String to write
+-- @return reply received from instrument, nil if error
+-- @return err error string if error received, nil otherwise
+-- @local
+function _M.writeRegHex(private, sync, reg, s)
+    local f = private[sync and 'writeRegHex' or 'writeRegHexAsync']
+    return f(reg, s)
 end
 
 return _M

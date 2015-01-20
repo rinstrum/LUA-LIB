@@ -29,9 +29,10 @@ function _M.add(private, displayTable, prefix)
     curUnits = dispHelp.rangerCFunc('units', 'none'),
     --writeUnits = , -- Function here
     write = function (s, sync)
-                  local wf = private[sync and 'writeRegHex' or 'writeRegHexAsync']
-                  displayTable[prefix].curString = s 
-                  return dispHelp.frameRangerC(displayTable[prefix], wf) 
+                  local me = displayTable[prefix]
+                  me.curString = s
+                  local toSend = dispHelp.frameRangerC(me)
+                  return dispHelp.writeRegHex(private, sync, me.reg, toSend)
                 end,
   }
   
