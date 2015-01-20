@@ -338,7 +338,7 @@ local function write(f, s, params)
             local wait = t.wait
             local once = t.once or wait or t.clear or t.restore or t.finish
             local time = math.max(t.time or 0.8, 0.2)
-            local write, sync = f.write, t.sync
+            local sync = t.sync
 
             if not t.finish then
                 if t.restore then
@@ -349,7 +349,7 @@ local function write(f, s, params)
                     end
                 elseif t.clear then
                     t.finish = function()
-                        f.writeAsync(xform({''}, f.finalFormat)[1])
+                        f.write(xform({''}, f.finalFormat)[1], false)
                         f.params, f.current, f.currentReg = nil, '', nil
                     end
                 end
@@ -362,7 +362,7 @@ local function write(f, s, params)
             local function writeToDisplay(s)
                 if f.currentReg ~= s then
                     f.currentReg = s
-                    write(s, sync)
+                    f.write(s, sync)
                 end
             end
             writeToDisplay(slideWords[1])
