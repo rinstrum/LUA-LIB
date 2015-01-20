@@ -150,6 +150,8 @@ function _M.addDisplay(type, prefix, address)
     return false, disp
   end
   
+  prefix = naming.canonicalisation(prefix);
+  
   display = disp.add(private, display, prefix)
   
   return true

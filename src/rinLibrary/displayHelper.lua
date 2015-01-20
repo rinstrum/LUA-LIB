@@ -150,7 +150,7 @@ function _M.rangerC(string, status, motion, zero, range, units)
   end
   
   if (#weight < 7) then
-    weight = string.format("%-7s", weight)
+    weight = ("       " .. weight ):sub(-7)
   end
   
   return '\\02' .. sign .. weight .. vStatus .. vMotion .. vZero .. 

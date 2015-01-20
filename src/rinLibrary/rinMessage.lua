@@ -15,6 +15,7 @@ local invert = require('rinSystem.utilities').invert
 local string    = string
 local table     = table
 local tonumber  = tonumber
+local type      = type
 local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 
 local _M = {}
