@@ -21,14 +21,21 @@ function _M.add(private, displayTable, prefix)
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
-    curString = 'none', 
-    curStatus = 'stable',
-    curMotion = 'nonzero',
-    curRange = 'none',
-    curUnits = 'none',
+    curString = "       ", 
+    curStatus = dispHelp.rangerCFunc('status', 'none'),
+    curMotion = dispHelp.rangerCFunc('motion', 'stable'),
+    curZero = dispHelp.rangerCFunc('zero', 'nonzero'),
+    curRange = dispHelp.rangerCFunc('range', 'none'),
+    curUnits = dispHelp.rangerCFunc('units', 'none'),
     --writeUnits = , -- Function here
-    writeSync = function (s) return private.writeRegHex(_M.REG_AUTO_OUT, dispHelp.rangerC(s, 'net', 'stable', 'nonzero', 'none', 'kg')) end,
-    writeAsync = function (s) return private.writeRegHexAsync(_M.REG_AUTO_OUT, dispHelp.rangerC(s, 'net', 'stable', 'nonzero', 'none', 'kg')) end
+    writeSync = function (s) 
+                  displayTable[prefix].curString = s 
+                  return dispHelp.frameRangerC(displayTable[prefix], private.writeRegHex) 
+                end,
+    writeAsync = function (s) 
+                   displayTable[prefix].curString = s 
+                   return dispHelp.frameRangerC(displayTable[prefix], private.writeRegHexAsync) 
+                 end,
   }
   
   return displayTable

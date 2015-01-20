@@ -7,6 +7,10 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
+
+local string = string
+local tostring = tostring
+
 local lpeg = require 'rinLibrary.lpeg'
 local Cs, spc = lpeg.Cs, lpeg.space
 local nspc = 1 - spc

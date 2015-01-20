@@ -88,7 +88,26 @@ function _M.rightJustify(s, w)
     return string.rep(" ", w-l) .. s
 end
 
+local sT = {gross='G', net='N', underload='U', overload='O', error='E', none='G'}
+local mT = {motion='M', stable=' '}
+local zT = {zero='Z', nonzero=' '}
+local rT = {range1='1', range2='2', none='-'}
+local uT = {kg=' kg', t='  t', none='   '}
 
+function _M.rangerCFunc(item, value)
+
+  local tb = {status=sT, motion=mT, zero=zT, range=rT, units=uT}
+  
+  local itemTb = namings.convertNameToValue(namings.canonicalisation(item) or 'none', tb)
+  
+  local newValue = namings.convertNameToValue(value or 'none', itemTb)
+  
+  if (newValue == nil) then
+    return nil, "invalid"
+  end
+  
+  return newValue
+end
 
 -------------------------------------------------------------------------------
 -- Convert a string to Ranger C
@@ -102,38 +121,6 @@ end
 function _M.rangerC(string, status, motion, zero, range, units)
   local sign
   local weight
-  
-  local sT = {gross='G', net='N', underload='U', overload='O', error='E', none=' '}
-  local mT = {motion='M', stable=' '}
-  local zT = {zero='Z', nonzero=' '}
-  local rT = {range1='1', range2='2', none='-'}
-  local uT = {kg=' kg', t='  t', none='   '}
-  
-  local vStatus = namings.convertNameToValue(status or 'none', sT)
-  local vMotion = namings.convertNameToValue(motion or 'stable', mT)
-  local vZero = namings.convertNameToValue(zero or 'nonzero', zT)
-  local vRange = namings.convertNameToValue(range or 'none', rT)
-  local vUnits = namings.convertNameToValue(units or 'none', uT)
-
-  if (vStatus == nil) then
-    return nil, "invalid status"
-  end
- 
-  if (vMotion == nil) then
-    return nil, "invalid motion"
-  end
-  
-  if (vZero == nil) then
-    return nil, "invalid zero"
-  end
-  
-  if (vRange == nil) then
-    return nil, "invalid range"
-  end
-  
-  if (vUnits == nil) then
-    return nil, "invalid units"
-  end
   
   -- Check the length of the input
   if (#string > 7) then
@@ -153,9 +140,20 @@ function _M.rangerC(string, status, motion, zero, range, units)
     weight = ("       " .. weight ):sub(-7)
   end
   
-  return '\\02' .. sign .. weight .. vStatus .. vMotion .. vZero .. 
-      vRange .. vUnits .. '\\03' 
+  return '\\02' .. sign .. weight .. status .. motion .. zero .. 
+      range .. units .. '\\03' 
 
+end
+
+-------------------------------------------------------------------------------
+-- Transmit a table using rangerC
+function _M.frameRangerC(displayItem, func)
+  return func(displayItem.reg, _M.rangerC(displayItem.curString, 
+                                          displayItem.curStatus, 
+                                          displayItem.curMotion, 
+                                          displayItem.curZero, 
+                                          displayItem.curRange, 
+                                          displayItem.curUnits))
 end
 
 return _M
