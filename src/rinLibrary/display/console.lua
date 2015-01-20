@@ -24,8 +24,7 @@ function _M.add(private, displayTable, prefix)
     finalFormat = function (s) return s end,
     strsub = string.sub,
     saveAuto = 0,
-    writeSync = print,
-    writeAsync = print
+    write = function(s, sync) print(s) end
   }
   
   return displayTable 

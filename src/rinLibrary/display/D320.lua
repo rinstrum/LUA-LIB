@@ -28,14 +28,11 @@ function _M.add(private, displayTable, prefix)
     curRange = dispHelp.rangerCFunc('range', 'none'),
     curUnits = dispHelp.rangerCFunc('units', 'none'),
     --writeUnits = , -- Function here
-    writeSync = function (s) 
+    write = function (s, sync)
+                  local wf = private[sync and 'writeRegHex' or 'writeRegHexAsync']
                   displayTable[prefix].curString = s 
-                  return dispHelp.frameRangerC(displayTable[prefix], private.writeRegHex) 
+                  return dispHelp.frameRangerC(displayTable[prefix], wf) 
                 end,
-    writeAsync = function (s) 
-                   displayTable[prefix].curString = s 
-                   return dispHelp.frameRangerC(displayTable[prefix], private.writeRegHexAsync) 
-                 end,
   }
   
   return displayTable
