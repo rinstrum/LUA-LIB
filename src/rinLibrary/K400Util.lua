@@ -30,6 +30,7 @@ local REG_COMMS_START       = 0x0309
 local REG_SOFTMODEL         = 0x0003
 local REG_SOFTVER           = 0x0004
 private.REG_SERIALNO        = 0x0005
+local REG_DUAL_RANGE        = 0x1120
 
 local REG_PRIMARY_DISPMODE   = 0x0306
 local REG_SECONDARY_DISPMODE = 0x0307
@@ -57,7 +58,8 @@ local settings = {
     },
     curDispMode = DISPMODE_PRIMARY,
     hiRes = false,
-    curRange = 1
+    curRange = 1,
+    dualRange = 'single'
 }
 
 local instrumentModel = nil
@@ -119,6 +121,21 @@ end
 function _M.isHiRes()
     return settings.hiRes
 end
+
+-------------------------------------------------------------------------------
+-- Query if we're in single range, dual interval or dual range mode
+-- @return String describing the range setting
+-- @usage
+-- print('Device is in '..device.dualRangeMode()..' range mode')
+function _M.dualRangeMode()
+    return settings.dualRange
+end
+
+--- Dual range modes
+-- @table DualRangeModes
+-- @field single Single range mode
+-- @field dual.i Dual interval mode
+-- @field dual.r Dual range mode
 
 -------------------------------------------------------------------------------
 -- Query the current setting of a given field in the specified display mode
@@ -188,6 +205,8 @@ end
 -- @local
 function private.readSettings()
     settings.fullscale = private.readReg('fullscale')
+    settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE))
+    print('dual range = ', settings.dualRange)
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
             local data, err = private.readRegHex(settings.dispmode[mode].reg)
