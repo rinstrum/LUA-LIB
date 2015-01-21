@@ -88,11 +88,11 @@ function _M.rightJustify(s, w)
     return string.rep(" ", w-l) .. s
 end
 
-local sT = {gross='G', net='N', underload='U', overload='O', error='E', none='G'}
-local mT = {motion='M', stable=' '}
-local zT = {zero='Z', nonzero=' '}
+local sT = {gross='G', net='N', uload='U', oload='O', error='E', none='G'}
+local mT = {motion='M', notmotion=' '}
+local zT = {zero='Z', notzero=' '}
 local rT = {range1='1', range2='2', none='-'}
-local uT = {kg=' kg', t='  t', none='   '}
+local uT = {kg=' kg', t='  t', lb=' lb', g='  g', none='   '}
 
 function _M.rangerCFunc(item, value)
 

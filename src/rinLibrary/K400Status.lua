@@ -492,6 +492,7 @@ end
 -- @local
 local function statusCallback(data, err)
     curStatus = data
+    private.callbackLCDStatus()
     for k,v in pairs(statBinds) do
         local status = bit32.band(data,k)
         if status ~= v.lastStatus  then

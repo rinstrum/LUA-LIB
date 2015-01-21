@@ -157,6 +157,30 @@ function _M.addDisplay(type, prefix, address)
   return true
 end
 
+-------------------------------------------------------------------------------
+-- Show the status (net/gross, overload, etc.) on a display
+-- @param displayDevice The display to mirror to
+-- @param setting boolean value, true for mirror, false for off
+function _M.mirrorStatus(displayDevice, setting)
+  local name = naming.canonicalisation(displayDevice)
+  displayDevice = naming.convertNameToValue(name or 'none', display)
+  
+  if (displayDevice) then
+    displayDevice.mirrorStatus = setting
+    displayDevice.transmit(false)
+  end
+end
+
+-------------------------------------------------------------------------------
+-- Private function to update the status (if mirrorStatus enabled)
+function private.callbackLCDStatus()
+  for k,v in pairs(display) do
+    if v.writeStatus and v.mirrorStatus then
+      v.writeStatus(_M.anyStatusSet, _M.allStatusSet, _M.dualRangeMode())
+    end
+  end
+end
+
 --- Display Control Modes.
 --
 -- The control parameter for the write to display functions is reasonably

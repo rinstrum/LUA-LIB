@@ -206,7 +206,6 @@ end
 function private.readSettings()
     settings.fullscale = private.readReg('fullscale')
     settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE))
-    print('dual range = ', settings.dualRange)
     for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
         if settings.dispmode[mode].reg ~= 0 then
             local data, err = private.readRegHex(settings.dispmode[mode].reg)
