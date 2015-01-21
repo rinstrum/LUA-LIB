@@ -92,7 +92,7 @@ local sT = {gross='G', net='N', uload='U', oload='O', error='E', none='G'}
 local mT = {motion='M', notmotion=' '}
 local zT = {zero='Z', notzero=' '}
 local rT = {range1='1', range2='2', none='-'}
-local uT = {kg=' kg', t='  t', lb=' lb', g='  g', none='   '}
+local uT = {kg=' kg', lb=' lb', t='  t',  g='  g', oz=' oz', n='  n', arrow_l='   ', p='  p', l='  L', arrow_h='   ', none='   '}
 
 function _M.rangerCFunc(item, value)
 
