@@ -767,7 +767,7 @@ function _M.getColCSV(csvtbl, col)
 end
 
 -------------------------------------------------------------------------------
--- Retrun a row of data from a CSV table
+-- Return a row of data from a CSV table
 -- @param csvtbl table holding CSV data
 -- @param row The row number
 -- @return Table containing the row of data numerically indexed
@@ -783,7 +783,7 @@ function _M.getRowCSV(csvtbl, row)
 end
 
 -------------------------------------------------------------------------------
--- Retrun a row of data from a CSV table as a named record
+-- Return a row of data from a CSV table as a named record
 -- @param csvtbl table holding CSV data
 -- @param row The row number
 -- @return Table containing the row of data indexed by name
@@ -792,7 +792,7 @@ end
 --
 -- local row = csv.getRowByNumber(myCSV, 3)
 -- print(row.name)
-function _M.getRowByNumber(csvtbl, row)
+function _M.getRowRecord(csvtbl, row)
     if type(row) == 'number' and hasData(csvtbl) and row > 0 and row <= _M.numRowsCSV(csvtbl) then
         return makeRecord(csvtbl, csvtbl.data[row])
     end

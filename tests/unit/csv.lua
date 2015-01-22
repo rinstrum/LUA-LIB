@@ -241,8 +241,8 @@ describe("CSV tests #csv", function()
     end)
 
     -- test getRowByNumber
-    describe("getRowByNumber #getrowbynumber", function()
-        local getRowByNumberTests = {
+    describe("getRowRecord #getrowrecord", function()
+        local getRowRecordTests = {
             { n = 1,    r = { a=1, b=2 },   t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
             { n = 2,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
             { n = 3,    r = { a=5, b=6 },   t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
@@ -253,10 +253,10 @@ describe("CSV tests #csv", function()
             { n = 0,    r = nil }
         }
 
-        for i = 1, #getRowByNumberTests do
+        for i = 1, #getRowRecordTests do
             it("test "..i, function()
-                local r = getRowByNumberTests[i]
-                assert.same(r.r, csv.getRowByNumber(r.t, r.n))
+                local r = getRowRecordTests[i]
+                assert.same(r.r, csv.getRowRecord(r.t, r.n))
             end)
         end
     end)
