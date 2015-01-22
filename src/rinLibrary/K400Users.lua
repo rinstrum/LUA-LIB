@@ -95,7 +95,7 @@ end
     function _M.setUserId(id, s)
         local u = checkId(id, 'userid')
         if u ~= nil then
-            private.writeReg(u, s)
+            _M.setRegister(u, s)
         end
     end
 
@@ -109,7 +109,7 @@ end
     function _M.getUserId(id)
         local u = checkId(id, 'userid')
         if u ~= nil then
-            return private.readReg(u)
+            return _M.getRegister(u)
         end
     end
 
@@ -137,7 +137,7 @@ end
     function _M.setUserNumber(id, x)
         local u = checkId(id, 'usernum')
         if u ~= nil then
-            private.writeReg(u, x)
+            _M.setRegister(u, x)
         end
     end
 
@@ -151,7 +151,7 @@ end
     function _M.getUserNumber(id)
         local u = checkId(id, 'usernum')
         if u ~= nil then
-            return private.readReg(u)
+            return _M.getRegister(u)
         end
     end
 
@@ -179,7 +179,7 @@ end
     function _M.setUserIdName(id, n)
         local u = checkId(id, 'userid_name')
         if u ~= nil then
-            private.writeReg(u, n)
+            _M.setRegister(u, n)
         end
     end
 
@@ -193,7 +193,7 @@ end
     function _M.getUserIdName(id)
         local u = checkId(id, 'userid_name')
         if u ~= nil then
-            return private.readReg(u)
+            return _M.getRegister(u)
         end
     end
 
@@ -221,7 +221,7 @@ end
     function _M.setUserNumberName(id, n)
         local u = checkId(id, 'usernum_name')
         if u ~= nil then
-            private.writeReg(u, n)
+            _M.setRegister(u, n)
         end
     end
 
@@ -235,7 +235,7 @@ end
     function _M.getUserNumberName(id)
         local u = checkId(id, 'usernum_name')
         if u ~= nil then
-            return private.readReg(u)
+            return _M.getRegister(u)
         end
     end
 
