@@ -430,7 +430,7 @@ local function queryRegisterInformation(reg, name, post, ...)
         return regCache[r][name], nil
     end
 
-    local data, err = post(sendRegWait(...))
+    local data, err = post(reg, sendRegWait(...))
     if err == nil then
         regCache[r][name] = data
     end
@@ -440,12 +440,13 @@ end
 -------------------------------------------------------------------------------
 -- Query helper function that simply returns its arguments.
 -- This is used for a no modification query
+-- @param reg Register being queried
 -- @param data Data returned from the display
 -- @param err Error code from display
 -- @return Data
 -- @return Error code
 -- @local
-local function queryNoChanges(data, err)
+local function queryNoChanges(reg, data, err)
     return data, err
 end
 
@@ -462,12 +463,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Query helper function to get decimal places from a query return code
+-- @param reg Register being queried
 -- @param data Formatted value returned from display
 -- @param err Error code from display
 -- @return Number of decimal places
 -- @return Error code
 -- @local
-local function queryDecimalPlaces(data, err)
+local function queryDecimalPlaces(reg, data, err)
     if err then
         return data, err
     end
@@ -490,12 +492,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Query helper function to get permissions from the permission return code
+-- @param reg Register being queried
 -- @param data Permission code returned from display
 -- @param err Error code from display
 -- @return Permissions table
 -- @return Error code
 -- @local
-local function queryPermissions(data, err)
+local function queryPermissions(reg, data, err)
     local p = tonumber(data, 16) or 15
     return {
         read = permissionsMap[p % 4],
@@ -517,12 +520,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Query helper function to get type from the type code
+-- @param reg Register being queried
 -- @param data Type code returned from display
 -- @param err Error code from display
 -- @return Type name
 -- @return Error code
 -- @local
-local function queryType(data, err)
+local function queryType(reg, data, err)
     return typeMap[tonumber(data, 16) or -1], err
 end
 
@@ -539,13 +543,17 @@ end
 
 -------------------------------------------------------------------------------
 -- Query helper function to get a number from the data
+-- @param reg Register being queried
 -- @param data Data returned from display
 -- @param err Error code from display
 -- @return Numeric data
 -- @return Error code
 -- @local
-local function queryNum(data, err)
-    return tonumber(data, 16), err
+local function queryNum(reg, data, err)
+    if err then
+        return data, err
+    end
+    return private.toFloat(data, private.getRegDecimalPlaces(reg)), nil
 end
 
 -------------------------------------------------------------------------------
@@ -556,6 +564,7 @@ end
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMax(reg)
+    local dp = private.getRegDecimalPlaces(reg)
     return queryRegisterInformation(reg, 'max', queryNum, 'rdrangemax', reg)
 end
 
@@ -567,6 +576,7 @@ end
 -- @return Error code or nil for no error
 -- @local
 function private.getRegMin(reg)
+    local dp = private.getRegDecimalPlaces(reg)
     return queryRegisterInformation(reg, 'min', queryNum, 'rdrangemin', reg)
 end
 
@@ -586,6 +596,94 @@ function _M.getRegInfo(reg)
         decimalPlaces   = private.getRegDecimalPlaces(reg),
         permissions     = private.getRegPermissions(reg)
     }
+end
+
+-------------------------------------------------------------------------------
+-- Read a numeric register and convert according to the current decimal place
+-- settings etc
+-- @param reg Register to query
+-- @return value of register or nil on error
+-- @return eror message or nil for no error
+-- @local
+local function getNumber(reg)
+    local n, err = private.readRegHex(reg)
+    if n == nil then
+        return nil, err
+    end
+    return private.toFloat(n, private.getRegDecimalPlaces(reg))
+end
+
+-------------------------------------------------------------------------------
+-- Write a numeric register and convert according to the current decimal place
+-- settings etc
+-- @param reg Register to query
+-- @param val Value to write to the register (real)
+-- @local
+local function setNumber(reg, val)
+    val = math.max(private.getRegMin(reg), math.min(private.getRegMax(reg), val))
+    val = math.floor(val * powersOfTen[private.getRegDecimalPlaces(reg)] + 0.5)
+    if val < 0 then
+        val = val + 4294967296
+    end
+    return private.writeRegHexAsync(reg, val)
+end
+
+local registerAccessorsByType = {
+--  type            read function           write function
+    char        = { getNumber,              setNumber                   },
+    uchar       = { getNumber,              setNumber                   },
+    short       = { getNumber,              setNumber                   },
+    ushort      = { getNumber,              setNumber                   },
+    long        = { getNumber,              setNumber                   },
+    ulong       = { getNumber,              setNumber                   },
+    string      = { private.readRegLiteral, private.writeReg            },
+    option      = { private.readRegHex,     private.writeRegHexAsync    },
+    menu        = { private.readRegHex,     private.writeRegHexAsync    },
+    weight      = { getNumber,              setNumber                   },
+    blob        = { private.readRegHex,     private.writeRegHexAsync    },
+    execute     = { nil,                    private.exReg               },
+    bitfield    = { private.readRegHex,     private.writeRegHexAsync    },
+}
+
+-------------------------------------------------------------------------------
+-- Type and range congiscent register query function
+-- @param reg Register to read
+-- @return Register's value, nil on error
+-- @return Error message, nil for no error
+-- @usage
+-- local value = getRegister('')
+function _M.getRegister(reg)
+    local t, err = private.getRegType(reg)
+    if t == nil then
+        return nil, err
+    end
+
+    local acc = registerAccessorsByType[t]
+    if acc and acc[1] then
+        return acc[1](reg)
+    end
+    return nil, (acc == nil) and "no such register type" or 'cannot get register'
+end
+
+-------------------------------------------------------------------------------
+-- Type and range congiscent register query function
+-- @param reg Register to set
+-- @param value Value to set register to
+-- @return Register's value, nil on error
+-- @return Error message, nil for no error
+-- @usage
+-- setRegister('', 3.14)
+function _M.setRegister(reg, value)
+    local t, err = private.getRegType(reg)
+    if t == nil then
+        return nil, err
+    end
+
+    local acc = registerAccessorsByType[t]
+    if acc and acc[2] then
+        return acc[2](reg, value)
+    end
+    return (acc == nil) and "no such register type" or 'cannot set register'
 end
 
 -------------------------------------------------------------------------------
