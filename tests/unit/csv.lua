@@ -509,6 +509,23 @@ describe("CSV tests #csv", function()
         end
     end)
 
+    -- test rows iterator
+    describe("rows #rows", function()
+        local rowsTests = {
+            { t = { labels = { 'a', 'b' }, data = {} }, r = nil },
+            { t = { labels = { 'x', 'y' }, data = { { 1, 2 }, { 'a', 3 }, { 2, 'c' } } },
+              r = { { 1, { 1, 2 } }, { 2, { 'a', 3 } }, { 3, { 2, 'c' } } } }
+        }
+        for i = 1, #rowsTests do
+            local r, q = rowsTests[i], nil
+            for n, r in csv.rows(r.t) do
+                if q == nil then q = {} end
+                table.insert(q, { n, r })
+            end
+            assert.same(r.r, q)
+        end
+    end)
+
     -- test logLineCSV
     describe("logLineCSV #loglinecsv", function()
         pending("unimplemented test case")

@@ -464,7 +464,11 @@ function _M.getLogSize(t)
 end
 
 -------------------------------------------------------------------------------
--- Adds line of data to a CSV file but does not update local data in table
+-- Adds line of data to a CSV file but does not update local data in table.
+--
+-- This call removes all in memory data form the CSV table and the only copy is
+-- in the file.  Specifically, this means you cannot search the CSV file after
+-- making this call -- whatever you search for will <b>not</b> be found.
 -- @param t is table describing CSV data
 -- @param line is a row of data (1d array) to save
 -- @see addLineCSV
@@ -1039,6 +1043,24 @@ end
 -- print("the table has " .. csv.numRowsCSV(csvfile) .. " columns")
 function _M.numColsCSV(t)
     return isCSV(t) and #t.labels or 0
+end
+
+-------------------------------------------------------------------------------
+-- Return an iterator over the rows of the given CSV table
+-- @param t CSV table
+-- @return iterator
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- for n, row in csv.rows(myCSV) do
+-- end
+function _M.rows(t)
+    return function(t, n)
+        n = n + 1
+        if n <= _M.numRowsCSV(t) then
+            return n, t.data[n]
+        end
+    end, t, 0
 end
 
 -------------------------------------------------------------------------------
