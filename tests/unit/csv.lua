@@ -518,11 +518,32 @@ describe("CSV tests #csv", function()
         }
         for i = 1, #rowsTests do
             local r, q = rowsTests[i], nil
-            for n, r in csv.rows(r.t) do
-                if q == nil then q = {} end
-                table.insert(q, { n, r })
-            end
-            assert.same(r.r, q)
+            it("test "..i, function()
+                for n, r in csv.rows(r.t) do
+                    if q == nil then q = {} end
+                    table.insert(q, { n, r })
+                end
+                assert.same(r.r, q)
+            end)
+        end
+    end)
+
+    -- test record iterator
+    describe("records #records", function()
+        local recordsTests = {
+            { t = { labels = { 'a', 'b' }, data = {} }, r = nil },
+            { t = { labels = { 'x', 'y' }, data = { { 1, 2 }, { 'a', 3 }, { 2, 'c' } } },
+              r = { { 1, { x=1, y=2 } }, { 2, { x='a', y=3 } }, { 3, { x=2, y='c' } } } }
+        }
+        for i = 1, #recordsTests do
+            local r, q = recordsTests[i], nil
+            it("test "..i, function()
+                for n, r in csv.records(r.t) do
+                    if q == nil then q = {} end
+                    table.insert(q, { n, r })
+                end
+                assert.same(r.r, q)
+            end)
         end
     end)
 

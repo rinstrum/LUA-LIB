@@ -1046,19 +1046,41 @@ function _M.numColsCSV(t)
 end
 
 -------------------------------------------------------------------------------
--- Return an iterator over the rows of the given CSV table
+-- Return an iterator over the rows of the given CSV table.
+-- Each row is presented as a table indexed numerically.
 -- @param t CSV table
 -- @return iterator
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
 -- for n, row in csv.rows(myCSV) do
+--     print('row '..n, row[1], row[2])
 -- end
 function _M.rows(t)
     return function(t, n)
         n = n + 1
         if n <= _M.numRowsCSV(t) then
             return n, t.data[n]
+        end
+    end, t, 0
+end
+
+-------------------------------------------------------------------------------
+-- Return an iterator over the rows of the given CSV table.
+-- Each row is presented as a table indexed by name.
+-- @param t CSV table
+-- @return iterator
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- for n, row in csv.records(myCSV) do
+--     print('row '..n, row.name, row.weight)
+-- end
+function _M.records(t)
+    return function(t, n)
+        n = n + 1
+        if n <= _M.numRowsCSV(t) then
+            return n, makeRecord(t, t.data[n])
         end
     end, t, 0
 end
