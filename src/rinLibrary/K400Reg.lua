@@ -662,7 +662,7 @@ function _M.getRegister(reg)
     if acc and acc[1] then
         return acc[1](reg)
     end
-    return nil, (acc == nil) and "no such register type" or 'cannot get register'
+    return nil, (acc == nil) and "unknown register type" or 'cannot get register'
 end
 
 -------------------------------------------------------------------------------
@@ -683,7 +683,7 @@ function _M.setRegister(reg, value)
     if acc and acc[2] then
         return acc[2](reg, value)
     end
-    return (acc == nil) and "no such register type" or 'cannot set register'
+    return (acc == nil) and "unknown register type" or 'cannot set register'
 end
 
 -------------------------------------------------------------------------------
