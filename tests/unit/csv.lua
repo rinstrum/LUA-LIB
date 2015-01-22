@@ -219,6 +219,27 @@ describe("CSV tests #csv", function()
         end
     end)
 
+    -- test getRowCSV
+    describe("getRowCSV #getrowcsv", function()
+        local getRowCsvTests = {
+            { n = 1,    r = { 1, 2 },       t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+            { n = 2,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { n = 3,    r = {5, 6},         t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } } },
+            { n = 3,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { n = 0,    r = nil,            t = { labels = { "a", "b" }, data = { {1, 2} } } },
+            { n = 0,    r = nil,            t = { labels = { "a", "b" } } },
+            { n = 0,    r = nil,            t = { data = { {1, 2} } } },
+            { n = 0,    r = nil }
+        }
+
+        for i = 1, #getRowCsvTests do
+            it("test "..i, function()
+                local r = getRowCsvTests[i]
+                assert.same(r.r, csv.getRowCSV(r.t, r.n))
+            end)
+        end
+    end)
+
     -- test getColCSV
     describe("getUniqueColCSV #getuniquecolcsv", function()
         local getUniqueColCsvTests = {

@@ -757,6 +757,22 @@ function _M.getColCSV(csvtbl, col)
 end
 
 -------------------------------------------------------------------------------
+-- Retrun a row of data from a CSV table
+-- @param csvtbl table holding CSV data
+-- @param row The row number
+-- @return Table containing the row of data numerically indexed
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- local row = csv.getRowCSV(myCSV, 3)
+function _M.getRowCSV(csvtbl, row)
+    if type(row) == 'number' and hasData(csvtbl) and row > 0 and row <= _M.numRowsCSV(csvtbl) then
+        return deepcopy(csvtbl.data[row])
+    end
+    return nil
+end
+
+-------------------------------------------------------------------------------
 -- Returns the unique different values from a column of data in a 1-D table
 -- @param csvtbl is table holding CSV data
 -- @param col is the column of data to match (default is col 1), column names are allowed
