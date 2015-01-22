@@ -669,6 +669,23 @@ function _M.getLineCSV(t, val, col)
 end
 
 -------------------------------------------------------------------------------
+-- Build a row record from a row vector
+-- @param t is table holding CSV data
+-- @param line is a row vector
+-- @return row table
+-- @local
+local function makeRecord(t, line)
+    if t and line then
+        local r = {}
+        for i = 1, _M.numColsCSV(t) do
+            r[canonical(t.labels[i])] = line[i]
+        end
+        return r
+    end
+    return nil
+end
+
+-------------------------------------------------------------------------------
 -- Return a table containung a row of a CSV file.  Unlike getLineCSV, the
 -- fields are named using the column labels.
 -- @param t is table holding CSV data
@@ -686,15 +703,8 @@ end
 -- print('A is', row.a)
 function _M.getRecordCSV(t, val, col)
     if hasData(t) then
-        local ret, line = {}
-
-        _, line = _M.getLineCSV(t, val, col)
-        if line ~= nil then
-            for i = 1, _M.numColsCSV(t) do
-                ret[canonical(t.labels[i])] = line[i]
-            end
-            return ret
-        end
+        local _, line = _M.getLineCSV(t, val, col)
+        return makeRecord(t, line)
     end
     return nil
 end
@@ -768,6 +778,23 @@ end
 function _M.getRowCSV(csvtbl, row)
     if type(row) == 'number' and hasData(csvtbl) and row > 0 and row <= _M.numRowsCSV(csvtbl) then
         return deepcopy(csvtbl.data[row])
+    end
+    return nil
+end
+
+-------------------------------------------------------------------------------
+-- Retrun a row of data from a CSV table as a named record
+-- @param csvtbl table holding CSV data
+-- @param row The row number
+-- @return Table containing the row of data indexed by name
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+--
+-- local row = csv.getRowByNumber(myCSV, 3)
+-- print(row.name)
+function _M.getRowByNumber(csvtbl, row)
+    if type(row) == 'number' and hasData(csvtbl) and row > 0 and row <= _M.numRowsCSV(csvtbl) then
+        return makeRecord(csvtbl, csvtbl.data[row])
     end
     return nil
 end
