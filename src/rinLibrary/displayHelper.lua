@@ -153,7 +153,7 @@ function _M.frameRangerC(displayItem)
                     displayItem.curMotion, 
                     displayItem.curZero, 
                     displayItem.curRange, 
-                    displayItem.curUnits)
+                    displayItem.curUnits1)
 end
 
 -------------------------------------------------------------------------------

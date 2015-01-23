@@ -8,6 +8,8 @@
 
 local _M = {}
 
+local bit32 = require "bit"
+local naming = require 'rinLibrary.namings'
 local dispHelp = require "rinLibrary.displayHelper"
 
 --LCD display registers
@@ -24,6 +26,32 @@ _M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
 _M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
 _M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
 
+local unitAnnunciators = {
+    none      = 0,
+    kg        = 0x01,
+    lb        = 0x02,
+    t         = 0x03,
+    g         = 0x04,
+    oz        = 0x05,
+    n         = 0x06,
+    arrow_l   = 0x07,
+    p         = 0x08,
+    l         = 0x09,
+    arrow_h   = 0x0A
+}
+
+local otherAunnuncitors = {
+    none    = 0,
+    per_h   = 0x14,
+    per_m   = 0x11,
+    per_s   = 0x12,
+    percent = 0x30,     pc  = 0x30,
+    total   = 0x08,     tot = 0x08,
+    second  = 0x02,     s = 0x02,
+    minute  = 0x01,     m = 0x01,
+    hour    = 0x04,     h = 0x04,
+    slash   = 0x10
+}
 
 function _M.add(private, displayTable, prefix)
   
@@ -37,10 +65,27 @@ function _M.add(private, displayTable, prefix)
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
-    units = nil,
+    units1 = nil,
+    units2 = nil,
     auto = nil,
     saveAuto = 0,
-    write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_TOP_LEFT, s) end
+    write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_TOP_LEFT, s) end,
+    writeUnits = function (units1, units2)
+    
+                local me = displayTable[prefix .. "topleft"]
+                
+                local u = naming.convertNameToValue(units1, unitAnnunciators, 0x00)
+                local o = naming.convertNameToValue(units2, otherAunnuncitors, 0x00)
+                local v = bit32.bor(bit32.lshift(o, 8), u)
+                
+                if me.units1 ~= units1 or me.units2 ~= units2 then
+                  private.writeReg(me.regUnits, v)
+                  me.units1 = units1
+                  me.units2 = units2
+                end
+                
+                return units1, units2
+              end,
   }
 
   displayTable[prefix .. "topright"] = {
@@ -64,10 +109,27 @@ function _M.add(private, displayTable, prefix)
       strlen = dispHelp.strLenLCD,
       finalFormat = dispHelp.padDots,
       strsub = dispHelp.strSubLCD,
-      units = nil,
+      units1 = nil,
+      units2 = nil,
       auto = nil,
       saveAuto = 0,
-      write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_BOTTOM_LEFT, s) end
+      write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_BOTTOM_LEFT, s) end,
+      writeUnits = function (units1, units2)
+
+            local me = displayTable[prefix .. "bottomleft"]
+            
+            local u = naming.convertNameToValue(units1, unitAnnunciators, 0x00)
+            local o = naming.convertNameToValue(units2, otherAunnuncitors, 0x00)
+            local v = bit32.bor(bit32.lshift(o, 8), u)
+            
+            if me.units1 ~= units1 or me.units2 ~= units2 then
+              private.writeReg(me.regUnits, v)
+              me.units1 = units1
+              me.units2 = units2
+            end
+            
+            return units1, units2
+          end,
   }
   
   displayTable[prefix .. "bottomright"] = {

@@ -310,18 +310,6 @@ local function writeAuto(f, register)
 end
 
 -------------------------------------------------------------------------------
--- Write the specified units value to the specified display field
--- @param f Display field
--- @param v Unit value to write
--- @local
-local function units(f, v)
-    if f and f.regUnits ~= nil and f.units ~= v then
-        private.writeReg(f.regUnits, v)
-        f.units = v or 0
-    end
-end
-
--------------------------------------------------------------------------------
 -- Decode the time argument to the write function.
 -- The input argument can be a number which is interpreted as a time,
 -- it can be nil for all defaults or it can be a table which is returned
@@ -366,10 +354,10 @@ local function write(f, s, params)
 
             if not t.finish then
                 if t.restore then
-                    local c, p, u = f.current, f.params, f.units
+                    local c, p, u, w = f.current, f.params, f.units1, f.units2
                     t.finish = function()
                         write(f, c, p)
-                        units(f, u)
+                        f.writeUnits(f, u, w)
                     end
                 elseif t.clear then
                     t.finish = function()
@@ -431,12 +419,15 @@ end
 local function saver(p)
     local restorations = {}
     map(p, function(v)
-            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units or 0 })
+            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units1, w=v.units2, wu=v.writeUnits })
         end)
+        
     return function()
         for _, v in ipairs(restorations) do
             write(v.f, v.c, v.p)
-            units(v.f, v.u)
+            if (v.wu) then 
+              v.wu(v.u, v.w)
+            end
         end
     end
 end
@@ -756,7 +747,7 @@ local annunciatorMap = {
 -- @field p
 -- @field l
 -- @field arrow_h
-local unitAnnunciators = {
+local unitAnnunciators = { -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
     none      = 0,
     kg        = 0x01,
     lb        = 0x02,
@@ -782,7 +773,7 @@ local unitAnnunciators = {
 -- @field second Second annunicator
 -- @field slash Slash line
 -- @field total Total annunciator
-local otherAunnuncitors = {
+local otherAnnuncitors = { -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
     none    = 0,
     per_h   = 0x14,
     per_m   = 0x11,
@@ -888,11 +879,14 @@ end
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
-    local u = naming.convertNameToValue(unts, unitAnnunciators, 0x00)
-    local o = naming.convertNameToValue(other, otherAunnuncitors, 0x00)
-    local v = bit32.bor(bit32.lshift(o, 8), u)
-
-    return units(naming.convertNameToValue(where, display), v)
+    
+    local f = naming.convertNameToValue(where, display)
+    
+    if f then
+      return f.writeUnits(unts, other)
+    else  
+      return nil, nil, "Invalid name"
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -1033,7 +1027,7 @@ deprecated.BAL_SEGG                     = annunciatorMap.bal_segg.v
 deprecated.RANGE_SEGADG                 = annunciatorMap.range_segadg.v
 deprecated.RANGE_SEGC                   = annunciatorMap.range_segc.v
 deprecated.RANGE_SEGE                   = annunciatorMap.range_sege.v
-deprecated.UNITS_NONE                   = unitAnnunciators.none
+deprecated.UNITS_NONE                   = unitAnnunciators.none  -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
 deprecated.UNITS_KG                     = unitAnnunciators.kg
 deprecated.UNITS_LB                     = unitAnnunciators.lb
 deprecated.UNITS_T                      = unitAnnunciators.t
@@ -1044,13 +1038,13 @@ deprecated.UNITS_ARROW_L                = unitAnnunciators.arrow_l
 deprecated.UNITS_P                      = unitAnnunciators.p
 deprecated.UNITS_L                      = unitAnnunciators.l
 deprecated.UNITS_ARROW_H                = unitAnnunciators.arrow_h
-deprecated.UNITS_OTHER_PER_H            = otherAunnuncitors.per_h
-deprecated.UNITS_OTHER_PER_M            = otherAunnuncitors.per_m
-deprecated.UNITS_OTHER_PER_S            = otherAunnuncitors.per_s
-deprecated.UNITS_OTHER_PC               = otherAunnuncitors.pc
-deprecated.UNITS_OTHER_TOT              = otherAunnuncitors.tot
+deprecated.UNITS_OTHER_PER_H            = otherAnnuncitors.per_h  -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
+deprecated.UNITS_OTHER_PER_M            = otherAnnuncitors.per_m
+deprecated.UNITS_OTHER_PER_S            = otherAnnuncitors.per_s
+deprecated.UNITS_OTHER_PC               = otherAnnuncitors.pc
+deprecated.UNITS_OTHER_TOT              = otherAnnuncitors.tot
 
-deprecated.rightJustify                 = rightJustify
+deprecated.rightJustify                 = dispHelp.rightJustify
 
 -------------------------------------------------------------------------------
 -- Save the bottom left and right fields and units.
@@ -1066,7 +1060,8 @@ function deprecated.saveBot()
         function(v)
             v.saveCurrent = v.current
             v.saveParams = v.params
-            v.saveUnits = v.units or 0
+            v.saveUnits1 = v.units1
+            v.saveUnits2 = v.units2
         end)
 end
 
@@ -1083,7 +1078,7 @@ function deprecated.restoreBot()
     map(function(v) return v.bottom end,
         function(v)
             write(v, v.saveCurrent, v.saveParams)
-            units(v, v.saveUnits or 0)
+            v.nits(v.saveUnits1, v.saveUnits2)
         end)
 end
 

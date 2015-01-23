@@ -26,7 +26,8 @@ function _M.add(private, displayTable, prefix)
     curMotion = dispHelp.rangerCFunc('motion', 'notmotion'),
     curZero = dispHelp.rangerCFunc('zero', 'notzero'),
     curRange = dispHelp.rangerCFunc('range', 'none'),
-    curUnits = dispHelp.rangerCFunc('units', 'none'),
+    curUnits1 = dispHelp.rangerCFunc('units', 'none'),
+    curUnits2 = nil,
     mirrorStatus = false,
     writeStatus = function (anyStatusSet, allStatusSet, dualRangeMode)
                     local me = displayTable[prefix]
@@ -72,7 +73,18 @@ function _M.add(private, displayTable, prefix)
                     return me.transmit(false)
                     
                   end,
-    --writeUnits = , -- Function here
+    writeUnits = function (units1, units2)
+                    local val, e = dispHelp.rangerCFunc('units', units1)
+                    
+                    if (val == nil) then
+                      return val, e
+                    end
+        
+                    displayTable[prefix].curUnits1 = val
+                    displayTable[prefix].transmit(false)
+                    
+                    return units1, nil
+                  end,
     write = function (s, sync)
                   displayTable[prefix].curString = s
                   displayTable[prefix].transmit(sync)
