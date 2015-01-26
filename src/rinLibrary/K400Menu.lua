@@ -406,10 +406,10 @@ local function makeMenu(args, parent, fields)
             end
         end)
         item.getValue = function()
-            return (private.readRegHex(reg))
+            return (private.getRegister(reg))
         end
         item.setValue = function(v)
-            private.writeRegHexAsync(reg, v)
+            private.setRegister(reg, v)
         end
         return add(item)
     end
