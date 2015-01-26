@@ -1060,7 +1060,7 @@ function _M.rows(t)
     return function(t, n)
         n = n + 1
         if n <= _M.numRowsCSV(t) then
-            return n, t.data[n]
+            return n, deepcopy(t.data[n])
         end
     end, t, 0
 end
