@@ -6,6 +6,9 @@
 -- @copyright 2015 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local csv       = require 'rinLibrary.rinCSV'
+local canonical = require('rinLibrary.namings').canonicalisation
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -50,7 +53,7 @@ private.registerDeviceInitialiser(function()
             private.addRegisters{ ['material_name'..i] = 0xC080 + i }
             local f = (i-1) * 0x10
             for k, v in pairs{
-                flt                 = 0xC101,
+                flight              = 0xC101,
                 medium              = 0xC102,
                 fast                = 0xC103,
                 total               = 0xC104,
@@ -131,7 +134,8 @@ end)
 -- material or stage of interest.
 --@table batchingRegisters
 -- @field material_spec ?
--- @field material_fltX flt for the Xth material
+-- @field material_nameX name of the Xth material
+-- @field material_flightX flight for the Xth material
 -- @field material_mediumX medium for the Xth material
 -- @field material_fastX fast for the Xth material
 -- @field material_totalX total for the Xth material
@@ -197,4 +201,170 @@ end)
 -- @field stage_pulse_promptX for the Xth stage
 -- @field stage_pulse_inputX for the Xth stage
 -- @field stage_pulse_timerX for the Xth stage
+
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Material database management.
+-- We only use the first material but implement a full database of materials
+-- as a CSV file.  This allows maximum compatibility with devices without
+-- limiting anything
+
+--- Material definition fields
+--
+-- These are the fields in the materials.csv material definition file.
+-- They are loaded into and retrieved from the first material registers and
+-- are intended to be used to allow an unlimited number of materials regardless
+-- of the number of built in materials supported.
+--@table MaterialFields
+-- @field name Material name, this is the key field to specify a material by
+-- @field flight flight
+-- @field medium medium
+-- @field fast fast
+-- @field total total
+-- @field num num
+-- @field error error
+-- @field error_pc error_pc
+-- @field error_average error_average
+
+private.registerDeviceInitialiser(function()
+    local materialCSV
+    local fields = {
+                    'name', 'flight', 'medium', 'fast',
+                    'total', 'num',
+                    'error', 'error_pc', 'error_average'
+                }
+    local registers = {}
+    for i = 1, #fields do
+        table.insert(registers, 'material_' .. fields[i] .. '1')
+    end
+
+-------------------------------------------------------------------------------
+-- Open the material CSV file, if it isn't already opened.
+-- @local
+    local function openMaterialCSV()
+        if materialCSV ~= nil then
+            materialCSV = csv.openCSV{
+                fname = 'materials.csv',
+                labels = fields
+            }
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Get the name of the curent material
+-- @function getCurrentMaterial
+-- @return Material name or nil on error
+-- @return Error message
+-- @usage
+-- print('Current material is ' .. device.getCurrentMaterial())
+    private.exposeFunction('getCurrentMaterial', private.batching(true), function()
+        return _M.getRegister(registers[1])
+    end)
+
+-------------------------------------------------------------------------------
+-- Save the current material settings from the display to the specified material
+-- name.
+-- @param m Material name
+-- @local
+    local function saveCurrent(m)
+        if m then
+            -- Save current settings
+            local row = {}
+            for i = 1, #registers do
+                row[i] = _M.getRegister(registers[i])
+            end
+            openMaterialCSV()
+            local n = csv.getLineCSV(materialCSV, m, fields[1])
+            if n ~= nil then
+                csv.replaceLineCSV(materialCSV, n, row)
+            else
+                csv.addLineCSV(materialCSV, row)
+            end
+            csv.saveCSV(materialCSV)
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Save the current material to the CSV file.
+-- Use this function to synchronise the settings.
+-- @usage
+-- device.saveCurrentMaterial()
+    private.exposeFunction('saveCurrentMaterial', private.batching(true), function()
+        return saveCurrent(_M.getCurrentMaterial())
+    end)
+
+-------------------------------------------------------------------------------
+-- Set the current material by name
+-- @function setCurrentMaterial
+-- @param m Material name to set as current
+-- @return Nil if success, error message if failure
+-- @usage
+-- device.setCurrentMaterial 'sand'
+    private.exposeFunction('setCurrentMaterial', private.batching(true), function(m)
+        local current = _M.getCurrentMaterial()
+        if m ~= current then
+            saveCurrent(current)
+
+            openMaterialCSV()
+            local n, row = csv.getLineCSV(materialCSV, m, fields[1])
+            if row == nil then
+                return 'Material does not exist'
+            end
+            for i = 1, #registers do
+                _M.setRegister(registers[i], row[i])
+            end
+        end
+    end)
+
+-------------------------------------------------------------------------------
+-- Delete a material by name from the database.
+--
+-- This does not change the current material in the display and this will be
+-- resaved if it is the deleted material and the material is subsequently
+-- changed.
+-- @function deleteMaterial
+-- @param m Material name to delete
+-- @usage
+-- device.deleteMaterial 'sand'
+    private.exposeFunction('deleteMaterial', private.batching(true), function(m)
+        local n = csv.getLineCSV(materialCSV, m, fields[1])
+        if n ~= nil then
+            csv.remLineCSV(materialCSV, n)
+        end
+    end)
+
+-------------------------------------------------------------------------------
+-- Edit the current material
+-- @function editMaterial
+-- @usage
+-- device.editMaterial()
+    private.exposeFunction('editMaterial', private.batching(true), function()
+        local menu = makeMenu{ 'MATERIAL' }
+        for i = 1, #registers do
+            menu.register { fields[i], registers[i] }
+        end
+        menu.run()
+        _M.saveCurrentMaterial()
+    end)
+
+-------------------------------------------------------------------------------
+-- Choose a material from the list of materials
+-- @function selectMaterial
+-- @usage
+-- device.selectMaterial()
+    private.exposeFunction('selectMaterial', private.batching(true), function()
+        openMaterialCSV()
+        _M.saveCurrentMaterial()
+        local names = csv.getColCSV(materialCSV, fields[1])
+        for i = 1, #names do
+            names[i] = string.upper(canonical(names[i]))
+        end
+        local new = selectOption('CHOOSE', names, _M.getCurrentMaterial(), true)
+        if new then
+            _M.setCurrentMaterial(new)
+        end
+        return new
+    end)
+end)
+
 end
