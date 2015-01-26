@@ -52,8 +52,16 @@ local frequencyTable = {
     auto1    = STM_FREQ_AUTO1,
     onchange = STM_FREQ_ONCHANGE,
 }
+--- Frequence streaming setttings
+-- @table StreamingFrequencies
+-- @param auto 20z stearming
+-- @param auto10 10Hz streaming
+-- @param auto3 3Hz streaming
+-- @param auto1 1Hz streaming
+-- @param onchange Stream values when they change only
 
 local freq = 'onchange'
+local freqUser = nil
 local availRegisters, streamRegisters = {}, {}
 
 local standardMap = { initialised = false }
@@ -200,6 +208,7 @@ end
 -- @param onChange Change parameter ('change' or 'always')
 -- @return streamReg identity
 -- @return error message
+-- @see StreamingFrequencies
 -- @usage
 -- local function handleWeight(data, err)
 --     print('Weight = ', data)
