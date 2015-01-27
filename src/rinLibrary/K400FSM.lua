@@ -10,28 +10,7 @@ local utils = require 'rinSystem.utilities'
 local canonical = require('rinLibrary.namings').canonicalisation
 local timers = require 'rinSystem.rinTimers'
 local deepcopy = require 'rinLibrary.deepcopy'
-
--------------------------------------------------------------------------------
--- Return a callback if it is callable, return the default if not.
--- @param callback User supplied callback
--- @param default System suplied default
--- @return callback if callable, default if not
--- @local
-local function cb(callback, default)
-    return utils.callable(callback) and deepcopy(callback) or default
-end
-
--------------------------------------------------------------------------------
--- A null function for use as a dummy callback
--- @return nil
--- @local
-local function null()   return nil      end
-
--------------------------------------------------------------------------------
--- A function that always returns true
--- @return true
--- @local
-local function True()   return true     end
+local null, True, cb = utils.null, utils.True, utils.cb
 
 -------------------------------------------------------------------------------
 -- Check the curent status of a single bit trigger

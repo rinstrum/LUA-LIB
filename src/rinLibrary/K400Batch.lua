@@ -290,7 +290,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.saveCurrentMaterial()
     private.exposeFunction('saveCurrentMaterial', private.batching(true), function()
-        return saveCurrent(_M.getCurrentMaterial())
+        saveCurrent(_M.getCurrentMaterial())
     end)
 
 -------------------------------------------------------------------------------
@@ -302,9 +302,8 @@ private.registerDeviceInitialiser(function()
 -- device.setCurrentMaterial 'sand'
     private.exposeFunction('setCurrentMaterial', private.batching(true), function(m)
         local current = _M.getCurrentMaterial()
+        saveCurrent(current)
         if m ~= current then
-            saveCurrent(current)
-
             openMaterialCSV()
             local n, row = csv.getLineCSV(materialCSV, m, fields[1])
             if row == nil then

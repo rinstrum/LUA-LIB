@@ -6,8 +6,49 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local posix = require 'posix'
+local deepcopy = require 'rinLibrary.deepcopy'
 
 local _M = {}
+
+-------------------------------------------------------------------------------
+-- A null function for use as a dummy callback
+-- @return nil
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- null()
+function _M.null()   return nil      end
+
+-------------------------------------------------------------------------------
+-- A function that always returns true
+-- @return true
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- if utils.True() then print('yes') end
+function _M.True()   return true     end
+
+-------------------------------------------------------------------------------
+-- A function that always returns false
+-- @return false
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- if not utils.False() then print('yes') end
+function _M.False()  return false    end
+
+-------------------------------------------------------------------------------
+-- Return a callback if it is callable, return the default if not.
+-- @param callback User supplied callback
+-- @param default System suplied default
+-- @return callback if callable, default if not
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- local callback = utils.cb(userCallback, utils.True)
+function _M.cb(callback, default)
+    return _M.callable(callback) and deepcopy(callback) or default
+end
 
 -------------------------------------------------------------------------------
 -- Check that an object is callable

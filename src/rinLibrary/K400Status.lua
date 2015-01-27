@@ -15,6 +15,7 @@ local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
 local timers = require 'rinSystem.rinTimers'
+local True, False = utils.True, utils.False
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -54,18 +55,6 @@ local function allBitSet(data, checkf, ...)
     end
     return true
 end
-
--------------------------------------------------------------------------------
--- A function that always returns true
--- @return true
--- @local
-local function True()   return true     end
-
--------------------------------------------------------------------------------
--- A function that always returns false
--- @return false
--- @local
-local function False()   return false     end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here

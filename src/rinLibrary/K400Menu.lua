@@ -12,36 +12,10 @@
 local dbg = require "rinLibrary.rinDebug"
 local canonical = require('rinLibrary.namings').canonicalisation
 local deepcopy = require 'rinLibrary.deepcopy'
-local callable = require('rinSystem.utilities').callable
+local utils = require 'rinSystem.utilities'
+local callable, cb = utils.callable, utils.cb
+local null, True, False = utils.null, utils.True, utils.False
 local csv = require 'rinLibrary.rinCSV'
-
--------------------------------------------------------------------------------
--- Return a callback if it is callable, return the default if not.
--- @param callback User supplied callback
--- @param default System suplied default
--- @return callback if callable, default if not
--- @local
-local function cb(callback, default)
-    return callable(callback) and deepcopy(callback) or default
-end
-
--------------------------------------------------------------------------------
--- A null function for use as a dummy callback
--- @return nil
--- @local
-local function null()   return nil      end
-
--------------------------------------------------------------------------------
--- A function that always returns true
--- @return true
--- @local
-local function True()   return true     end
-
--------------------------------------------------------------------------------
--- A function that always returns false
--- @return false
--- @local
-local function False()  return false    end
 
 -------------------------------------------------------------------------------
 -- A function that wrappers another function with a check for a readonly field
@@ -406,10 +380,10 @@ local function makeMenu(args, parent, fields)
             end
         end)
         item.getValue = function()
-            return (private.getRegister(reg))
+            return (_M.getRegister(reg))
         end
         item.setValue = function(v)
-            private.setRegister(reg, v)
+            _M.setRegister(reg, v)
         end
         return add(item)
     end

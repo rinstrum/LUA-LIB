@@ -19,18 +19,7 @@ local timers = require 'rinSystem.rinTimers'
 local system = require 'rinSystem'
 local dbg = require 'rinLibrary.rinDebug'
 local utils = require 'rinSystem.utilities'
-
--------------------------------------------------------------------------------
--- A null function for use as a dummy callback
--- @return nil
--- @local
-local function null()   return nil      end
-
--------------------------------------------------------------------------------
--- A function that always returns true
--- @return true
--- @local
-local function True()   return true     end
+local null, True = utils.null, utils.True
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
