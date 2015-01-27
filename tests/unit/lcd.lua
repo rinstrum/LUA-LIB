@@ -130,24 +130,5 @@ describe("LCD #lcd", function ()
         pending("unimplemented test case")
     end)
 
-    describe("convertAnnunciatorBits", function()
-        local m = makeModule()
-        for i, r in pairs{
-            {   i = { },
-                r = { top=0, bottom=0, all=0, unknown=0 } },
-            {   i = { 'fnord', 'sigma', 'hold' },
-                r = { top=9, bottom=0, all=0, unknown=1 } },
-            {   i = { 'waitall', 'clock', 'zero', 'bal_segg' },
-                r = { top=0x4080, bottom=0x3C2, all=0, unknown=0 } },
-            {   i = { 'coz', 'all' },
-                r = { top=0x3FFFF, bottom=0x3ff, all=1, unknown=0 } },
-            {   i = { 'unknown', 'all' },
-                r = { top=0x3FFFF, bottom=0x3ff, all=1, unknown=1 } },
-        } do
-            it('test '..i, function()
-                assert.same(r.r, m.convertAnnunciatorBits(r.i))
-            end)
-        end
-    end)
 end)
 
