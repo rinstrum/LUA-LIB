@@ -9,7 +9,7 @@ local dbg = require "rinLibrary.rinDebug"
 local utils = require 'rinSystem.utilities'
 local canonical = require('rinLibrary.namings').canonicalisation
 local timers = require 'rinSystem.rinTimers'
-local deepcopy = require 'rinLibrary.deepcopy'
+local deepcopy = utils.deepcopy
 local null, True, cb = utils.null, utils.True, utils.cb
 
 -------------------------------------------------------------------------------

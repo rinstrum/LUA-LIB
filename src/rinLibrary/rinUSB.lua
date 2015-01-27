@@ -15,7 +15,7 @@ local utils = require 'rinSystem.utilities'
 local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
-local deepcopy = require 'rinLibrary.deepcopy'
+local deepcopy = utils.deepcopy
 local canonical = require('rinLibrary.namings').canonicalisation
 
 local usb, ev_lib, decodeKey, usbKeyboardMap

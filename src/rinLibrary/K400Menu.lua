@@ -11,8 +11,8 @@
 -------------------------------------------------------------------------------
 local dbg = require "rinLibrary.rinDebug"
 local canonical = require('rinLibrary.namings').canonicalisation
-local deepcopy = require 'rinLibrary.deepcopy'
 local utils = require 'rinSystem.utilities'
+local deepcopy = utils.deepcopy
 local callable, cb = utils.callable, utils.cb
 local null, True, False = utils.null, utils.True, utils.False
 local csv = require 'rinLibrary.rinCSV'

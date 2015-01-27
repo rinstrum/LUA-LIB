@@ -24,7 +24,7 @@ local canonical = naming.canonicalisation
 local dbg = require "rinLibrary.rinDebug"
 local system = require "rinSystem"
 local utils = require 'rinSystem.utilities'
-local deepcopy = require 'rinLibrary.deepcopy'
+local deepcopy = utils.deepcopy
 local dispHelp = require 'rinLibrary.displayHelper'
 
 -- This shouldn't need to be here, but supports depreciated functions.
