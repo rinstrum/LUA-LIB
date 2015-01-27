@@ -99,7 +99,7 @@ install: compile
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
 	sed s/%LATEST%/$(PKGVERS)/g <src/config.ld.master >src/config.ld
 	lua /usr/local/share/lua/5.1/ldoc.lua src $(LDOC_OPTS) --dir $(DEST_DIR)/$(WWW_DIR)/libdocs 2>$(LDOCOUT)
-	@if [ -s $(LDOCOUT) ]; then echo Errors in LuaDoc; cat $(LDOCOUT); rm -f $(LDOCOUT); exit 1; fi
+	if [ -s $(LDOCOUT) ]; then echo Errors in LuaDoc; cat $(LDOCOUT); rm -f $(LDOCOUT); exit 1; fi
 	@rm -f $(LDOCOUT)
 	
 	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
