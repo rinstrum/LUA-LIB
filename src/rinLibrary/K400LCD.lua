@@ -165,7 +165,7 @@ function _M.mirrorStatus(displayDevice, setting)
   local name = naming.canonicalisation(displayDevice)
   displayDevice = naming.convertNameToValue(name or 'none', display)
   
-  if (displayDevice) then
+  if (displayDevice and displayDevice.remote) then
     displayDevice.mirrorStatus = setting
     displayDevice.transmit(false)
   end
