@@ -33,6 +33,7 @@ PKGNAMEVERS=$(PKGNAME)-$(PKGVERS)
 RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
 PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-M01.pdf
 CHECKSUM_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-checksum
+LDOCOUT := $(shell mktemp /tmp/$(PKGNAMEVERS)-XXXXXXXXX)
 
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
@@ -97,7 +98,9 @@ install: compile
 	
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
 	sed s/%LATEST%/$(PKGVERS)/g <src/config.ld.master >src/config.ld
-	lua /usr/local/share/lua/5.1/ldoc.lua src $(LDOC_OPTS) --dir $(DEST_DIR)/$(WWW_DIR)/libdocs
+	lua /usr/local/share/lua/5.1/ldoc.lua src $(LDOC_OPTS) --dir $(DEST_DIR)/$(WWW_DIR)/libdocs 2>$(LDOCOUT)
+	@if [ -s $(LDOCOUT) ]; then echo Errors in LuaDoc; cat $(LDOCOUT); rm -f $(LDOCOUT); exit 1; fi
+	@rm -f $(LDOCOUT)
 	
 	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
