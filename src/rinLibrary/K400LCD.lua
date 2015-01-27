@@ -747,19 +747,6 @@ local annunciatorMap = {
 -- @field p
 -- @field l
 -- @field arrow_h
-local unitAnnunciators = { -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
-    none      = 0,
-    kg        = 0x01,
-    lb        = 0x02,
-    t         = 0x03,
-    g         = 0x04,
-    oz        = 0x05,
-    n         = 0x06,
-    arrow_l   = 0x07,
-    p         = 0x08,
-    l         = 0x09,
-    arrow_h   = 0x0A
-}
 
 --- Additional modifiers on bottom display
 --@table Other
@@ -773,18 +760,6 @@ local unitAnnunciators = { -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
 -- @field second Second annunicator
 -- @field slash Slash line
 -- @field total Total annunciator
-local otherAnnuncitors = { -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
-    none    = 0,
-    per_h   = 0x14,
-    per_m   = 0x11,
-    per_s   = 0x12,
-    percent = 0x30,     pc  = 0x30,
-    total   = 0x08,     tot = 0x08,
-    second  = 0x02,     s = 0x02,
-    minute  = 0x01,     m = 0x01,
-    hour    = 0x04,     h = 0x04,
-    slash   = 0x10
-}
 
 -------------------------------------------------------------------------------
 -- Convert the annunciator bit maps to a list of values
@@ -1027,22 +1002,22 @@ deprecated.BAL_SEGG                     = annunciatorMap.bal_segg.v
 deprecated.RANGE_SEGADG                 = annunciatorMap.range_segadg.v
 deprecated.RANGE_SEGC                   = annunciatorMap.range_segc.v
 deprecated.RANGE_SEGE                   = annunciatorMap.range_sege.v
-deprecated.UNITS_NONE                   = unitAnnunciators.none  -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
-deprecated.UNITS_KG                     = unitAnnunciators.kg
-deprecated.UNITS_LB                     = unitAnnunciators.lb
-deprecated.UNITS_T                      = unitAnnunciators.t
-deprecated.UNITS_G                      = unitAnnunciators.g
-deprecated.UNITS_OZ                     = unitAnnunciators.oz
-deprecated.UNITS_N                      = unitAnnunciators.n
-deprecated.UNITS_ARROW_L                = unitAnnunciators.arrow_l
-deprecated.UNITS_P                      = unitAnnunciators.p
-deprecated.UNITS_L                      = unitAnnunciators.l
-deprecated.UNITS_ARROW_H                = unitAnnunciators.arrow_h
-deprecated.UNITS_OTHER_PER_H            = otherAnnuncitors.per_h  -- DELETE THIS TABLE WHEN DEPRECIATED CALLS REMOVED
-deprecated.UNITS_OTHER_PER_M            = otherAnnuncitors.per_m
-deprecated.UNITS_OTHER_PER_S            = otherAnnuncitors.per_s
-deprecated.UNITS_OTHER_PC               = otherAnnuncitors.pc
-deprecated.UNITS_OTHER_TOT              = otherAnnuncitors.tot
+deprecated.UNITS_NONE                   = 'none'
+deprecated.UNITS_KG                     = 'kg'
+deprecated.UNITS_LB                     = 'lb'
+deprecated.UNITS_T                      = 't'
+deprecated.UNITS_G                      = 'g'
+deprecated.UNITS_OZ                     = 'oz'
+deprecated.UNITS_N                      = 'n'
+deprecated.UNITS_ARROW_L                = 'arrow_l'
+deprecated.UNITS_P                      = 'p'
+deprecated.UNITS_L                      = 'l'
+deprecated.UNITS_ARROW_H                = 'arrow_h'
+deprecated.UNITS_OTHER_PER_H            = 'per_h'
+deprecated.UNITS_OTHER_PER_M            = 'per_m'
+deprecated.UNITS_OTHER_PER_S            = 'per_s'
+deprecated.UNITS_OTHER_PC               = 'pc'
+deprecated.UNITS_OTHER_TOT              = 'total'
 
 deprecated.rightJustify                 = dispHelp.rightJustify
 
