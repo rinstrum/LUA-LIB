@@ -477,7 +477,7 @@ function _M.deprecatedUSBhandlers(app)
     end
 end
 
--------------------------------------------------------------------------------
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 --- USB Storage Helper Functions
 --
 -- A selection of functions to make accessing USB storage devices a little

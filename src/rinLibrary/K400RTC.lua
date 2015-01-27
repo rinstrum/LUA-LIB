@@ -65,13 +65,6 @@ local TM_MMDDYYYY           = 3
 local TM_YYMMDD             = 4
 local TM_YYYYMMDD           = 5
 
-local RTC = {
-    hour = 0, min = 0, sec = 0,
-    day = 1, month = 1, year = 2010,
-    load_date = false, load_time = false,
-    first = 'day', second = 'month', third = 'year'
-}
-
 local stringDateMap, stringDateUnmap = {}, {
     [TM_DDMMYY] = 'dmy',
     [TM_DDMMYYYY] = 'dmyy',
@@ -79,6 +72,13 @@ local stringDateMap, stringDateUnmap = {}, {
     [TM_MMDDYYYY] = 'mdyy',
     [TM_YYMMDD] = 'ymd',
     [TM_YYYYMMDD] = 'yymd'
+}
+
+local RTC = {
+    hour = 0, min = 0, sec = 0,
+    day = 1, month = 1, year = 2010,
+    load_date = false, load_time = false,
+    first = 'day', second = 'month', third = 'year'
 }
 
 for k,v in pairs(stringDateUnmap) do

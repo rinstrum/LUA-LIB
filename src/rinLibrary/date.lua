@@ -122,7 +122,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Convert a Julian day number to a date
--- @param Julian day number
+-- @param j Julian day number
 -- @return year Year of interest
 -- @return month Month in year
 -- @return day Day in month
