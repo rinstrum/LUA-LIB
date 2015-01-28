@@ -709,7 +709,7 @@ function _M.setAnnunciators(where, ...)
     print("depreciated. Use setAnnunciators(where, ...).")
     
     f = naming.convertNameToValue('topLeft', display)
-    return f.setAnnun(where, ...)   
+    return f.setAnnun(where, ...)
  end
   
 end
@@ -724,7 +724,7 @@ function _M.clearAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
     
   if f then
-    return f.setAnnun(...)
+    return f.clearAnnun(...)
   else  
     print("depreciated. Use clearAnnunciators(where, ...).")
     

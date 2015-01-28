@@ -25,7 +25,11 @@ function _M.add(private, displayTable, prefix)
     strsub = string.sub,
     saveAuto = 0,
     write = function(s, sync) print(s) end,
-    transmit = function() end
+    transmit = function() end,
+    writeUnits = function() end,
+    setAnnun = function() end,
+    clearAnnun = function() end,
+    rotWait = function() end, 
   }
   
   return displayTable 

@@ -8,7 +8,12 @@
 
 local _M = {}
 
+local ipairs = ipairs
+
 local dispHelp = require "rinLibrary.displayHelper"
+local naming = require 'rinLibrary.namings'
+
+local canonical = naming.canonicalisation
 
 _M.REG_AUTO_OUT = 0xA205
 
@@ -73,6 +78,60 @@ function _M.add(private, displayTable, prefix)
                     return me.transmit(false)
                     
                   end,
+    setAnnun = function (...)
+                    local me = displayTable[prefix]
+                    local argi
+                                      
+                    for i,v in ipairs(arg) do
+                      argi = canonical(v)
+                      
+                      if (argi == 'all') then 
+                        me.curStatus = dispHelp.rangerCFunc('status', 'net')
+                        me.curMotion = dispHelp.rangerCFunc('motion', 'motion')
+                        me.curZero = dispHelp.rangerCFunc('zero', 'zero')
+                        me.curRange = dispHelp.rangerCFunc('range', 'range1')
+                      elseif (argi == 'net' ) then
+                        me.curStatus = dispHelp.rangerCFunc('status', 'net')
+                      elseif (argi == 'motion') then
+                        me.curMotion = dispHelp.rangerCFunc('motion', 'motion')
+                      elseif (argi == 'zero') then
+                        me.curZero = dispHelp.rangerCFunc('zero', 'zero')
+                      elseif (argi == 'range1') then
+                        me.curRange = dispHelp.rangerCFunc('range', 'range1')
+                      elseif (argi == 'range2') then
+                        me.curRange = dispHelp.rangerCFunc('range', 'range2')
+                      end                        
+                    end                    
+                    
+                    return me.transmit(false)
+                  end,
+    clearAnnun = function (...)
+                    local me = displayTable[prefix]
+                    local argi
+                                      
+                    for i,v in ipairs(arg) do
+                      argi = canonical(v)
+                      
+                      if (argi == 'all') then 
+                        me.curStatus = dispHelp.rangerCFunc('status', 'gross')
+                        me.curMotion = dispHelp.rangerCFunc('motion', 'notmotion')
+                        me.curZero = dispHelp.rangerCFunc('zero', 'notzero')
+                        me.curRange = dispHelp.rangerCFunc('range', 'none')  
+                      elseif (argi == 'net' ) then
+                        me.curStatus = dispHelp.rangerCFunc('status', 'gross')
+                      elseif (argi == 'motion') then
+                        me.curMotion = dispHelp.rangerCFunc('motion', 'notmotion')
+                      elseif (argi == 'zero') then
+                        me.curZero = dispHelp.rangerCFunc('zero', 'notzero')
+                      elseif (argi == 'range1') then
+                        me.curRange = dispHelp.rangerCFunc('range', 'none')
+                      elseif (argi == 'range2') then
+                        me.curRange = dispHelp.rangerCFunc('range', 'none')
+                      end                        
+                    end
+                    
+                    return me.transmit(false)
+                  end, 
     writeUnits = function (units1, units2)
                     local val, e = dispHelp.rangerCFunc('units', units1)
                     
