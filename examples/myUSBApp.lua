@@ -133,7 +133,7 @@ local tickerRepeat = 0.20 -- time in seconds that the timer repeats
 
 local function ticker()
 -- insert code here that you want to run on each timer event
-    device.rotWAIT(1)
+    device.rotWAIT('topLeft', 1)
 end
 timers.addTimer(tickerRepeat,tickerStart,ticker)
 -------------------------------------------------------------------------------

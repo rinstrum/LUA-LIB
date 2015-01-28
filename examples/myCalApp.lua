@@ -61,7 +61,7 @@ device.setStatusCallback('init', settingsChanged)
 -- Callback for local timer
 local tickerStart = 0.10  -- time in seconds until timer events start triggering
 local tickerRepeat = 0.20 -- time in seconds that the timer repeats
-timers.addTimer(tickerRepeat, tickerStart, device.rotWAIT, 1)
+timers.addTimer(tickerRepeat, tickerStart, device.rotWAIT, 'topLeft', 1)
 -------------------------------------------------------------------------------
 
 

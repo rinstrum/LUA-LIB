@@ -740,7 +740,7 @@ end
 -- @param dir 1 clockwise, -1 anticlockwise 0 no change
 -- @usage
 -- while true do
---     device.rotWAIT(-1)
+--     device.rotWAIT('topLeft', -1)
 --     rinApp.delay(0.7)
 -- end
 function _M.rotWAIT(where, dir)
