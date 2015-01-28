@@ -194,25 +194,23 @@ function _M.add(private, displayTable, prefix)
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
     units1 = nil,
-    units2 = nil,
     auto = nil,
     saveAuto = 0,
     write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_TOP_LEFT, s) end,
-    writeUnits = function (units1, units2)
+    writeUnits = function (units1)
     
                 local me = displayTable[prefix .. "topleft"]
                 
                 local u = naming.convertNameToValue(units1, unitAnnunciators, 0x00)
-                local o = naming.convertNameToValue(units2, otherAunnuncitors, 0x00)
+                local o = naming.convertNameToValue(nil, otherAunnuncitors, 0x00)
                 local v = bit32.bor(bit32.lshift(o, 8), u)
                 
-                if me.units1 ~= units1 or me.units2 ~= units2 then
+                if me.units1 ~= units1 then
                   private.writeReg(me.regUnits, v)
                   me.units1 = units1
-                  me.units2 = units2
                 end
                 
-                return units1, units2
+                return units1, nil
               end,
       setAnnun = function (...) return setAnnunLocal(private, ...) end,
       clearAnnun = function (...) return clearAnnunLocal(private, ...) end,
