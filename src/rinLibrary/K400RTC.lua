@@ -43,15 +43,8 @@ local REG_MSECLAST          = 0x015F
 -- @field mseclast Millisecond time when the last ADC reading was taken.
 -- @field msec1000 Millisecond timer modulo 1000
 
-local TM_DDMMYY             = 0
-local TM_DDMMYYYY           = 1
-local TM_MMDDYY             = 2
-local TM_MMDDYYYY           = 3
-local TM_YYMMDD             = 4
-local TM_YYYYMMDD           = 5
-
 --- Date Formats.
---@table Date Formats
+--@table DateFormats
 -- @field dmy Date formated like 22/02/43
 -- @field dmyy Date formated like 22/02/2043
 -- @field mdy Date formated like 02/22/43
@@ -65,6 +58,13 @@ local TM_YYYYMMDD           = 5
 -- @field yymmdd Date formated like 43/02/22
 -- @field yyyymmdd Date formated like 2043/02/22
 
+local TM_DDMMYY             = 0
+local TM_DDMMYYYY           = 1
+local TM_MMDDYY             = 2
+local TM_MMDDYYYY           = 3
+local TM_YYMMDD             = 4
+local TM_YYYYMMDD           = 5
+
 local stringDateMap = {
     ddmmyy      = 0,    dmy     = 0,
     ddmmyyyy    = 1,    dmyy    = 1,
@@ -74,7 +74,7 @@ local stringDateMap = {
     yyyymmdd    = 5,    yymd    = 6
 }
 
-local stringDateUnmap = {}, {
+local stringDateMap, stringDateUnmap = {}, {
     [TM_DDMMYY] = 'dmy',
     [TM_DDMMYYYY] = 'dmyy',
     [TM_MMDDYY] = 'mdy',
@@ -89,6 +89,17 @@ local RTC = {
     load_date = false, load_time = false,
     first = 'day', second = 'month', third = 'year'
 }
+
+for k,v in pairs(stringDateUnmap) do
+    local d = { v:sub(1, 1) }
+    for i = 2, #v do
+        table.insert(d, v:sub(i-1, i))
+    end
+    table.insert(d, v:sub(-1, -1))
+
+    stringDateMap[v] = k
+    stringDateMap[table.concat(d)] = k
+end
 
 -------------------------------------------------------------------------------
 -- Convert a string or numeric format into a numeric code
