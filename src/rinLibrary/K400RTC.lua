@@ -58,7 +58,6 @@ local REG_MSECLAST          = 0x015F
 -- @field yymmdd Date formated like 43/02/22
 -- @field yyyymmdd Date formated like 2043/02/22
 
-
 local TM_DDMMYY             = 0
 local TM_DDMMYYYY           = 1
 local TM_MMDDYY             = 2
@@ -66,7 +65,16 @@ local TM_MMDDYYYY           = 3
 local TM_YYMMDD             = 4
 local TM_YYYYMMDD           = 5
 
-local stringDateMap, stringDateUnmap = {}, {
+local stringDateMap = {
+    ddmmyy      = 0,    dmy     = 0,
+    ddmmyyyy    = 1,    dmyy    = 1,
+    mmddyy      = 2,    mdy     = 2,
+    mmddyyyy    = 3,    mdyy    = 3,
+    yymmdd      = 4,    ymd     = 4,
+    yyyymmdd    = 5,    yymd    = 6
+}
+
+local stringDateUnmap = {}, {
     [TM_DDMMYY] = 'dmy',
     [TM_DDMMYYYY] = 'dmyy',
     [TM_MMDDYY] = 'mdy',
@@ -81,17 +89,6 @@ local RTC = {
     load_date = false, load_time = false,
     first = 'day', second = 'month', third = 'year'
 }
-
-for k,v in pairs(stringDateUnmap) do
-    local d = { v:sub(1, 1) }
-    for i = 2, #v do
-        table.insert(d, v:sub(i-1, i))
-    end
-    table.insert(d, v:sub(-1, -1))
-
-    stringDateMap[v] = k
-    stringDateMap[table.concat(d)] = k
-end
 
 -------------------------------------------------------------------------------
 -- Convert a string or numeric format into a numeric code
