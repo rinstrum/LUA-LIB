@@ -58,6 +58,7 @@ local REG_MSECLAST          = 0x015F
 -- @field yymmdd Date formated like 43/02/22
 -- @field yyyymmdd Date formated like 2043/02/22
 
+
 local TM_DDMMYY             = 0
 local TM_DDMMYYYY           = 1
 local TM_MMDDYY             = 2
