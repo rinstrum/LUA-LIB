@@ -43,6 +43,13 @@ local REG_MSECLAST          = 0x015F
 -- @field mseclast Millisecond time when the last ADC reading was taken.
 -- @field msec1000 Millisecond timer modulo 1000
 
+local TM_DDMMYY             = 0
+local TM_DDMMYYYY           = 1
+local TM_MMDDYY             = 2
+local TM_MMDDYYYY           = 3
+local TM_YYMMDD             = 4
+local TM_YYYYMMDD           = 5
+
 --- Date Formats.
 --@table Date Formats
 -- @field dmy Date formated like 22/02/43
@@ -57,13 +64,6 @@ local REG_MSECLAST          = 0x015F
 -- @field mmddyyyy Date formated like 02/22/2043
 -- @field yymmdd Date formated like 43/02/22
 -- @field yyyymmdd Date formated like 2043/02/22
-
-local TM_DDMMYY             = 0
-local TM_DDMMYYYY           = 1
-local TM_MMDDYY             = 2
-local TM_MMDDYYYY           = 3
-local TM_YYMMDD             = 4
-local TM_YYYYMMDD           = 5
 
 local stringDateMap = {
     ddmmyy      = 0,    dmy     = 0,
