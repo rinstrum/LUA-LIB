@@ -119,6 +119,7 @@ end
 -- @param zero
 -- @param range
 -- @param units
+-- @param sock
 -- @return string on success, nil and error on failure
 function _M.rangerC(string, status, motion, zero, range, units, sock)
   local sign
