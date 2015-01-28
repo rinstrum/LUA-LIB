@@ -8,10 +8,12 @@
 
 local _M = {}
 
+local ipairs = ipairs
 local string = string
 local tostring = tostring
 
 local namings = require 'rinLibrary.namings'
+local canonical = namings.canonicalisation
 
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
@@ -118,7 +120,7 @@ end
 -- @param range
 -- @param units
 -- @return string on success, nil and error on failure
-function _M.rangerC(string, status, motion, zero, range, units)
+function _M.rangerC(string, status, motion, zero, range, units, sock)
   local sign
   local weight
   
@@ -140,6 +142,11 @@ function _M.rangerC(string, status, motion, zero, range, units)
     weight = ("       " .. weight ):sub(-7)
   end
   
+  if (sock) then
+    return '\02' .. sign .. weight .. status .. motion .. zero .. 
+      range .. units .. '\03' 
+  end
+  
   return '\\02' .. sign .. weight .. status .. motion .. zero .. 
       range .. units .. '\\03' 
 
@@ -153,7 +160,8 @@ function _M.frameRangerC(displayItem)
                     displayItem.curMotion, 
                     displayItem.curZero, 
                     displayItem.curRange, 
-                    displayItem.curUnits1)
+                    displayItem.curUnits1,
+                    displayItem.sock)
 end
 
 -------------------------------------------------------------------------------
@@ -168,6 +176,101 @@ end
 function _M.writeRegHex(private, sync, reg, s)
     local f = private[sync and 'writeRegHex' or 'writeRegHexAsync']
     return f(reg, s)
+end
+
+
+function _M.writeStatus(me, anyStatusSet, allStatusSet, dualRangeMode)
+  
+  if anyStatusSet('error') then
+    me.curStatus = _M.rangerCFunc('status', 'error')
+  elseif anyStatusSet('uload') then
+    me.curStatus = _M.rangerCFunc('status', 'uload')
+  elseif anyStatusSet('oload') then
+    me.curStatus = _M.rangerCFunc('status', 'oload')
+  elseif anyStatusSet('gross') then     
+    me.curStatus = _M.rangerCFunc('status', 'gross')
+  elseif anyStatusSet('net') then
+    me.curStatus = _M.rangerCFunc('status', 'net')
+  else
+    me.curStatus = _M.rangerCFunc('status', 'none')
+  end
+  
+  if anyStatusSet('motion') then
+    me.curMotion = _M.rangerCFunc('motion', 'motion')
+  else
+    me.curMotion = _M.rangerCFunc('motion', 'notmotion')
+  end
+  
+  if anyStatusSet('zero') then
+    me.curZero = _M.rangerCFunc('zero', 'zero')
+  else
+    me.curZero = _M.rangerCFunc('zero', 'notzero')
+  end
+  
+  if (dualRangeMode == 'single') then
+    me.curRange = _M.rangerCFunc('range', 'none')
+  else
+    if anyStatusSet('range1') then
+      me.curRange = _M.rangerCFunc('range', 'range1')
+    elseif anyStatusSet('range2') then
+      me.curRange = _M.rangerCFunc('range', 'range2')
+    else
+      me.curRange = _M.rangerCFunc('range', 'none')
+      end
+    end
+    
+end
+
+function _M.setAnnun(me, ...)
+  local argi
+                    
+  for i,v in ipairs(arg) do
+    argi = canonical(v)
+    
+    if (argi == 'all') then 
+      me.curStatus = _M.rangerCFunc('status', 'net')
+      me.curMotion = _M.rangerCFunc('motion', 'motion')
+      me.curZero = _M.rangerCFunc('zero', 'zero')
+      me.curRange = _M.rangerCFunc('range', 'range1')
+    elseif (argi == 'net' ) then
+      me.curStatus = _M.rangerCFunc('status', 'net')
+    elseif (argi == 'motion') then
+      me.curMotion = _M.rangerCFunc('motion', 'motion')
+    elseif (argi == 'zero') then
+      me.curZero = _M.rangerCFunc('zero', 'zero')
+    elseif (argi == 'range1') then
+      me.curRange = _M.rangerCFunc('range', 'range1')
+    elseif (argi == 'range2') then
+      me.curRange = _M.rangerCFunc('range', 'range2')
+    end                        
+  end                    
+  
+end
+
+function _M.clearAnnun(me, ...)
+  local argi
+                    
+  for i,v in ipairs(arg) do
+    argi = canonical(v)
+    
+    if (argi == 'all') then 
+      me.curStatus = _M.rangerCFunc('status', 'gross')
+      me.curMotion = _M.rangerCFunc('motion', 'notmotion')
+      me.curZero = _M.rangerCFunc('zero', 'notzero')
+      me.curRange = _M.rangerCFunc('range', 'none')  
+    elseif (argi == 'net' ) then
+      me.curStatus = _M.rangerCFunc('status', 'gross')
+    elseif (argi == 'motion') then
+      me.curMotion = _M.rangerCFunc('motion', 'notmotion')
+    elseif (argi == 'zero') then
+      me.curZero = _M.rangerCFunc('zero', 'notzero')
+    elseif (argi == 'range1') then
+      me.curRange = _M.rangerCFunc('range', 'none')
+    elseif (argi == 'range2') then
+      me.curRange = _M.rangerCFunc('range', 'none')
+    end                        
+  end
+  
 end
 
 return _M
