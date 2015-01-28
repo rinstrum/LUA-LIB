@@ -177,9 +177,9 @@ end
 -- (prefix followed by topLeft, topRight, bottomLeft, and bottomRight) to the 
 -- table of writable displays.
 -- @local
--- @param Private functions for rinLibrary
--- @param Displaytable used by rinLibrary
--- @param Prefix to place before the field name, e.g. prefixtopLeft
+-- @param private functions for rinLibrary
+-- @param displayTable used by rinLibrary
+-- @param prefix to place before the field name, e.g. prefixtopLeft
 -- @return Updated displayTable
 function _M.add(private, displayTable, prefix)
   

@@ -44,7 +44,7 @@ local REG_MSECLAST          = 0x015F
 -- @field msec1000 Millisecond timer modulo 1000
 
 --- Date Formats.
---@table Date Formats
+--@table DateFormats
 -- @field dmy Date formated like 22/02/43
 -- @field dmyy Date formated like 22/02/2043
 -- @field mdy Date formated like 02/22/43
@@ -65,11 +65,13 @@ local TM_MMDDYYYY           = 3
 local TM_YYMMDD             = 4
 local TM_YYYYMMDD           = 5
 
-local RTC = {
-    hour = 0, min = 0, sec = 0,
-    day = 1, month = 1, year = 2010,
-    load_date = false, load_time = false,
-    first = 'day', second = 'month', third = 'year'
+local stringDateMap = {
+    ddmmyy      = 0,    dmy     = 0,
+    ddmmyyyy    = 1,    dmyy    = 1,
+    mmddyy      = 2,    mdy     = 2,
+    mmddyyyy    = 3,    mdyy    = 3,
+    yymmdd      = 4,    ymd     = 4,
+    yyyymmdd    = 5,    yymd    = 6
 }
 
 local stringDateMap, stringDateUnmap = {}, {
@@ -79,6 +81,13 @@ local stringDateMap, stringDateUnmap = {}, {
     [TM_MMDDYYYY] = 'mdyy',
     [TM_YYMMDD] = 'ymd',
     [TM_YYYYMMDD] = 'yymd'
+}
+
+local RTC = {
+    hour = 0, min = 0, sec = 0,
+    day = 1, month = 1, year = 2010,
+    load_date = false, load_time = false,
+    first = 'day', second = 'month', third = 'year'
 }
 
 for k,v in pairs(stringDateUnmap) do

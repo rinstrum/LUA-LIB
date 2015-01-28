@@ -198,8 +198,9 @@ return function(mod, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
--- Filter a value based on a specific device
--- @function k401 k402 k410 k491
+-- Filter a value based on a specific device.
+-- There are a number of these functions for the different display types.
+-- @function k401
 -- @param v Value to return if we're the specified device
 -- @return v or nil
 -- @local

@@ -15,7 +15,7 @@ local utils = require 'rinSystem.utilities'
 local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
-local deepcopy = require 'rinLibrary.deepcopy'
+local deepcopy = utils.deepcopy
 local canonical = require('rinLibrary.namings').canonicalisation
 
 local usb, ev_lib, decodeKey, usbKeyboardMap
@@ -477,7 +477,7 @@ function _M.deprecatedUSBhandlers(app)
     end
 end
 
--------------------------------------------------------------------------------
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 --- USB Storage Helper Functions
 --
 -- A selection of functions to make accessing USB storage devices a little

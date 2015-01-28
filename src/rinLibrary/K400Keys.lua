@@ -13,7 +13,7 @@ local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
-local deepcopy = require 'rinLibrary.deepcopy'
+local deepcopy = utils.deepcopy
 local usb = require 'rinLibrary.rinUSB'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

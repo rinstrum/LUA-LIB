@@ -20,9 +20,9 @@ local stat      = require('posix').stat
 local dbg       = require "rinLibrary.rinDebug"
 local namings   = require 'rinLibrary.namings'
 local canonical = namings.canonicalisation
-local deepcopy  = require 'rinLibrary.deepcopy'
 local timers    = require 'rinSystem.rinTimers'
 local utils     = require 'rinSystem.utilities'
+local deepcopy  = utils.deepcopy
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- CSV write back options.
