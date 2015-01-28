@@ -200,9 +200,6 @@ return function(mod, private, deprecated)
 -------------------------------------------------------------------------------
 -- Filter a value based on a specific device
 -- @function k401
--- @function k402
--- @function k410
--- @function k491
 -- @param v Value to return if we're the specified device
 -- @return v or nil
 -- @local
