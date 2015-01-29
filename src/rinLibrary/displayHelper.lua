@@ -119,6 +119,8 @@ end
 -- @param zero
 -- @param range
 -- @param units
+-- @param red
+-- @param green
 -- @param sock
 -- @return string on success, nil and error on failure
 function _M.rangerC(string, status, motion, zero, range, units, red, green, sock)
