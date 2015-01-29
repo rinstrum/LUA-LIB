@@ -27,9 +27,9 @@ local utils = require 'rinSystem.utilities'
 local deepcopy = utils.deepcopy
 local dispHelp = require 'rinLibrary.displayHelper'
 
--- This shouldn't need to be here, but supports depreciated functions.
+-- This shouldn't need to be here, but supports deprecated functions.
 -- Remove when possible
-local R400Reg = require 'rinLibrary.display.R400'    
+local R400Reg = require 'rinLibrary.display.R400'
 
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
@@ -139,17 +139,17 @@ local display = {}
 -- local succeeded, err = device.addDisplay('R400')
 function _M.addDisplay(type, prefix, address)
   prefix = prefix or ''
-  
+
   --local success, disp  = pcall(require("rinLibrary.display." .. type))
   local success, disp = true, require("rinLibrary.display." .. type)
   if (success == false) then
     return false, disp
   end
-  
+
   prefix = naming.canonicalisation(prefix);
-  
+
   display = disp.add(private, display, prefix)
-  
+
   return true
 end
 
@@ -160,7 +160,7 @@ end
 function _M.mirrorStatus(displayDevice, setting)
   local name = naming.canonicalisation(displayDevice)
   displayDevice = naming.convertNameToValue(name or 'none', display)
-  
+
   if (displayDevice and displayDevice.remote) then
     displayDevice.mirrorStatus = setting
     displayDevice.transmit(false)
@@ -374,7 +374,7 @@ local function write(f, s, params)
                 end
             end
             writeToDisplay(slideWords[1])
-            
+
             f.slideTimer = timers.addTimer(time, time, function()
                 slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
                 if slidePos == 1 and once then
@@ -417,11 +417,11 @@ local function saver(p)
     map(p, function(v)
             table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units1, w=v.units2, wu=v.writeUnits })
         end)
-        
+
     return function()
         for _, v in ipairs(restorations) do
             write(v.f, v.c, v.p)
-            if (v.wu) then 
+            if (v.wu) then
               v.wu(v.u, v.w)
             end
         end
@@ -702,16 +702,16 @@ end)
 -- device.setAnnunciators('battery', 'clock', 'balance')
 function _M.setAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
-    
+
   if f then
     return f.setAnnun(...)
-  else  
-    print("depreciated. Use setAnnunciators(where, ...).")
-    
+  else
+    dbg.warn('setAnnunciators:', "deprecated. Use setAnnunciators(where, ...).")
+
     f = naming.convertNameToValue('topLeft', display)
     return f.setAnnun(where, ...)
  end
-  
+
 end
 
 -------------------------------------------------------------------------------
@@ -722,16 +722,16 @@ end
 -- device.clearAnnunciators('net', 'battery', 'hold')
 function _M.clearAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
-    
+
   if f then
     return f.clearAnnun(...)
-  else  
-    print("depreciated. Use clearAnnunciators(where, ...).")
-    
+  else
+    dbg.warn('clearAnnunciators:', "deprecated. Use clearAnnunciators(where, ...).")
+
     f = naming.convertNameToValue('topLeft', display)
     return f.clearAnnun(where, ...)
   end
-  
+
 end
 
 -------------------------------------------------------------------------------
@@ -745,12 +745,12 @@ end
 -- end
 function _M.rotWAIT(where, dir)
   local f = naming.convertNameToValue(where, display)
-    
+
   if f and f.rotWAIT then
     return f.rotWait(dir)
   else
-    print("depreciated. Use rotWAIT(where, ...).")
-    
+    dbg.warn('rowWAIT:', "deprecated. Use rotWAIT(where, ...).")
+
     f = naming.convertNameToValue('topLeft', display)
     return f.rotWait(dir)
   end
@@ -766,12 +766,12 @@ end
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
-    
+
     local f = naming.convertNameToValue(where, display)
-    
+
     if f then
       return f.writeUnits(unts, other)
-    else  
+    else
       return nil, nil, "Invalid name"
     end
 end
