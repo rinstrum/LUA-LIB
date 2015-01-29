@@ -16,6 +16,8 @@ local timers = require 'rinSystem.rinTimers'
 
 _M.REG_AUTO_OUT = 0xA205
 
+-- NOTE: THIS HAS TRAFFIC LIGHT SUPPORT BUILT INTO ANNUNCIATORS THAT MUST BE DOCUMENTED
+
 function _M.add(private, displayTable, prefix)
 
   local sock, err = socks.createTCPsocket("172.17.1.180", 10001, 0.001)
@@ -40,6 +42,8 @@ function _M.add(private, displayTable, prefix)
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
     curString = "       ", 
+    curRed = false,
+    curGreen = false,
     curStatus = dispHelp.rangerCFunc('status', 'none'),
     curMotion = dispHelp.rangerCFunc('motion', 'notmotion'),
     curZero = dispHelp.rangerCFunc('zero', 'notzero'),
@@ -48,8 +52,14 @@ function _M.add(private, displayTable, prefix)
     curUnits2 = nil,
     mirrorStatus = false,
     writeStatus = function (...) dispHelp.writeStatus(displayTable[prefix], ...) end,
-    setAnnun = function (...) dispHelp.setAnnun(displayTable[prefix], ...) end,
-    clearAnnun = function (...) dispHelp.clearAnnun(displayTable[prefix], ...) end,
+    setAnnun = function (...) 
+                  dispHelp.setAnnun(displayTable[prefix], ...)
+                  dispHelp.handleTraffic(displayTable[prefix], true, ...)
+               end,
+    clearAnnun = function (...)
+                  dispHelp.clearAnnun(displayTable[prefix], ...)
+                  dispHelp.handleTraffic(displayTable[prefix], false, ...)
+               end,
     writeUnits = function (units1)
                     local val, e = dispHelp.rangerCFunc('units', units1)
                     

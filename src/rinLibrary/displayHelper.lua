@@ -121,7 +121,7 @@ end
 -- @param units
 -- @param sock
 -- @return string on success, nil and error on failure
-function _M.rangerC(string, status, motion, zero, range, units, sock)
+function _M.rangerC(string, status, motion, zero, range, units, red, green, sock)
   local sign
   local weight
   
@@ -133,9 +133,27 @@ function _M.rangerC(string, status, motion, zero, range, units, sock)
   -- Extract the sign name
   if (string:sub(1,1) == '-') then
     sign = '-'
+    
+    if (red and green) then
+      sign = '\125'
+    elseif (green) then
+      sign = '\109'
+    elseif (red) then
+      sign = '\061'
+    end
+    
     weight = string:sub(2)
   else
     sign = ' '
+    
+    if (red and green) then
+      sign = '\112'
+    elseif (green) then
+      sign = '\096'
+    elseif (red) then
+      sign = '\048'
+    end
+    
     weight = string
   end
   
@@ -162,6 +180,8 @@ function _M.frameRangerC(displayItem)
                     displayItem.curZero, 
                     displayItem.curRange, 
                     displayItem.curUnits1,
+                    displayItem.curRed,
+                    displayItem.curGreen,
                     displayItem.sock)
 end
 
@@ -272,6 +292,23 @@ function _M.clearAnnun(me, ...)
     end                        
   end
   
+end
+
+function _M.handleTraffic (me, value, ...)
+  local argi
+  
+  for i,v in ipairs(arg) do
+    argi = canonical(v)
+    
+    if (argi == 'all') then
+      me.curRed = value
+      me.curGreen = value
+    elseif (argi == 'redlight') then
+      me.curRed = value
+    elseif (argi == 'greenlight') then
+      me.curGreen = value
+    end
+  end
 end
 
 return _M
