@@ -749,7 +749,7 @@ function _M.rotWAIT(where, dir)
   if f and f.rotWAIT then
     return f.rotWait(dir)
   else  
-    print("depreciated. Use clearAnnunciators(where, ...).")
+    print("depreciated. Use rotWAIT(where, ...).")
     
     f = naming.convertNameToValue('topLeft', display)
     return f.rotWait(dir)
