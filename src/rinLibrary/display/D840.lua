@@ -18,16 +18,15 @@ _M.REG_AUTO_OUT = 0xA205
 
 -- NOTE: THIS HAS TRAFFIC LIGHT SUPPORT BUILT INTO ANNUNCIATORS THAT MUST BE DOCUMENTED
 
-function _M.add(private, displayTable, prefix)
+function _M.add(private, displayTable, prefix, address, port)
 
-  local sock, err = socks.createTCPsocket("172.17.1.180", 10001, 0.001)
+  local sock, err = socks.createTCPsocket(address, port or 10001, 0.001)
   
   if (sock == nil) then
-    return nil, err
+    return displayTable, err
   end
   
   socks.addSocket(sock, function (sock)
-                          print("data incoming!")
                           local m, err = socks.readSocket(sock)
                           if err ~= nil then
                                socks.removeSocket(sock)
@@ -81,8 +80,9 @@ function _M.add(private, displayTable, prefix)
                   return socks.writeSocket(sock, toSend)
                 end
   }
-  timers.addTimer(0.2, 0.2, displayTable[prefix].transmit, false)
   
+  timers.addTimer(0.2, 0.2, displayTable[prefix].transmit, false)
+
   return displayTable
  
 end

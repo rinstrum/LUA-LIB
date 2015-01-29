@@ -133,11 +133,14 @@ local display = {}
 -- Called to add a display to the framework
 -- @param type Type of display to add. These are stored in rinLibrary.display
 -- @param prefix Name prefix for added display fields
--- @param address Extra addressing information
+-- @param address Extra addressing information.
+-- @param port Port to try and connect on (valid for IP address connections only)
 -- @return boolean showing success of adding the framework, error message
 -- @usage
 -- local succeeded, err = device.addDisplay('R400')
-function _M.addDisplay(type, prefix, address)
+function _M.addDisplay(type, prefix, address, port)
+  local err
+
   prefix = prefix or ''
 
   --local success, disp  = pcall(require("rinLibrary.display." .. type))
@@ -148,7 +151,11 @@ function _M.addDisplay(type, prefix, address)
 
   prefix = naming.canonicalisation(prefix);
 
-  display = disp.add(private, display, prefix)
+  display, err = disp.add(private, display, prefix, address, port)
+  
+  if (err) then
+    return nil, err
+  end
 
   return true
 end
