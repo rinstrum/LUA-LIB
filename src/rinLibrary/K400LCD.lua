@@ -748,7 +748,7 @@ function _M.rotWAIT(where, dir)
     
   if f and f.rotWAIT then
     return f.rotWait(dir)
-  else  
+  else
     print("depreciated. Use rotWAIT(where, ...).")
     
     f = naming.convertNameToValue('topLeft', display)
