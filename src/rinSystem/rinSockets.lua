@@ -331,7 +331,12 @@ end
 -- local mySocket = createTCPsocket('1.1.1.1', 666, 0.1)
 function _M.createTCPsocket(ip, port, timeout)
     local s = assert(require "socket".tcp())
-    s:connect(ip, port)
+    local ret, err = s:connect(ip, port)
+    
+    if (ret == nil) then
+      return nil, err
+    end
+    
     _M.setSocketTimeout(s, timeout)
     return s
 end
