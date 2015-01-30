@@ -17,7 +17,7 @@ local canonical = naming.canonicalisation
 
 _M.REG_AUTO_OUT = 0xA205
 
-function _M.add(private, displayTable, prefix)
+function _M.add(private, displayTable, prefix, address)
 
   displayTable[prefix] = {
     remote = true,
@@ -34,6 +34,7 @@ function _M.add(private, displayTable, prefix)
     curUnits1 = dispHelp.rangerCFunc('units', 'none'),
     curUnits2 = nil,
     mirrorStatus = false,
+    sock = nil,
     writeStatus = function (...)  
                     dispHelp.writeStatus(displayTable[prefix], ...)
                     displayTable[prefix].transmit(false)
@@ -68,6 +69,10 @@ function _M.add(private, displayTable, prefix)
                   return dispHelp.writeRegHex(private, sync, me.reg, toSend)
                 end
   }
+  
+  if (address == 'usb') then
+    dispHelp.addUSB(displayTable[prefix])
+  end
   
   return displayTable
  
