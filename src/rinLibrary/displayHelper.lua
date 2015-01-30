@@ -13,9 +13,6 @@ local string = string
 local tostring = tostring
 
 local namings = require 'rinLibrary.namings'
-local usb = require 'rinLibrary.rinUSB'
-local timers = require 'rinSystem.rinTimers'
-
 local canonical = namings.canonicalisation
 
 local lpeg = require 'rinLibrary.lpeg'
@@ -314,27 +311,6 @@ function _M.handleTraffic (me, value, ...)
       me.curGreen = value
     end
   end
-end
-
-function _M.addUSB(me)
-  me.transmit = function (sync)
-    local toSend = _M.frameRangerC(me)
-    if (me.sock) then
-      return me.sock:write(toSend)
-    end
-    return nil, "transmit failed"
-  end
-
-  usb.serialUSBdeviceHandler(function (c, err, port)
-    if (err == 'open') then
-      me.sock = port
-    else
-      me.sock = nil
-    end
-  end)
-                              
-  timers.addTimer(0.2, 0.2, me.transmit, false)
-
 end
 
 return _M
