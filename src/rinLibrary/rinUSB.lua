@@ -23,7 +23,7 @@ if pcall(function() usb = require "devicemounter" end) then
     decodeKey = require "kb_lib"
     usbKeyboardMap = require 'kb_mapping'
     partition = require "dm.partition"
-else
+elseif not _TEST then
     dbg.warn('rinUSB:', 'USB not supported')
 end
 
