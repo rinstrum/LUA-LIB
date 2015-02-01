@@ -12,17 +12,17 @@ local socks = require "rinSystem.rinSockets"
 local dbg = require "rinLibrary.rinDebug"
 local rs232 = require "luars232"
 local utils = require 'rinSystem.utilities'
-local partition = require "dm.partition"
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
 local deepcopy = utils.deepcopy
 local canonical = require('rinLibrary.namings').canonicalisation
 
-local usb, ev_lib, decodeKey, usbKeyboardMap
+local usb, ev_lib, decodeKey, usbKeyboardMap, partition
 if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
     decodeKey = require "kb_lib"
     usbKeyboardMap = require 'kb_mapping'
+    partition = require "dm.partition"
 else
     dbg.warn('rinUSB:', 'USB not supported')
 end
@@ -608,7 +608,7 @@ end
 -- device.unmount(usbPath)
 function _M.unmount(path)
     _M.commitFileChanges()
-    return partition.umount(path)
+    return parition and partition.umount(path)
 end
 
 return _M
