@@ -368,7 +368,10 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 if sLen > 1 then					-- if string is more than 1 character long
 					strTab[sLen] = nil					-- clear last character
 					sEditIndex = sEditIndex - 1			-- decrease character position
-				else								-- otherwise we are deleting the first character
+				elseif strTab[sLen] == ' '	then    	-- otherwise we are deleting the first character
+                    sEditVal = default               -- reinstate default string
+                    editing = false
+                else
 					strTab[sLen] = ' '					-- clear current character
 				end
                 pKey = key                          -- remember the key pressed
