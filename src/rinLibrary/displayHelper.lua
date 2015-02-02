@@ -319,6 +319,7 @@ end
 function _M.addUSB(me)
   me.transmit = function (sync)
     local toSend = _M.frameRangerC(me)
+    
     if (me.sock) then
       return me.sock:write(toSend)
     end
