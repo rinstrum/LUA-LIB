@@ -72,6 +72,7 @@ install: compile
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary
+	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary/display
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinSockets
 	$(MKDIR) $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
@@ -88,6 +89,7 @@ install: compile
 	$(INSTALL_EXEC) src/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)
 	$(INSTALL_EXEC) src/IOSocket/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/IOSocket
 	$(INSTALL_EXEC) src/rinLibrary/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary	
+	$(INSTALL_EXEC) src/rinLibrary/display/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary/display
 	$(INSTALL_EXEC) src/rinSystem/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem
 	$(INSTALL_EXEC) src/rinSystem/rinSockets/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinSockets
 	$(INSTALL_EXEC) src/rinSystem/rinTimers/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
