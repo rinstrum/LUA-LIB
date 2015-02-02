@@ -20,19 +20,6 @@ _M.REG_AUTO_OUT = 0xA205
 
 function _M.add(private, displayTable, prefix, address, port)
 
-  local sock, err = socks.createTCPsocket(address, port or 10001, 0.001)
-  
-  if (sock == nil) then
-    return displayTable, err
-  end
-  
-  socks.addSocket(sock, function (sock)
-                          local m, err = socks.readSocket(sock)
-                          if err ~= nil then
-                               socks.removeSocket(sock)
-                          end
-                        end)
-
   displayTable[prefix] = {
     remote = true,
     length = 6,
@@ -50,14 +37,20 @@ function _M.add(private, displayTable, prefix, address, port)
     curUnits1 = dispHelp.rangerCFunc('units', 'none'),
     curUnits2 = nil,
     mirrorStatus = false,
-    writeStatus = function (...) dispHelp.writeStatus(displayTable[prefix], ...) end,
+    sock = nil,
+    writeStatus = function (...) 
+                    dispHelp.writeStatus(displayTable[prefix], ...) 
+                    displayTable[prefix].transmit(false)
+                  end,
     setAnnun = function (...) 
                   dispHelp.setAnnun(displayTable[prefix], ...)
                   dispHelp.handleTraffic(displayTable[prefix], true, ...)
+                  displayTable[prefix].transmit(false)
                end,
     clearAnnun = function (...)
                   dispHelp.clearAnnun(displayTable[prefix], ...)
                   dispHelp.handleTraffic(displayTable[prefix], false, ...)
+                  displayTable[prefix].transmit(false)
                end,
     writeUnits = function (units1)
                     local val, e = dispHelp.rangerCFunc('units', units1)
@@ -67,21 +60,48 @@ function _M.add(private, displayTable, prefix, address, port)
                     end
         
                     displayTable[prefix].curUnits1 = val
+                    displayTable[prefix].transmit(false)
                     
                     return units1, nil
                   end,
     write = function (s, sync)
                   displayTable[prefix].curString = s
+                  displayTable[prefix].transmit(false)
                 end,
-    sock = sock,
     transmit = function (sync)
-                  local me = displayTable[prefix]
-                  local toSend = dispHelp.frameRangerC(me, true)
-                  return socks.writeSocket(sock, toSend)
-                end
+                 local me = displayTable[prefix]
+                 local toSend = dispHelp.frameRangerC(me)
+                 return dispHelp.writeRegHex(private, sync, me.reg, toSend)
+               end
   }
   
-  timers.addTimer(0.2, 0.2, displayTable[prefix].transmit, false)
+  if (address == 'usb') then
+    dispHelp.addUSB(displayTable[prefix])
+  elseif (address) then
+    local me = displayTable[prefix]
+    local err
+  
+    me.sock, err = socks.createTCPsocket(address, port or 10001, 0.001)
+
+    if (me.sock == nil) then
+      return displayTable, err
+    end
+    
+    me.transmit = function (sync)
+      local toSend = dispHelp.frameRangerC(me, true)
+      return socks.writeSocket(me.sock, toSend)
+    end
+    
+    socks.addSocket(me.sock, function (sock)
+                            local m, err = socks.readSocket(sock)
+                            if err ~= nil then
+                                 socks.removeSocket(sock)
+                            end
+                          end)
+    
+    
+    timers.addTimer(0.2, 0.2, displayTable[prefix].transmit, false)
+  end
 
   return displayTable
  
