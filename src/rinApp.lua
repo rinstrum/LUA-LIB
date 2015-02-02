@@ -430,6 +430,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Main rinApp program loop until the program terminates.
+-- Your script *must* call this routine or your application will not operate
+-- correctly.
 -- @usage
 -- rinApp.run()
 function _M.run()
