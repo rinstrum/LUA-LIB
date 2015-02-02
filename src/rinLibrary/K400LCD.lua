@@ -754,7 +754,7 @@ local rotWaitWarnedDeprecated = false
 function _M.rotWAIT(where, dir)
   local f = naming.convertNameToValue(where, display)
 
-  if f and f.rotWAIT then
+  if type(f) == 'table' and f.rotWAIT then
     return f.rotWait(dir)
   else
     if not rotWaitWarnedDeprecated then
@@ -763,7 +763,7 @@ function _M.rotWAIT(where, dir)
     end
 
     f = naming.convertNameToValue('topLeft', display)
-    return f.rotWait(dir)
+    return f.rotWait(dir or where)
   end
 end
 
