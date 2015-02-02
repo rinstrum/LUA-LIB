@@ -146,6 +146,9 @@ local function setAnnunLocal(private, ...)
     end
 end
 
+-----------------------------------------------------------------------------
+-- Clear the annunciators
+-- @local
 local function clearAnnunLocal(private, ...)
     local bits = convertAnnunciatorBits{...}
 
@@ -160,6 +163,9 @@ local function clearAnnunLocal(private, ...)
     end
 end
 
+-----------------------------------------------------------------------------
+-- Rotate waiting annunciator
+-- @local
 local function rotWaitLocal(private, dir)
     if dir ~= 0 then
         waitPos = (waitPos - dir / math.abs(dir)) % #WAIT_SEGS
@@ -176,11 +182,11 @@ end
 -- Add the R400 to the displayTable. This will add 4 display fields
 -- (prefix followed by topLeft, topRight, bottomLeft, and bottomRight) to the 
 -- table of writable displays.
--- @local
--- @param private functions for rinLibrary
--- @param displayTable used by rinLibrary
--- @param prefix to place before the field name, e.g. prefixtopLeft
+-- @param private Functions from rinLibrary
+-- @param displayTable displayTable used by rinLibrary
+-- @param prefix Prefix to place before the field name, e.g. prefixtopLeft
 -- @return Updated displayTable
+-- @local
 function _M.add(private, displayTable, prefix)
   
   displayTable[prefix .. "topleft"] = {
