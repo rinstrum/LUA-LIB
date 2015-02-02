@@ -750,13 +750,17 @@ end
 --     device.rotWAIT('topLeft', -1)
 --     rinApp.delay(0.7)
 -- end
+local rotWaitWarnedDeprecated = false
 function _M.rotWAIT(where, dir)
   local f = naming.convertNameToValue(where, display)
 
   if f and f.rotWAIT then
     return f.rotWait(dir)
   else
-    dbg.warn('rowWAIT:', "deprecated. Use rotWAIT(where, ...).")
+    if not rotWaitWarnedDeprecated then
+        dbg.warn('rotWAIT:', "deprecated. Use rotWAIT(where, ...).")
+        rotWaitWarnedDeprecated = true
+    end
 
     f = naming.convertNameToValue('topLeft', display)
     return f.rotWait(dir)
