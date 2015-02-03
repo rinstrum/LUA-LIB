@@ -16,8 +16,16 @@ local timers = require 'rinSystem.rinTimers'
 
 _M.REG_AUTO_OUT = 0xA205
 
--- NOTE: THIS HAS TRAFFIC LIGHT SUPPORT BUILT INTO ANNUNCIATORS THAT MUST BE DOCUMENTED
-
+-------------------------------------------------------------------------------
+-- Add the D840 to the displayTable. This will add a remote display field to 
+-- the displayTable
+-- @param private Functions from rinLibrary
+-- @param displayTable displayTable used by rinLibrary
+-- @param prefix Prefix to place before the field name, e.g. prefixD323
+-- @param address Address of the device. Leave blank for R400 serial, 'usb' for USB serial, or an IP address for ethernet.
+-- @param port Optional port for IP address support. Default is 10001.
+-- @return Updated displayTable
+-- @local
 function _M.add(private, displayTable, prefix, address, port)
 
   displayTable[prefix] = {

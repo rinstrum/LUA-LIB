@@ -93,12 +93,21 @@ function _M.rightJustify(s, w)
     return string.rep(" ", w-l) .. s
 end
 
+-- Values for rangerC
 local sT = {gross='G', net='N', uload='U', oload='O', error='E', none='G'}
 local mT = {motion='M', notmotion=' '}
 local zT = {zero='Z', notzero=' '}
 local rT = {range1='1', range2='2', none='-'}
 local uT = {kg=' kg', lb=' lb', t='  t',  g='  g', oz=' oz', n='  n', arrow_l='   ', p='  p', l='  L', arrow_h='   ', none='   '}
 
+-------------------------------------------------------------------------------
+-- Convert a value in an item table to its rangerC value.
+-- @param item Item table, i.e. 'status', 'motion', 'zero', 'range', 'units'.
+-- @param value Value to get the rangerC value of.
+-- @return string value if valid, nil and invalid otherwise.
+-- @usage
+--  local status = rangerCFunc('status', 'gross')
+--  -- status = 'G'
 function _M.rangerCFunc(item, value)
 
   local tb = {status=sT, motion=mT, zero=zT, range=rT, units=uT}
@@ -117,14 +126,14 @@ end
 -------------------------------------------------------------------------------
 -- Convert a string to Ranger C
 -- @param string String to write to the display
--- @param status Status to display. Can be one of gross/net/underload/overload/error/none
--- @param motion Motion annunciator, can be 'motion' or 'stable'
--- @param zero
--- @param range
--- @param units
--- @param red
--- @param green
--- @param sock
+-- @param status Status to display. Convert using rangerCFunc.
+-- @param motion Motion annunciator. Convert using rangerCFunc.
+-- @param zero Zero annunciator. Convert using rangerCFunc.
+-- @param range Range annunciator. Convert using rangerCFunc.
+-- @param units Units annunciator. Convert using rangerCFunc.
+-- @param red Red traffic light annunciator (boolean)
+-- @param green Green traffic light annunciator (boolean)
+-- @param sock Socket if remote USB or ethernet display.
 -- @return string on success, nil and error on failure
 function _M.rangerC(string, status, motion, zero, range, units, red, green, sock)
   local sign
@@ -178,6 +187,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Build a transmittable message using rangerC
+-- @param displayItem Item in the display table to create a message for
+-- @return Framed message
+-- @local
 function _M.frameRangerC(displayItem)
   return _M.rangerC(displayItem.curString, 
                     displayItem.curStatus, 
@@ -204,7 +216,14 @@ function _M.writeRegHex(private, sync, reg, s)
     return f(reg, s)
 end
 
-
+-------------------------------------------------------------------------------
+-- Write a status to the displayTable item based on the current statuses on the
+-- R400. This is used for status mirroring.
+-- @param me displayTable item to update
+-- @param anyStatusSet Private function to check if any status is set
+-- @param allStatusSet Private function to check if all statuses are set
+-- @param dualRangeMode Private function to check if dualrange mode is enabled
+-- @local
 function _M.writeStatus(me, anyStatusSet, allStatusSet, dualRangeMode)
   
   if anyStatusSet('error') then
@@ -242,11 +261,16 @@ function _M.writeStatus(me, anyStatusSet, allStatusSet, dualRangeMode)
       me.curRange = _M.rangerCFunc('range', 'range2')
     else
       me.curRange = _M.rangerCFunc('range', 'none')
-      end
     end
+  end
     
 end
 
+-------------------------------------------------------------------------------
+-- Set the annunciators to on
+-- @param me displayTable item to set annunciators for
+-- @param ... Annunciators to enable
+-- @local
 function _M.setAnnun(me, ...)
   local argi
                     
@@ -273,6 +297,11 @@ function _M.setAnnun(me, ...)
   
 end
 
+-------------------------------------------------------------------------------
+-- Set the annunciators to off
+-- @param me displayTable item to clear annunciators for
+-- @param ... Annunciators to disable
+-- @local
 function _M.clearAnnun(me, ...)
   local argi
                     
@@ -299,6 +328,12 @@ function _M.clearAnnun(me, ...)
   
 end
 
+-------------------------------------------------------------------------------
+-- Handle the traffic lights
+-- @param me displayTable item to set annunciators for
+-- @param value Value to set the traffic lights too. (boolean true or false)
+-- @param ... Taffic lights to enable or disable
+-- @local
 function _M.handleTraffic (me, value, ...)
   local argi
   
@@ -316,6 +351,10 @@ function _M.handleTraffic (me, value, ...)
   end
 end
 
+-------------------------------------------------------------------------------
+-- Set a display to USB mode (rather than R400 serial)
+-- @param me displayTable item to enable USB mode for
+-- @local
 function _M.addUSB(me)
   me.transmit = function (sync)
     local toSend = _M.frameRangerC(me)
@@ -335,7 +374,6 @@ function _M.addUSB(me)
   end)
                               
   timers.addTimer(0.2, 0.2, me.transmit, false)
-
 end
 
 return _M

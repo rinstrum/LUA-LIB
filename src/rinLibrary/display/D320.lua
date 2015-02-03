@@ -17,6 +17,15 @@ local canonical = naming.canonicalisation
 
 _M.REG_AUTO_OUT = 0xA205
 
+-------------------------------------------------------------------------------
+-- Add the D320 to the displayTable. This will add a remote display field to 
+-- the displayTable
+-- @param private Functions from rinLibrary
+-- @param displayTable displayTable used by rinLibrary
+-- @param prefix Prefix to place before the field name, e.g. prefixD323
+-- @param address Address of the device. Leave blank for R400 serial, or 'usb' for USB serial.
+-- @return Updated displayTable
+-- @local
 function _M.add(private, displayTable, prefix, address)
 
   displayTable[prefix] = {

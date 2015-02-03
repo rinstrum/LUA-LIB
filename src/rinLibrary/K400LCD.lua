@@ -640,7 +640,9 @@ private.registerDeviceInitialiser(function()
 end)
 
 --- LCD Annunciators
--- These are the definitions of all the annunciators top and bottom.
+-- These are the definitions of all the annunciators top, bottom, and remote.
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
 --@table Annunciators
 -- @field all All annunciators top and bottom
 -- @field balance (top)
@@ -660,8 +662,8 @@ end)
 -- @field clock (bottom)
 -- @field coz (top)
 -- @field hold (top)
--- @field motion (top)
--- @field net (top)
+-- @field motion (top, remote)
+-- @field net (top, remote)
 -- @field range_segadg (top)
 -- @field range_segc (top)
 -- @field range_sege (top)
@@ -672,9 +674,13 @@ end)
 -- @field wait90 Horizontal wait annunciator (bottom)
 -- @field waitall All four wait annunciators (bottom)
 -- @field wait Vertical wait annunciator (bottom)
--- @field zero (top)
+-- @field zero (top, remote)
+-- @field redlight Turn on the red traffic light (remote)
+-- @field greenlight Turn on the green traffic light (remote)
 
 --- Main Units
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
 --@table Units
 -- @field none No annunciator selected
 -- @field kg Kilogram annunciator
@@ -689,6 +695,8 @@ end)
 -- @field arrow_h
 
 --- Additional modifiers on bottom display
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
 --@table Other
 -- @field none No annuciator selected
 -- @field hour Hour annunciator
@@ -823,8 +831,8 @@ function _M.restoreLcd()
     writeAuto(display.bottomright, 0)
 
     writeAutoTopAnnun(0)
-    writeBotAnnuns(0)
-    _M.writeUnits('bottomLeft')
+    _M.clearAnnunciators('bottomLeft', 'all')
+    _M.writeUnits('bottomLeft', 'none')
 end
 
 -------------------------------------------------------------------------------
@@ -888,8 +896,6 @@ deprecated.REG_LCD                      = R400Reg.REG_LCD
 
 deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
 deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
-deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
-deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
 deprecated.setBitsTopAnnuns             = _M.setAnnunciators
 deprecated.clrBitsTopAnnuns             = _M.clearAnnunciators
@@ -990,7 +996,7 @@ if _TEST then
     _M.strSubLCD = dispHelp.strSubLCD
     _M.padDots    = dispHelp.padDots
     _M.splitWords = splitWords
-    _M.convertAnnunciatorBits = convertAnnunciatorBits
+    _M.convertAnnunciatorBits = R400Reg.convertAnnunciatorBits
 end
 
 end
