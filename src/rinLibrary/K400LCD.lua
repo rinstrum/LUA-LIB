@@ -733,6 +733,8 @@ end)
 -- @field second Second annunicator
 -- @field slash Slash line
 -- @field total Total annunciator
+local rotWaitWarnedDeprecated = false
+local setAnnunciatorsDeprecated, clearAnnunciatorsDeprecated = false, false
 
 -------------------------------------------------------------------------------
 -- Turns the annunciators on
@@ -743,10 +745,12 @@ end)
 function _M.setAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
 
-  if f then
+  if type(f) == 'table' and utils.callable(f.setAnnun) then
     return f.setAnnun(...)
   else
-    dbg.warn('setAnnunciators:', "deprecated. Use setAnnunciators(where, ...).")
+    if not setAnnunciatorsDeprecated then
+        dbg.warn('setAnnunciators:', "deprecated. Use setAnnunciators(where, ...).")
+    end
 
     f = naming.convertNameToValue('topLeft', display)
     return f.setAnnun(where, ...)
@@ -763,10 +767,12 @@ end
 function _M.clearAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
 
-  if f then
+  if type(f) == 'table' and utils.callable(f.clearAnnun) then
     return f.clearAnnun(...)
   else
-    dbg.warn('clearAnnunciators:', "deprecated. Use clearAnnunciators(where, ...).")
+    if not clearAnnunciatorsDeprecated then
+        dbg.warn('clearAnnunciators:', "deprecated. Use clearAnnunciators(where, ...).")
+    end
 
     f = naming.convertNameToValue('topLeft', display)
     return f.clearAnnun(where, ...)
@@ -783,11 +789,10 @@ end
 --     device.rotWAIT('topLeft', -1)
 --     rinApp.delay(0.7)
 -- end
-local rotWaitWarnedDeprecated = false
 function _M.rotWAIT(where, dir)
   local f = naming.convertNameToValue(where, display)
 
-  if f and f.rotWAIT then
+  if type(f) == 'table' and utils.callable(f.rotWAIT) then
     return f.rotWait(dir)
   else
     if not rotWaitWarnedDeprecated then
@@ -796,7 +801,7 @@ function _M.rotWAIT(where, dir)
     end
 
     f = naming.convertNameToValue('topLeft', display)
-    return f.rotWait(dir)
+    return f.rotWait(dir or where)
   end
 end
 
