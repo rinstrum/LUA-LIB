@@ -385,7 +385,7 @@ local function write(f, s, params)
                     local c, p, u, w = f.current, f.params, f.units1, f.units2
                     t.finish = function()
                         write(f, c, p)
-                        f.writeUnits(f, u, w)
+                        utils.call(f.writeUnits, u, w)
                     end
                 elseif t.clear then
                     t.finish = function()
@@ -818,7 +818,7 @@ function _M.writeUnits(where, unts, other)
 
     local f = naming.convertNameToValue(where, display)
 
-    if f then
+    if f and utils.callable(f.writeUnits) then
       return f.writeUnits(unts, other)
     else
       return nil, nil, "Invalid name"
