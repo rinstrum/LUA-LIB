@@ -2,16 +2,16 @@
 -------------------------------------------------------------------------------
 -- Example for using the D320 with the R400 serial.
 --
--- The D320 should be connected to the comms port of the R400, and the R400
--- should be configured such that:
+-- The D320 should be connected to the comms port of the R400.
+-- The R400 will be configured by the script such that:
 -- 
--- SER.AUT
---  NUM:  _1_
---  AUTO.1
---    TYPE:   5 Hz
---    SERIAL: SER1A    
---    FORMAT: CUSTOM
---    SOURCE: GROSS
+--  SER.AUT
+--    NUM:  _1_
+--    AUTO.1
+--      TYPE:   5 Hz
+--      SERIAL: SER1A    
+--      FORMAT: CUSTOM
+--      SOURCE: GROSS
 -------------------------------------------------------------------------------
 
 --=============================================================================

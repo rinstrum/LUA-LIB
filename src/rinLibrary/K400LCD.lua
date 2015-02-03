@@ -127,18 +127,31 @@ local REG_LCD                  = 0x0009
 local REG_LCDMODE              = 0x000D
 local REG_MASTER               = 0x00B9
 
+local REG_SERAUT               = 0xA200
+local REG_SER1_TYPE            = 0xA201
+local REG_SER1_SERIAL          = 0xA202
+local REG_SER1_FORMAT          = 0xA203
+local REG_SER1_SOURCE          = 0xA204
+
+local SERAUT_1                 = 0
+local SER_TYPE_5HZ             = 5
+local SER_SER1A                = 0
+local SER_FORMAT_CUSTOM        = 7
+local SER_SOURCE_GROSS         = 0
+
 local display = {}
 
 -------------------------------------------------------------------------------
 -- Called to add a display to the framework
 -- @param type Type of display to add. These are stored in rinLibrary.display
 -- @param prefix Name prefix for added display fields
--- @param address Extra addressing information.
+-- @param address Extra addressing information ('custom', 'usb', ip address)
 -- @param port Port to try and connect on (valid for IP address connections only)
 -- @return boolean showing success of adding the framework, error message
 -- @usage
 -- local succeeded, err = device.addDisplay('R400')
 function _M.addDisplay(type, prefix, address, port)
+  local address = address or 'configure'
   local err
 
   prefix = prefix or ''
@@ -150,6 +163,18 @@ function _M.addDisplay(type, prefix, address, port)
   end
 
   prefix = naming.canonicalisation(prefix);
+  address = naming.canonicalisation(address);
+  
+  -- If the user does not specify any addressing options, then set up the 
+  -- R400 serial.
+  if (address == 'configure') then
+    private.writeRegHexAsync(REG_SERAUT, SERAUT_1)
+    private.writeRegHexAsync(REG_SER1_TYPE, SER_TYPE_5HZ)
+    private.writeRegHexAsync(REG_SER1_SERIAL, SER_SER1A)
+    private.writeRegHexAsync(REG_SER1_FORMAT, SER_FORMAT_CUSTOM)
+    private.writeRegHexAsync(REG_SER1_SOURCE, SER_SOURCE_GROSS)
+    _M.saveSettings()
+  end
 
   display, err = disp.add(private, display, prefix, address, port)
   
