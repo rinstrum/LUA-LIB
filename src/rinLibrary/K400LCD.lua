@@ -826,8 +826,8 @@ function _M.restoreLcd()
     writeAuto(display.bottomright, 0)
 
     writeAutoTopAnnun(0)
-    writeBotAnnuns(0)
-    _M.writeUnits('bottomLeft')
+    _M.clearAnnunciators('bottomLeft', 'all')
+    _M.writeUnits('bottomLeft', 'none')
 end
 
 -------------------------------------------------------------------------------
@@ -891,8 +891,6 @@ deprecated.REG_LCD                      = R400Reg.REG_LCD
 
 deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
 deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
-deprecated.writeBotAnnuns               = function(s) botAnnunState = s writeBotAnnuns() end
-deprecated.writeTopAnnuns               = function(s) topAnnunState = s writeTopAnnuns() end
 deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
 deprecated.setBitsTopAnnuns             = _M.setAnnunciators
 deprecated.clrBitsTopAnnuns             = _M.clearAnnunciators
@@ -993,7 +991,7 @@ if _TEST then
     _M.strSubLCD = dispHelp.strSubLCD
     _M.padDots    = dispHelp.padDots
     _M.splitWords = splitWords
-    _M.convertAnnunciatorBits = convertAnnunciatorBits
+    _M.convertAnnunciatorBits = R400Reg.convertAnnunciatorBits
 end
 
 end
