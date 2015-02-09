@@ -26,6 +26,14 @@ local function usbBackup(path)
 end
 
 --=============================================================================
+-- This function is called to remove the local log files after they've been
+-- backup up by the above function
+local function usbDelete()
+    os.execute('rm -f ./data/*')
+    csv.saveCSV(log)
+end
+
+--=============================================================================
 -- This function is called when the user chooses to read from the USB device
 local function usbUpdate(path)
     usb.copyFiles(path, ".", '.ris')            -- copy new settings files
@@ -37,7 +45,8 @@ end
 -- Set up the USB storage handling subsystem
 device.usbActivateStorage {
     backup = usbBackup,
-    update = usbUpdate
+    update = usbUpdate,
+    delete = usbDelete
 }
 
 --=============================================================================
