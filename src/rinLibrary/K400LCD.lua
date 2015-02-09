@@ -162,8 +162,8 @@ function _M.addDisplay(type, prefix, address, port)
     return false, disp
   end
 
-  prefix = naming.canonicalisation(prefix);
-  address = naming.canonicalisation(address);
+  prefix = naming.canonicalisation(prefix)
+  address = naming.canonicalisation(address)
   
   -- If the user does not specify any addressing options, then set up the 
   -- R400 serial.
@@ -186,6 +186,46 @@ function _M.addDisplay(type, prefix, address, port)
 end
 
 -------------------------------------------------------------------------------
+-- Link display fields
+-- Operations performed on a linked display field will apply to all displays 
+-- that have been linked.
+-- @param name The name for the linked display
+-- @param ... Displays to link
+-- @usage
+-- device.linkDisplay('link1', 'bottomLeft', 'topLeft')
+-- device.writeDisplay('link1', "Display this message to both display fields")
+function _M.linkDisplay(name, ...)
+  local fields = {...}
+  
+  name = naming.canonicalisation(name)
+  
+  -- Action on all display fields in link
+  local function forAll(action, ...)
+
+    for k, v in pairs(fields) do
+      display[v][action](...)
+    end
+  end
+  
+  for k, v in pairs(fields) do
+    fields[k] = naming.canonicalisation(v)
+  end
+  
+  display[name] = {
+    linkedDisplay = true,
+    linkedDisplays = fields,
+    write       = function(...) forAll("write", ...) end,
+    transmit    = function(...) forAll("transmit", ...) end,
+    writeUnits  = function(...) forAll("writeUnits", ...) end,
+    setAnnun    = function(...) forAll("setAnnun", ...) end,
+    clearAnnun  = function(...) forAll("clearAnnun", ...) end,
+    rotWait     = function(...) forAll("rotWait", ...) end, 
+    writeStatus = function(...) forAll("writeStatus", ...) end,
+  }
+  
+end
+
+-------------------------------------------------------------------------------
 -- Show the status (net/gross, overload, etc.) on a display
 -- @param displayDevice The display to mirror to
 -- @param setting boolean value, true for mirror, false for off
@@ -196,6 +236,13 @@ function _M.mirrorStatus(displayDevice, setting)
   if (displayDevice and displayDevice.remote) then
     displayDevice.mirrorStatus = setting
     displayDevice.transmit(false)
+  end
+  
+  if (displayDevice and displayDevice.linkedDisplay) then
+    for k, v in pairs(displayDevice.linkedDisplays) do
+      display[v].mirrorStatus = setting
+      display[v].transmit(false)
+    end
   end
 end
 
@@ -512,7 +559,15 @@ end
 -- @usage
 -- device.write('TopLeft', 'HELLO WORLD', 0.6)
 function _M.write(where, s, params)
-    write(naming.convertNameToValue(where, display), s, params)
+    local disp = naming.convertNameToValue(where, display)
+    
+    if (disp and disp.linkedDisplay) then
+      for k, v in pairs(disp.linkedDisplays) do
+        write(naming.convertNameToValue(v, display), s, params)  
+      end
+    else
+      write(disp, s, params)  
+    end
 end
 
 -----------------------------------------------------------------------------
