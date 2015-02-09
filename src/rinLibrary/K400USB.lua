@@ -11,6 +11,7 @@ local dbg = require "rinLibrary.rinDebug"
 local timers = require 'rinSystem.rinTimers'
 local utils = require 'rinSystem.utilities'
 local naming = require 'rinLibrary.namings'
+local posix = require 'posix'
 
 local whenMap = {
     idle = 'idle',
@@ -49,6 +50,9 @@ local whenMap = {
 -- code just for this USB storage device, returning nothing or nil will use
 -- the normally defined when code.
 --
+-- @field package A boolean which, when true, allows package files to be
+-- installed from the USB storage device.  Default is true.
+--
 -- @field removed Call back when a USB storage device is removed.  No arguments
 -- are passed to the call back.
 --
@@ -68,7 +72,7 @@ return function (_M, private, deprecated)
     local newUsbCB, removedUsbCB, backupUsbCB, updateUsbCB, unmountUsbCB, deleteUsbCB
     local mountPoint
     local doDelete, mustReboot, usbRemoved, noMenu = false, false, false, false
-    local when, theMenu = 'idle', nil
+    local when, theMenu, packageRecovery, packageList = 'idle', nil, true, nil
 
 -------------------------------------------------------------------------------
 -- Display a message to the screen in a standard manner.
@@ -202,27 +206,58 @@ return function (_M, private, deprecated)
     end
 
 -------------------------------------------------------------------------------
+-- Attempt to install all of the discovered package files
+-- @local
+    local function installPackages()
+        message('PACKAGES')
+        for _, pkg in pairs(packageList) do
+            os.execute('/usr/local/bin/rinfwupgrade ' .. pkg)
+        end
+        utils.reboot()
+    end
+
+-------------------------------------------------------------------------------
+-- Confirm packages are to be installed and install them if confirmed
+-- @local
+    local function confirmInstall()
+        local n, prompt = #packageList, 'INSTALL PACKAGE'
+        _M.write('topLeft', 'USB')
+        if n > 1 then
+            prompt = 'INSTALL '..n..' PACKAGES'
+        end
+        if _M.askOK('CONFIRM?', prompt) == 'ok' then
+            installPackages()
+        end
+    end
+
+-------------------------------------------------------------------------------
 -- USB storage save/restore handler
 -- @param mountPoint Mount point for the USB storage device
 -- @local
     local function newUsb(mountPoint)
         local mode, restoreDisplay = _M.lcdControl('lua'), _M.saveDisplay()
         local savedKeyHandlers = _M.saveKeyCallbacks(false)
-        _M.setKeyGroupCallback('all', function() return true end)
+        _M.setKeyGroupCallback('all', utils.True)
 
         message('FOUND', 'time=2, wait, clear')
 
+        if packageRecovery then
+            packageList = posix.glob(mountPoint .. '/*.[oOrR][Pp][kK]')
+        end
         if noMenu then
             if backupUsbCB then copyTo() end
             if updateUsbCB then copyFrom() end
+            if packageList then installPackages() end
         else
             theMenu = _M.createMenu { 'USB STORAGE', loop=true }
                 .item { 'TO', secondary='USB', run=copyTo, enabled=backupUsbCB ~= nil }
                 .item { 'FROM', secondary='USB', run=copyFrom, enabled=updateUsbCB ~= nil }
+                .item { 'INSTAL', secondary='PACKAGES', run=confirmInstall, enabled=packageList ~= nil }
                 .item { 'EJECT', secondary='USB', exit=true,  }
             theMenu.run()
             theMenu = nil
         end
+        packageList = nil
 
         if not usbRemoved then
             _M.usbUnmount()
@@ -289,6 +324,7 @@ return function (_M, private, deprecated)
         deleteUsbCB = args.delete       utils.checkCallback(deleteUsbCB)
         _M.usbSetWhen(args.when)
         noMenu = args.automatic == true
+        packageRecovery = args.package ~= false
 
         usb.setStorageAddedCallback(added)
         usb.setStorageRemovedCallback(removed)
