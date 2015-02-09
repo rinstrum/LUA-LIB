@@ -17,7 +17,7 @@ local dispHelp = require "rinLibrary.displayHelper"
 function _M.add(private, displayTable, prefix)
   
   displayTable[prefix .. "console"] = {
-    remoteDisplay = true,
+    remote = true,
     length = 80,
     rightJustify = function(s) return string.format("%-80s", s) end,
     strlen = function (s) return #s end,
