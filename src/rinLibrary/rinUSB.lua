@@ -81,7 +81,7 @@ end
 -- @return The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
--- local input = require "linux.input"
+-- local input = linux_input or require("linux.input")
 --
 -- function eventCB(ev)
 --     if ev.type == input.EV_SYN and ev.code == input.SYN_CONFIG then
