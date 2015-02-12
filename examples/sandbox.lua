@@ -59,12 +59,12 @@ Anything else is taken as Lua input.
                 if success then
                     inputFunction = f
                 else
-                    print('Error: ' .. e)
+                    print('Execute error: ' .. e)
                 end
             elseif string.find(err, '<eof>') then
                 save = c .. '\n'
             else
-                print('Error: ' .. err)
+                print('Parse error: ' .. err)
             end
             inputBuffer = save
         end
