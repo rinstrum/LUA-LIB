@@ -24,13 +24,27 @@ end
 --=============================================================================
 -- Main Application
 --=============================================================================
+local inputBuffer
 rinApp.setUserTerminal(function(s)
-    local ok, err = pcall(loadstring(s))
-    if not ok then
-        print(err)
-	    return false
+    local prompt, save = '> ', nil
+    if s ~= '' then
+        local c = inputBuffer and (inputBuffer .. '\n' .. s) or s
+        local f, err = loadstring(c)
+        if f then
+            pcall(f)
+        elseif string.find(err, '<eof>') then
+            prompt, save = '>> ', c
+        else
+            print('Error: ' .. err)
+        end
     end
+    io.write(prompt)
+    io.flush(io.input())
+    inputBuffer = save
     return true
 end)
+
+io.write('> ')
+io.flush(io.input())
 
 rinApp.run()
