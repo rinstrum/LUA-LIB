@@ -24,26 +24,61 @@ end
 --=============================================================================
 -- Main Application
 --=============================================================================
-local inputBuffer
-rinApp.setUserTerminal(function(s)
-    local prompt, save = '> ', nil
-    if s ~= '' then
-        local c = inputBuffer and (inputBuffer .. '\n' .. s) or s
-        local f, err = loadstring(c)
-        if f then
-            pcall(f)
-        elseif string.find(err, '<eof>') then
-            prompt, save = '>> ', c
-        else
-            print('Error: ' .. err)
+local inputFunction, inputBuffer = function() print'No command run yet.' end
+local commands = setmetatable({
+    help = function()
+        print [[
+again   to re-execute last successful command
+clear   to erase pending input
+exit    to exit the sandbox
+help    for this help
+list    list the currently entered command buffer
+
+Anything else is taken as Lua input.
+]]
+    end,
+
+    clear = function()
+        inputBuffer = nil
+        print'Cleared input.'
+    end,
+
+    list = function()
+        print(inputBuffer and ('Command buffer is:\n' .. inputBuffer) or 'No command buffer.')
+    end,
+
+    again = function()  pcall(inputFunction)    end,
+    exit = rinApp.finish
+}, {
+    __index = function(t, s)
+        return function()
+            local c, save = (inputBuffer or '') .. s
+            local f, err = loadstring(c)
+            if err == nil then
+                local success, e = pcall(f)
+                if success then
+                    inputFunction = f
+                else
+                    print('Error: ' .. e)
+                end
+            elseif string.find(err, '<eof>') then
+                save = c .. '\n'
+            else
+                print('Error: ' .. err)
+            end
+            inputBuffer = save
         end
     end
-    io.write(prompt)
+})
+
+rinApp.setUserTerminal(function(s)
+    commands[s]()
+    io.write(inputBuffer and '>> ' or '> ')
     io.flush(io.input())
-    inputBuffer = save
     return true
 end)
 
+print"Enter 'help' for available commands."
 io.write('> ')
 io.flush(io.input())
 
