@@ -9,10 +9,10 @@ local regs = require "tests.registers"
 describe("K400Users #users", function()
     local registers = {
         userid1                 = 0x0090,
-        userid2                 = 0x0092,
-        userid3                 = 0x0093,
-        userid4                 = 0x0094,
-        userid5                 = 0x0095,
+        userid2                 = 0x0091,
+        userid3                 = 0x0092,
+        userid4                 = 0x0093,
+        userid5                 = 0x0094,
         userid_name1            = 0x0080,
         userid_name2            = 0x0081,
         userid_name3            = 0x0082,
