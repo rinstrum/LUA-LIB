@@ -30,7 +30,7 @@ end
 -- backup up by the above function
 local function usbDelete()
     os.execute('rm -f ./data/*')
-    csv.saveCSV(log)
+    --csv.saveCSV(log) -- resave and log CSV files after deleting them
 end
 
 --=============================================================================
