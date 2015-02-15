@@ -14,8 +14,7 @@ dbg    = require 'rinLibrary.rinDebug'  -- load in a debugger
 
 --=============================================================================
 -- Connect to the instrument you want to control
-device = rinApp.addK400()                  -- local K4xx instrument
-
+device = rinApp.addK400()
 function callback(name, result)
     local msg = 'call back ' .. name .. ':'
     return function(...) print(msg, ...) return result end
@@ -24,10 +23,30 @@ end
 --=============================================================================
 -- Main Application
 --=============================================================================
+local lpeg = require "rinLibrary.lpeg"
+local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
 local inputFunction, inputBuffer = function() print'No command run yet.' end
-local commands = setmetatable({
-    help = function()
-        print [[
+
+local function luaInput(s)
+    local c, save = (inputBuffer or '') .. s
+    local f, err = loadstring(c)
+    if err == nil then
+        local success, e = pcall(f)
+        if success then
+            inputFunction = f
+        else
+            print('Execute error: ' .. e)
+        end
+    elseif string.find(err, '<eof>') then
+        save = c .. '\n'
+    else
+        print('Parse error: ' .. err)
+    end
+    inputBuffer = save
+end
+
+local function cmdHelp()
+    print [[
 again   to re-execute last successful command
 clear   to erase pending input
 exit    to exit the sandbox
@@ -36,43 +55,34 @@ list    list the currently entered command buffer
 
 Anything else is taken as Lua input.
 ]]
-    end,
+end
 
-    clear = function()
-        inputBuffer = nil
-        print'Cleared input.'
-    end,
+local function cmdList()
+    print(inputBuffer and ('Command buffer is:\n' .. inputBuffer .. '---') or
+                            'No command buffer.')
+end
 
-    list = function()
-        print(inputBuffer and ('Command buffer is:\n' .. inputBuffer) or 'No command buffer.')
-    end,
+local function cmdAgain()
+    pcall(inputFunction)
+end
 
-    again = function()  pcall(inputFunction)    end,
-    exit = rinApp.finish
-}, {
-    __index = function(t, s)
-        return function()
-            local c, save = (inputBuffer or '') .. s
-            local f, err = loadstring(c)
-            if err == nil then
-                local success, e = pcall(f)
-                if success then
-                    inputFunction = f
-                else
-                    print('Execute error: ' .. e)
-                end
-            elseif string.find(err, '<eof>') then
-                save = c .. '\n'
-            else
-                print('Parse error: ' .. err)
-            end
-            inputBuffer = save
-        end
-    end
-})
+local function cmdClear()
+    inputBuffer = nil
+    print'Cleared input.'
+end
+
+local cmds = P{
+            (V'cmd' + V'lua') + P(-1),
+    lua =   P(1)^0 / luaInput,
+    cmd =   P'help' / cmdHelp +
+            P'list' / cmdList +
+            P'exit' / rinApp.finish +
+            P'again' / cmdAgain +
+            P'clear' / cmdClear
+}
 
 rinApp.setUserTerminal(function(s)
-    commands[s]()
+    cmds:match(s)
     io.write(inputBuffer and '>> ' or '> ')
     io.flush(io.input())
     return true
