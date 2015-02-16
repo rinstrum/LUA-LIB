@@ -25,7 +25,7 @@ end
 -- Main Application
 --=============================================================================
 local lpeg = require "rinLibrary.lpeg"
-local P, R, S, V = lpeg.P, lpeg.R, lpeg.S, lpeg.V
+local P, V = lpeg.P, lpeg.V
 local spaces, stashName = lpeg.space^1, lpeg.alpha * lpeg.alnum^0
 local inputFunction, inputBuffer = function() print'No command run yet.' end
 local cmdTable, cmds
