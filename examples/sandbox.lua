@@ -14,7 +14,8 @@ dbg    = require 'rinLibrary.rinDebug'  -- load in a debugger
 
 --=============================================================================
 -- Connect to the instrument you want to control
-device = rinApp.addK400()
+device = rinApp.addK400()                  -- local K4xx instrument
+
 function callback(name, result)
     local msg = 'call back ' .. name .. ':'
     return function(...) print(msg, ...) return result end
@@ -24,8 +25,10 @@ end
 -- Main Application
 --=============================================================================
 local lpeg = require "rinLibrary.lpeg"
-local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
+local P, R, S, V = lpeg.P, lpeg.R, lpeg.S, lpeg.V
+local spaces, stashName = lpeg.space^1, lpeg.alpha * lpeg.alnum^0
 local inputFunction, inputBuffer = function() print'No command run yet.' end
+local cmdTable, cmds
 
 local function luaInput(s)
     local c, save = (inputBuffer or '') .. s
@@ -71,15 +74,24 @@ local function cmdClear()
     print'Cleared input.'
 end
 
-local cmds = P{
-            (V'cmd' + V'lua') + P(-1),
+local function cmdStash(s)
+    local f = inputFunction
+    cmdTable.alias = P(s) / function() pcall(f) end + cmdTable.alias
+    cmds = P(cmdTable)
+end
+
+cmdTable = {
+            (V'cmd' + V'alias' + V'lua') + P(-1),
     lua =   P(1)^0 / luaInput,
     cmd =   P'help' / cmdHelp +
             P'list' / cmdList +
             P'exit' / rinApp.finish +
             P'again' / cmdAgain +
-            P'clear' / cmdClear
+            P'clear' / cmdClear +
+            P'stash' * spaces * (stashName / cmdStash),
+    alias = P(false)
 }
+cmds = P(cmdTable)
 
 rinApp.setUserTerminal(function(s)
     cmds:match(s)
