@@ -189,13 +189,9 @@ local function sendRegWait(cmd, reg, data, t, crc)
         return nil, "Unknown Register"
     end
 
-    local finished = false
-    local regData = ''
-    local regErr = ''
+    local finished, regData, regErr = false, '', ''
     local function waitf(data, err)
-          regData = data
-          regErr = err
-          finished = true
+        finished, regData, regErr = true, data, err
     end
 
     local f = private.getDeviceRegister(r)
