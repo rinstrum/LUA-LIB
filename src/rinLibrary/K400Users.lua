@@ -129,8 +129,8 @@ end
     end
 
 -------------------------------------------------------------------------------
--- Set one of the user ID numbers to the specified string
--- @param id User ID in question (1 .. 5)
+-- Set one of the user numbers to the specified value
+-- @param id User number in question (1 .. 5)
 -- @param x Number to set to
 -- @usage
 -- device.setUserNumber(5, 22)
@@ -142,9 +142,9 @@ end
     end
 
 -------------------------------------------------------------------------------
--- Get one of the user ID numbers
--- @param id User ID in question (1 .. 5)
--- @return The user ID number
+-- Get one of the user numbers
+-- @param id User number in question (1 .. 5)
+-- @return The user number
 -- @return Error message, nil if none
 -- @usage
 -- print('User ID has', device.getUserNumber(5)
@@ -156,10 +156,10 @@ end
     end
 
 -------------------------------------------------------------------------------
--- Edit one of the user ID numbers and return the modified value
--- @param id User ID in question (1 .. 5)
+-- Edit one of the user numbers and return the modified value
+-- @param id User number in question (1 .. 5)
 -- @param prompt Prompt to display
--- @return The user ID number
+-- @return The user number
 -- @return Error message, nil if none
 -- @usage
 -- device.editUserId(3)
