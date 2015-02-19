@@ -342,24 +342,33 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns formated time string
+-- @param timeFormat Either '12' or '24' to set the time format, default 24.
 -- @return Formatted time string
 -- @see RTCdate
 -- @see RTCtostring
 -- @usage
--- print(device.RTCtime())
-function _M.RTCtime()
-    return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
+-- print(device.RTCtime(12))
+function _M.RTCtime(timeFormat)
+    local h, m, s, suffix = RTC.hour, RTC.min, RTC.sec, ''
+    local f = tonumber(timeFormat or 24) or 24
+
+    if f == 12 then
+        suffix = (h < 12) and ' AM' or ' PM'
+        h = (h == 0) and 12 or ((h > 12) and (h-12) or h)
+    end
+    return string.format("%02d:%02d:%02d%s", h, m, s, suffix)
 end
 
 -------------------------------------------------------------------------------
 -- Returns formated date/time string
+-- @param timeFormat Either '12' or '24' to set the time format, default 24.
 -- @return Formatted date and time string
 -- @see RTCtime
 -- @see RTCdate
 -- @usage
--- print(device.RTCtostring())
-function _M.RTCtostring()
-    return _M.RTCdate() .. ' ' .. _M.RTCtime()
+-- print(device.RTCtostring(24))
+function _M.RTCtostring(timeFormat)
+    return _M.RTCdate() .. ' ' .. _M.RTCtime(timeFormat)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

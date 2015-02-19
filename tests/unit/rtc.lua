@@ -156,6 +156,31 @@ describe("RTC #rtc", function ()
         assert.is_same({ "day", "month", "year" }, {date.getDateFormat()})
     end)
 
+    describe("time format #time12", function()
+        local z = require "tests.messages"
+        for k, v in pairs{
+            { t = {  3, 30, 2}, f = 12,     r = '03:30:02 AM' },
+            { t = {  3, 30, 2}, f = 24,     r = '03:30:02'    },
+            { t = {  3, 30, 2},             r = '03:30:02'    },
+            { t = { 23, 30, 2}, f = 12,     r = '11:30:02 PM' },
+            { t = { 23, 30, 2},             r = '23:30:02'    },
+            { t = {  0, 30, 2}, f = 12,     r = '12:30:02 AM' },
+            { t = {  0, 30, 2}, f = 24,     r = '00:30:02'    },
+            { t = { 13, 30, 2}, f = 12,     r = '01:30:02 PM' },
+            { t = { 13, 30, 2},             r = '13:30:02'    }
+        } do
+            it("test "..k, function()
+                local h, m, s = unpack(v.t)
+                local results = makeResults(nil, nil, nil, h, m, s)
+                local md = makeModule()
+
+                z.checkWriteReg(md, results, md.RTCwriteTime, h, m, s)
+                assert.is_equal(1, md.flushed)
+                assert.is_same(v.r, md.RTCtime(v.f))
+            end)
+        end
+    end)
+
     it("rtc read", function()
         pending("unimplemented test case")
     end)
