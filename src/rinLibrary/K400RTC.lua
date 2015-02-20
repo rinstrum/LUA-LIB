@@ -349,14 +349,14 @@ end
 -- @usage
 -- print(device.RTCtime(12))
 function _M.RTCtime(timeFormat)
-    local h, m, s, suffix = RTC.hour, RTC.min, RTC.sec, ''
+    local h, suffix = tonumber(RTC.hour), ''
     local f = tonumber(timeFormat or 24) or 24
 
     if f == 12 then
         suffix = (h < 12) and ' AM' or ' PM'
         h = (h == 0) and 12 or ((h > 12) and (h-12) or h)
     end
-    return string.format("%02d:%02d:%02d%s", h, m, s, suffix)
+    return string.format("%02d:%02d:%02d%s", h, RTC.min, RTC.sec, suffix)
 end
 
 -------------------------------------------------------------------------------
