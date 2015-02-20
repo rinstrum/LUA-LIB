@@ -163,38 +163,50 @@ function _M.sendDateFormat(f)
 end
 
 -------------------------------------------------------------------------------
+-- Convert RTC fields to numerics
+-- @param ... Fields that might need conversion
+-- @local
+local function RTCtoNumbers(...)
+    for _, v in ipairs{...} do
+        RTC[v] = tonumber(RTC[v])
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Read Real Time Clock data from instrument into local RTC table
 -- @param d 'date' or 'time' to read these fields only, or 'all' for both
 -- @local
 function private.RTCread(d)
-  local d = d or 'all'
+    local d = d or 'all'
 
-  _M.readDateFormat()
+    _M.readDateFormat()
 
-  local timestr, err = private.readRegLiteral(REG_TIMECUR)
+    local timestr, err = private.readRegLiteral(REG_TIMECUR)
 
-  if err then
+    if err then
     timestr = '01/01/2000 00-00'
-  end
-  --dbg.printVar(timestr)
+    end
+    --dbg.printVar(timestr)
 
-  if d == 'date' or d == 'all' then
-    RTC.day, RTC.month, RTC.year =
-      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-    RTC.load_date = true
-  end
+    if d == 'date' or d == 'all' then
+        RTC.day, RTC.month, RTC.year =
+        string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+        RTC.load_date = true
+        RTCtoNumbers('day', 'month', 'year')
+    end
 
-  if d == 'time' or d == 'all' then
-    _,_,_, RTC.hour, RTC.min =
-      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-    RTC.load_time = true
-  end
+    if d == 'time' or d == 'all' then
+        _,_,_, RTC.hour, RTC.min =
+        string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+        RTC.load_time = true
+        RTCtoNumbers('hour', 'min')
+    end
 
-  RTC.sec, err = private.readReg(REG_TIMESEC)
-
-  if err then
-    RTC.sec = 0
-  end
+    RTC.sec, err = private.readReg(REG_TIMESEC)
+    if err then
+        RTC.sec = 0
+    end
+    RTCtoNumbers('sec')
 end
 
 -------------------------------------------------------------------------------
@@ -349,7 +361,7 @@ end
 -- @usage
 -- print(device.RTCtime(12))
 function _M.RTCtime(timeFormat)
-    local h, suffix = tonumber(RTC.hour), ''
+    local h, suffix = RTC.hour, ''
     local f = tonumber(timeFormat or 24) or 24
 
     if f == 12 then
