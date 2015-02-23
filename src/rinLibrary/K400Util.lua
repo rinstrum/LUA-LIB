@@ -370,10 +370,9 @@ deprecated.REG_SOFTVER              = REG_SOFTVER
 deprecated.REG_SERIALNO             = private.REG_SERIALNO
 
 deprecated.readSettings = private.readSettings
-deprecated.system = system
-deprecated.settings = settings
-deprecated.units = units
-deprecated.countby = countby
+deprecated.settings = utils.readonlyreference(settings)
+deprecated.units = utils.readonlyreference(units)
+deprecated.countby = utils.readonlyreference(countby)
 
 deprecated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
 deprecated.DISPMODE_PIECES       = DISPMODE_PIECES

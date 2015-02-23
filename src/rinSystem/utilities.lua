@@ -71,6 +71,24 @@ end
 -- assert.same(t, u)
 function _M.deepcopy(o) return dc(o, {}) end
 
+-- Return a read only version of the specified object.
+-- @function readonlyreference
+-- @param o Object to copy
+-- @return A copy of o that is read only
+-- @usage
+-- local readonly = readonlyreference{ 1, 2, 3 }
+function _M.readonlyreference(o)
+    if type(o) == 'table' then
+        return setmetatable({}, {
+            __index = o,
+            __newindex = function(t, n, v)
+                error('rinSystem: attempt to write to a read only table')
+            end
+        })
+    end
+    return o
+end
+
 -------------------------------------------------------------------------------
 -- Return a callback if it is callable, return the default if not.
 -- @param callback User supplied callback
