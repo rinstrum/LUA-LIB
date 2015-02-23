@@ -9,6 +9,7 @@
 local math = math
 local bit32 = require "bit"
 local naming = require 'rinLibrary.namings'
+local utils = require 'rinSystem.utilities'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -28,8 +29,7 @@ local CUR = 0
 local VOLT = 1
 
 local analogTypes = {   current = CUR,      volt = VOLT     }
-local analogNames = {}
-for k,v in pairs(analogTypes) do analogNames[v] = k end
+local analogNames = utils.invert(analogTypes)
 
 local curAnalogType = -1
 local lastAnalogue = nil
