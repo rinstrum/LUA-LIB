@@ -117,12 +117,12 @@ describe("RTC #rtc", function ()
 
     it("tick", function()
         local z = require "tests.messages"
-        local m = makeModule()
+        local m, p = makeModule()
         local yr, mo, da, ho, mi, se = 2050, 3, 6, 22, 59, 59
         local results = makeResults(yr, mo, da, ho, mi, se)
 
         z.checkWriteReg(m, results, m.RTCwrite, yr, mo, da, ho, mi, se)
-        m.RTCtick()
+        p.RTCtick()
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ 23, 0, 0, n=3 }, table.pack(m.RTCreadTime()))
         assert.is_equal(1, m.flushed)

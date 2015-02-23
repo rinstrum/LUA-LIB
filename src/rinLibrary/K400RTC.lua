@@ -431,7 +431,6 @@ if _TEST then
     _M.monthLength = monthLength
     _M.setDateFormat = setDateFormat
     _M.rtc = RTC
-    _M.RTCtick = private.RTCtick
 end
 
 end
