@@ -206,13 +206,13 @@ end
 function private.readSettings()
     settings.fullscale = private.readReg('fullscale')
     settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE))
-    for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
-        if settings.dispmode[mode].reg ~= 0 then
-            local data, err = private.readRegHex(settings.dispmode[mode].reg)
+
+    for mode, cur in ipairs(settings.dispmode) do
+        if cur.reg ~= 0 then
+            local data, err = private.readRegHex(cur.reg)
             if data and not err then
                 data = tonumber(data, 16)
                 if data ~= nil then
-                    local cur = settings.dispmode[mode]
                     cur.dp         = bit32.band(data, 0x0000000F)
                     cur.units      = units  [1 + bit32.band(bit32.rshift(data,  4), 0x0000000F)]
                     cur.countby[3] = countby[1 + bit32.band(bit32.rshift(data,  8), 0x000000FF)]
