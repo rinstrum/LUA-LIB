@@ -39,11 +39,11 @@ local analogSourceMap = {   comms = 3    }
 -------------------------------------------------------------------------------
 -- Set the analog output type.
 -- @param source Source for output.
--- Must be set to 'comms' to control directly
+-- Must be set to 'comms' to control directly and this is the default.
 -- @usage
 -- device.setAnalogSource('comms')
 function _M.setAnalogSource(source)
-    local src = naming.convertNameToValue(source, analogSourceMap)
+    local src = naming.convertNameToValue(source, analogSourceMap, analogSourceMap.comms)
     private.writeReg(REG_ANALOGUE_SOURCE, src)
 end
 
@@ -68,7 +68,7 @@ end
 -- Control behaviour of analog output outside of normal range.
 -- If clip is active then output will be clipped to the nominal range
 -- otherwise the output will drive to the limit of the hardware
--- @param c clipping enabled?
+-- @param c Boolean, clipping enabled?
 -- @usage
 -- device.setAnalogClip(false)
 function _M.setAnalogClip(c)
