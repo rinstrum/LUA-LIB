@@ -159,6 +159,10 @@ end
 -------------------------------------------------------------------------------
 -- Force buffers to discs
 -- @param wait Boolean indicating if we're to wait or not, default is wait.
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- utils.sync()
 function _M.sync(wait)
     if wait ~= false then
         os.execute('sync')
@@ -169,6 +173,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Reboot this Lua module
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- utils.reboot()
 function _M.reboot()
     os.execute('reboot')
 end
@@ -176,12 +184,38 @@ end
 -------------------------------------------------------------------------------
 -- Invert a table returning a new table
 -- @param map Table containing the forward mapping
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- local map = { a = 1, b = 3, c = 2 }
+-- local unmap = utils.invert(map)
 function _M.invert(map)
     local r = {}
     for k, v in pairs(map) do
         r[v] = k
     end
     return r
+end
+
+-------------------------------------------------------------------------------
+-- Load a text file as a number of lines in a table
+-- @param filename The path of the file to be read
+-- @return Table of lines or nil on error
+-- @return Error or nil if none
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- local lines, err = utils.loadFileByLines('myfile.txt')
+function _M.loadFileByLines(filename)
+    local lines, f, err = {}, io.open('ticket.txt', 'r')
+    if f then
+        for l in f:lines() do
+            table.insert(lines, l)
+        end
+        f:close()
+        return lines
+    end
+    return nil, err
 end
 
 return _M
