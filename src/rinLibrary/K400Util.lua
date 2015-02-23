@@ -360,7 +360,7 @@ function _M.restart(what)
 
     utils.reboot()
     system.sleep(300)
-    dbg.warn('Reboot failed')
+    error('Restart failed')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
