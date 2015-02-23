@@ -189,6 +189,8 @@ end
 --
 -- local map = { a = 1, b = 3, c = 2 }
 -- local unmap = utils.invert(map)
+--
+-- -- unmap is equivalent to { 'a', 'c', 'b' }
 function _M.invert(map)
     local r = {}
     for k, v in pairs(map) do
