@@ -125,6 +125,7 @@ end
 -------------------------------------------------------------------------------
 -- Query if we're in single range, dual interval or dual range mode
 -- @return String describing the range setting
+-- @see DualRangeModes
 -- @usage
 -- print('Device is in '..device.dualRangeMode()..' range mode')
 function _M.dualRangeMode()
@@ -136,6 +137,7 @@ end
 -- @field single Single range mode
 -- @field dual.i Dual interval mode
 -- @field dual.r Dual range mode
+-- @see dualRangeMode
 
 -------------------------------------------------------------------------------
 -- Query the current setting of a given field in the specified display mode
@@ -177,9 +179,9 @@ end
 -------------------------------------------------------------------------------
 -- Query the current count by setting in the specified display mode
 -- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @return The countby setting as an unpacked vector.
+-- @return The countby setting as a three element unpacked vector.
 -- @usage
--- local countby = device.getDispModeCountBy('primary')
+-- local countby = { device.getDispModeCountBy('primary') }
 -- for i = 1, #countby do
 --     print(i, countby[i])
 -- end
