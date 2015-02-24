@@ -169,11 +169,14 @@ local function formatObject(s)
     return r
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Submodule function begins here
-return function (_M, private, deprecated)
-
-local curPrintPort = nil
+-------------------------------------------------------------------------------
+-- Takes a non-printable character and escapes it
+-- @param c Non-printable character
+-- @return Escaped string
+-- @local
+local function escapeNonPrintable(c)
+    return string.format("\\%02X", string.byte(c))
+end
 
 -------------------------------------------------------------------------------
 -- Takes a string s and returns a formatted CustomTransmit string with all
@@ -182,12 +185,14 @@ local curPrintPort = nil
 -- @return string with all non-printable characters escaped in \xx format
 -- @local
 local function expandCustomTransmit(s)
-
-  return string.format('%s', string.gsub(s,"[^\32-\126]",
-                        function(x)
-                            return string.format("\\%02X", string.byte(x))
-                        end))
+  return (string.gsub(s, "[^\32-\126]", escapeNonPrintable))
 end
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Submodule function begins here
+return function (_M, private, deprecated)
+
+local curPrintPort = nil
 
 -------------------------------------------------------------------------------
 -- Send custom print token string to instrument comms port
@@ -262,6 +267,11 @@ deprecated.PRINT_SER2A = PRINT_SER2A
 deprecated.PRINT_SER2B = PRINT_SER2B
 
 deprecated.expandCustomTransmit = expandCustomTransmit
+
+if _TEST then
+    _M.escapeNonPrintable = escapeNonPrintable
+    _M.expandCustomTransmit = expandCustomTransmit
+end
 
 end
 

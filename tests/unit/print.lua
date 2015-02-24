@@ -32,6 +32,38 @@ describe("K400Print #print", function()
         return m, p, d
     end
 
+    describe('character escaping', function()
+        local m = makeModule()
+        local cases = {
+            { i = '\013',           o = '\\0D' },
+            { i = string.char(255), o = '\\FF' },
+            { i = 'A',              o = '\\41' },
+        }
+
+        for i = 1, #cases do
+            it("test "..i, function()
+                local r = cases[i]
+                assert.equal(r.o, m.escapeNonPrintable(r.i))
+            end)
+        end
+    end)
+
+    describe('string escaping', function()
+        local m = makeModule()
+        local cases = {
+            { i = 'hello',          o = 'hello' },
+            { i = 'he\001llo',      o = 'he\\01llo' },
+            { i = 'FnOr\013',       o = 'FnOr\\0D' }
+        }
+
+        for i = 1, #cases do
+            it("test "..i, function()
+                local r = cases[i]
+                assert.equal(r.o, m.expandCustomTransmit(r.i))
+            end)
+        end
+    end)
+
     describe('format string', function()
         local m = makeModule()
         local cases = {
