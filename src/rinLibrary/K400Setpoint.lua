@@ -333,7 +333,7 @@ end
 -------------------------------------------------------------------------------
 -- Set the number of enabled Setpoints.
 -- this disables all setpoints above the set number
--- @param n is the number of setpoints 0 .. setPointCount()
+-- @param n is the number of setpoints 1 .. setPointCount()
 -- @see setPointCount
 -- @usage
 -- -- reduce the number of active setpoints to setpoints 1 to 4 temporarily
