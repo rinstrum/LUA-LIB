@@ -204,6 +204,7 @@ private.registerDeviceInitialiser(function()
         pulse       = private.batching(0x08000000),
         start       = private.batching(0x10000000),
         no_type     = private.batching(0x20000000),
+        jog         = private.batching(0x40000000),
 -- K422 specific status bits
         belowmin    = private.k422(0x00010000),
         abovemin    = private.k422(0x00020000),
