@@ -475,6 +475,20 @@ local function write(f, s, params)
 end
 
 -------------------------------------------------------------------------------
+-- Write a message to the given display field.
+-- @param f Display field.
+-- @param s String to write
+-- @param params Display parameters
+-- @local
+local function writeToken(f, s)
+  -- Do not allow writing to socket-connected displays
+  if f and f.sock == nil then
+    return dispHelp.writeRegHex(private, false, f.reg, s)
+  end
+
+end
+
+-------------------------------------------------------------------------------
 -- Apply a map to selected members of the display list
 -- @param p Predicate that selects which elements to act on
 -- @param f Function to apply
@@ -550,7 +564,7 @@ function _M.saveAutoLeft()
 end
 
 -------------------------------------------------------------------------------
--- Write string to thsi specified display section
+-- Write string to this specified display section
 -- @param where which display section to write to
 -- @param s string to display
 -- @param params displayControl parameter
@@ -568,6 +582,26 @@ function _M.write(where, s, params)
     else
       write(disp, s, params)  
     end
+end
+
+-------------------------------------------------------------------------------
+-- Write a message to the given display field. This message may include tokens,
+-- and is only valid for displays connected directly to the R400 (i.e. the R400
+-- LCD, 
+-- @param where which display section to write to
+-- @param s String to write
+-- @local
+function _M.writeTokenString(where, s)
+  local disp = naming.convertNameToValue(where, display)
+  
+  if (disp and disp.linkedDisplay) then
+    for k, v in pairs(disp.linkedDisplays) do
+      writeToken(naming.convertNameToValue(v, display), s)  
+    end
+  else
+    writeToken(disp, s)  
+  end
+
 end
 
 -----------------------------------------------------------------------------
@@ -796,7 +830,7 @@ local setAnnunciatorsDeprecated, clearAnnunciatorsDeprecated = false, false
 -- @param where which display section to write to
 -- @param ... holds annunciator names
 -- @usage
--- device.setAnnunciators('battery', 'clock', 'balance')
+-- device.setAnnunciators('topLeft', 'battery', 'clock', 'balance')
 function _M.setAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
 
@@ -818,7 +852,7 @@ end
 -- @param where which display section to write to
 -- @param ... holds annunciator names
 -- @usage
--- device.clearAnnunciators('net', 'battery', 'hold')
+-- device.clearAnnunciators('topLeft', 'net', 'battery', 'hold')
 function _M.clearAnnunciators(where, ...)
   local f = naming.convertNameToValue(where, display)
 
