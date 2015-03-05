@@ -383,6 +383,109 @@ function _M.RTCtostring(timeFormat)
     return _M.RTCdate() .. ' ' .. _M.RTCtime(timeFormat)
 end
 
+-------------------------------------------------------------------------------
+-- Save the bottom of the display, clear the bottom and return the
+-- restoration function
+-- @local
+local function editSave()
+    local restore = _M.saveBottom()
+    _M.write('bottomLeft', '')
+    _M.write('bottomRight', '')
+    return restore
+end
+
+-------------------------------------------------------------------------------
+-- Edit time and date settings returning the new values.
+-- @param flds The fields to be edited with default values
+-- @return values for the fields
+-- @see addTimeFields
+-- @see addDateFields
+-- @local
+local function editTimeOrDate(flds)
+    local restore, args = editSave(), {}
+
+    for _, v in ipairs(flds) do
+        local x, ok = _M.edit(v[1], v[2], 'integer')
+        if not ok then
+            restore()
+            return
+        end
+        table.insert(args, x)
+    end
+    restore()
+    return unpack(args)
+end
+
+-------------------------------------------------------------------------------
+-- Add the time fields to the argument list for editTimeOrDate
+-- @param args Existing argument list
+-- @param seconds Boolean indicating if seconds should be prompted for
+-- @return args
+-- @see editTimeOrDate
+-- @local
+local function addTimeFields(args, seconds)
+    local hr, mi, se = _M.RTCreadTime()
+    table.insert(args, { 'HOUR?',  hr })
+    table.insert(args, { 'MIN?',   mi })
+    if seconds then
+        table.insert(args, { 'SEC?', se })
+    end
+    return args
+end
+
+-------------------------------------------------------------------------------
+-- Add the date fields to the argument list for editTimeOrDate
+-- @param args Existing argument list
+-- @return args
+-- @see editTimeOrDate
+-- @local
+local function addDateFields(args)
+    local yr, mo, da = _M.RTCreadDate()
+    table.insert(args, { 'DAY?',   da })
+    table.insert(args, { 'MONTH?', mo })
+    table.insert(args, { 'YEAR?',  yr })
+    return args
+end
+
+-------------------------------------------------------------------------------
+-- Present the user a wizard that lets them set the time on the device
+-- @param seconds Boolean, true if seconds should be prompted for or false if
+-- seconds should just be left alone.  By default, seconds are not edited.
+-- @return true
+-- @usage
+-- device.editTime()
+function _M.editTime(seconds)
+    local args = addTimeFields({}, seconds)
+    _M.RTCwriteTime(editTimeOrDate(args))
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Present the user a wizard that lets them set the date on the device
+-- @return true
+-- @usage
+-- device.editDate()
+function _M.editDate()
+    local args = addDateFields{}
+    _M.RTCwriteDate(editTimeOrDate(args))
+    return true
+end
+
+-------------------------------------------------------------------------------
+-- Present the user a wizard that lets them set the time and date on the device
+-- @param seconds Boolean, true if seconds should be prompted for or false if
+-- seconds should just be left alone.  By default, seconds are not edited.
+-- @return true
+-- @usage
+-- -- Set up a call back to map a long press of 1 to the set date functionality
+-- device.setKeyCallback(1, function() return device.editTimeDate() end, 'long')
+function _M.editTimeDate(seconds)
+    local args = addTimeFields(addDateFields{}, seconds)
+    local da, mo, yr, hr, mi, se = editTimeOrDate(args)
+    _M.RTCwrite(yr, mo, da, hr, mi, se or 0)
+    return true
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 deprecated.REG_TIMECUR      = REG_TIMECUR
