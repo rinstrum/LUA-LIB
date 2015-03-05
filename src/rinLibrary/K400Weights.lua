@@ -23,7 +23,7 @@ return function (_M, private, deprecated)
 -- @see getGross
 -- @see getNet
 -- @usage
--- local weight = getGrossNet()
+-- local weight = device.getGrossNet()
 function _M.getGrossNet()
     return private.readReg 'grossnet'
 end
@@ -36,7 +36,7 @@ end
 -- @see getNet
 -- @see getAltGross
 -- @usage
--- local gross = getGross()
+-- local gross = device.getGross()
 function _M.getGross()
     return private.readReg 'gross'
 end
@@ -49,7 +49,7 @@ end
 -- @see getGross
 -- @see getAltNet
 -- @usage
--- local net = getNet()
+-- local net = device.getNet()
 function _M.getNet()
     return private.readReg 'net'
 end
@@ -62,7 +62,7 @@ end
 -- @see getNet
 -- @see getGross
 -- @usage
--- local tare = getTare()
+-- local tare = device.getTare()
 function _M.getTare()
     return private.readReg 'tare'
 end
@@ -72,7 +72,7 @@ end
 -- @return full scale
 -- @return error string if error received, nil otherwise
 -- @usage
--- local fullScale = getFullScale()
+-- local fullScale = device.getFullScale()
 function _M.getFullScale()
     return private.readReg 'fullscale'
 end
@@ -84,7 +84,7 @@ end
 -- @see rinLibrary.K400Stream.addStream
 -- @see getRawADC
 -- @usage
--- local mvv = getMVV()
+-- local mvv = device.getMVV()
 function _M.getMVV()
     return private.readReg 'absmvv'
 end
@@ -96,7 +96,7 @@ end
 -- @see rinLibrary.K400Stream.addStream
 -- @see getMVV
 -- @usage
--- local rawAdc = getRawADC()
+-- local rawAdc = device.getRawADC()
 function _M.getRawADC()
     return private.readReg 'rawadc'
 end
@@ -112,7 +112,7 @@ private.registerDeviceInitialiser(function()
 -- @see rinLibrary.K400Stream.addStream
 -- @see getGross
 -- @usage
--- local gross = getAltGross()
+-- local gross = device.getAltGross()
     private.exposeFunction('getAltGross', private.nonbatching(true), function()
         return private.readReg 'altgross'
     end)
@@ -127,7 +127,7 @@ private.registerDeviceInitialiser(function()
 -- @see rinLibrary.K400Stream.addStream
 -- @see getNet
 -- @usage
--- local net = getAltNet()
+-- local net = device.getAltNet()
     private.exposeFunction('getAltNet', private.nonbatching(true), function()
         return private.readReg 'altnet'
     end)

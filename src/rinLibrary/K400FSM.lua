@@ -101,7 +101,7 @@ return function (_M, private, deprecated)
 -- readability purposes.  Events that have been raised, remain raised until manually
 -- cleared or a state transition or change occurs.
 --
--- @field from The state from which this transition will go.  Leaving this nil means
+-- @field from The state from which this transition will go. Setting this to 'all' means
 -- all states which can be useful for error handling.  Generally specify this using the
 -- first positional argument not the <i>from=</i> form.
 --

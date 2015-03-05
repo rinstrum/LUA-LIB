@@ -193,6 +193,7 @@ end
 -- @param crc 'crc' if message sent with crc, false (default) otherwise
 -- @usage
 -- stream.send('broadcast', 'rdlit', 'grossnet', data, 'reply')
+-- @local
 function private.send(addr, cmd, reg, data, reply, crc)
     local r = private.getRegisterNumber(reg)
     sendMsg(rinMsg.buildMsg(addr, cmd, reg, data, reply), crc)
@@ -217,7 +218,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set up a callback for when data on a specific register is received.
--- This function is safe to call from user applications.
+-- @function bindRegister
 -- @param reg Register to give callback, 0 is used to match anything received that has no other binding
 -- @param callback Function to be run when data is received
 -- @return previous register binding
@@ -227,6 +228,7 @@ end
 --     curIO = tonumber(data, 16)
 -- end
 -- device.bindRegister('iostatus', IOStatusHandler)
+-- @local
 function private.bindRegister(reg, callback)
     local r = private.getRegisterNumber(reg)
     local prev = deviceRegisters[r]
@@ -236,11 +238,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Unbind a register
--- This function is safe to call from user applications.
+-- @function unbindRegister
 -- @param reg Register to remove callback
 -- @return previous register binding
 -- @usage
 -- device.unbindRegister('iostatus')
+-- @local
 function private.unbindRegister(reg)
     return private.bindRegister(reg, nil)
 end

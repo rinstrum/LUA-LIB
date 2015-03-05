@@ -292,6 +292,7 @@ end
 -- @field time The time parameter is the number of second between the display being updated (default 0.8).
 -- @field wait Wait is a boolean for causes the display call to not return until after
 -- the message has been fully displayed (default: don't wait).  The wait implies the once option.
+-- The wait option and linked displays do not work well together.
 
 --- Display Fields.
 --

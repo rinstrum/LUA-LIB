@@ -163,38 +163,50 @@ function _M.sendDateFormat(f)
 end
 
 -------------------------------------------------------------------------------
+-- Convert RTC fields to numerics
+-- @param ... Fields that might need conversion
+-- @local
+local function RTCtoNumbers(...)
+    for _, v in ipairs{...} do
+        RTC[v] = tonumber(RTC[v])
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Read Real Time Clock data from instrument into local RTC table
 -- @param d 'date' or 'time' to read these fields only, or 'all' for both
 -- @local
 function private.RTCread(d)
-  local d = d or 'all'
+    local d = d or 'all'
 
-  _M.readDateFormat()
+    _M.readDateFormat()
 
-  local timestr, err = private.readRegLiteral(REG_TIMECUR)
+    local timestr, err = private.readRegLiteral(REG_TIMECUR)
 
-  if err then
+    if err then
     timestr = '01/01/2000 00-00'
-  end
-  --dbg.printVar(timestr)
+    end
+    --dbg.printVar(timestr)
 
-  if d == 'date' or d == 'all' then
-    RTC.day, RTC.month, RTC.year =
-      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-    RTC.load_date = true
-  end
+    if d == 'date' or d == 'all' then
+        RTC.day, RTC.month, RTC.year =
+        string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+        RTC.load_date = true
+        RTCtoNumbers('day', 'month', 'year')
+    end
 
-  if d == 'time' or d == 'all' then
-    _,_,_, RTC.hour, RTC.min =
-      string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
-    RTC.load_time = true
-  end
+    if d == 'time' or d == 'all' then
+        _,_,_, RTC.hour, RTC.min =
+        string.match(timestr,"(%d+)/(%d+)/(%d+) (%d+)-(%d+)")
+        RTC.load_time = true
+        RTCtoNumbers('hour', 'min')
+    end
 
-  RTC.sec, err = private.readReg(REG_TIMESEC)
-
-  if err then
-    RTC.sec = 0
-  end
+    RTC.sec, err = private.readReg(REG_TIMESEC)
+    if err then
+        RTC.sec = 0
+    end
+    RTCtoNumbers('sec')
 end
 
 -------------------------------------------------------------------------------
@@ -342,24 +354,33 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns formated time string
+-- @param timeFormat Either '12' or '24' to set the time format, default 24.
 -- @return Formatted time string
 -- @see RTCdate
 -- @see RTCtostring
 -- @usage
--- print(device.RTCtime())
-function _M.RTCtime()
-    return string.format("%02d:%02d:%02d", RTC.hour, RTC.min, RTC.sec)
+-- print(device.RTCtime(12))
+function _M.RTCtime(timeFormat)
+    local h, suffix = RTC.hour, ''
+    local f = tonumber(timeFormat or 24) or 24
+
+    if f == 12 then
+        suffix = (h < 12) and ' AM' or ' PM'
+        h = (h == 0) and 12 or ((h > 12) and (h-12) or h)
+    end
+    return string.format("%02d:%02d:%02d%s", h, RTC.min, RTC.sec, suffix)
 end
 
 -------------------------------------------------------------------------------
 -- Returns formated date/time string
+-- @param timeFormat Either '12' or '24' to set the time format, default 24.
 -- @return Formatted date and time string
 -- @see RTCtime
 -- @see RTCdate
 -- @usage
--- print(device.RTCtostring())
-function _M.RTCtostring()
-    return _M.RTCdate() .. ' ' .. _M.RTCtime()
+-- print(device.RTCtostring(24))
+function _M.RTCtostring(timeFormat)
+    return _M.RTCdate() .. ' ' .. _M.RTCtime(timeFormat)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -410,7 +431,6 @@ if _TEST then
     _M.monthLength = monthLength
     _M.setDateFormat = setDateFormat
     _M.rtc = RTC
-    _M.RTCtick = private.RTCtick
 end
 
 end

@@ -125,6 +125,7 @@ end
 -------------------------------------------------------------------------------
 -- Query if we're in single range, dual interval or dual range mode
 -- @return String describing the range setting
+-- @see DualRangeModes
 -- @usage
 -- print('Device is in '..device.dualRangeMode()..' range mode')
 function _M.dualRangeMode()
@@ -136,6 +137,7 @@ end
 -- @field single Single range mode
 -- @field dual.i Dual interval mode
 -- @field dual.r Dual range mode
+-- @see dualRangeMode
 
 -------------------------------------------------------------------------------
 -- Query the current setting of a given field in the specified display mode
@@ -177,9 +179,9 @@ end
 -------------------------------------------------------------------------------
 -- Query the current count by setting in the specified display mode
 -- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @return The countby setting as an unpacked vector.
+-- @return The countby setting as a three element unpacked vector.
 -- @usage
--- local countby = device.getDispModeCountBy('primary')
+-- local countby = { device.getDispModeCountBy('primary') }
 -- for i = 1, #countby do
 --     print(i, countby[i])
 -- end
@@ -206,13 +208,13 @@ end
 function private.readSettings()
     settings.fullscale = private.readReg('fullscale')
     settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE))
-    for mode = DISPMODE_PRIMARY, DISPMODE_SECONDARY do
-        if settings.dispmode[mode].reg ~= 0 then
-            local data, err = private.readRegHex(settings.dispmode[mode].reg)
+
+    for mode, cur in ipairs(settings.dispmode) do
+        if cur.reg ~= 0 then
+            local data, err = private.readRegHex(cur.reg)
             if data and not err then
                 data = tonumber(data, 16)
                 if data ~= nil then
-                    local cur = settings.dispmode[mode]
                     cur.dp         = bit32.band(data, 0x0000000F)
                     cur.units      = units  [1 + bit32.band(bit32.rshift(data,  4), 0x0000000F)]
                     cur.countby[3] = countby[1 + bit32.band(bit32.rshift(data,  8), 0x000000FF)]
@@ -358,7 +360,7 @@ function _M.restart(what)
 
     utils.reboot()
     system.sleep(300)
-    dbg.warn('Reboot failed')
+    error('Restart failed')
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -370,10 +372,9 @@ deprecated.REG_SOFTVER              = REG_SOFTVER
 deprecated.REG_SERIALNO             = private.REG_SERIALNO
 
 deprecated.readSettings = private.readSettings
-deprecated.system = system
-deprecated.settings = settings
-deprecated.units = units
-deprecated.countby = countby
+deprecated.settings = utils.readonlyreference(settings)
+deprecated.units = utils.readonlyreference(units)
+deprecated.countby = utils.readonlyreference(countby)
 
 deprecated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
 deprecated.DISPMODE_PIECES       = DISPMODE_PIECES
