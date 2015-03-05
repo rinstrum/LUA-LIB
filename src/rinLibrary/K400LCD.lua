@@ -479,7 +479,6 @@ end
 -- Write a message to the given display field.
 -- @param f Display field.
 -- @param s String to write
--- @param params Display parameters
 -- @local
 local function writeToken(f, s)
   -- Do not allow writing to socket-connected displays
