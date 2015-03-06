@@ -135,7 +135,8 @@ end)
 --
 -- These registers define the extra information about materials and the batch stages.
 -- In all cases below, replace the <i>X</i> by an integer 1 .. ? that represents the
--- material or stage of interest.
+-- material or stage of interest.  Additionally, all are available without the X and,
+-- in this case, the 1 is implied.
 --@table batchingRegisters
 -- @field material_spec ?
 -- @field material_nameX name of the Xth material
