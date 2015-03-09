@@ -1060,16 +1060,6 @@ function _M.setRawLCD(data)
     private.writeRegAsync(REG_MASTER, data, 'crc')
 end
 
--------------------------------------------------------------------------------
--- Notify the library that there is a remote display attached
--- @param name Name to be assigned to this display
--- @param type Type of the display
--- @param port Port used to communicate with the display
-function _M.addRemoteDisplay(name, type, port)
-    local d = nil
-    display[canonical(name)] = d
-end
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Fill in all the deprecated fields
 deprecated.REG_LCDMODE                  = R400Reg.REG_LCDMODE
