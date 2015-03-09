@@ -201,8 +201,12 @@ local displayPattern = embedded + serial + usb + network
 -- Called to add a display to the framework
 -- @param type Type of display to add. These are stored in rinLibrary.display
 -- @param prefix Name prefix for added display fields
--- @param settings Extra addressing information. This could be 
--- -- @return boolean showing success of adding the framework, error message
+-- @param options Extra addressing information. 
+-- For R400 serial ports, this of the form '(auto1/auto2) [serial (ser1a-ser3b)] [Rate (5hz, 10hz, 25hz)]'.
+-- Optional arguments (i.e. serial and rate) will not be written to the device unless they are explicitly set.
+-- For USB serial ports: 'usb'
+-- For Network serial ports: 'XXX.XXX.XXX.XXX:port'
+-- @return boolean showing success of adding the framework, error message
 -- @usage
 -- local succeeded, err = device.addDisplay('D320', 'D320', 'auto1 ser1a 5hz')
 function _M.addDisplay(type, prefix, options)
