@@ -529,6 +529,23 @@ function _M.undoLogLineCSV(t)
     return false
 end
 
+-------------------------------------------------------------------------------
+-- Return the label map for the specified table.
+-- This is a memo function for efficiency.
+-- @param t Table to get the label map for
+-- @return Label map
+-- @local
+local function getLabelMap(t)
+    local labels = labelMaps[t]
+    if labels == nil then
+        labels = {}
+        for n, f in ipairs(t.labels) do
+            labels[canonical(f)] = n
+        end
+        labelMaps[t] = labels
+    end
+    return labels
+end
 
 -------------------------------------------------------------------------------
 -- Helper function to take a record with field names and produce a numerically
@@ -538,14 +555,8 @@ end
 -- @return Row vector
 -- @local
 local function recordToLine(t, rec)
-    local l, labels = {}, labelMaps[t]
-    if labels == nil then
-        labels = {}
-        for n, f in ipairs(t.labels) do
-            labels[canonical(f)] = n
-        end
-        labelMaps[t] = labels
-    end
+    local l, labels = {}, getLabelMap(t)
+
     for k, v in pairs(rec) do
         local c = labels[canonical(k)]
         if c ~= nil then
@@ -975,13 +986,7 @@ end
 -- print('The materials column is ' .. csv.labelCol(csvfile, 'material'))
 function _M.labelCol(t, label)
     if label ~= nil and isCSV(t) then
-        local label = canonical(label)
-
-        for k,v in pairs(t.labels) do
-            if canonical(v) == label then
-                return k
-            end
-        end
+        return getLabelMap(t)[canonical(label)]
     end
     return nil
 end
