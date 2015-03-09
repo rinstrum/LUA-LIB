@@ -24,6 +24,8 @@ local timers    = require 'rinSystem.rinTimers'
 local utils     = require 'rinSystem.utilities'
 local deepcopy  = utils.deepcopy
 
+local labelMaps = setmetatable({}, { __mode = 'k' })
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- CSV write back options.
 local syncTimer
@@ -527,6 +529,23 @@ function _M.undoLogLineCSV(t)
     return false
 end
 
+-------------------------------------------------------------------------------
+-- Return the label map for the specified table.
+-- This is a memo function for efficiency.
+-- @param t Table to get the label map for
+-- @return Label map
+-- @local
+local function getLabelMap(t)
+    local labels = labelMaps[t]
+    if labels == nil then
+        labels = {}
+        for n, f in ipairs(t.labels) do
+            labels[canonical(f)] = n
+        end
+        labelMaps[t] = labels
+    end
+    return labels
+end
 
 -------------------------------------------------------------------------------
 -- Helper function to take a record with field names and produce a numerically
@@ -536,12 +555,13 @@ end
 -- @return Row vector
 -- @local
 local function recordToLine(t, rec)
-    local q, l = {}, {}
+    local l, labels = {}, getLabelMap(t)
+
     for k, v in pairs(rec) do
-        q[canonical(k)] = v
-    end
-    for i = 1, #t.labels do
-        table.insert(l, q[canonical(t.labels[i])])
+        local c = labels[canonical(k)]
+        if c ~= nil then
+            l[c] = v
+        end
     end
     return l
 end
@@ -697,6 +717,7 @@ end
 -- @param col is the column of data to match (default is col 1)
 -- @return table containing the fields index by their canonical names
 -- @see getLineCSV
+-- @see setRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file',
@@ -711,6 +732,31 @@ function _M.getRecordCSV(t, val, col)
         return makeRecord(t, line)
     end
     return nil
+end
+
+-------------------------------------------------------------------------------
+-- Set a specified row in a CSV file to match the passed record
+-- @param t Table holding CSV data
+-- @param val is value of the cell to find
+-- @param col is the column of data to match
+-- @param f Record of new values
+-- @see getRecordCSV
+-- @usage
+-- local csv = require('rinLibrary.rinCSV')
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
+--
+-- -- Search for the value 3.14159 in the third column and replace this
+-- -- with some new values
+-- csv.setRecordCSV(csvfile, 3.14159, 3, { name='e', value=2.718281828459 })
+function _M.setRecordCSV(t, val, col, f)
+    if hasData(t) then
+        local row = _M.getLineCSV(t, val, col)
+        if type(row) == 'number' then
+            for k, v in pairs(recordToLine(t, f)) do
+                t.data[row][k] = v
+            end
+        end
+    end
 end
 
 -------------------------------------------------------------------------------
@@ -940,13 +986,7 @@ end
 -- print('The materials column is ' .. csv.labelCol(csvfile, 'material'))
 function _M.labelCol(t, label)
     if label ~= nil and isCSV(t) then
-        local label = canonical(label)
-
-        for k,v in pairs(t.labels) do
-            if canonical(v) == label then
-                return k
-            end
-        end
+        return getLabelMap(t)[canonical(label)]
     end
     return nil
 end

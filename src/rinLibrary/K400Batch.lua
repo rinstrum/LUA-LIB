@@ -49,6 +49,7 @@ private.registerDeviceInitialiser(function()
         numStages = 10
         numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
 
+        private.addRegisters{ material_name = 0xC081 }
         for i = 1, numMaterials do          -- Material registers for each material
             private.addRegisters{ ['material_name'..i] = 0xC080 + i }
             local f = (i-1) * 0x10
@@ -63,6 +64,9 @@ private.registerDeviceInitialiser(function()
                 error_average       = 0xC108
             } do
                 private.addRegisters{ ['material_'..k..i] = v + f }
+                if i == 1 then
+                    private.addRegisters{ ['material_'..k] = v + f }
+                end
             end
         end
 
@@ -131,7 +135,8 @@ end)
 --
 -- These registers define the extra information about materials and the batch stages.
 -- In all cases below, replace the <i>X</i> by an integer 1 .. ? that represents the
--- material or stage of interest.
+-- material or stage of interest.  Additionally, all are available without the X and,
+-- in this case, the 1 is implied.
 --@table batchingRegisters
 -- @field material_spec ?
 -- @field material_nameX name of the Xth material
@@ -235,7 +240,12 @@ private.registerDeviceInitialiser(function()
                 }
     local registers = {}
     for i = 1, #fields do
-        table.insert(registers, 'material_' .. fields[i] .. '1')
+        --table.insert(registers, 'material_' .. fields[i] .. '1')
+        table.insert(registers, 'material_' .. fields[i])
+        private.addRegisters{ ['stage_'..k..i] = v + (i - 1) * 0x0100 }
+        if i == 1 then
+            private.addRegisters{ ['stage_'..k] = v }
+        end
     end
 
 -------------------------------------------------------------------------------

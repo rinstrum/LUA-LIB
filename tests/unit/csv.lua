@@ -447,6 +447,26 @@ describe("CSV tests #csv", function()
         end
     end)
 
+    -- test setRecordCSV
+    describe("setRecordCSV #setrecordcsv", function()
+        local setRecordCsvTests = {
+            { v = 1, c = 'a', f={a=9, b=8}, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } },
+                                            r = { {9, 8}, {4, 3}, {5, 6} } },
+            { v = 6, c = "b", f={a=0, c=9}, t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } },
+                                            r = { {1, 2}, {4, 3}, {0, 6} } },
+            { v = 1, c = 1,   f={ b=8},     t = { labels = { "a", "b" }, data = { {1, 2}, {4, 3}, {5, 6} } },
+                                            r = { {1, 8}, {4, 3}, {5, 6} } },
+        }
+
+        for i = 1, #setRecordCsvTests do
+            it("test "..i, function()
+                local r = setRecordCsvTests[i]
+                csv.setRecordCSV(r.t, r.v, r.c, r.f)
+                assert.same(r.r, r.t.data)
+            end)
+        end
+    end)
+
     -- test selectCSV
     describe("selectCSV #selectcsv", function()
         local selectCsvTests = {
