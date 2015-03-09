@@ -126,6 +126,9 @@ private.registerDeviceInitialiser(function()
         } do
             for i = 1, numStages do
                 private.addRegisters{ ['stage_'..k..i] = v + (i - 1) * 0x0100 }
+                if i == 1 then
+                    private.addRegisters{ ['stage_'..k] = v }
+                end
             end
         end
     end
@@ -242,10 +245,6 @@ private.registerDeviceInitialiser(function()
     for i = 1, #fields do
         --table.insert(registers, 'material_' .. fields[i] .. '1')
         table.insert(registers, 'material_' .. fields[i])
-        private.addRegisters{ ['stage_'..k..i] = v + (i - 1) * 0x0100 }
-        if i == 1 then
-            private.addRegisters{ ['stage_'..k] = v }
-        end
     end
 
 -------------------------------------------------------------------------------
@@ -304,6 +303,21 @@ private.registerDeviceInitialiser(function()
     end)
 
 -------------------------------------------------------------------------------
+-- Set the current material in the indicator
+-- @param m Material name to set to
+-- @local
+local function setMaterialRegisters(m)
+    openMaterialCSV()
+    local _, row = csv.getLineCSV(materialCSV, m, fields[1])
+    if row == nil then
+        return 'Material does not exist'
+    end
+    for i = 1, #registers do
+        _M.setRegister(registers[i], row[i])
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Set the current material by name
 -- @function setCurrentMaterial
 -- @param m Material name to set as current
@@ -314,14 +328,7 @@ private.registerDeviceInitialiser(function()
         local current = _M.getCurrentMaterial()
         saveCurrent(current)
         if m ~= current then
-            openMaterialCSV()
-            local n, row = csv.getLineCSV(materialCSV, m, fields[1])
-            if row == nil then
-                return 'Material does not exist'
-            end
-            for i = 1, #registers do
-                _M.setRegister(registers[i], row[i])
-            end
+            setMaterialRegisters(m)
         end
     end)
 
@@ -373,6 +380,29 @@ private.registerDeviceInitialiser(function()
             _M.setCurrentMaterial(new)
         end
         return new
+    end)
+
+-------------------------------------------------------------------------------
+-- Get a table containing the material details
+-- @function getMaterialDetails
+-- @usage
+-- local material = device.getMaterialDetails()
+    private.exposeFunction('getMaterialDetails', private.batching(true), function()
+        openMaterialCSV()
+        local current = _M.getCurrentMaterial()
+        return csv.getRecordCSV(materialCSV, current, fields[1])
+    end)
+
+-------------------------------------------------------------------------------
+-- Set the current material details from a table
+-- @function setMaterialDetails
+-- @usage
+-- device.setMaterialDetails { name='grit', flight=3 }
+    private.exposeFunction('setMaterialDetails', private.batching(true), function(f)
+        openMaterialCSV()
+        local current = _M.getCurrentMaterial()
+        csv.setRecordCSV(materialCSV, current, fields[1], f)
+        setMaterialRegisters()
     end)
 end)
 
