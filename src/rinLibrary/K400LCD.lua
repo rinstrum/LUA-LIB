@@ -170,8 +170,10 @@ local display = {}
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- Define the interfaces
 
+local function Sw(x) return spc^0 * Ct(x) * spc^0 * -1 end
+
 local serial = P{
-            Ct(V'intf' * spc^1 * V'port' * (spc^1 * V'opts')^0 * V'type') * spc^0 * P(-1),
+            Sw(V'intf' * spc^1 * V'port' * (spc^1 * V'opts')^0 * V'type'),
     type =  Cg(Cc('serial'), 'type'),
     intf =  Cg((Pi('auto') * S'12') / string.lower, 'intf'),
     port =  Cg((Pi'ser' * S'12' * S'abAB') / string.lower, 'port'),
@@ -181,19 +183,19 @@ local serial = P{
 
 -- Note: USB's do not actually support 'ttyUSB#' specification.
 local usb = P{
-            Ct(V'port' * V'type') * spc^0 * P(-1),
+            Sw(V'port' * V'type'),
     type =  Cg(Cc('usb'), 'type'),
     port =  Cg(Cs(Pi'ttyUSB' / 'ttyUSB' * C(digit^1)) + Pi'usb' / 'ttyUSB0', 'port'),
 }
 
 local network = P{
-            Ct(V'addr' * V'port'^0 * V'type') * spc^0 * P(-1),
+            Sw(V'addr' * V'port'^0 * V'type'),
     type =  Cg(Cc('network'), 'type'),
     addr =  Cg(Cmt(num * P'.' * num * P'.' * num * P'.' * num, checkIP), 'addr'),
     port =  P':' * Cg(Cmt(num^1, checkPort) / tonumber, 'port')
 }
 
-local embedded =  Ct(Cg(Pi'embedded', 'type')) * spc^0 * P(-1)
+local embedded =  Sw(Cg(Pi'embedded', 'type'))
 
 local displayPattern = embedded + serial + usb + network
 
