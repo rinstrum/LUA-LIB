@@ -32,11 +32,31 @@ local dispHelp = require 'rinLibrary.displayHelper'
 local R400Reg = require 'rinLibrary.display.R400'
 
 local lpeg = require 'rinLibrary.lpeg'
-local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
-local P, Pi, R, S, V, spc = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V, lpeg.space
+local C, Cg, Cs, Ct, Cmt, Cc = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct, lpeg.Cmt, lpeg.Cc
+local P, Pi, R, S, V = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V
+local digit, spc = lpeg.digit, lpeg.space
+local num, dot = C(digit^1), C(P'.')
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
 local equals, formatPosition = spc^0 * P'=' * spc^0
+
+local function isUint8(n)
+    n = tonumber(n)
+    return type(n) == 'number' and n >= 0 and n<256
+end
+
+local function isUint16(n)
+    n = tonumber(n)
+    return type(n) == 'number' and n >= 0 and n<65536
+end
+
+local function checkIP(s, i, a, b, c, d)
+    return isUint8(a) and isUint8(b) and isUint8(c) and isUint8(d)
+end
+
+local function checkPort(s, i, a)
+    return isUint16(a)
+end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Define a pattern to match the display options and produce an option table.
@@ -128,30 +148,64 @@ local REG_LCDMODE              = 0x000D
 local REG_MASTER               = 0x00B9
 
 local REG_SERAUT               = 0xA200
-local REG_SER1_TYPE            = 0xA201
-local REG_SER1_SERIAL          = 0xA202
-local REG_SER1_FORMAT          = 0xA203
-local REG_SER1_SOURCE          = 0xA204
+local OPT_AUTO1                = 0
+local OPT_AUTO2                = 1
 
-local SERAUT_1                 = 0
-local SER_TYPE_5HZ             = 5
-local SER_SER1A                = 0
+local REG_SER1_OFFSET          = 0xA201
+local REG_SER2_OFFSET          = 0xA241
+
+local REG_SER_TYPE             = 0
+local REG_SER_SERIAL           = 1
+local REG_SER_FORMAT           = 2
+local REG_SER_SOURCE           = 3
+
 local SER_FORMAT_CUSTOM        = 7
-local SER_SOURCE_GROSS         = 0
+
+local interfaces = {auto1 = REG_SER1_OFFSET, auto2 = REG_SER2_OFFSET}
+local serials = {['5hz'] = 5, ['10hz'] = 2, ['25hz'] = 3}
+local ports = {ser1a = 0, ser1b = 1, ser2a = 2, ser2b = 3, ser3a = 4, ser3b = 5}
 
 local display = {}
+
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
+-- Define the interfaces
+
+local serial = P{
+            Ct(V'intf' * spc^1 * V'port' * (spc^1 * V'opts')^0 * V'type') * spc^0 * P(-1),
+    type =  Cg(Cc('serial'), 'type'),
+    intf =  Cg((Pi('auto') * S'12') / string.lower, 'intf'),
+    port =  Cg((Pi'ser' * S'12' * S'abAB') / string.lower, 'port'),
+    opts =  V'rate',
+    rate =  Pi'rate='^-1 * Cg(Pi'5hz' + Pi'10hz' + Pi'25hz', 'rate')
+}
+
+-- Note: USB's do not actually support 'ttyUSB#' specification.
+local usb = P{
+            Ct(V'port' * V'type') * spc^0 * P(-1),
+    type =  Cg(Cc('usb'), 'type'),
+    port =  Cg(Cs(Pi'ttyUSB' / 'ttyUSB' * C(digit^1)) + Pi'usb' / 'ttyUSB0', 'port'),
+}
+
+local network = P{
+            Ct(V'addr' * V'port'^0 * V'type') * spc^0 * P(-1),
+    type =  Cg(Cc('network'), 'type'),
+    addr =  Cg(Cmt(num * P'.' * num * P'.' * num * P'.' * num, checkIP), 'addr'),
+    port =  P':' * Cg(Cmt(num^1, checkPort) / tonumber, 'port')
+}
+
+local embedded =  Ct(Cg(Pi'embedded', 'type')) * spc^0 * P(-1)
+
+local displayPattern = embedded + serial + usb + network
 
 -------------------------------------------------------------------------------
 -- Called to add a display to the framework
 -- @param type Type of display to add. These are stored in rinLibrary.display
 -- @param prefix Name prefix for added display fields
--- @param address Extra addressing information ('custom', 'usb', ip address)
--- @param port Port to try and connect on (valid for IP address connections only)
--- @return boolean showing success of adding the framework, error message
+-- @param settings Extra addressing information. This could be 
+-- -- @return boolean showing success of adding the framework, error message
 -- @usage
--- local succeeded, err = device.addDisplay('R400')
-function _M.addDisplay(type, prefix, address, port)
-  local address = address or 'configure'
+-- local succeeded, err = device.addDisplay('D320', 'D320', 'auto1 ser1a 5hz')
+function _M.addDisplay(type, prefix, options)
   local err
 
   prefix = prefix or ''
@@ -163,20 +217,39 @@ function _M.addDisplay(type, prefix, address, port)
   end
 
   prefix = naming.canonicalisation(prefix)
-  address = naming.canonicalisation(address)
+  
+  -- Get the settings. There may be none given.
+  local settings = displayPattern:match(options)
+  settings.reg = 0
   
   -- If the user does not specify any addressing options, then set up the 
   -- R400 serial.
-  if (address == 'configure') then
-    private.writeRegHexAsync(REG_SERAUT, SERAUT_1)
-    private.writeRegHexAsync(REG_SER1_TYPE, SER_TYPE_5HZ)
-    private.writeRegHexAsync(REG_SER1_SERIAL, SER_SER1A)
-    private.writeRegHexAsync(REG_SER1_FORMAT, SER_FORMAT_CUSTOM)
-    private.writeRegHexAsync(REG_SER1_SOURCE, SER_SOURCE_GROSS)
+  if (settings and settings.type == 'serial') then
+    local reg_off = interfaces[settings.intf]
+    settings.reg = reg_off
+    
+    -- If auto2 is used, make it's available
+    if (settings.intf == 'auto2') then
+      private.writeRegHexAsync(REG_SERAUT, OPT_AUTO2)
+    end
+  
+    --Set the format
+    private.writeRegHexAsync(reg_off + REG_SER_FORMAT, SER_FORMAT_CUSTOM)
+    
+    -- If the user specifies a port, set it.
+    if (settings.port) then
+      private.writeRegHexAsync(reg_off + REG_SER_SERIAL, ports[settings.port])
+    end
+    
+    -- If the user specifies a rate, set it.
+    if (settings.rate) then
+      private.writeRegHexAsync(reg_off + REG_SER_TYPE, serials[settings.rate])
+    end
+
     _M.saveSettings()
   end
 
-  display, err = disp.add(private, display, prefix, address, port)
+  display, err = disp.add(private, display, prefix, settings)
   
   if (err) then
     return nil, err

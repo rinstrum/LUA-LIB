@@ -15,7 +15,7 @@ local naming = require 'rinLibrary.namings'
 
 local canonical = naming.canonicalisation
 
-_M.REG_AUTO_OUT = 0xA205
+_M.REG_AUTO_OUT = 4
 
 -------------------------------------------------------------------------------
 -- Add the D320 to the displayTable. This will add a remote display field to 
@@ -23,15 +23,15 @@ _M.REG_AUTO_OUT = 0xA205
 -- @param private Functions from rinLibrary
 -- @param displayTable displayTable used by rinLibrary
 -- @param prefix Prefix to place before the field name, e.g. prefixD323
--- @param address Address of the device. Leave blank for R400 serial, or 'usb' for USB serial.
+-- @param settings Settings table for the display
 -- @return Updated displayTable
 -- @local
-function _M.add(private, displayTable, prefix, address)
+function _M.add(private, displayTable, prefix, settings)
 
   displayTable[prefix] = {
     remote = true,
     length = 6,
-    reg = _M.REG_AUTO_OUT,
+    reg = settings.reg + _M.REG_AUTO_OUT,
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
@@ -79,8 +79,8 @@ function _M.add(private, displayTable, prefix, address)
                 end
   }
   
-  if (address == 'usb') then
-    dispHelp.addUSB(displayTable[prefix])
+  if (settings and settings.type == 'usb') then
+    dispHelp.addUSB(displayTable[prefix], settings)
   end
   
   return displayTable

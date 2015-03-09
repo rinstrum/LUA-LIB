@@ -26,7 +26,7 @@ local device = rinApp.addK400()                  -- local K401 instrumentH
 
 -- Load the remote display. No extra options here indicates that the R400 comms 
 -- port should be used.
-device.addDisplay("D320", "d320")
+device.addDisplay("D320", "d320", 'auto1 ser1a 5hz')
 
 -- Loop function
 local function looper()

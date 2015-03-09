@@ -14,7 +14,7 @@ local dispHelp = require "rinLibrary.displayHelper"
 local socks = require "rinSystem.rinSockets"
 local timers = require 'rinSystem.rinTimers'
 
-_M.REG_AUTO_OUT = 0xA205
+_M.REG_AUTO_OUT = 4
 
 -------------------------------------------------------------------------------
 -- Add the D840 to the displayTable. This will add a remote display field to 
@@ -22,16 +22,15 @@ _M.REG_AUTO_OUT = 0xA205
 -- @param private Functions from rinLibrary
 -- @param displayTable displayTable used by rinLibrary
 -- @param prefix Prefix to place before the field name, e.g. prefixD323
--- @param address Address of the device. Leave blank for R400 serial, 'usb' for USB serial, or an IP address for ethernet.
--- @param port Optional port for IP address support. Default is 10001.
+-- @param settings Settings table for the display
 -- @return Updated displayTable
 -- @local
-function _M.add(private, displayTable, prefix, address, port)
+function _M.add(private, displayTable, prefix, settings)
 
   displayTable[prefix] = {
     remote = true,
     length = 6,
-    reg = _M.REG_AUTO_OUT,
+    reg = settings.reg+ _M.REG_AUTO_OUT,
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
@@ -83,13 +82,13 @@ function _M.add(private, displayTable, prefix, address, port)
                end
   }
   
-  if (address == 'usb') then
+  if (settings and settings.type == 'usb') then
     dispHelp.addUSB(displayTable[prefix])
-  elseif (address) then
+  elseif (settings and settings.type == 'network') then
     local me = displayTable[prefix]
     local err
   
-    me.sock, err = socks.createTCPsocket(address, port or 10001, 0.001)
+    me.sock, err = socks.createTCPsocket(settings.addr, settings.port or 10001, 0.001)
 
     if (me.sock == nil) then
       return displayTable, err
