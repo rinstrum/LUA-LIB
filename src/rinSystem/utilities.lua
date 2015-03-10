@@ -6,6 +6,8 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local posix = require 'posix'
+local lpeg = require 'lpeg'
+local Cg, Ct, Cs, P = lpeg.Cg, lpeg.Ct, lpeg.Cs, lpeg.P
 
 local _M = {}
 
@@ -218,6 +220,57 @@ function _M.loadFileByLines(filename)
         return lines
     end
     return nil, err
+end
+
+-------------------------------------------------------------------------------
+-- Create a function that accepts an incoming stream of data and breaks it into
+-- peices according to the start, end and escape characters, string or patterns.
+-- @param callback Callback to accept the broken down chunks
+-- @param start Start character, string or pattern (can be nil for none)
+-- @param fin End character, string or pattern (cannot be nil)
+-- @param escape Escape character, string or pattern (can be nil for no escape)
+-- @return a function to process and buffer an incoming stream
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- local function process(s, err)
+--     if err then print('error:', err)
+--     else        print('received:', s)
+--     end
+-- end
+--
+-- local stream = utils.streamProcessor(process, '\2', '\3', '\16')
+function _M.streamProcessor(callback, start, fin, escape)
+    _M.checkCallback(callback)
+    local cb = _M.deepcopy(callback)
+    local function wrap(s)
+        if type(s) == 'userdata'  then  return s
+        elseif type(s) == 'nil'   then  return nil
+        elseif type(s) == 'table' then  return P(s) / ''
+        end
+        return P(tostring(s)) / ''
+    end
+
+    start, fin, escape = wrap(start), wrap(fin), wrap(escape)
+    local begin = start ~= nil and (1-start)^0 / '' * start or P(true)
+    local rest = P(1)^0
+    local body = 1 - fin
+    if escape ~= nil then   body = escape/'' * P(1) + body end
+
+    local msg = Ct(Cs(begin * body^0 * fin)^0 * Cg(Cs(rest), 'residue'))
+    local buf = ''
+    return function(c, err)
+        if err then
+            _M.call(cb, nil, err)
+        else
+            buf = buf .. c
+            local r = msg:match(buf)
+            buf = r.residue
+            for k, v in ipairs(r) do
+                _M.call(cb, v, nil)
+            end
+        end
+    end
 end
 
 return _M
