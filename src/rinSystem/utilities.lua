@@ -242,7 +242,10 @@ end
 -- local stream = utils.streamProcessor(process, '\2', '\3', '\16')
 function _M.streamProcessor(callback, start, fin, escape)
     _M.checkCallback(callback)
-    local cb = _M.deepcopy(callback)
+    if fin == nil then
+        error 'streamProcessor: must have a finish sequence defined'
+    end
+
     local function wrap(s)
         if type(s) == 'userdata'  then  return s
         elseif type(s) == 'nil'   then  return nil
@@ -253,21 +256,22 @@ function _M.streamProcessor(callback, start, fin, escape)
 
     start, fin, escape = wrap(start), wrap(fin), wrap(escape)
     local begin = start ~= nil and (1-start)^0 / '' * start or P(true)
-    local rest = P(1)^0
-    local body = 1 - fin
-    if escape ~= nil then   body = escape/'' * P(1) + body end
-
+    local body, rest = 1 - fin, P(1)^0
+    if escape ~= nil then   body = escape * P(1) + body end
     local msg = Ct(Cs(begin * body^0 * fin)^0 * Cg(Cs(rest), 'residue'))
-    local buf = ''
+
+    local buf, cb = '', _M.deepcopy(callback)
     return function(c, err)
         if err then
             _M.call(cb, nil, err)
         else
             buf = buf .. c
             local r = msg:match(buf)
-            buf = r.residue
-            for k, v in ipairs(r) do
-                _M.call(cb, v, nil)
+            if r then
+                buf = r.residue
+                for k, v in ipairs(r) do
+                    _M.call(cb, v, nil)
+                end
             end
         end
     end
