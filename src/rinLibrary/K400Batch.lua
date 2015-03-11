@@ -220,8 +220,13 @@ private.registerDeviceInitialiser(function()
 -- device.setStageRegisters { type='', fill_slow=1 }
     private.exposeFunction('setStageRegisters', batching, function(s)
         for name, reg in pairs(stageRegisters) do
-            if s[name] then
-                _M.setRegister(reg, s[name])
+            local v = s[name]
+            if v then
+                if name == 'fill_material' then
+                    _M.setMaterialRegisters(v)
+                    v = 1
+                end
+                _M.setRegister(reg, v)
             end
         end
 
@@ -287,53 +292,64 @@ private.registerDeviceInitialiser(function()
         -- Execute the stages sequentially in a FSM
         local pos, prev = 1, nil
         local fsm = _M.stateMachine { rname }
-                        .state { 'init' }
+        local blocks = { }
         while pos <= #stages do
-            local spos, epos = pos, pos
-            while epos < #stages and stages[pos].order and stages[pos].order == stages[epos+1].order do
-                epos = epos + 1
-            end
-            pos = epos + 1
-
-            -- Sanity check to prevent using the same device twice
-            if spos ~= epos then
-                local used = {}
-                for i = spos, epos do
-                    local d = stages[i].device or _M
-                    if used[d] then
-                        return nil, 'duplicate device in stage '..stages[spos].order
-                    end
-                    used[d] = true
+            local e = pos+1
+            table.insert(blocks, { idx=pos, name='ST'..(stages[pos].order or pos)})
+            if stages[pos].order then
+                while e <= #stages and stages[pos].order == stages[e].order do
+                    e = e + 1
                 end
             end
-
-            -- Add a state to the FSM including a transition from the previous state
-            local curName = 'ST'..(stages[spos].order or spos)
-            fsm.state { curName, enter=function()
-                            for i = spos, epos do
-                                local d = deviceFinder(stages[i].device)
-                                d.setMaterialRegisters(material)
-                                d.setStageRegisters(stages[i])
-                                --d.beginStage()
-                            end
-                        end }
-
-            if prev then
-                fsm.trans { prev, curName, cond=function()
-                            for i = spos, epos do
-                                local d = deviceFinder(stages[i].device)
-                                if not d.allStatusSet('idle') then
-                                    return false
-                                end
-                            end
-                            return true
-                        end }
-            else
-                fsm.trans { 'init', curName, event='begin' }
-            end
-            prev = curName
+            pos = e
         end
-        fsm.trans { prev, 'init', event='reset' }
+        table.insert(blocks, { idx=1+#stages, name='finish' })
+
+        -- Sanity check to prevent using the same device twice
+        for bi = 1, #blocks-1 do
+            local b1, b2 = blocks[bi], blocks[bi+1]
+            local used = {}
+            for i = b1.idx, b2.idx-1 do
+                local d = stages[i].device or _M
+                if used[d] then
+                    return nil, 'duplicate device in stage '..stages[b1.idx].order
+                end
+                used[d] = true
+            end
+        end
+
+        -- Add a states to the FSM
+        fsm.state { 'init' }
+            .state { 'finish' }
+        for bi = 1, #blocks-1 do
+            local b1, b2 = blocks[bi], blocks[bi+1]
+            local function startStage()
+                for i = b1.idx, b2.idx-1 do
+                    local d = deviceFinder(stages[i].device)
+                    d.setStageRegisters(stages[i])
+                    --d.beginStage()
+                end
+            end
+            fsm.state { b1.name, enter=startStage }
+        end
+
+        -- Add a transitions to the FSM
+        fsm.trans { 'init', blocks[1].name, event='begin' }
+            .trans { 'finish', 'init', event='reset' }
+        for bi = 1, #blocks-1 do
+            local b1, b2 = blocks[bi], blocks[bi+1]
+            local function testStage()
+                for i = b1.idx, b2.idx-1 do
+                    local d = deviceFinder(stages[i].device)
+                    if not d.allStatusSet('idle') then
+                        return false
+                    end
+                end
+                return true
+            end
+            fsm.trans { b1.name, b2.name, cond=testStage }
+        end
+
         return fsm, nil
     end)
 
