@@ -8,18 +8,22 @@
 
 local csv       = require 'rinLibrary.rinCSV'
 local canonical = require('rinLibrary.namings').canonicalisation
+local dbg       = require "rinLibrary.rinDebug"
+local utils     = require 'rinSystem.utilities'
+
+local cb = utils.cb
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
-local numStages, numMaterials = 0, 1
+local numStages, numMaterials = 0, 0
 
 -------------------------------------------------------------------------------
 -- Query the number of materials available in the display.
 -- @return Number of material slots in display's database
 -- @usage
--- print('We can deal with '..device.getMaterialCount()..' materials.')
-function _M.getMaxMaterialCount()
+-- print('We can deal with '..device.getNativeMaterialCount()..' materials.')
+function _M.getNativeMaterialCount()
     return numMaterials
 end
 
@@ -27,15 +31,23 @@ end
 -- Query the number of batching stages available in the display.
 -- @return Number of batching stages in display's database
 -- @usage
--- print('We can deal with '..device.getStageCount()..' stages.')
-function _M.getMaxStageCount()
+-- print('We can deal with '..device.getNativeStageCount()..' stages.')
+function _M.getNativeStageCount()
     return numStages
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule register definitions hinge on the model type
 private.registerDeviceInitialiser(function()
-    if private.batching(true) then
+    local batching = private.batching(true)
+    local recipes, materialCSV, recipesCSV = {}
+    local materialRegs, stageRegisters = {}, {}
+    local stageDevice = _M
+
+    if batching then
+        numStages = 10
+        numMaterials = private.valueByDevice{ default=1, k411=6, k412=20, k415=6 }
+
         private.addRegisters{
             product_time            = 0xB106,
             product_time_average    = 0xB107,
@@ -46,93 +58,301 @@ private.registerDeviceInitialiser(function()
             material_spec           = 0xC100,
         }
 
-        numStages = 10
-        numMaterials = private.valueByDevice{ k410=1, k411=6, k412=20, k415=6 }
-
-        private.addRegisters{ material_name = 0xC081 }
-        for i = 1, numMaterials do          -- Material registers for each material
-            private.addRegisters{ ['material_name'..i] = 0xC080 + i }
-            local f = (i-1) * 0x10
-            for k, v in pairs{
-                flight              = 0xC101,
-                medium              = 0xC102,
-                fast                = 0xC103,
-                total               = 0xC104,
-                num                 = 0xC105,
-                error               = 0xC106,
-                error_pc            = 0xC107,
-                error_average       = 0xC108
-            } do
-                private.addRegisters{ ['material_'..k..i] = v + f }
-                if i == 1 then
-                    private.addRegisters{ ['material_'..k] = v + f }
+-------------------------------------------------------------------------------
+-- Add a block of registers to the register file
+-- Update the definition table so the value is the register name
+-- @param prefix Prefix to be applied to the register name
+-- @param regs Table of register and base step pairs.
+-- @param qty Number of times to step for these registers
+-- @local
+        local function blockRegs(prefix, regs, qty)
+            for name, v in pairs(regs) do
+                local n = prefix..name
+                private.addRegisters { [n] = v[1] }
+                if qty > 1 then
+                    for i = 1, qty do
+                        private.addRegisters { [n..i] = v[1] + (i-1) * v[2] }
+                    end
                 end
+                regs[name] = n
             end
         end
 
-        for k, v in pairs{                  -- Base registers for each batching stage
-            type                = 0xC400,
-            fill_slow           = 0xC401,
-            fill_medium         = 0xC402,
-            fill_fast           = 0xC403,
-            fill_ilock          = 0xC404,
-            fill_output         = 0xC405,
-            fill_feeder         = 0xC406,
-            fill_material       = 0xC407,
-            fill_start_action   = 0xC408,
-            fill_correction     = 0xC409,
-            fill_jog_on         = 0xC40A,
-            fill_jog_off        = 0xC40B,
-            fill_jog_set        = 0xC40C,
-            fill_delay_start    = 0xC40D,
-            fill_delay_check    = 0xC40E,
-            fill_delay_end      = 0xC40F,
-            fill_max_set        = 0xC412,
-            fill_input          = 0xC413,
-            fill_direction      = 0xC414,
-            fill_input_wait     = 0xC415,
-            fill_source         = 0xC416,
-            fill_pulse_scale    = 0xC417,
-            fill_tol_lo         = 0xC420,
-            fill_tol_high       = 0xC421,
-            fill_tol_target     = 0xC422,
-            dump_dump           = 0xC440,
-            dump_output         = 0xC441,
-            dump_enable         = 0xC442,
-            dump_ilock          = 0xC443,
-            dump_type           = 0xC444,
-            dump_correction     = 0xC445,
-            dump_delay_start    = 0xC446,
-            dump_delay_check    = 0xC447,
-            dump_delay_end      = 0xC448,
-            dump_jog_on_time    = 0xC449,
-            dump_jog_off_time   = 0xC44A,
-            dump_jog_set        = 0xC44B,
-            dump_target         = 0xC44C,
-            dump_pulse_time     = 0xC44D,
-            dump_on_tol         = 0xC44E,
-            dump_off_tol        = 0xC44F,
-            pulse_output        = 0xC460,
-            pulse_pulse         = 0xC461,
-            pulse_delay_start   = 0xC462,
-            pulse_delay_end     = 0xC463,
-            pulse_start_action  = 0xC464,
-            pulse_link          = 0xC466,
-            pulse_time          = 0xC467,
-            pulse_name          = 0xC468,
-            pulse_prompt        = 0xC469,
-            pulse_input         = 0xC46A,
-            pulse_timer         = 0xC46B
-        } do
-            for i = 1, numStages do
-                private.addRegisters{ ['stage_'..k..i] = v + (i - 1) * 0x0100 }
-                if i == 1 then
-                    private.addRegisters{ ['stage_'..k] = v }
-                end
-            end
-        end
+        -- Load material register names into the register database
+        materialRegs = {
+            name                = { 0xC081, 0x01 },
+            flight              = { 0xC101, 0x10 },
+            medium              = { 0xC102, 0x10 },
+            fast                = { 0xC103, 0x10 },
+            total               = { 0xC104, 0x10 },
+            num                 = { 0xC105, 0x10 },
+            error               = { 0xC106, 0x10 },
+            error_pc            = { 0xC107, 0x10 },
+            error_average       = { 0xC108, 0x10 }
+        }
+        blockRegs('material_', materialRegs, numMaterials)
+
+        -- Load stage register names into the register database
+        stageRegisters = {
+            type                = { 0xC400, 0x0100 },
+            fill_slow           = { 0xC401, 0x0100 },
+            fill_medium         = { 0xC402, 0x0100 },
+            fill_fast           = { 0xC403, 0x0100 },
+            fill_ilock          = { 0xC404, 0x0100 },
+            fill_output         = { 0xC405, 0x0100 },
+            fill_feeder         = { 0xC406, 0x0100 },
+            fill_material       = { 0xC407, 0x0100 },
+            fill_start_action   = { 0xC408, 0x0100 },
+            fill_correction     = { 0xC409, 0x0100 },
+            fill_jog_on         = { 0xC40A, 0x0100 },
+            fill_jog_off        = { 0xC40B, 0x0100 },
+            fill_jog_set        = { 0xC40C, 0x0100 },
+            fill_delay_start    = { 0xC40D, 0x0100 },
+            fill_delay_check    = { 0xC40E, 0x0100 },
+            fill_delay_end      = { 0xC40F, 0x0100 },
+            fill_max_set        = { 0xC412, 0x0100 },
+            fill_input          = { 0xC413, 0x0100 },
+            fill_direction      = { 0xC414, 0x0100 },
+            fill_input_wait     = { 0xC415, 0x0100 },
+            fill_source         = { 0xC416, 0x0100 },
+            fill_pulse_scale    = { 0xC417, 0x0100 },
+            fill_tol_lo         = { 0xC420, 0x0100 },
+            fill_tol_high       = { 0xC421, 0x0100 },
+            fill_tol_target     = { 0xC422, 0x0100 },
+            dump_dump           = { 0xC440, 0x0100 },
+            dump_output         = { 0xC441, 0x0100 },
+            dump_enable         = { 0xC442, 0x0100 },
+            dump_ilock          = { 0xC443, 0x0100 },
+            dump_type           = { 0xC444, 0x0100 },
+            dump_correction     = { 0xC445, 0x0100 },
+            dump_delay_start    = { 0xC446, 0x0100 },
+            dump_delay_check    = { 0xC447, 0x0100 },
+            dump_delay_end      = { 0xC448, 0x0100 },
+            dump_jog_on_time    = { 0xC449, 0x0100 },
+            dump_jog_off_time   = { 0xC44A, 0x0100 },
+            dump_jog_set        = { 0xC44B, 0x0100 },
+            dump_target         = { 0xC44C, 0x0100 },
+            dump_pulse_time     = { 0xC44D, 0x0100 },
+            dump_on_tol         = { 0xC44E, 0x0100 },
+            dump_off_tol        = { 0xC44F, 0x0100 },
+            pulse_output        = { 0xC460, 0x0100 },
+            pulse_pulse         = { 0xC461, 0x0100 },
+            pulse_delay_start   = { 0xC462, 0x0100 },
+            pulse_delay_end     = { 0xC463, 0x0100 },
+            pulse_start_action  = { 0xC464, 0x0100 },
+            pulse_link          = { 0xC466, 0x0100 },
+            pulse_time          = { 0xC467, 0x0100 },
+            pulse_name          = { 0xC468, 0x0100 },
+            pulse_prompt        = { 0xC469, 0x0100 },
+            pulse_input         = { 0xC46A, 0x0100 },
+            pulse_timer         = { 0xC46B, 0x0100 }
+        }
+        blockRegs('stage_', stageRegisters, numStages)
     end
-end)
+
+-------------------------------------------------------------------------------
+-- Load the material and stage CSV files into memory
+-- @function loadBatchingTables
+-- @usage
+-- device.loadBatchingTables()  -- reload the batching databases
+    private.exposeFunction('loadBatchingTables', batching, function()
+        materialCSV = csv.loadCSV{
+            fname = 'materials.csv',
+            --labels = materialRegs
+        }
+
+        recipesCSV = csv.loadCSV{
+            fname = 'recipes.csv',
+            labels = { 'recipe', 'datafile' }
+        }
+
+        recipes = {}
+        for _, r in csv.records(recipesCSV) do
+            recipes[canonical(r.recipe)] = csv.loadCSV {
+                fname = r.datafile
+            }
+            --dbg.info('loading', r.recipe, recipes[canonical(r.recipe)])
+        end
+    end)
+    if batching then
+        _M.loadBatchingTables()
+    end
+
+-------------------------------------------------------------------------------
+-- Return a material CSV record
+-- @function getMaterial
+-- @param m Material name
+-- @return CSV record for the given material or nil on error
+-- @return Error message or nil for no error
+-- @usage
+-- local sand = device.getMaterial('sand')
+    private.exposeFunction('getMaterial', batching, function(m)
+        local _, r = csv.getRecordCSV(materialCSV, m, 'name')
+        if r == nil then
+            return nil, 'Material does not exist'
+        end
+        return r
+    end)
+
+-------------------------------------------------------------------------------
+-- Set the current material in the indicator
+-- @function setMaterialRegisters
+-- @param m Material name to set to
+-- @return nil if success, error message if failure
+-- @usage
+-- device.setCurrentMaterial 'sand'
+    private.exposeFunction('setMaterialRegisters', batching, function(m)
+        local rec, err = _M.getMaterial(m)
+        if err == nil then
+            for name, reg in pairs(materialRegs) do
+                if rec[name] then
+                    _M.setRegister(reg, rec[name])
+                end
+            end
+        end
+    end)
+
+-------------------------------------------------------------------------------
+-- Set the current stage in the indicator
+-- @function setStageRegisters
+-- @param S Stage record to set to
+-- @usage
+-- device.setStageRegisters { type='', fill_slow=1 }
+    private.exposeFunction('setStageRegisters', batching, function(s)
+        for name, reg in pairs(stageRegisters) do
+            if s[name] then
+                _M.setRegister(reg, s[name])
+            end
+        end
+
+        stageDevice = s.device or _M
+    end)
+
+-------------------------------------------------------------------------------
+-- Return a CSV file that contains the stages in a specified recipe.
+-- @param r Names of recipe
+-- @return Recipe CSV table or nil on error
+-- @return Error indicator or nil for no error
+-- @usage
+-- local cementCSV = device.getRecipe 'cement'
+    private.exposeFunction('getRecipe', batching, function(r)
+        local rec = csv.getRecordCSV(recipesCSV, r, 'recipe')
+        if rec == nil then
+            return nil, 'recipe does not exist'
+        end
+        local z = recipes[canonical(rec.recipe)]
+        return z, nil
+    end)
+
+-------------------------------------------------------------------------------
+-- Return a CSV file that contains the stages in a user selected recipe.
+-- @param prompt User prompt
+-- @param default Default selection, nil for none
+-- @return Recipe CSV table or nil on error
+-- @return Error indicator or nil for no error
+-- @usage
+-- local cementCSV = device.getRecipe 'cement'
+    private.exposeFunction('selectRecipe', batching, function(prompt, default)
+        local recipes = csv.getColCSV(recipesCSV, 'recipe')
+        local q = _M.selectOption(prompt or 'RECIPE', recipes, default)
+        if q ~= nil then
+            return _M.getRecipe(q)
+        end
+        return nil, 'cancelled'
+    end)
+
+-------------------------------------------------------------------------------
+-- Run a batching process
+-- @function runRecipe
+-- @param rname Recipe name
+-- @return Error code
+-- @usage
+-- device.runRecipe 'cement'
+    private.exposeFunction('recipeFSM', batching, function(args)
+        local rname = args[1] or args.name
+        local recipe, err = _M.getRecipe(rname)
+        if err then return nil, err end
+
+        local deviceFinder = cb(args.device, function() return _M end)
+
+        -- Extract the stages from the recipe CSV in a useable manner
+        if csv.numRowsCSV(recipe) < 1 then return nil, 'no stages' end
+
+        local stages = {}
+        for i = 1, csv.numRowsCSV(recipe) do
+            table.insert(stages, csv.getRowRecord(recipe, i))
+        end
+        table.sort(stages, function(a, b) return a.order < b.order end)
+
+        -- Execute the stages sequentially in a FSM
+        local pos, prev = 1, nil
+        local fsm = _M.stateMachine { rname }
+                        .state { 'init' }
+        while pos <= #stages do
+            local spos, epos = pos, pos
+            while epos < #stages and stages[pos].order and stages[pos].order == stages[epos+1].order do
+                epos = epos + 1
+            end
+            pos = epos + 1
+
+            -- Sanity check to prevent using the same device twice
+            if spos ~= epos then
+                local used = {}
+                for i = spos, epos do
+                    local d = stages[i].device or _M
+                    if used[d] then
+                        return nil, 'duplicate device in stage '..stages[spos].order
+                    end
+                    used[d] = true
+                end
+            end
+
+            -- Add a state to the FSM including a transition from the previous state
+            local curName = 'ST'..(stages[spos].order or spos)
+            fsm.state { curName, enter=function()
+                            for i = spos, epos do
+                                local d = deviceFinder(stages[i].device)
+                                d.setMaterialRegisters(material)
+                                d.setStageRegisters(stages[i])
+                                --d.beginStage()
+                            end
+                        end }
+
+            if prev then
+                fsm.trans { prev, curName, cond=function()
+                            for i = spos, epos do
+                                local d = deviceFinder(stages[i].device)
+                                if not d.allStatusSet('idle') then
+                                    return false
+                                end
+                            end
+                            return true
+                        end }
+            else
+                fsm.trans { 'init', curName, event='begin' }
+            end
+            prev = curName
+        end
+        fsm.trans { prev, 'init', event='reset' }
+        return fsm, nil
+    end)
+
+--- Material definition fields
+--
+-- These are the fields in the materials.csv material definition file.
+-- They are loaded into and retrieved from the first material registers and
+-- are intended to be used to allow an unlimited number of materials regardless
+-- of the number of built in materials supported.
+--@table MaterialFields
+-- @field name Material name, this is the key field to specify a material by
+-- @field flight flight
+-- @field medium medium
+-- @field fast fast
+-- @field total total
+-- @field num num
+-- @field error error
+-- @field error_pc error_pc
+-- @field error_average error_average
 
 --- Batching Registers
 --
@@ -210,200 +430,5 @@ end)
 -- @field stage_pulse_inputX for the Xth stage
 -- @field stage_pulse_timerX for the Xth stage
 
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Material database management.
--- We only use the first material but implement a full database of materials
--- as a CSV file.  This allows maximum compatibility with devices without
--- limiting anything
-
---- Material definition fields
---
--- These are the fields in the materials.csv material definition file.
--- They are loaded into and retrieved from the first material registers and
--- are intended to be used to allow an unlimited number of materials regardless
--- of the number of built in materials supported.
---@table MaterialFields
--- @field name Material name, this is the key field to specify a material by
--- @field flight flight
--- @field medium medium
--- @field fast fast
--- @field total total
--- @field num num
--- @field error error
--- @field error_pc error_pc
--- @field error_average error_average
-
-private.registerDeviceInitialiser(function()
-    local materialCSV
-    local fields = {
-                    'name', 'flight', 'medium', 'fast',
-                    'total', 'num',
-                    'error', 'error_pc', 'error_average'
-                }
-    local registers = {}
-    for i = 1, #fields do
-        --table.insert(registers, 'material_' .. fields[i] .. '1')
-        table.insert(registers, 'material_' .. fields[i])
-    end
-
--------------------------------------------------------------------------------
--- Open the material CSV file, if it isn't already opened.
--- @local
-    local function openMaterialCSV()
-        if materialCSV ~= nil then
-            materialCSV = csv.openCSV{
-                fname = 'materials.csv',
-                labels = fields
-            }
-        end
-    end
-
--------------------------------------------------------------------------------
--- Get the name of the curent material
--- @function getCurrentMaterial
--- @return Material name or nil on error
--- @return Error message
--- @usage
--- print('Current material is ' .. device.getCurrentMaterial())
-    private.exposeFunction('getCurrentMaterial', private.batching(true), function()
-        return _M.getRegister(registers[1])
-    end)
-
--------------------------------------------------------------------------------
--- Save the current material settings from the display to the specified material
--- name.
--- @param m Material name
--- @local
-    local function saveCurrent(m)
-        if m then
-            -- Save current settings
-            local row = {}
-            for i = 1, #registers do
-                row[i] = _M.getRegister(registers[i])
-            end
-            openMaterialCSV()
-            local n = csv.getLineCSV(materialCSV, m, fields[1])
-            if n ~= nil then
-                csv.replaceLineCSV(materialCSV, n, row)
-            else
-                csv.addLineCSV(materialCSV, row)
-            end
-            csv.saveCSV(materialCSV)
-        end
-    end
-
--------------------------------------------------------------------------------
--- Save the current material to the CSV file.
--- Use this function to synchronise the settings.
--- @usage
--- device.saveCurrentMaterial()
-    private.exposeFunction('saveCurrentMaterial', private.batching(true), function()
-        saveCurrent(_M.getCurrentMaterial())
-    end)
-
--------------------------------------------------------------------------------
--- Set the current material in the indicator
--- @param m Material name to set to
--- @local
-local function setMaterialRegisters(m)
-    openMaterialCSV()
-    local _, row = csv.getLineCSV(materialCSV, m, fields[1])
-    if row == nil then
-        return 'Material does not exist'
-    end
-    for i = 1, #registers do
-        _M.setRegister(registers[i], row[i])
-    end
-end
-
--------------------------------------------------------------------------------
--- Set the current material by name
--- @function setCurrentMaterial
--- @param m Material name to set as current
--- @return Nil if success, error message if failure
--- @usage
--- device.setCurrentMaterial 'sand'
-    private.exposeFunction('setCurrentMaterial', private.batching(true), function(m)
-        local current = _M.getCurrentMaterial()
-        saveCurrent(current)
-        if m ~= current then
-            setMaterialRegisters(m)
-        end
-    end)
-
--------------------------------------------------------------------------------
--- Delete a material by name from the database.
---
--- This does not change the current material in the display and this will be
--- resaved if it is the deleted material and the material is subsequently
--- changed.
--- @function deleteMaterial
--- @param m Material name to delete
--- @usage
--- device.deleteMaterial 'sand'
-    private.exposeFunction('deleteMaterial', private.batching(true), function(m)
-        local n = csv.getLineCSV(materialCSV, m, fields[1])
-        if n ~= nil then
-            csv.remLineCSV(materialCSV, n)
-        end
-    end)
-
--------------------------------------------------------------------------------
--- Edit the current material
--- @function editMaterial
--- @usage
--- device.editMaterial()
-    private.exposeFunction('editMaterial', private.batching(true), function()
-        local menu = makeMenu{ 'MATERIAL' }
-        for i = 1, #registers do
-            menu.register { fields[i], registers[i] }
-        end
-        menu.run()
-        _M.saveCurrentMaterial()
-    end)
-
--------------------------------------------------------------------------------
--- Choose a material from the list of materials
--- @function selectMaterial
--- @usage
--- device.selectMaterial()
-    private.exposeFunction('selectMaterial', private.batching(true), function()
-        openMaterialCSV()
-        _M.saveCurrentMaterial()
-        local names = csv.getColCSV(materialCSV, fields[1])
-        for i = 1, #names do
-            names[i] = string.upper(canonical(names[i]))
-        end
-        local new = selectOption('CHOOSE', names, _M.getCurrentMaterial(), true)
-        if new then
-            _M.setCurrentMaterial(new)
-        end
-        return new
-    end)
-
--------------------------------------------------------------------------------
--- Get a table containing the material details
--- @function getMaterialDetails
--- @usage
--- local material = device.getMaterialDetails()
-    private.exposeFunction('getMaterialDetails', private.batching(true), function()
-        openMaterialCSV()
-        local current = _M.getCurrentMaterial()
-        return csv.getRecordCSV(materialCSV, current, fields[1])
-    end)
-
--------------------------------------------------------------------------------
--- Set the current material details from a table
--- @function setMaterialDetails
--- @usage
--- device.setMaterialDetails { name='grit', flight=3 }
-    private.exposeFunction('setMaterialDetails', private.batching(true), function(f)
-        openMaterialCSV()
-        local current = _M.getCurrentMaterial()
-        csv.setRecordCSV(materialCSV, current, fields[1], f)
-        setMaterialRegisters()
-    end)
 end)
-
 end
