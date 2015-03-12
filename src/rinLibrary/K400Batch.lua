@@ -11,7 +11,8 @@ local canonical = require('rinLibrary.namings').canonicalisation
 local dbg       = require "rinLibrary.rinDebug"
 local utils     = require 'rinSystem.utilities'
 
-local cb = utils.cb
+local deepcopy = utils.deepcopy
+local null, cb = utils.null, utils.cb
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -39,7 +40,7 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule register definitions hinge on the model type
 private.registerDeviceInitialiser(function()
-    local batching = private.batching(true)
+    local batching = private.nonbatching(true)
     local recipes, materialCSV, recipesCSV = {}
     local materialRegs, stageRegisters = {}, {}
     local stageDevice = _M
@@ -156,10 +157,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.loadBatchingTables()  -- reload the batching databases
     private.exposeFunction('loadBatchingTables', batching, function()
-        materialCSV = csv.loadCSV{
-            fname = 'materials.csv',
-            --labels = materialRegs
-        }
+        materialCSV = csv.loadCSV{ fname = 'materials.csv' }
 
         recipesCSV = csv.loadCSV{
             fname = 'recipes.csv',
@@ -171,7 +169,6 @@ private.registerDeviceInitialiser(function()
             recipes[canonical(r.recipe)] = csv.loadCSV {
                 fname = r.datafile
             }
-            --dbg.info('loading', r.recipe, recipes[canonical(r.recipe)])
         end
     end)
     if batching then
@@ -267,18 +264,67 @@ private.registerDeviceInitialiser(function()
     end)
 
 -------------------------------------------------------------------------------
--- Run a batching process
--- @function runRecipe
--- @param rname Recipe name
--- @return Error code
+-- Run a stage.  Wait until it begins before returning.
+-- @param stage Stage record to run
 -- @usage
--- device.runRecipe 'cement'
+--
+    private.exposeFunction('runStage', batching, function(stage)
+    end)
+
+-------------------------------------------------------------------------------
+-- Run a batching process, controlled by a FSM.
+--
+-- The machine has a <i>start</i> state, a <i>begin</i> state from which the batching
+-- will begin and progress until it reaches a <i>finish</i> state.  You need to define
+-- the transitions from start to begin and from finish back to start or begin.  You are
+-- also free to add you own states before or after these three.
+-- @function recipeFSM
+-- @param args Batching recipe arguments
+-- The arguments consist of the first positional parameter, <i>name</i> which defines
+-- the recipe to use.
+--
+-- Optionally, you can specify a <i>minimumTime</i> that must elapse before a batch stage
+-- can be considered complete.  This is a function that is passed a stage record and
+-- it should return the minimum number of seconds that this stage must remain active.
+-- This function is called before any of the batching takes place so the time returned
+-- is immutable.  By default, there is no minimum time.
+--
+-- Optionally, you can specify a <i>start</i> function that is passed a stage table and it
+-- must initiate this stage.  By default, the usual batching process will be used.
+--
+-- Optionally, you can specify a <i>finished</i> function that is also passed a stage
+-- table and must return true if that stage has finished.
+--
+-- Finally, you can optionally pass a <i>device</i> function that returns the display
+-- device this stage runs on.  It is passed a device name from the stage CSV file.  By
+-- default, it returns this device.
+-- @return Finite state machine or nil on error
+-- @return Error code or nil on success
+-- @usage
+-- local fsm = device.recipeFSM 'cement'
+-- fsm.trans { 'start', 'begin', event='begin' }
+-- fsm.trans { 'finish', 'start', event='restart' }
+-- rinApp.setMainLoop(fsm.run)
     private.exposeFunction('recipeFSM', batching, function(args)
         local rname = args[1] or args.name
         local recipe, err = _M.getRecipe(rname)
         if err then return nil, err end
 
         local deviceFinder = cb(args.device, function() return _M end)
+        local deviceStart = deepcopy(args.start or function()
+            return function(stage)
+                local d = deviceFinder(stage.device)
+                d.setStageRegisters(stage)
+                --d.beginStage(stage)
+            end
+        end)
+        local deviceFinished = deepcopy(args.finished or function()
+            return function(stage)
+                local d = deviceFinder(stages[i].device)
+                return d.allStatusSet('idle')
+            end
+        end)
+        local minimumTime = deepcopy(args.minimumTime or function() return 0 end)
 
         -- Extract the stages from the recipe CSV in a useable manner
         if csv.numRowsCSV(recipe) < 1 then return nil, 'no stages' end
@@ -291,7 +337,6 @@ private.registerDeviceInitialiser(function()
 
         -- Execute the stages sequentially in a FSM
         local pos, prev = 1, nil
-        local fsm = _M.stateMachine { rname }
         local blocks = { }
         while pos <= #stages do
             local e = pos+1
@@ -318,36 +363,39 @@ private.registerDeviceInitialiser(function()
             end
         end
 
-        -- Add a states to the FSM
-        fsm.state { 'init' }
-            .state { 'finish' }
+        -- Build the FSM states
+        local fsm = _M.stateMachine { rname }
+                        .state { 'start' }
+                        .state { 'begin' }
+                        .state { 'finish' }
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
             local function startStage()
                 for i = b1.idx, b2.idx-1 do
-                    local d = deviceFinder(stages[i].device)
-                    d.setStageRegisters(stages[i])
-                    --d.beginStage()
+                    deviceStart(stages[i])
                 end
             end
             fsm.state { b1.name, enter=startStage }
         end
 
-        -- Add a transitions to the FSM
-        fsm.trans { 'init', blocks[1].name, event='begin' }
-            .trans { 'finish', 'init', event='reset' }
+        -- Add transitions to the FSM
+        fsm.trans { 'begin', blocks[1].name }
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
+            local mt = 0
+            for i = b1.idx, b2.idx-1 do
+                mt = math.max(mt, minimumTime(stages[i]))
+            end
+
             local function testStage()
                 for i = b1.idx, b2.idx-1 do
-                    local d = deviceFinder(stages[i].device)
-                    if not d.allStatusSet('idle') then
+                    if not deviceFinished(stages[i]) then
                         return false
                     end
                 end
                 return true
             end
-            fsm.trans { b1.name, b2.name, cond=testStage }
+            fsm.trans { b1.name, b2.name, cond=testStage, time=mt }
         end
 
         return fsm, nil
