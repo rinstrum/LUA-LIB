@@ -10,6 +10,7 @@ local csv       = require 'rinLibrary.rinCSV'
 local canonical = require('rinLibrary.namings').canonicalisation
 local dbg       = require "rinLibrary.rinDebug"
 local utils     = require 'rinSystem.utilities'
+local naming    = require 'rinLibrary.namings'
 
 local deepcopy = utils.deepcopy
 local null, cb = utils.null, utils.cb
@@ -45,6 +46,11 @@ private.registerDeviceInitialiser(function()
     local materialRegs, stageRegisters = {}, {}
     local stageDevice = _M
 
+    local stageTypes = {
+        none = 0,   fill = 1,   dump = 2,   pulse = 3,
+        --start = 4
+    }
+
     if batching then
         numStages = 10
         numMaterials = private.valueByDevice{ default=1, k411=6, k412=20, k415=6 }
@@ -67,16 +73,19 @@ private.registerDeviceInitialiser(function()
 -- @param qty Number of times to step for these registers
 -- @local
         local function blockRegs(prefix, regs, qty)
+            local adds = {}
             for name, v in pairs(regs) do
                 local n = prefix..name
-                private.addRegisters { [n] = v[1] }
+                adds[n] = v[1]
                 if qty > 1 then
                     for i = 1, qty do
-                        private.addRegisters { [n..i] = v[1] + (i-1) * v[2] }
+                        adds[n..i] = v[1] + (i-1) * v[2]
                     end
                 end
                 regs[name] = n
             end
+            dbg.info('registers:', adds)
+            private.addRegisters(adds)
         end
 
         -- Load material register names into the register database
@@ -152,11 +161,13 @@ private.registerDeviceInitialiser(function()
     end
 
 -------------------------------------------------------------------------------
--- Load the material and stage CSV files into memory
--- @function loadBatchingTables
+-- Load the material and stage CSV files into memory.
+-- This is done automatically on start up and you should only need to call this
+-- function when the files have been modified (e.g. via a load from USB).
+-- @function loadBatchingDetails
 -- @usage
--- device.loadBatchingTables()  -- reload the batching databases
-    private.exposeFunction('loadBatchingTables', batching, function()
+-- device.loadBatchingDetails()  -- reload the batching databases
+    private.exposeFunction('loadBatchingDetails', batching, function()
         materialCSV = csv.loadCSV{ fname = 'materials.csv' }
 
         recipesCSV = csv.loadCSV{
@@ -172,7 +183,7 @@ private.registerDeviceInitialiser(function()
         end
     end)
     if batching then
-        _M.loadBatchingTables()
+        _M.loadBatchingDetails()
     end
 
 -------------------------------------------------------------------------------
@@ -202,8 +213,9 @@ private.registerDeviceInitialiser(function()
         local rec, err = _M.getMaterial(m)
         if err == nil then
             for name, reg in pairs(materialRegs) do
-                if rec[name] then
-                    _M.setRegister(reg, rec[name])
+                local v = rec[name]
+                if v and v ~= '' then
+                    _M.setRegister(reg, v)
                 end
             end
         end
@@ -216,14 +228,21 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.setStageRegisters { type='', fill_slow=1 }
     private.exposeFunction('setStageRegisters', batching, function(s)
+        local type = s.type or 'none'
+        local tlen = type:len()
+
+        _M.setRegister('stage_type', naming.convertNameToValue(type, stageTypes, 0))
+
         for name, reg in pairs(stageRegisters) do
-            local v = s[name]
-            if v then
-                if name == 'fill_material' then
-                    _M.setMaterialRegisters(v)
-                    v = 1
+            if name:sub(1, tlen) == type then
+                local v = s[name]
+                if v and v ~= '' then
+                    if name == 'fill_material' then
+                        _M.setMaterialRegisters(v)
+                        v = 0
+                    end
+                    _M.setRegister(reg, v)
                 end
-                _M.setRegister(reg, v)
             end
         end
 
@@ -269,7 +288,17 @@ private.registerDeviceInitialiser(function()
 -- @usage
 --
     private.exposeFunction('runStage', batching, function(stage)
+        
     end)
+
+-------------------------------------------------------------------------------
+-- Return the start delay associated with the specified stage or 0 if not defined
+-- @param stage Stage record to query
+-- @return stage delay
+-- @local
+    local function startDelay(stage)
+        return stage[(stage.type or '')..'_delay_start'] or 0
+    end
 
 -------------------------------------------------------------------------------
 -- Run a batching process, controlled by a FSM.
@@ -315,7 +344,7 @@ private.registerDeviceInitialiser(function()
             return function(stage)
                 local d = deviceFinder(stage.device)
                 d.setStageRegisters(stage)
-                --d.beginStage(stage)
+                d.runStage(stage)
             end
         end)
         local deviceFinished = deepcopy(args.finished or function()
@@ -384,7 +413,7 @@ private.registerDeviceInitialiser(function()
             local b1, b2 = blocks[bi], blocks[bi+1]
             local mt = 0
             for i = b1.idx, b2.idx-1 do
-                mt = math.max(mt, minimumTime(stages[i]))
+                mt = math.max(mt, minimumTime(stages[i]), startDelay(stages[i]))
             end
 
             local function testStage()
