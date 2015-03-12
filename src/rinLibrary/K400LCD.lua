@@ -561,9 +561,15 @@ end
 -- @local
 local function writeToken(f, s)
   -- Do not allow writing to socket-connected displays
-  if f and f.sock == nil then
-    return dispHelp.writeRegHex(private, false, f.reg, s)
+  if f == nil then
+    return nil, "Invalid"
   end
+  
+  if f.sock == nil then
+    return dispHelp.writeRegHex(private, false, f.reg, s)
+  else
+    return f.sock:write(s)
+  end  
 
 end
 
@@ -664,13 +670,14 @@ function _M.write(where, s, params)
 end
 
 -------------------------------------------------------------------------------
--- Write a message to the given display field. This message may include tokens,
--- and is only valid for displays connected directly to the R400 (i.e. the R400
--- LCD, 
+-- Write a message directly to the given display field. 
+-- This message may include tokens, (only valid for displays connected directly 
+-- to the R400 i.e. the R400 LCD), or may include user-implemented protocols.
+-- THIS FUNCTION IS NOT RECOMMENDED FOR TYPICAL USE, see write()
 -- @param where which display section to write to
 -- @param s String to write
 -- @local
-function _M.writeTokenString(where, s)
+function _M.writeDirect(where, s)
   local disp = naming.convertNameToValue(where, display)
   
   if (disp and disp.linkedDisplay) then

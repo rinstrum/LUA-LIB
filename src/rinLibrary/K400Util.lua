@@ -113,7 +113,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query if the data stream is high resolution or not
--- @return true iff high resolution
+-- @return true if high resolution
 -- @usage
 -- if device.isHiRes() then
 --     print('high resolution readings')
@@ -316,15 +316,51 @@ end
 -- The value is correctly rounded in the final digit.
 -- @param display The display mode: 'primary', 'secondary' or 'pieces'.
 -- @param value The floating point value to format.
+-- @param dp Decimal point position (integer >= 0). If specified, this overrides the display value.
+-- @param countby The minimum change in the final decimal point value (integer). If specified, this overrides the display value.
+-- @param units The units string. If specified (3 chars max), this overrides the display value. If false, no units will be displayed.
 -- @return Formatted string.
 -- @usage
--- print('Weight is', device.formatValue('primary', currentWeight)
-function _M.formatValue(display, value)
-    local dp, units = _M.getDispModeDP(display), _M.getDispModeUnits(display)
-    local v = format('%.0f', _M.toPrimary(value, dp))
+-- print('Weight is', device.formatValue('primary', currentWeight))
+-- print('Weight is', device.formatValue(nil, 15.9532, 3, 2, false)) -- Returns 15.954
+function _M.formatValue(display, value, dp, countby, units)
+    
+    -- Get dp (factor in hi-res)
+    if dp == nil then
+      if _M.isHiRes then
+        dp = _M.getDispModeDP(display) + 1
+      end
+      dp = _M.getDispModeDP(display)
+    end
+    
+    -- Get countby value
+    if countby == nil then
+      if _M.anyStatusSet('range1') then
+        countby = _M.getDispModeCountBy(display)[1]
+      else
+        countby = _M.getDispModeCountBy(display)[2]
+      end
+    end
+
+    -- Check units
+    if units == false then
+      units = ''
+    else
+      units = ' ' .. (units or _M.getDispModeUnits(display))
+    end
+    
+    local w
+    
+    if powersOfTen[dp] > countby then
+      w = floor(value * (powersOfTen[dp]/countby) + 0.5) * countby
+    else
+      w = floor(value / (countby/powersOfTen[dp]) + 0.5) * countby
+    end
+    
+    local v = string.format('%.0f', w)
     local f = '.' .. (('0'):rep(dp) .. v):sub(-dp)
     local i = v:sub(1, -dp-1)
-    return format('%s%s %3s', i~='' and i or '0', dp>0 and f or '', units)
+    return format('%s%s%3s', i~='' and i or '0', dp>0 and f or '', units)
 end
 
 -------------------------------------------------------------------------------
