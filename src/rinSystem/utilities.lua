@@ -64,7 +64,7 @@ end
 -- @param o Object to copy
 -- @return A copy of o that shares no data but is otherwise identical
 -- @usage
--- local deepcopy = require 'rinLibrary.deepcopy'
+-- local deepcopy = require('rinSystem.utilities').deepcopy
 --
 -- local t = { 'a', 3, { 1, 4, 3 } }
 -- local u = deepcopy(t)
