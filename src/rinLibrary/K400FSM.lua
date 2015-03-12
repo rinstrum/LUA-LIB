@@ -487,7 +487,7 @@ function _M.stateMachine(args)
                 end
 
                 w('  "', s.ref, '" -> "', t.dest.ref, '"')
-                if t.time then a('t='..t.time, green) end
+                if t.time and t.time > 0 then a('t='..t.time, green) end
                 if t.event then a(t.event, red) end
                 if t.cond ~= True then
                     a(t.cname or 'Cond', dblue)
