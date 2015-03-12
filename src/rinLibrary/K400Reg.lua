@@ -523,6 +523,7 @@ end
 -- @return Error code
 -- @local
 local function queryType(reg, data, err)
+    if data == nil then return nil, err end
     return typeMap[tonumber(data, 16) or -1], err
 end
 
