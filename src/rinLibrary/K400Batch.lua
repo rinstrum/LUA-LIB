@@ -18,6 +18,8 @@ local null, cb = utils.null, utils.cb
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
+local REG_REC_NAME_EX		= 0xB012	--	Recipe Name (used to rename K410 active recipe)
+
 local numStages, numMaterials = 0, 0
 
 -------------------------------------------------------------------------------
@@ -73,19 +75,22 @@ private.registerDeviceInitialiser(function()
 -- @param qty Number of times to step for these registers
 -- @local
         local function blockRegs(prefix, regs, qty)
-            local adds = {}
+--            local adds = {}
+--            for name, v in pairs(regs) do
+--                local n = prefix..name
+--                adds[n] = v[1]
+--                if qty > 1 then
+--                    for i = 1, qty do
+--                        adds[n..i] = v[1] + (i-1) * v[2]
+--                    end
+--                end
+--                regs[name] = n
+--            end
+--            dbg.info('registers:', adds)
+--            private.addRegisters(adds)
             for name, v in pairs(regs) do
-                local n = prefix..name
-                adds[n] = v[1]
-                if qty > 1 then
-                    for i = 1, qty do
-                        adds[n..i] = v[1] + (i-1) * v[2]
-                    end
-                end
-                regs[name] = n
+                regs[name] = v[1]
             end
-            dbg.info('registers:', adds)
-            private.addRegisters(adds)
         end
 
         -- Load material register names into the register database
@@ -215,7 +220,7 @@ private.registerDeviceInitialiser(function()
             for name, reg in pairs(materialRegs) do
                 local v = rec[name]
                 if v and v ~= '' then
-                    _M.setRegister(reg, v)
+                    private.writeRegAsync(reg, v)
                 end
             end
         end
@@ -231,7 +236,7 @@ private.registerDeviceInitialiser(function()
         local type = s.type or 'none'
         local tlen = type:len()
 
-        _M.setRegister('stage_type', naming.convertNameToValue(type, stageTypes, 0))
+        private.writeReg(stageRegisters.stage_type, naming.convertNameToValue(type, stageTypes, 0))
 
         for name, reg in pairs(stageRegisters) do
             if name:sub(1, tlen) == type then
@@ -241,7 +246,7 @@ private.registerDeviceInitialiser(function()
                         _M.setMaterialRegisters(v)
                         v = 0
                     end
-                    _M.setRegister(reg, v)
+                    private.writeRegAsync(reg, v)
                 end
             end
         end
@@ -272,7 +277,7 @@ private.registerDeviceInitialiser(function()
 -- @return Recipe CSV table or nil on error
 -- @return Error indicator or nil for no error
 -- @usage
--- local cementCSV = device.getRecipe 'cement'
+-- local cementCSV = device.selectRecipe('BATCH?', 'cement')
     private.exposeFunction('selectRecipe', batching, function(prompt, default)
         local recipes = csv.getColCSV(recipesCSV, 'recipe')
         local q = _M.selectOption(prompt or 'RECIPE', recipes, default)
@@ -288,7 +293,8 @@ private.registerDeviceInitialiser(function()
 -- @usage
 --
     private.exposeFunction('runStage', batching, function(stage)
-        
+        _M.sendKey('f1', 'short')
+        _M.app.delay(0.1)
     end)
 
 -------------------------------------------------------------------------------
@@ -408,7 +414,10 @@ private.registerDeviceInitialiser(function()
         end
 
         -- Add transitions to the FSM
-        fsm.trans { 'begin', blocks[1].name }
+        fsm.trans { 'begin', blocks[1].name, activate=function()
+            private.exReg(REG_REC_NAME_EX, rname)
+        end}
+
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
             local mt = 0
