@@ -442,9 +442,6 @@ private.registerDeviceInitialiser(function()
 --- Material definition fields
 --
 -- These are the fields in the materials.csv material definition file.
--- They are loaded into and retrieved from the first material registers and
--- are intended to be used to allow an unlimited number of materials regardless
--- of the number of built in materials supported.
 --@table MaterialFields
 -- @field name Material name, this is the key field to specify a material by
 -- @field flight flight
@@ -456,81 +453,94 @@ private.registerDeviceInitialiser(function()
 -- @field error_pc error_pc
 -- @field error_average error_average
 
---- Batching Registers
+--- Batching recipe definition fields
 --
--- These registers define the extra information about materials and the batch stages.
--- In all cases below, replace the <i>X</i> by an integer 1 .. ? that represents the
--- material or stage of interest.  Additionally, all are available without the X and,
--- in this case, the 1 is implied.
---@table batchingRegisters
+-- These are the fields in the recipes.csv file and they link to individual
+-- CSV files for each different recipe.
+--@table RecipeFields
+-- @field recipe is the name of the recipe
+-- @field datafile is the name of the CSV file containing the actual recipe stages.
+
+--- Stages fields
+--
+-- These define a stage.  The individual recipe CSV files should
+-- contain some, but by no means all, of these fields for each stage.
+-- The CSV file for each recipe is defined in the RecipeFields CSV
+-- file.
+--
+-- A stage which does not specify a field, leaves that field at its
+-- default setting.
+--
+-- You can add custom fields here and they will be preserved but not acted
+-- on by the batch subsystem.
+--@table BatchingFields
+-- @field type for the stage (mandatory)
+-- @field device the indicator to execture this stage on (default: this indicator)
+-- @field order this defines the sequence the stages are executed in, smallest is
+-- first.  This field can be a real value and fractional parts do matter.  Moreover,
+-- multiple stages can have the same order value and they will execute simultaneously.
+-- However, a single indicator cannot run more than one stage at a time.
+-- @field fill_slow for the stage
+-- @field fill_medium for the stage
+-- @field fill_fast for the stage
+-- @field fill_ilock for the stage
+-- @field fill_output for the stage
+-- @field fill_feeder for the stage
+-- @field fill_material for the stage
+-- @field fill_start_action for the stage
+-- @field fill_correction for the stage
+-- @field fill_jog_on for the stage
+-- @field fill_jog_off for the stage
+-- @field fill_jog_set for the stage
+-- @field fill_delay_start for the stage
+-- @field fill_delay_check for the stage
+-- @field fill_delay_end for the stage
+-- @field fill_max_set for the stage
+-- @field fill_input for the stage
+-- @field fill_direction for the stage
+-- @field fill_input_wait for the stage
+-- @field fill_source for the stage
+-- @field fill_pulse_scale for the stage
+-- @field fill_tol_lo for the stage
+-- @field fill_tol_high for the stage
+-- @field fill_tol_target for the stage
+-- @field dump_dump for the stage
+-- @field dump_output for the stage
+-- @field dump_enable for the stage
+-- @field dump_ilock for the stage
+-- @field dump_type for the stage
+-- @field dump_correction for the stage
+-- @field dump_delay_start for the stage
+-- @field dump_delay_check for the stage
+-- @field dump_delay_end for the stage
+-- @field dump_jog_on_time for the stage
+-- @field dump_jog_off_time for the stage
+-- @field dump_jog_set for the stage
+-- @field dump_target for the stage
+-- @field dump_pulse_time for the stage
+-- @field dump_on_tol for the stage
+-- @field dump_off_tol for the stage
+-- @field pulse_output for the stage
+-- @field pulse_pulse for the stage
+-- @field pulse_delay_start for the stage
+-- @field pulse_delay_end for the stage
+-- @field pulse_start_action for the stage
+-- @field pulse_link for the stage
+-- @field pulse_time for the stage
+-- @field pulse_name for the stage
+-- @field pulse_prompt for the stage
+-- @field pulse_input for the stage
+-- @field pulse_timer for the stage
+-- @see RecipeFields
+
 -- @field material_spec ?
--- @field material_nameX name of the Xth material
--- @field material_flightX flight for the Xth material
--- @field material_mediumX medium for the Xth material
--- @field material_fastX fast for the Xth material
--- @field material_totalX total for the Xth material
--- @field material_numX num for the Xth material
--- @field material_errorX error for the Xth material
--- @field material_error_pcX error_pc for the Xth material
--- @field material_error_averageX error_average for the Xth material
 -- @field product_time ?
+
 -- @field product_time_average ?
 -- @field product_error ?
 -- @field product_error_pc ?
 -- @field product_error_average ?
 -- @field product_menu_op_stages ?
--- @field stage_typeX for the Xth stage
--- @field stage_fill_slowX for the Xth stage
--- @field stage_fill_mediumX for the Xth stage
--- @field stage_fill_fastX for the Xth stage
--- @field stage_fill_ilockX for the Xth stage
--- @field stage_fill_outputX for the Xth stage
--- @field stage_fill_feederX for the Xth stage
--- @field stage_fill_materialX for the Xth stage
--- @field stage_fill_start_actionX for the Xth stage
--- @field stage_fill_correctionX for the Xth stage
--- @field stage_fill_jog_onX for the Xth stage
--- @field stage_fill_jog_offX for the Xth stage
--- @field stage_fill_jog_setX for the Xth stage
--- @field stage_fill_delay_startX for the Xth stage
--- @field stage_fill_delay_checkX for the Xth stage
--- @field stage_fill_delay_endX for the Xth stage
--- @field stage_fill_max_setX for the Xth stage
--- @field stage_fill_inputX for the Xth stage
--- @field stage_fill_directionX for the Xth stage
--- @field stage_fill_input_waitX for the Xth stage
--- @field stage_fill_sourceX for the Xth stage
--- @field stage_fill_pulse_scaleX for the Xth stage
--- @field stage_fill_tol_loX for the Xth stage
--- @field stage_fill_tol_highX for the Xth stage
--- @field stage_fill_tol_targetX for the Xth stage
--- @field stage_dump_dumpX for the Xth stage
--- @field stage_dump_outputX for the Xth stage
--- @field stage_dump_enableX for the Xth stage
--- @field stage_dump_ilockX for the Xth stage
--- @field stage_dump_typeX for the Xth stage
--- @field stage_dump_correctionX for the Xth stage
--- @field stage_dump_delay_startX for the Xth stage
--- @field stage_dump_delay_checkX for the Xth stage
--- @field stage_dump_delay_endX for the Xth stage
--- @field stage_dump_jog_on_timeX for the Xth stage
--- @field stage_dump_jog_off_timeX for the Xth stage
--- @field stage_dump_jog_setX for the Xth stage
--- @field stage_dump_targetX for the Xth stage
--- @field stage_dump_pulse_timeX for the Xth stage
--- @field stage_dump_on_tolX for the Xth stage
--- @field stage_dump_off_tolX for the Xth stage
--- @field stage_pulse_outputX for the Xth stage
--- @field stage_pulse_pulseX for the Xth stage
--- @field stage_pulse_delay_startX for the Xth stage
--- @field stage_pulse_delay_endX for the Xth stage
--- @field stage_pulse_start_actionX for the Xth stage
--- @field stage_pulse_linkX for the Xth stage
--- @field stage_pulse_timeX for the Xth stage
--- @field stage_pulse_nameX for the Xth stage
--- @field stage_pulse_promptX for the Xth stage
--- @field stage_pulse_inputX for the Xth stage
--- @field stage_pulse_timerX for the Xth stage
 
 end)
 end
