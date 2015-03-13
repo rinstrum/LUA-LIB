@@ -360,7 +360,7 @@ function _M.formatValue(display, value, dp, countby, units)
     local v = string.format('%.0f', w)
     local f = '.' .. (('0'):rep(dp) .. v):sub(-dp)
     local i = v:sub(1, -dp-1)
-    return format('%s%s%3s', i~='' and i or '0', dp>0 and f or '', units)
+    return format('%s%s%.4s', i~='' and i or '0', dp>0 and f or '', units)
 end
 
 -------------------------------------------------------------------------------
