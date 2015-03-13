@@ -474,7 +474,7 @@ private.registerDeviceInitialiser(function()
 -- You can add custom fields here and they will be preserved but not acted
 -- on by the batch subsystem.
 --@table BatchingFields
--- @field type for the stage (mandatory)
+-- @field type for the stage (mandatory).  Can be <i>fill</i>, <i>dump</i> or <i>pulse</i>.
 -- @field device the indicator to execture this stage on (default: this indicator)
 -- @field order this defines the sequence the stages are executed in, smallest is
 -- first.  This field can be a real value and fractional parts do matter.  Moreover,

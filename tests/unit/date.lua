@@ -14,6 +14,7 @@ describe('Date tests #date', function()
             { res = { 5, 'Friday', 'FRI'}, date = { 2015, 1, 16 } },
             { res = { 5, 'Friday', 'FRI'}, date = { 1752, 9, 15 } },
             { res = { 2, 'Tuesday', 'TUE'}, date = { 1752, 9, 1 } },
+            { res = { 2, 'Tuesday', 'TUE'}, date = { '1752', '9', '1' } },
         }
 
         for i = 1, #dowtests do
@@ -48,7 +49,8 @@ describe('Date tests #date', function()
             { res = 30, date = { 2014, 9 } },
             { res = 31, date = { 2015, 10 } },
             { res = 30, date = { 2016, 11 } },
-            { res = 31, date = { 2016, 12 } }
+            { res = 31, date = { 2016, 12 } },
+            { res = 31, date = { '2016', '12' } },
         }
 
         for i = 1, #monlengths do
@@ -59,24 +61,13 @@ describe('Date tests #date', function()
         end
     end)
 
-    describe("month lengths #monlen", function()
-        local tc = {
-        }
-
-        for k,t in ipairs(tc) do
-            it("test "..k, function()
-                assert.equal(t.r, makeModule().monthLength(t.y, t.m))
-            end)
-        end
-    end)
-
-
     -- test names of months
     describe('names of month #monlen', function()
         local monnames = {
             { res = { 'April', 'APR' }, m = 4 },
             { res = { 'February', 'FEB' }, m = 2 },
             { res = { 'December', 'DEC' }, m = 12 },
+            { res = { 'December', 'DEC' }, m = '12' },
         }
 
         for i = 1, #monnames do
@@ -95,6 +86,7 @@ describe('Date tests #date', function()
             { res = true,  y = 2016 },
             { res = false, y = 1800 },
             { res = true,  y = 1700 },
+            { res = true,  y = '1700' },
         }
 
         for i = 1, #leapyears do
@@ -116,6 +108,7 @@ describe('Date tests #date', function()
             { res = 36525,  dates = { 2000,  1,  1,     2100,  1,  1 } },
             { res = 355,    dates = { 1752,  1,  1,     1753,  1,  1 } },
             { res = 365,    dates = { 1582,  1,  1,     1583,  1,  1 } },
+            { res = 36524,  dates = { '1900','1','1',   '2000','1','1' } },
         }
 
         for i = 1, #ddays do
@@ -133,6 +126,7 @@ describe('Date tests #date', function()
             { res = { 1950, 3, 7 },     a = { 1950, 3, 9,   -2  } },
             { res = { 2001, 2, 9 },     a = { 2000, 2, 10,  365 } },
             { res = { 1901, 2, 9 },     a = { 1900, 2, 9,   365 } },
+            { res = { 1901, 2, 9 },     a = { '1900','2','9', '365' } },
         }
 
         for i = 1, #adays do
@@ -158,6 +152,7 @@ describe('Date tests #date', function()
             { res = 366,    change = {'julian'},        dates = yr(9900) },
             { res = 365,    change = {'china'},         dates = yr(9900) },
             { res = 365,    change = {'british'},       dates = yr(2100) },
+            { res = 365,    change = {'british'},       dates = yr('2100') },
        }
 
         for i = 1, #ref do

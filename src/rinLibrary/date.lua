@@ -91,6 +91,7 @@ local date_first, date_second, date_third = 'day', 'month', 'year'
 -- @return True if the date is from the Gregorian calendar
 -- @local
 local function isGregorian(year, month, day)
+    year, month, day = tonumber(year), tonumber(month), tonumber(day)
     local y, m, d = unpack(gregorianChange)
 
     if year > y then return true
@@ -128,6 +129,7 @@ end
 -- @return day Day in month
 -- @local
 local function jdnToYmd(j)
+    j = tonumber(j)
     local threshold = gregorianFirstDay
     local b, c = 0, j + 32082
 
@@ -292,7 +294,7 @@ end
 -- local month, _ = date.monthName(3)
 -- print('The third month is '..month)
 function _M.monthName(month)
-    return unpack(months[month])
+    return unpack(months[tonumber(month)])
 end
 
 -------------------------------------------------------------------------------
