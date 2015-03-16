@@ -402,10 +402,10 @@ end
 -- completely.
 --
 -- The biggest difference is the inability to use pairs or ipairs on a persistent
--- table.  They simply don't work.  This follows through to any function that
--- relies on these to work -- the debug module in particular.
+-- table.  They simply don't work.  This implies that any function that
+-- relies on these to work won't.
 --
--- There are also restriction on function in the table.  Only Lua functions
+-- There are also restriction on functions in the table.  Only Lua functions
 -- that don't use upvalues can be saved (and they are).
 -- @param filename Name of the backing file for the persistent table
 -- @return Persistent table, contents as before or empty if newly created
@@ -423,13 +423,15 @@ function _M.persistentTable(filename)
     return setmetatable({}, {
         __index = t,
         __newindex = function(r, f, v)
-            t[f] = v
-            local f = io.open(fname, "w")
-            if f then
-                f:write "-- Don't edit this file, it is overwritten by the application\n"
-                save(f, t)
-                f:close()
-                _M.sync(false)
+            if t[f] ~= v then
+                t[f] = v
+                local f = io.open(fname, "w")
+                if f then
+                    f:write "-- Don't edit this file, it is overwritten by the application\n"
+                    save(f, t)
+                    f:close()
+                    _M.sync(false)
+                end
             end
         end,
         __metatable = {}
