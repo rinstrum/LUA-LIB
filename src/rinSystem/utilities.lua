@@ -405,6 +405,10 @@ end
 -- table.  They simply don't work.  This implies that any function that
 -- relies on these to work won't.
 --
+-- The next important difference is that changes to tables inside a persistent
+-- table are not automatically detected and saved to backing store.  You must
+-- change something in the table itself for this to occur.
+--
 -- There are also restriction on functions in the table.  Only Lua functions
 -- that don't use upvalues can be saved (and they are).
 -- @param filename Name of the backing file for the persistent table
