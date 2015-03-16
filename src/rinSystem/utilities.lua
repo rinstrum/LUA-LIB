@@ -277,4 +277,163 @@ function _M.streamProcessor(callback, start, fin, escape)
     end
 end
 
+--=============================================================================
+-- Persistent table implementation starts here
+
+-------------------------------------------------------------------------------
+-- Save a table to file so it can be restored later.
+--
+-- We need to deal with multiple references to the same table or function and
+-- with recursive structures.
+-- @param f File to save to
+-- @param t Table to save
+-- @local
+local function save(f, t)
+    local indent, cache, idx, writers = '', {}, 0
+
+    local function doCache(v)
+        if type(v) == 'table' or type(v) == 'function' then
+            if cache[v] == nil then
+                cache[v] = false
+                if type(v) == 'table' then  
+                    for x, y in pairs(v) do
+                        doCache(x)
+                        doCache(y)
+                    end
+                end
+            elseif cache[v] == false then
+                idx = idx + 1
+                cache[v] = 'z'..idx
+            end
+        end
+    end
+
+    local function w(x)
+        writers[type(x)](x)
+    end
+
+    local function emitFunction(v)
+		local info = debug.getinfo(v, "uS");
+		if info.nups > 0 then
+			f:write('nil --[[ function with upvalue ]] ');
+		elseif info.what ~= 'Lua' then
+			f:write('nil --[[ not Lua ]] ');
+		else
+            local r, s = pcall(string.dump, v)
+            if s then
+                f:write(string.format('loadstring(%q)', s))
+            else
+                f:write('nil --[[ dump failed ]] ')
+            end
+        end
+    end
+
+    writers = {
+        ['nil'] = function(v) f:write('nil') end,
+        number  = function(v) f:write(tostring(v)) end,
+        string  = function(v) f:write(string.format('%q', v)) end,
+        boolean = function(v) f:write(v and 'true' or 'false') end,
+        table   = function(v)
+            if cache[v] then
+                f:write(cache[v])
+            else
+                f:write('{\n')
+                indent = indent .. '  '
+                for x, y in pairs(v) do
+                    f:write(indent, '[')
+                    w(x)
+                    f:write '] = '
+                    w(y)
+                    f:write ',\n'
+                end
+                indent = indent:sub(1, -3)
+                f:write(indent, '}')
+            end
+        end,
+        ['function'] = function(v)
+            if cache[v] then
+                f:write(cache[v])
+            else
+                emitFunction(v)
+            end
+        end,
+        thread  = function(v) f:write('nil --[[ thread ]] ') end,
+        userdata= function(v) f:write('nil --[[ userdata ]] ') end
+    }
+
+    doCache(t)
+    cache[t] = cache[t] or 'z'
+
+    for k, v in pairs(cache) do
+        if v then
+            if type(k) == 'table' then
+                f:write('local '..v..' = {}\n')
+            else
+                f:write('local '..v..' = ')
+                emitFunction(k)
+                f:write'\n'
+            end
+        end
+    end
+
+    for k, v in pairs(cache) do
+        if v then
+            if type(k) == 'table' then
+                local n = cache[k]
+                for k, v in pairs(k) do
+                    f:write(n, '[')
+                    w(k)
+                    f:write('] = ')
+                    w(v)
+                    f:write('\n')
+                end
+            end
+        end
+    end
+
+    f:write('return '..cache[t]..'\n')
+end
+
+-------------------------------------------------------------------------------
+-- Create a persistent table that will retain its values across restarts and
+-- reboots.
+--
+-- A persistent table looks and behaves much like a normal table but not
+-- completely.
+--
+-- The biggest difference is the inability to use pairs or ipairs on a persistent
+-- table.  They simply don't work.  This follows through to any function that
+-- relies on these to work -- the debug module in particular.
+--
+-- There are also restriction on function in the table.  Only Lua functions
+-- that don't use upvalues can be saved (and they are).
+-- @param filename Name of the backing file for the persistent table
+-- @return Persistent table, contents as before or empty if newly created
+-- @usage
+-- local history = utils.persistentTable 'history.lua'
+function _M.persistentTable(filename)
+    local fname, t = filename, {}
+
+    pcall(function()
+        local f, err = loadfile(fname)
+        if f then t = f() end
+    end)
+    t = t or {}
+
+    return setmetatable({}, {
+        __index = t,
+        __newindex = function(r, f, v)
+            t[f] = v
+            local f = io.open(fname, "w")
+            if f then
+                f:write "-- Don't edit this file, it is overwritten by the application\n"
+                save(f, t)
+                f:close()
+                _M.sync(false)
+            end
+        end,
+        __metatable = {}
+    })
+end
+
 return _M
