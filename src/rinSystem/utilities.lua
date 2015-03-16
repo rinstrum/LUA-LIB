@@ -403,20 +403,25 @@ end
 --
 -- The biggest difference is the inability to use pairs or ipairs on a persistent
 -- table.  They simply don't work.  This implies that any function that
--- relies on these to work won't.
+-- relies on these to work won't.  However, the table is created with pairs and ipairs
+-- functions as part of itself.  They are named <i>_pairs</i> and <i>_ipairs</i>
+-- respectively.  They don't take any arguments but otherwise behave as expected.
 --
 -- The next important difference is that changes to tables inside a persistent
 -- table are not automatically detected and saved to backing store.  You must
--- change something in the table itself for this to occur.
+-- change something in the table itself for this to occur.  There is a function
+-- included in the table <i>_save</i> which saves the table to backing store to
+-- cover this case.  It doesn't take any arguments and doesn't return any results.
 --
 -- There are also restriction on functions in the table.  Only Lua functions
--- that don't use upvalues can be saved (and they are).
+-- that don't use upvalues can be saved (and they are).  There is no workaround
+-- for this restriction.
 -- @param filename Name of the backing file for the persistent table
 -- @return Persistent table, contents as before or empty if newly created
 -- @usage
 -- local history = utils.persistentTable 'history.lua'
 function _M.persistentTable(filename)
-    local fname, t = filename, {}
+    local fname, t = filename
 
     pcall(function()
         local f, err = loadfile(fname)
@@ -424,18 +429,26 @@ function _M.persistentTable(filename)
     end)
     t = t or {}
 
-    return setmetatable({}, {
+    local function saveTable()
+        local f = io.open(fname, "w")
+        if f then
+            f:write "-- Don't edit this file, it is overwritten by the application\n"
+            save(f, t)
+            f:close()
+            _M.sync(false)
+        end
+    end
+
+    return setmetatable({
+        _pairs = function() return pairs(t) end,
+        _ipairs = function() return ipairs(t) end,
+        _save = saveTable
+    }, {
         __index = t,
         __newindex = function(r, f, v)
             if t[f] ~= v then
                 t[f] = v
-                local f = io.open(fname, "w")
-                if f then
-                    f:write "-- Don't edit this file, it is overwritten by the application\n"
-                    save(f, t)
-                    f:close()
-                    _M.sync(false)
-                end
+                saveTable()
             end
         end,
         __metatable = {}
