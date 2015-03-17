@@ -62,9 +62,7 @@ private.registerDeviceInitialiser(function()
             product_time_average    = 0xB107,
             product_error           = 0xB108,
             product_error_pc        = 0xB109,
-            product_error_average   = 0xB10A,
-            product_menu_op_stages  = 0xB10B,
-            material_spec           = 0xC100,
+            product_error_average   = 0xB10A
         }
 
 -------------------------------------------------------------------------------
@@ -133,7 +131,7 @@ private.registerDeviceInitialiser(function()
             fill_pulse_scale    = { 0xC417, 0x0100 },
             fill_tol_lo         = { 0xC420, 0x0100 },
             fill_tol_high       = { 0xC421, 0x0100 },
-            fill_tol_target     = { 0xC422, 0x0100 },
+            fill_target         = { 0xC422, 0x0100 },
             dump_dump           = { 0xC440, 0x0100 },
             dump_output         = { 0xC441, 0x0100 },
             dump_enable         = { 0xC442, 0x0100 },
@@ -444,14 +442,14 @@ private.registerDeviceInitialiser(function()
 -- These are the fields in the materials.csv material definition file.
 --@table MaterialFields
 -- @field name Material name, this is the key field to specify a material by
--- @field flight flight
--- @field medium medium
--- @field fast fast
--- @field total total
--- @field num num
--- @field error error
--- @field error_pc error_pc
--- @field error_average error_average
+-- @field flight weight after switching off slow fill
+-- @field medium point at which turn off medium (weight before target)
+-- @field fast  point at which turn off fast (weight before target)
+-- @field total total weight filled
+-- @field num number of batches
+-- @field error total error from target in weight units over all batches
+-- @field error_pc percentage error from target
+-- @field error_average average error in weight units
 
 --- Batching recipe definition fields
 --
@@ -480,67 +478,64 @@ private.registerDeviceInitialiser(function()
 -- first.  This field can be a real value and fractional parts do matter.  Moreover,
 -- multiple stages can have the same order value and they will execute simultaneously.
 -- However, a single indicator cannot run more than one stage at a time.
--- @field fill_slow for the stage
--- @field fill_medium for the stage
--- @field fill_fast for the stage
--- @field fill_ilock for the stage
--- @field fill_output for the stage
--- @field fill_feeder for the stage
--- @field fill_material for the stage
--- @field fill_start_action for the stage
--- @field fill_correction for the stage
--- @field fill_jog_on for the stage
--- @field fill_jog_off for the stage
--- @field fill_jog_set for the stage
--- @field fill_delay_start for the stage
--- @field fill_delay_check for the stage
--- @field fill_delay_end for the stage
--- @field fill_max_set for the stage
--- @field fill_input for the stage
--- @field fill_direction for the stage
--- @field fill_input_wait for the stage
--- @field fill_source for the stage
--- @field fill_pulse_scale for the stage
--- @field fill_tol_lo for the stage
--- @field fill_tol_high for the stage
--- @field fill_tol_target for the stage
--- @field dump_dump for the stage
--- @field dump_output for the stage
--- @field dump_enable for the stage
--- @field dump_ilock for the stage
--- @field dump_type for the stage
--- @field dump_correction for the stage
--- @field dump_delay_start for the stage
--- @field dump_delay_check for the stage
--- @field dump_delay_end for the stage
--- @field dump_jog_on_time for the stage
--- @field dump_jog_off_time for the stage
--- @field dump_jog_set for the stage
--- @field dump_target for the stage
--- @field dump_pulse_time for the stage
--- @field dump_on_tol for the stage
--- @field dump_off_tol for the stage
--- @field pulse_output for the stage
--- @field pulse_pulse for the stage
--- @field pulse_delay_start for the stage
--- @field pulse_delay_end for the stage
--- @field pulse_start_action for the stage
--- @field pulse_link for the stage
--- @field pulse_time for the stage
--- @field pulse_name for the stage
--- @field pulse_prompt for the stage
--- @field pulse_input for the stage
--- @field pulse_timer for the stage
+-- @field fill_slow IO output for slow fill
+-- @field fill_medium IO output for medium fill
+-- @field fill_fast IO output for fast fill
+-- @field fill_ilock IO input low means stop, high is run
+-- @field fill_output IO output on during in fill stage
+-- @field fill_feeder enable parallel filling (fast + medium + slow)
+-- @field fill_material material number
+-- @field fill_start_action function at start (tare, switch gross, none)...
+-- @field fill_correction turn on jogging to get closer to target
+-- @field fill_jog_on time on during jog
+-- @field fill_jog_off time output off for
+-- @field fill_jog_set number of times to jog before looking at weight
+-- @field fill_delay_start delay before start
+-- @field fill_delay_check delay before checking weight -- to ignore spike at start
+-- @field fill_delay_end after finish, pause for this long
+-- @field fill_max_set maximum number of jogs
+-- @field fill_input IO input, ends fill stage (for manual fills)
+-- @field fill_direction weight increase or decrease (weigh in or out)
+-- @field fill_input_wait always wait for fill input high to exit
+-- @field fill_source K415 only
+-- @field fill_pulse_scale K415 only -- how pulses to a graduation
+-- @field fill_tol_lo range band low value for being in tolerance
+-- @field fill_tol_high range band high value for being in tolerance
+-- @field fill_target weight to aim for
+-- @field dump_dump IO to dump
+-- @field dump_output IO output, on while stage active
+-- @field dump_enable IO input -- okay to dump
+-- @field dump_ilock IO low means stop, high is run
+-- @field dump_type by weight or by time option
+-- @field dump_correction turn on jogging to get closer to target
+-- @field dump_delay_start delay before start
+-- @field dump_delay_check delay before checking weight -- ignore spike at start
+-- @field dump_delay_end after finish, pause for this long
+-- @field dump_jog_on_time time on during jog
+-- @field dump_jog_off_time time output off for
+-- @field dump_jog_set number of times to jog before looking at weight
+-- @field dump_target target weight at end of dump -- close enough to zero
+-- @field dump_pulse_time time to dump for if set to time for time
+-- @field dump_on_tol commnand to execute on tolerance
+-- @field dump_off_tol commnand to execute for out of not tolerance
+-- @field pulse_output IO to pulse, on while stage active
+-- @field pulse_pulse IO to pulse
+-- @field pulse_delay_start delay before start
+-- @field pulse_delay_end after finish, pause for this long
+-- @field pulse_start_action function at start (tare, switch gross, none)...
+-- @field pulse_link only do if other stage ran / will run
+-- @field pulse_time time to pulse for
+-- @field pulse_name name of stage (mostly unseen)
+-- @field pulse_prompt what is shown on display during stage
+-- @field pulse_input IO input to end pulse stage
+-- @field pulse_timer only time, only input or either
 -- @see RecipeFields
 
--- @field material_spec ?
--- @field product_time ?
-
--- @field product_time_average ?
--- @field product_error ?
--- @field product_error_pc ?
--- @field product_error_average ?
--- @field product_menu_op_stages ?
+-- @field product_time total time spent filling per product
+-- @field product_time_average average time spent filling per product
+-- @field product_error total error per product
+-- @field product_error_pc percentage error per product
+-- @field product_error_average average error per product
 
 end)
 end
