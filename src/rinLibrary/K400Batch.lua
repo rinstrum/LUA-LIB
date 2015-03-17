@@ -278,8 +278,10 @@ private.registerDeviceInitialiser(function()
 -- @param stage Stage record to query
 -- @return stage delay
 -- @local
-    local function startDelay(stage)
-        return stage[(stage.type or '')..'_delay_start'] or 0
+    local function stageDelay(stage)
+        local start = stage[(stage.type or '')..'_delay_start'] or 0
+        local finish = stage[(stage.type or '')..'_delay_end'] or 0
+        return start + finish
     end
 
 -------------------------------------------------------------------------------
@@ -305,6 +307,9 @@ private.registerDeviceInitialiser(function()
 --
 -- Optionally, you can specify a <i>finished</i> function that is also passed a stage
 -- table and must return true if that stage has finished.
+--
+-- Optionally, you can specify a <i>done</i> function that is passed a stage table after
+-- the stage has finished.  By default, this does nothing.
 --
 -- Finally, you can optionally pass a <i>device</i> function that returns the display
 -- device this stage runs on.  It is passed a device name from the stage CSV file.  By
@@ -335,6 +340,7 @@ private.registerDeviceInitialiser(function()
                 return d.allStatusSet('idle')
             end
         end)
+        local deviceDone = deepcopy(args.done or function() end)
         local minimumTime = deepcopy(args.minimumTime or function() return 0 end)
 
         -- Extract the stages from the recipe CSV in a useable manner
@@ -398,7 +404,7 @@ private.registerDeviceInitialiser(function()
             local b1, b2 = blocks[bi], blocks[bi+1]
             local mt = 0
             for i = b1.idx, b2.idx-1 do
-                mt = math.max(mt, minimumTime(stages[i]), startDelay(stages[i]))
+                mt = math.max(mt, minimumTime(stages[i]), stageDelay(stages[i]))
             end
 
             local function testStage()
@@ -409,7 +415,14 @@ private.registerDeviceInitialiser(function()
                 end
                 return true
             end
-            fsm.trans { b1.name, b2.name, cond=testStage, time=mt }
+
+            local function doneStage()
+                for i = b1.idx, b2.idx-1 do
+                    deviceDone(stages[i])
+                end
+            end
+
+            fsm.trans { b1.name, b2.name, cond=testStage, time=mt, activate=doneStage }
         end
 
         return fsm, nil
