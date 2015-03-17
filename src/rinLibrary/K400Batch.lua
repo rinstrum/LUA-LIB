@@ -49,21 +49,12 @@ private.registerDeviceInitialiser(function()
     local stageDevice = _M
 
     local stageTypes = {
-        none = 0,   fill = 1,   dump = 2,   pulse = 3,
-        --start = 4
+        none = 0,   fill = 1,   dump = 2,   pulse = 3,  --start = 4
     }
 
     if batching then
         numStages = 10
         numMaterials = private.valueByDevice{ default=1, k411=6, k412=20, k415=6 }
-
-        private.addRegisters{
-            product_time            = 0xB106,
-            product_time_average    = 0xB107,
-            product_error           = 0xB108,
-            product_error_pc        = 0xB109,
-            product_error_average   = 0xB10A
-        }
 
 -------------------------------------------------------------------------------
 -- Add a block of registers to the register file
@@ -73,19 +64,6 @@ private.registerDeviceInitialiser(function()
 -- @param qty Number of times to step for these registers
 -- @local
         local function blockRegs(prefix, regs, qty)
---            local adds = {}
---            for name, v in pairs(regs) do
---                local n = prefix..name
---                adds[n] = v[1]
---                if qty > 1 then
---                    for i = 1, qty do
---                        adds[n..i] = v[1] + (i-1) * v[2]
---                    end
---                end
---                regs[name] = n
---            end
---            dbg.info('registers:', adds)
---            private.addRegisters(adds)
             for name, v in pairs(regs) do
                 regs[name] = v[1]
             end
