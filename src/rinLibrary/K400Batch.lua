@@ -43,8 +43,8 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule register definitions hinge on the model type
 private.registerDeviceInitialiser(function()
-    local batching = private.batching(true)
-    local recipes, materialCSV, recipesCSV = {}
+    local batching = private.nonbatching(true)
+    local recipes, materials, recipeNames = {}, {}, {}
     local materialRegs, stageRegisters = {}, {}
     local stageDevice = _M
 
@@ -148,35 +148,45 @@ private.registerDeviceInitialiser(function()
 -- @function loadBatchingDetails
 -- @usage
 -- device.loadBatchingDetails()  -- reload the batching databases
-    private.exposeFunction('loadBatchingDetails', batching, function()
-        materialCSV = csv.loadCSV{ fname = 'materials.csv' }
+    private.exposeFunction('loadCSVBatchingDetails', batching, function()
+        materials = {}
+        for _, r in csv.records(csv.loadCSV{ fname = 'materials.csv' }) do
+            for k, v in pairs(r) do
+                if v == '' then r[k] = nil end
+            end
+            materials[canonical(r.name)] = r
+        end
 
-        recipesCSV = csv.loadCSV{
-            fname = 'recipes.csv',
-            labels = { 'recipe', 'datafile' }
-        }
-
-        recipes = {}
-        for _, r in csv.records(recipesCSV) do
-            recipes[canonical(r.recipe)] = csv.loadCSV {
-                fname = r.datafile
-            }
+        recipes, recipeNames = {}, {}
+        for _, r in csv.records(csv.loadCSV{ fname = 'recipes.csv' }) do
+            table.insert(recipeNames, r.recipe)
+            recipes[canonical(r.recipe)] = r
+            for k, v in pairs(r) do
+                if v == '' then r[k] = nil end
+            end
+            local recipeCSV = csv.loadCSV { fname = r.datafile }
+            for _, s in csv.records(recipeCSV) do
+                table.insert(r, s)
+                for k, v in pairs(s) do
+                    if v == '' then s[k] = nil end
+                end
+            end
         end
     end)
     if batching then
-        _M.loadBatchingDetails()
+        _M.loadCSVBatchingDetails()
     end
 
 -------------------------------------------------------------------------------
--- Return a material CSV record
+-- Return a material record
 -- @function getMaterial
 -- @param m Material name
--- @return CSV record for the given material or nil on error
+-- @return Record for the given material or nil on error
 -- @return Error message or nil for no error
 -- @usage
 -- local sand = device.getMaterial('sand')
     private.exposeFunction('getMaterial', batching, function(m)
-        local _, r = csv.getRecordCSV(materialCSV, m, 'name')
+        local r = materials[canonical(m)]
         if r == nil then
             return nil, 'Material does not exist'
         end
@@ -231,32 +241,30 @@ private.registerDeviceInitialiser(function()
     end)
 
 -------------------------------------------------------------------------------
--- Return a CSV file that contains the stages in a specified recipe.
+-- Return a table that contains the stages in a specified recipe.
 -- @param r Names of recipe
--- @return Recipe CSV table or nil on error
+-- @return Recipe table or nil on error
 -- @return Error indicator or nil for no error
 -- @usage
--- local cementCSV = device.getRecipe 'cement'
+-- local cement = device.getRecipe 'cement'
     private.exposeFunction('getRecipe', batching, function(r)
-        local rec = csv.getRecordCSV(recipesCSV, r, 'recipe')
+        local rec = recipes[canonical(r)]
         if rec == nil then
             return nil, 'recipe does not exist'
         end
-        local z = recipes[canonical(rec.recipe)]
-        return z, nil
+        return rec
     end)
 
 -------------------------------------------------------------------------------
--- Return a CSV file that contains the stages in a user selected recipe.
+-- Return a table that contains the stages in a user selected recipe.
 -- @param prompt User prompt
 -- @param default Default selection, nil for none
--- @return Recipe CSV table or nil on error
+-- @return Recipe table or nil on error
 -- @return Error indicator or nil for no error
 -- @usage
--- local cementCSV = device.selectRecipe('BATCH?', 'cement')
+-- local cement = device.selectRecipe('BATCH?', 'cement')
     private.exposeFunction('selectRecipe', batching, function(prompt, default)
-        local recipes = csv.getColCSV(recipesCSV, 'recipe')
-        local q = _M.selectOption(prompt or 'RECIPE', recipes, default)
+        local q = _M.selectOption(prompt or 'RECIPE', recipeNames, default)
         if q ~= nil then
             return _M.getRecipe(q)
         end
@@ -269,6 +277,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 --
     private.exposeFunction('runStage', batching, function(stage)
+        _M.setStageRegisters(stage)
         _M.sendKey('f1', 'short')
         _M.app.delay(0.1)
     end)
@@ -330,7 +339,6 @@ private.registerDeviceInitialiser(function()
         local deviceStart = deepcopy(args.start or function()
             return function(stage)
                 local d = deviceFinder(stage.device)
-                d.setStageRegisters(stage)
                 d.runStage(stage)
             end
         end)
@@ -343,12 +351,12 @@ private.registerDeviceInitialiser(function()
         local deviceDone = deepcopy(args.done or function() end)
         local minimumTime = deepcopy(args.minimumTime or function() return 0 end)
 
-        -- Extract the stages from the recipe CSV in a useable manner
-        if csv.numRowsCSV(recipe) < 1 then return nil, 'no stages' end
+        -- Extract the stages from the recipe in a useable manner
+        if #recipe < 1 then return nil, 'no stages' end
 
         local stages = {}
-        for i = 1, csv.numRowsCSV(recipe) do
-            table.insert(stages, csv.getRowRecord(recipe, i))
+        for i, r in ipairs(recipe) do
+            table.insert(stages, r)
         end
         table.sort(stages, function(a, b) return a.order < b.order end)
 
@@ -381,7 +389,7 @@ private.registerDeviceInitialiser(function()
         end
 
         -- Build the FSM states
-        local fsm = _M.stateMachine { rname }
+        local fsm = _M.stateMachine { rname, trace=true }
                         .state { 'start' }
                         .state { 'begin' }
                         .state { 'finish' }
@@ -392,7 +400,12 @@ private.registerDeviceInitialiser(function()
                     deviceStart(stages[i])
                 end
             end
-            fsm.state { b1.name, enter=startStage }
+            local function leaveStage()
+                for i = b1.idx, b2.idx-1 do
+                    deviceDone(stages[i])
+                end
+            end
+            fsm.state { b1.name, enter=startStage, leave=leaveStage }
         end
 
         -- Add transitions to the FSM
@@ -416,13 +429,7 @@ private.registerDeviceInitialiser(function()
                 return true
             end
 
-            local function doneStage()
-                for i = b1.idx, b2.idx-1 do
-                    deviceDone(stages[i])
-                end
-            end
-
-            fsm.trans { b1.name, b2.name, cond=testStage, time=mt, activate=doneStage }
+            fsm.trans { b1.name, b2.name, cond=testStage, time=mt }
         end
 
         return fsm, nil
