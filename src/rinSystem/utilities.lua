@@ -224,7 +224,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Create a function that accepts an incoming stream of data and breaks it into
--- peices according to the start, end and escape characters, string or patterns.
+-- pieces according to the start, end and escape characters, string or patterns.
+-- The stream is buffered and reassembled as required.
 -- @param callback Callback to accept the broken down chunks
 -- @param start Start character, string or pattern (can be nil for none)
 -- @param fin End character, string or pattern (cannot be nil)
