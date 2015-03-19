@@ -52,6 +52,17 @@ private.registerDeviceInitialiser(function()
         none = 0,   fill = 1,   dump = 2,   pulse = 3,  --start = 4
     }
 
+    local enumMaps = {
+        fill_start_action   = { none = 0, tare = 1, gross = 2 },
+        fill_correction     = { flight = 0, jog = 1, auto_flight = 2, auto_jog = 3 },
+        fill_direction      = { ['in'] = 0, out = 1 },
+        fill_feeder         = { multiple = 0, single = 1 },
+        dump_correction     = { none = 0, jog = 1 },
+        dump_type           = { weight = 0, time = 1 },
+        pulse_link          = { none = 0, prev = 1, next = 2 },
+        --pulse_start_action  = { none = 0, tare = 1, gross = 2 },
+    }
+
     if batching then
         numStages = 10
         numMaterials = private.valueByDevice{ default=1, k411=6, k412=20, k415=6 }
@@ -231,6 +242,12 @@ private.registerDeviceInitialiser(function()
                     if name == 'fill_material' then
                         _M.setMaterialRegisters(v)
                         v = 0
+                    end
+                    local map = naming.convertNameToValue(name, enumMaps)
+                    if map ~= nil then
+                        print('remapping', v)
+                        v = naming.convertNameToValue(v, map, 0)
+                        print('      to ', v)
                     end
                     private.writeRegAsync(reg, v)
                 end
