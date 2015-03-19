@@ -159,11 +159,15 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.loadBatchingDetails()  -- reload the batching databases
     private.exposeFunction('loadCSVBatchingDetails', batching, function()
+        local function fixNames(t)
+            for k, v in pairs(t) do
+                if v == '' then t[k] = nil end
+            end
+        end
+
         materials = {}
         for _, r in csv.records(csv.loadCSV{ fname = 'materials.csv' }) do
-            for k, v in pairs(r) do
-                if v == '' then r[k] = nil end
-            end
+            fixNames(r)
             materials[canonical(r.name)] = r
         end
 
@@ -171,15 +175,11 @@ private.registerDeviceInitialiser(function()
         for _, r in csv.records(csv.loadCSV{ fname = 'recipes.csv' }) do
             table.insert(recipeNames, r.recipe)
             recipes[canonical(r.recipe)] = r
-            for k, v in pairs(r) do
-                if v == '' then r[k] = nil end
-            end
+            fixNames(r)
             local recipeCSV = csv.loadCSV { fname = r.datafile }
             for _, s in csv.records(recipeCSV) do
                 table.insert(r, s)
-                for k, v in pairs(s) do
-                    if v == '' then s[k] = nil end
-                end
+                fixNames(s)
             end
         end
     end)
@@ -244,9 +244,7 @@ private.registerDeviceInitialiser(function()
                     end
                     local map = naming.convertNameToValue(name, enumMaps)
                     if map ~= nil then
-                        print('remapping', v)
                         v = naming.convertNameToValue(v, map, 0)
-                        print('      to ', v)
                     end
                     private.writeRegAsync(reg, v)
                 end
