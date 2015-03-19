@@ -43,7 +43,7 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule register definitions hinge on the model type
 private.registerDeviceInitialiser(function()
-    local batching = private.nonbatching(true)
+    local batching = private.batching(true)
     local recipes, materials, recipeNames = {}, {}, {}
     local materialRegs, stageRegisters = {}, {}
     local stageDevice = _M
