@@ -44,7 +44,7 @@ end
 -- Submodule register definitions hinge on the model type
 private.registerDeviceInitialiser(function()
     local batching = private.batching(true)
-    local recipes, materials, recipeNames = {}, {}, {}
+    local recipes, materials = {}, {}
     local materialRegs, stageRegisters = {}, {}
     local stageDevice = _M
 
@@ -171,9 +171,8 @@ private.registerDeviceInitialiser(function()
             materials[canonical(r.name)] = r
         end
 
-        recipes, recipeNames = {}, {}
+        recipes = {}
         for _, r in csv.records(csv.loadCSV{ fname = 'recipes.csv' }) do
-            table.insert(recipeNames, r.recipe)
             recipes[canonical(r.recipe)] = r
             fixNames(r)
             local recipeCSV = csv.loadCSV { fname = r.datafile }
@@ -278,7 +277,12 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- local cement = device.selectRecipe('BATCH?', 'cement')
     private.exposeFunction('selectRecipe', batching, function(prompt, default)
-        local q = _M.selectOption(prompt or 'RECIPE', recipeNames, default)
+        local names = {}
+        for _, v in pairs(recipes) do
+            table.insert(names, v.recipe)
+        end
+
+        local q = _M.selectOption(prompt or 'RECIPE', names, default)
         if q ~= nil then
             return _M.getRecipe(q)
         end
