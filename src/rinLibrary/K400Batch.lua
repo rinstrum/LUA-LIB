@@ -60,7 +60,6 @@ private.registerDeviceInitialiser(function()
         dump_correction     = { none = 0, jog = 1 },
         dump_type           = { weight = 0, time = 1 },
         pulse_link          = { none = 0, prev = 1, next = 2 },
-        --pulse_start_action  = { none = 0, tare = 1, gross = 2 },
     }
 
     if batching then
@@ -499,10 +498,10 @@ private.registerDeviceInitialiser(function()
 -- @field fill_fast IO output for fast fill
 -- @field fill_ilock IO input low means stop, high is run
 -- @field fill_output IO output on during in fill stage
--- @field fill_feeder enable parallel filling (fast + medium + slow)
+-- @field fill_feeder enable parallel filling (multiple or single)
 -- @field fill_material material number
--- @field fill_start_action function at start (tare, switch gross, none)...
--- @field fill_correction turn on jogging to get closer to target
+-- @field fill_start_action function at start (none, tare or gross)
+-- @field fill_correction turn on jogging to get closer to target (flight, jog, auto_flight or auto_jog)
 -- @field fill_jog_on time on during jog
 -- @field fill_jog_off time output off for
 -- @field fill_jog_set number of times to jog before looking at weight
@@ -511,7 +510,7 @@ private.registerDeviceInitialiser(function()
 -- @field fill_delay_end after finish, pause for this long
 -- @field fill_max_set maximum number of jogs
 -- @field fill_input IO input, ends fill stage (for manual fills)
--- @field fill_direction weight increase or decrease (weigh in or out)
+-- @field fill_direction weight increase or decrease (in or out)
 -- @field fill_input_wait always wait for fill input high to exit
 -- @field fill_source K415 only
 -- @field fill_pulse_scale K415 only -- how pulses to a graduation
@@ -522,8 +521,8 @@ private.registerDeviceInitialiser(function()
 -- @field dump_output IO output, on while stage active
 -- @field dump_enable IO input -- okay to dump
 -- @field dump_ilock IO low means stop, high is run
--- @field dump_type by weight or by time option
--- @field dump_correction turn on jogging to get closer to target
+-- @field dump_type by weight or by time option (weight or time)
+-- @field dump_correction turn on jogging to get closer to target (none or jog)
 -- @field dump_delay_start delay before start
 -- @field dump_delay_check delay before checking weight -- ignore spike at start
 -- @field dump_delay_end after finish, pause for this long
@@ -539,7 +538,8 @@ private.registerDeviceInitialiser(function()
 -- @field pulse_delay_start delay before start
 -- @field pulse_delay_end after finish, pause for this long
 -- @field pulse_start_action function at start (tare, switch gross, none)...
--- @field pulse_link only do if other stage ran / will run
+-- @field pulse_link only do if other stage ran / will run, not currently implemented
+-- (none, prev or next).
 -- @field pulse_time time to pulse for
 -- @field pulse_name name of stage (mostly unseen)
 -- @field pulse_prompt what is shown on display during stage
