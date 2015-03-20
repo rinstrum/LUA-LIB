@@ -282,14 +282,32 @@ end
 -- Persistent table implementation starts here
 
 -------------------------------------------------------------------------------
--- Save a table to file so it can be restored later.
---
--- We need to deal with multiple references to the same table or function and
--- with recursive structures.
+-- Save a table to file so it can be restored later using loadfile.
 -- @param f File to save to
 -- @param t Table to save
--- @local
-local function save(f, t)
+-- @usage
+-- local utils = require 'rinSystem.utilities'
+--
+-- local subTable = {
+--     { 'this', { 'is', { 'another', { 'table' } } } }
+-- }
+-- local myTable = {
+--     'abc', 123, 'hello world',
+--     name = 'fred',
+--     nesting = subTable,
+--     not_a_copy_of_nesting = subTable,
+--     happy = true
+-- }
+-- local f = io.open('myfile.lua', 'w')
+-- if f then
+--     utils.saveTableToFile(f, myTable)
+--     io.close(f)
+-- end
+--
+-- ...
+--
+-- local mySavedTable, err = loadfile('myfile.lua')
+function _M.saveTableToFile(f, t)
     local indent, cache, idx, writers = '', {}, 0
 
     local function doCache(v)
@@ -434,7 +452,7 @@ function _M.persistentTable(filename)
         local f = io.open(fname, "w")
         if f then
             f:write "-- Don't edit this file, it is overwritten by the application\n"
-            save(f, t)
+            _M.saveTableToFile(f, t)
             f:close()
             _M.sync(false)
         end
