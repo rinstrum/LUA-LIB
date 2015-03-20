@@ -282,9 +282,11 @@ end
 -- Persistent table implementation starts here
 
 -------------------------------------------------------------------------------
--- Save a table to file so it can be restored later using loadfile.
+-- Save a table or tables to file so they can be restored later using loadfile.
+-- The created file returns the tables in the same order they are passed to
+-- this function.
 -- @param f File to save to
--- @param t Table to save
+-- @param ... Tables to save
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -307,7 +309,8 @@ end
 -- ...
 --
 -- local mySavedTable, err = loadfile('myfile.lua')
-function _M.saveTableToFile(f, t)
+function _M.saveTableToFile(f, ...)
+    local tbls = { ... }
     local indent, cache, idx, writers = '', {}, 0
 
     local function doCache(v)
@@ -380,8 +383,10 @@ function _M.saveTableToFile(f, t)
         userdata= function(v) f:write('nil --[[ userdata ]] ') end
     }
 
-    doCache(t)
-    cache[t] = cache[t] or 'z'
+    for k, t in ipairs(tbls) do
+        doCache(t)
+        cache[t] = cache[t] or ('a'..k)
+    end
 
     for k, v in pairs(cache) do
         if v then
@@ -410,7 +415,12 @@ function _M.saveTableToFile(f, t)
         end
     end
 
-    f:write('return '..cache[t]..'\n')
+    f:write 'return '
+    for i = 1, #tbls do
+        f:write(cache[tbls[i]])
+        if i < #tbls then f:write ', ' end
+    end
+    f:write '\n'
 end
 
 -------------------------------------------------------------------------------
