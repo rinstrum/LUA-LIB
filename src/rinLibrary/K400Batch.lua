@@ -182,9 +182,6 @@ private.registerDeviceInitialiser(function()
             end
         end
     end)
-    if batching then
-        _M.loadCSVBatchingDetails()
-    end
 
 -------------------------------------------------------------------------------
 -- Return a material record
