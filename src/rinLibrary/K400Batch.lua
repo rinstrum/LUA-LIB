@@ -152,36 +152,33 @@ private.registerDeviceInitialiser(function()
     end
 
 -------------------------------------------------------------------------------
--- Load the material and stage CSV files into memory.
+-- Load the material and stage data into memory.
 -- This is done automatically on start up and you should only need to call this
 -- function when the files have been modified (e.g. via a load from USB).
 -- @function loadBatchingDetails
 -- @usage
 -- device.loadBatchingDetails()  -- reload the batching databases
-    private.exposeFunction('loadCSVBatchingDetails', batching, function()
-        local function fixNames(t)
-            for k, v in pairs(t) do
-                if v == '' then t[k] = nil end
-            end
-        end
-
-        materials = {}
-        for _, r in csv.records(csv.loadCSV{ fname = 'materials.csv' }) do
-            fixNames(r)
-            materials[canonical(r.name)] = r
-        end
-
-        recipes = {}
-        for _, r in csv.records(csv.loadCSV{ fname = 'recipes.csv' }) do
-            recipes[canonical(r.recipe)] = r
-            fixNames(r)
-            local recipeCSV = csv.loadCSV { fname = r.datafile }
-            for _, s in csv.records(recipeCSV) do
-                table.insert(r, s)
-                fixNames(s)
-            end
-        end
+    private.exposeFunction('loadBatchingDetails', batching, function(fname)
+        materials. recipes = {}, {}
+        pcall(function()
+            materials, recipes = loadfile(fname)()
+        end)
     end)
+
+-- -----------------------------------------------------------------------------
+-- Save the current batching details to a Lua script file
+-- @function saveBatchingDetails
+-- @param fname Name of the file to save to
+-- @usage
+-- device.saveBatchingDetails 'myBatches.lua'
+--    private.exposeFunction('saveBatchingDetails', batching, function(fname)
+--        local f = io.open(fname, 'w')
+--        if f then
+--            f:write '-- Generated batching details file\n'
+--            utils.saveTableToFile(f, materials, recipes)
+--            f:close()
+--        end
+--    end)
 
 -------------------------------------------------------------------------------
 -- Return a material record
