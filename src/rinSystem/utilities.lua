@@ -262,16 +262,16 @@ function _M.streamProcessor(callback, start, fin, escape)
     local msg = Ct(Cs(begin * body^0 * fin)^0 * Cg(Cs(rest), 'residue'))
 
     local buf, cb = '', _M.deepcopy(callback)
-    return function(c, err)
+    return function(c, err, ...)
         if err then
-            _M.call(cb, nil, err)
+            _M.call(cb, nil, err, ...)
         else
             buf = buf .. c
             local r = msg:match(buf)
             if r then
                 buf = r.residue
                 for k, v in ipairs(r) do
-                    _M.call(cb, v, nil)
+                    _M.call(cb, v, nil, ...)
                 end
             end
         end
