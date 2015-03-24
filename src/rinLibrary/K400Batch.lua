@@ -7,11 +7,11 @@
 -------------------------------------------------------------------------------
 
 local csv       = require 'rinLibrary.rinCSV'
-local canonical = require('rinLibrary.namings').canonicalisation
+local naming    = require 'rinLibrary.namings'
 local dbg       = require "rinLibrary.rinDebug"
 local utils     = require 'rinSystem.utilities'
-local naming    = require 'rinLibrary.namings'
 
+local canonical = naming.canonicalisation
 local deepcopy = utils.deepcopy
 local null, cb = utils.null, utils.cb
 
