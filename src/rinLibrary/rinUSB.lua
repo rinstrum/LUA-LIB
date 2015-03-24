@@ -15,7 +15,8 @@ local utils = require 'rinSystem.utilities'
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
 local deepcopy = utils.deepcopy
-local canonical = require('rinLibrary.namings').canonicalisation
+local naming = require 'rinLibrary.namings'
+local canonical = naming.canonicalisation
 
 local usb, ev_lib, decodeKey, usbKeyboardMap, partition
 if pcall(function() usb = require "devicemounter" end) then
@@ -39,6 +40,33 @@ local userStorageRemovedCallback, userStorageAddedCallback = nil, nil
 local storageEvent = nil
 
 local legalKeys = nil
+
+local baudRates = {
+    ['300']    = rs232.RS232_BAUD_300,      ['2400']   = rs232.RS232_BAUD_2400,
+    ['4800']   = rs232.RS232_BAUD_4800,     ['9600']   = rs232.RS232_BAUD_9600,
+    ['19200']  = rs232.RS232_BAUD_19200,    ['38400']  = rs232.RS232_BAUD_38400,
+    ['57600']  = rs232.RS232_BAUD_57600,    ['115200'] = rs232.RS232_BAUD_115200,
+    ['460800'] = rs232.RS232_BAUD_460800
+}
+
+local dataBits = {
+    ['5'] = rs232.RS232_DATA_5,             ['6'] = rs232.RS232_DATA_6,
+    ['7'] = rs232.RS232_DATA_7,             ['8'] = rs232.RS232_DATA_8
+}
+
+local parityOptions = {
+    none = rs232.RS232_PARITY_NONE,
+    odd  = rs232.RS232_PARITY_ODD,          even = rs232.RS232_PARITY_EVEN
+}
+
+local stopBitsOptions = {
+    ['1'] = rs232.RS232_STOP_1,             ['2'] = rs232.RS232_STOP_2
+}
+
+local flowControl = {
+    off      = rs232.RS232_FLOW_OFF,        hardware = rs232.RS232_FLOW_HW,
+    software = rs232.RS232_FLOW_XON_XOFF
+}
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
@@ -370,11 +398,11 @@ end
 -------------------------------------------------------------------------------
 -- Setup a serial handler
 -- @param callback Callback function that accepts data byte at a time
--- @param baud Baud rate to use (default RS232_BAUD_9600)
--- @param data Number of data bits per byte (default RS232_DATA_8)
--- @param parity Type of parity bit used (default RS232_PARITY_NONE)
--- @param stopbits Number of stop bits used (default RS232_STOP_1)
--- @param flow Flavour of flow control used (default RS232_FLOW_OFF)
+-- @param baud Baud rate to use (default 9600)
+-- @param data Number of data bits per byte (default8)
+-- @param parity Type of parity bit used (default none)
+-- @param stopbits Number of stop bits used (default 1)
+-- @param flow Flavour of flow control used (default off)
 -- @usage
 -- -- Refer to the myUSBApp example provided.
 --
@@ -393,11 +421,11 @@ end
 -- end
 -- usb.serialUSBdeviceHandler(usbSerialHandler)
 function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
-    local b = baud or rs232.RS232_BAUD_9600
-    local d = data or rs232.RS232_DATA_8
-    local p = parity or rs232.RS232_PARITY_NONE
-    local s = stopbits or rs232.RS232_STOP_1
-    local f = flow or rs232.RS232_FLOW_OFF
+    local b = naming.convertNameToValue(tostring(baud), baudRates, rs232.RS232_BAUD_9600)
+    local d = naming.convertNameToValue(tostring(data), dataBits, rs232.RS232_DATA_8)
+    local p = naming.convertNameToValue(parity, parityOptions, rs232.RS232_PARITY_NONE)
+    local s = naming.convertNameToValue(tostring(stopbits), stopBitsOptions, rs232.RS232_STOP_1)
+    local f = naming.convertNameToValue(flow, flowControl, rs232.RS232_FLOW_OFF)
 
     if callback == nil then
         libUSBSerialCallback = nil
