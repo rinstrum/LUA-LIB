@@ -41,32 +41,22 @@ local storageEvent = nil
 
 local legalKeys = nil
 
-local baudRates = {
-    ['300']    = rs232.RS232_BAUD_300,      ['2400']   = rs232.RS232_BAUD_2400,
-    ['4800']   = rs232.RS232_BAUD_4800,     ['9600']   = rs232.RS232_BAUD_9600,
-    ['19200']  = rs232.RS232_BAUD_19200,    ['38400']  = rs232.RS232_BAUD_38400,
-    ['57600']  = rs232.RS232_BAUD_57600,    ['115200'] = rs232.RS232_BAUD_115200,
-    ['460800'] = rs232.RS232_BAUD_460800
-}
+local function doRS232(n)
+    local r, l = {}, n:len()
+    for k, v in pairs(rs232) do
+        if k:sub(1, l) == n then
+            r[canonical(k:sub(l+1))] = v
+        end
+    end
+    return r
+end
 
-local dataBits = {
-    ['5'] = rs232.RS232_DATA_5,             ['6'] = rs232.RS232_DATA_6,
-    ['7'] = rs232.RS232_DATA_7,             ['8'] = rs232.RS232_DATA_8
-}
+local baudRates = doRS232 'RS232_BAUD_'         -- 300 ... 460800 with gaps
+local dataBits = doRS232 'RS232_DATA_'          -- '5', '6', '7', '8'
+local parityOptions = doRS232 'RS232_PARITY_'   -- none, odd, even
+local stopBitsOptions = doRS232 'RS232_STOP_'   -- '1', '2'
+local flowControl = doRS232 'RS232_FLOW_'       -- off, hw, xon_xoff
 
-local parityOptions = {
-    none = rs232.RS232_PARITY_NONE,
-    odd  = rs232.RS232_PARITY_ODD,          even = rs232.RS232_PARITY_EVEN
-}
-
-local stopBitsOptions = {
-    ['1'] = rs232.RS232_STOP_1,             ['2'] = rs232.RS232_STOP_2
-}
-
-local flowControl = {
-    off      = rs232.RS232_FLOW_OFF,        hardware = rs232.RS232_FLOW_HW,
-    software = rs232.RS232_FLOW_XON_XOFF
-}
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
