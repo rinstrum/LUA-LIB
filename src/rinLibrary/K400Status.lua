@@ -461,11 +461,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the main library callback function for an extended status bit
+-- @function setEStatusMainCallback
 -- @param eStatus Extended status bit
 -- @param callback Function to run when there is an event on change in status
 -- @see setEStatusCallback
 -- @local
-local function setEStatusMainCallback(eStatus, callback)
+function private.setEStatusMainCallback(eStatus, callback)
     utils.checkCallback(callback)
     local eStat = naming.convertNameToValue(eStatus, estatusMap)
     if eStat then
@@ -1017,9 +1018,9 @@ function _M.setupStatus()
     IOID    = _M.addStream('io_status',    function(d, e) IOsCallback(ioTable, d, e) end, 'change')
     SETPID  = _M.addStream(REG_SETPSTATUS, function(d, e) IOsCallback(setpointTable, d, e) end, 'change')
     private.RTCread()
-    setEStatusMainCallback('rtc',  handleRTC)
-    setEStatusMainCallback('init', handleINIT)
-    setEStatusMainCallback('power_off', handlePowerOff)
+    private.setEStatusMainCallback('rtc',  handleRTC)
+    private.setEStatusMainCallback('init', handleINIT)
+    private.setEStatusMainCallback('power_off', handlePowerOff)
     writeRTCStatus(true)
 end
 
@@ -1030,9 +1031,9 @@ end
 -- device.endStatus()
 function _M.endStatus()
     writeRTCStatus(false)
-    setEStatusMainCallback('rtc',  nil)
-    setEStatusMainCallback('init', nil)
-    setEStatusMainCallback('power_off', nil)
+    private.setEStatusMainCallback('rtc',  nil)
+    private.setEStatusMainCallback('init', nil)
+    private.setEStatusMainCallback('power_off', nil)
     _M.removeStream(statID)     statID = nil
     _M.removeStream(eStatID)    eStatID = nil
     _M.endIOStatus()
