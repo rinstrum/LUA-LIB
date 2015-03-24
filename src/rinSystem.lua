@@ -30,7 +30,6 @@ local _M = {}
 --
 -- system.handleEvents()
 function _M.handleEvents()
-   
     local time = timers.delayUntilNext()
     local writers = sockets.getWriterSockets()
     local readers = sockets.getReaderSockets()
