@@ -429,6 +429,43 @@ end
 -- @field immiscable File had no common fields, returned an empty CSV table
 
 -------------------------------------------------------------------------------
+-- Return the label map for the specified table.
+-- This is a memo function for efficiency.
+-- @param t Table to get the label map for
+-- @return Label map
+-- @local
+local function getLabelMap(t)
+    local labels = labelMaps[t]
+    if labels == nil then
+        labels = {}
+        for n, f in ipairs(t.labels) do
+            labels[canonical(f)] = n
+        end
+        labelMaps[t] = labels
+    end
+    return labels
+end
+
+-------------------------------------------------------------------------------
+-- Helper function to take a record with field names and produce a numerically
+-- indexed row vector
+-- @param t is table holding CSV data
+-- @param rec Record with field names
+-- @return Row vector
+-- @local
+local function recordToLine(t, rec)
+    local l, labels = {}, getLabelMap(t)
+
+    for k, v in pairs(rec) do
+        local c = labels[canonical(k)]
+        if c ~= nil then
+            l[c] = v
+        end
+    end
+    return l
+end
+
+-------------------------------------------------------------------------------
 -- Set the maximum log size before log cycling
 -- @param t CSV table
 -- @param s Maximum log file size, this can be a number or a sting that can
@@ -486,6 +523,9 @@ function _M.logLineCSV(t, line)
         if t.differentOnFileSystem then
             dbg.error("logLineCSV: ", "failed due to format incompatibility, try saveCSV first")
         else
+            if #line == 0 then
+                line = recordToLine(t, line)
+            end
             if posix.stat(t.fname, 'size') > _M.getLogSize(t) then
                 for i = 9, 1, -1 do
                     rename(t.fname .. '.' .. (i-1), t.fname .. '.' .. i)
@@ -527,43 +567,6 @@ function _M.undoLogLineCSV(t)
         end
     end
     return false
-end
-
--------------------------------------------------------------------------------
--- Return the label map for the specified table.
--- This is a memo function for efficiency.
--- @param t Table to get the label map for
--- @return Label map
--- @local
-local function getLabelMap(t)
-    local labels = labelMaps[t]
-    if labels == nil then
-        labels = {}
-        for n, f in ipairs(t.labels) do
-            labels[canonical(f)] = n
-        end
-        labelMaps[t] = labels
-    end
-    return labels
-end
-
--------------------------------------------------------------------------------
--- Helper function to take a record with field names and produce a numerically
--- indexed row vector
--- @param t is table holding CSV data
--- @param rec Record with field names
--- @return Row vector
--- @local
-local function recordToLine(t, rec)
-    local l, labels = {}, getLabelMap(t)
-
-    for k, v in pairs(rec) do
-        local c = labels[canonical(k)]
-        if c ~= nil then
-            l[c] = v
-        end
-    end
-    return l
 end
 
 -------------------------------------------------------------------------------
