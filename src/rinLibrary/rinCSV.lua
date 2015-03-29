@@ -1052,7 +1052,7 @@ end
 -- local csv = require('rinLibrary.rinCSV')
 --
 -- print('perfection:')
--- print('    ' .. csv.tostringCol({ 6, 28, 496, 8128, 33550336, 8589869056 }, 11))
+-- print('    ' .. csv.tostringLine({ 6, 28, 496, 8128, 33550336, 8589869056 }, 11))
 function _M.tostringLine(line, w)
     if line == nil then
         return nil
