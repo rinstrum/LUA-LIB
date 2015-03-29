@@ -440,7 +440,7 @@ function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
                                                       socks.removeSocket(port)
                                                       callback(nil, "close", port)
                                                   else
-                                                      callback(c, e, port)
+                                                      callback(c, e ~= noerr and e or nil, port)
                                                   end
                                               end)
                         callback(nil, "open", port)
