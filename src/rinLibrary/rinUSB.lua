@@ -57,6 +57,25 @@ local parityOptions = doRS232 'RS232_PARITY_'   -- none, odd, even
 local stopBitsOptions = doRS232 'RS232_STOP_'   -- '1', '2'
 local flowControl = doRS232 'RS232_FLOW_'       -- off, hw, xon_xoff
 
+-- RS232 error table in human readable form
+local rs232ErrorTable = setmetatable({
+    [rs232.RS232_ERR_UNKNOWN]       = 'unknown error',
+    [rs232.RS232_ERR_OPEN]          = 'open failed',
+    [rs232.RS232_ERR_CLOSE]         = 'close failed',
+    [rs232.RS232_ERR_FLUSH]         = 'flush failed',
+    [rs232.RS232_ERR_CONFIG]        = 'configuration error',
+    [rs232.RS232_ERR_READ]          = 'read failed',
+    [rs232.RS232_ERR_WRITE]         = 'write failed',
+    [rs232.RS232_ERR_SELECT]        = 'select failed',
+    [rs232.RS232_ERR_TIMEOUT]       = 'timeout',
+    [rs232.RS232_ERR_IOCTL]         = 'ioctl failed',
+    [rs232.RS232_ERR_PORT_CLOSED]   = 'port closed'
+}, {
+    __index = function(t, f)
+        if f == rs232.RS232_ERR_NOERROR then return nil end
+        return 'error "'..tostring(f)..'"'
+    end
+})
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
@@ -440,7 +459,7 @@ function _M.serialUSBdeviceHandler(callback, baud, data, parity, stopbits, flow)
                                                       socks.removeSocket(port)
                                                       callback(nil, "close", port)
                                                   else
-                                                      callback(c, e ~= noerr and e or nil, port)
+                                                      callback(c, rs232ErrorTable[e], port)
                                                   end
                                               end)
                         callback(nil, "open", port)
