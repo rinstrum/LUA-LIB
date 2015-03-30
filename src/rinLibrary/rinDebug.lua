@@ -270,8 +270,9 @@ function _M.print(prompt, ...)
    end
 
     s = string.format("%s%s",header, s)
-    logger:log(level, s)
-    utils.call(secondaryLogFunction, s)
+    if logger:log(level, s) then
+        utils.call(secondaryLogFunction, s)
+    end
     _M.tempLevel = nil
 end
 
