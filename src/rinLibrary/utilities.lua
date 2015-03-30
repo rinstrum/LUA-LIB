@@ -206,7 +206,7 @@ return function(mod, private, deprecated)
 -- @local
     for _, d in pairs{
         'k401', 'k402',
-        'k410', 'k411', 'k412', 'k415',
+        'k410',
         'k422', 'k491'
     } do
         private[d] = function(v)
@@ -244,8 +244,7 @@ return function(mod, private, deprecated)
     function private.batching(v)
 		assert(private.deviceType ~= nil)
         private.batching = private.valueByDevice{
-            k410 = willy,   k411 = willy,
-            k412 = willy,   k415 = willy,
+            k410 = willy,
             default = nilly
         }
         return private.batching(v)
@@ -262,8 +261,7 @@ return function(mod, private, deprecated)
     function private.nonbatching(v)
 		assert(private.deviceType ~= nil)
         private.nonbatching = private.valueByDevice{
-            k410 = nilly,   k411 = nilly,
-            k412 = nilly,   k415 = nilly,
+            k410 = nilly,
             default = willy
         }
         return private.nonbatching(v)

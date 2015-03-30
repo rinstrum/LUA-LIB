@@ -64,7 +64,7 @@ private.registerDeviceInitialiser(function()
 
     if batching then
         numStages = 10
-        numMaterials = private.valueByDevice{ default=1, k411=6, k412=20, k415=6 }
+        numMaterials = 1
 
 -------------------------------------------------------------------------------
 -- Add a block of registers to the register file
@@ -115,8 +115,6 @@ private.registerDeviceInitialiser(function()
             fill_input          = { 0xC413, 0x0100 },
             fill_direction      = { 0xC414, 0x0100 },
             fill_input_wait     = { 0xC415, 0x0100 },
-            fill_source         = { 0xC416, 0x0100 },
-            fill_pulse_scale    = { 0xC417, 0x0100 },
             fill_tol_lo         = { 0xC420, 0x0100 },
             fill_tol_high       = { 0xC421, 0x0100 },
             fill_target         = { 0xC422, 0x0100 },
@@ -508,8 +506,6 @@ private.registerDeviceInitialiser(function()
 -- @field fill_input IO input, ends fill stage (for manual fills)
 -- @field fill_direction weight increase or decrease (in or out)
 -- @field fill_input_wait always wait for fill input high to exit
--- @field fill_source K415 only
--- @field fill_pulse_scale K415 only -- how pulses to a graduation
 -- @field fill_tol_lo range band low value for being in tolerance
 -- @field fill_tol_high range band high value for being in tolerance
 -- @field fill_target weight to aim for
