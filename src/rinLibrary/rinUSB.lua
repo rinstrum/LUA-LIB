@@ -317,7 +317,7 @@ end
 --     print('key: ', k)
 -- end
 function _M.usbKeyboardKeyIterator()
-    if usbKeyboardMap == nil then return function() return nil end end
+    if usbKeyboardMap == nil then return utils.null end
 
     local k = nil
     return function()
