@@ -189,7 +189,7 @@ private.registerDeviceInitialiser(function()
     private.exposeFunction('getMaterial', batching, function(m)
         local r = materials[canonical(m)]
         if r == nil then
-            return nil, 'Material does not exist'
+            return nil, 'material does not exist'
         end
         return r
     end)
