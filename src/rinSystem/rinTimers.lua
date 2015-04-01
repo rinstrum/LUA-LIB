@@ -118,8 +118,13 @@ local function internalAddTimer(time, delay, reg, callback, extraargs)
         end
     	return nil
     end
+    local d = tonumber(delay)
+    if d == nil then
+        print 'rinTimers: delay is not a number'
+        d = 0
+    end
     local evt = {
-    	when = monotonictime() + max(0, delay),
+    	when = monotonictime() + max(0, d),
     	rept = time,
         regular = reg,
         cb   = callback,
