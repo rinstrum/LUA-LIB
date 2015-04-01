@@ -189,8 +189,9 @@ private.registerDeviceInitialiser(function()
 -- Non-batching status bits
         held        = private.nonbatching(0x00010000),
         notheld     = private.nonbatching(0x00020000),
+-- This one appears in both batching and axle weighing but with different positions
+        idle        = private.batching(0x00010000) or private.k422(0x00040000),
 -- Batching specific status bits
-        idle        = private.batching(0x00010000),
         run         = private.batching(0x00020000),
         pause       = private.batching(0x00040000),
         slow        = private.batching(0x00080000),
@@ -208,7 +209,6 @@ private.registerDeviceInitialiser(function()
 -- K422 specific status bits
         belowmin    = private.k422(0x00010000),
         abovemin    = private.k422(0x00020000),
-        idle        = private.k422(0x00040000),
         sampling    = private.k422(0x00080000),
         captured    = private.k422(0x00100000),
         waiting     = private.k422(0x00200000),
