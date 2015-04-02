@@ -45,7 +45,7 @@ end
 private.registerDeviceInitialiser(function()
     local batching = private.batching(true)
     local recipes, materials = {}, {}
-    local materialRegs, stageRegisters = {}, {}
+    local materialRegs, stageRegisters, extraStageRegisters = {}, {}, {}
     local stageDevice = _M
 
     local stageTypes = {
@@ -74,13 +74,18 @@ private.registerDeviceInitialiser(function()
 -- @param qty Number of times to step for these registers
 -- @local
         local function blockRegs(prefix, regs, qty)
+            local r, x = {}, {}
             for name, v in pairs(regs) do
-                regs[name] = v[1]
+                r[name] = v[1]
+                for i = 1, qty do
+                    x[name .. '_' .. i] = v[1] + (i-1) * v[2]
+                end
             end
+            return r, x
         end
 
         -- Load material register names into the register database
-        materialRegs = {
+        local mr = {
             name                = { 0xC081, 0x01 },
             flight              = { 0xC101, 0x10 },
             medium              = { 0xC102, 0x10 },
@@ -91,10 +96,10 @@ private.registerDeviceInitialiser(function()
             error_pc            = { 0xC107, 0x10 },
             error_average       = { 0xC108, 0x10 }
         }
-        blockRegs('material_', materialRegs, numMaterials)
+        materialRegs = blockRegs('material_', mr, numMaterials)
 
         -- Load stage register names into the register database
-        stageRegisters = {
+        sr = {
             type                = { 0xC400, 0x0100 },
             fill_slow           = { 0xC401, 0x0100 },
             fill_medium         = { 0xC402, 0x0100 },
@@ -146,7 +151,7 @@ private.registerDeviceInitialiser(function()
             pulse_input         = { 0xC46A, 0x0100 },
             pulse_timer         = { 0xC46B, 0x0100 }
         }
-        blockRegs('stage_', stageRegisters, numStages)
+        stageRegisters, extraStageRegisters = blockRegs('stage_', sr, numStages)
     end
 
 -------------------------------------------------------------------------------
@@ -161,6 +166,8 @@ private.registerDeviceInitialiser(function()
         pcall(function()
             materials, recipes = loadfile(fname)()
         end)
+        dbg.info('materials', materials)
+        dbg.info('recipes', recipes)
     end)
 
 -- -----------------------------------------------------------------------------
@@ -224,6 +231,8 @@ private.registerDeviceInitialiser(function()
         local tlen = type:len()
 
         private.writeReg(stageRegisters.stage_type, naming.convertNameToValue(type, stageTypes, 0))
+        private.writeRegAsync(extraStageRegisters.stage_type_2, stageTypes.none)
+        private.writeRegAsync(extraStageRegisters.stage_type_3, stageTypes.none)
 
         for name, reg in pairs(stageRegisters) do
             if name:sub(1, tlen) == type then
@@ -273,6 +282,7 @@ private.registerDeviceInitialiser(function()
         for _, v in pairs(recipes) do
             table.insert(names, v.recipe)
         end
+        table.sort(names)
 
         local q = _M.selectOption(prompt or 'RECIPE', names, default)
         if q ~= nil then
@@ -352,11 +362,9 @@ private.registerDeviceInitialiser(function()
                 d.runStage(stage)
             end
         end)
-        local deviceFinished = deepcopy(args.finished or function()
-            return function(stage)
-                local d = deviceFinder(stages[i].device)
-                return d.allStatusSet('idle')
-            end
+        local deviceFinished = deepcopy(args.finished or function(stage)
+            local d = deviceFinder(stage.device)
+            return d.allStatusSet('idle')
         end)
         local deviceDone = deepcopy(args.done or function() end)
         local minimumTime = deepcopy(args.minimumTime or function() return 0 end)
@@ -402,7 +410,7 @@ private.registerDeviceInitialiser(function()
         local fsm = _M.stateMachine { rname, trace=true }
                         .state { 'start' }
                         .state { 'begin' }
-                        .state { 'finish' }
+                        .state { 'finish', enter=function() _M.lcdControl 'lua' end }
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
             local function startStage()
@@ -420,12 +428,13 @@ private.registerDeviceInitialiser(function()
 
         -- Add transitions to the FSM
         fsm.trans { 'begin', blocks[1].name, activate=function()
+            _M.lcdControl 'default'
             private.exReg(REG_REC_NAME_EX, rname)
         end}
 
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
-            local mt = 0
+            local mt = 1
             for i = b1.idx, b2.idx-1 do
                 mt = math.max(mt, minimumTime(stages[i]), stageDelay(stages[i]))
             end
