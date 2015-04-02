@@ -490,12 +490,13 @@ local function statusCallback(data, err)
             if v.running then
                 dbg.warn('Status Event lost: ',string.format('%08X %08X',k,status))
             else
+                local sname = naming.convertValueToName(k, statusUnmap)
+                local sval = status ~= 0
                 v.lastStatus = status
-                if utils.callable(v.f) then
-                    v.running = true
-                    v.f(naming.convertValueToName(k, statusUnmap), status ~= 0)
-                    v.running = false
-                end
+                v.running = true
+                utils.call(v.mainf, sname, sval)
+                utils.call(v.f, sname, sval)
+                v.running = false
             end
         end
     end
@@ -516,11 +517,30 @@ function _M.setStatusCallback(status, callback)
 
     local stat = naming.convertNameToValue(status, statusMap)
     if stat then
-        statBinds[stat] = {
-            f = callback
-        }
+        statBinds[stat] = statBinds[stat] or {}
+        statBinds[stat].f = callback
+        statBinds[stat].lastStatus = nil
     else
         setEStatusCallback(status, callback)
+    end
+end
+
+-------------------------------------------------------------------------------
+-- Set the internal callback function for a status bit
+-- @param status status name
+-- @param callback Function to run when there is an event on change in status
+-- @see setStatusCallback
+-- @local
+function private.setStatusMainCallback(status, callback)
+    utils.checkCallback(callback)
+
+    local stat = naming.convertNameToValue(status, statusMap)
+    if stat then
+        statBinds[stat] = statBinds[stat] or {}
+        statBinds[stat].mainf = callback
+        statBinds[stat].lastStatus = nil
+    else
+        setEStatusMainCallback(status, callback)
     end
 end
 
