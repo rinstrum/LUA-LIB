@@ -584,7 +584,14 @@ end
 --     end
 --     return true    -- F1 handled here so don't send back to instrument for handling
 -- end
+--
+-- local function Number3Pressed(key, state)
+--     print '3 was pressed'
+--     return true
+-- end
+--
 -- device.setKeyCallback('f1', F1Pressed)
+-- device.setKeyCallback(3, Number3Pressed, 'short')
 function _M.setKeyCallback(keyName, callback, ...)
     utils.checkCallback(callback)
     local key = naming.convertNameToValue(keyName, keyMap) or
