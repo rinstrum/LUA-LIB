@@ -10,6 +10,7 @@ local csv       = require 'rinLibrary.rinCSV'
 local naming    = require 'rinLibrary.namings'
 local dbg       = require "rinLibrary.rinDebug"
 local utils     = require 'rinSystem.utilities'
+local timers    = require 'rinSystem.rinTimers'
 
 local canonical = naming.canonicalisation
 local deepcopy = utils.deepcopy
@@ -45,8 +46,11 @@ end
 private.registerDeviceInitialiser(function()
     local batching = private.batching(true)
     local recipes, materials = {}, {}
-    local materialRegs, stageRegisters, extraStageRegisters = {}, {}, {}
+    local materialRegs, batchRegs = {}, {}
+    local stageRegisters, extraStageRegisters = {}, {}
     local stageDevice = _M
+
+    local REG_BATCH_STAGE_NUMBER    = 0xC005
 
     local stageTypes = {
         none = 0,   fill = 1,   dump = 2,   pulse = 3,  --start = 4
@@ -152,6 +156,12 @@ private.registerDeviceInitialiser(function()
             pulse_timer         = { 0xC46B, 0x0100 }
         }
         stageRegisters, extraStageRegisters = blockRegs('stage_', sr, numStages)
+
+        private.addRegisters{
+            batch_start_ilock   = 0xC021,
+            batch_zero_ilock    = 0xC029,
+            batch_ilock         = 0xC031
+        }
     end
 
 -------------------------------------------------------------------------------
@@ -166,8 +176,8 @@ private.registerDeviceInitialiser(function()
         pcall(function()
             materials, recipes = loadfile(fname)()
         end)
-        dbg.info('materials', materials)
-        dbg.info('recipes', recipes)
+        --dbg.info('materials', materials)
+        --dbg.info('recipes', recipes)
     end)
 
 -- -----------------------------------------------------------------------------
@@ -230,16 +240,19 @@ private.registerDeviceInitialiser(function()
         local type = s.type or 'none'
         local tlen = type:len()
 
+        if s.fill_material then
+            _M.setMaterialRegisters(s.fill_material)
+        end
+
+        private.writeReg(REG_BATCH_STAGE_NUMBER, 0)
         private.writeReg(stageRegisters.stage_type, naming.convertNameToValue(type, stageTypes, 0))
-        private.writeRegAsync(extraStageRegisters.stage_type_2, stageTypes.none)
-        private.writeRegAsync(extraStageRegisters.stage_type_3, stageTypes.none)
 
         for name, reg in pairs(stageRegisters) do
             if name:sub(1, tlen) == type then
                 local v = s[name]
                 if v and v ~= '' then
                     if name == 'fill_material' then
-                        _M.setMaterialRegisters(v)
+                        --_M.setMaterialRegisters(v)
                         v = 0
                     end
                     local map = naming.convertNameToValue(name, enumMaps)
@@ -372,6 +385,14 @@ private.registerDeviceInitialiser(function()
         -- Extract the stages from the recipe in a useable manner
         if #recipe < 1 then return nil, 'no stages' end
 
+        local stageCanFinish, stageTimer
+        local function stageReset(finish)
+            private.setStatusMainCallback('run', nil)
+            timers.removeTimer(stageTimer)
+            stageCanFinish = finish
+            stageTimer = nil
+        end
+
         local stages = {}
         for i, r in ipairs(recipe) do
             table.insert(stages, r)
@@ -417,8 +438,15 @@ private.registerDeviceInitialiser(function()
                 for i = b1.idx, b2.idx-1 do
                     deviceStart(stages[i])
                 end
+
+                stageReset(false)
+                private.setStatusMainCallback('run', function(s, v)
+                    if v then stageReset(true) end
+                end)
+                stageTimer = timers.addTimer(0, 5, stageReset, true)
             end
             local function leaveStage()
+                stageReset(true)
                 for i = b1.idx, b2.idx-1 do
                     deviceDone(stages[i])
                 end
@@ -434,12 +462,13 @@ private.registerDeviceInitialiser(function()
 
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
-            local mt = 1
+            local mt = 0
             for i = b1.idx, b2.idx-1 do
                 mt = math.max(mt, minimumTime(stages[i]), stageDelay(stages[i]))
             end
 
             local function testStage()
+                if not stageCanFinish then return false end
                 for i = b1.idx, b2.idx-1 do
                     if not deviceFinished(stages[i]) then
                         return false
