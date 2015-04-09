@@ -472,7 +472,7 @@ function _M.persistentTable(filename, defaults)
     if type(defaults) == 'table' then
         local changes = false
         for k, v in pairs(defaults) do
-            if t[k] == nil and t[k] ~= v then
+            if t[k] == nil then
                 t[k] = v
                 changes = true
             end
