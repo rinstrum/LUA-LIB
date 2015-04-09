@@ -446,10 +446,11 @@ end
 -- that don't use upvalues can be saved (and they are).  There is no workaround
 -- for this restriction.
 -- @param filename Name of the backing file for the persistent table
+-- @param defaults Table of values which are added to the persistent table if not already present
 -- @return Persistent table, contents as before or empty if newly created
 -- @usage
 -- local history = utils.persistentTable 'history.lua'
-function _M.persistentTable(filename)
+function _M.persistentTable(filename, defaults)
     local fname, t = filename
 
     pcall(function()
@@ -466,6 +467,17 @@ function _M.persistentTable(filename)
             f:close()
             _M.sync(false)
         end
+    end
+
+    if type(defaults) == 'table' then
+        local changes = false
+        for k, v in pairs(defaults) do
+            if t[k] == nil and t[k] ~= v then
+                t[k] = v
+                changes = true
+            end
+        end
+        if changes then saveTable() end
     end
 
     return setmetatable({
