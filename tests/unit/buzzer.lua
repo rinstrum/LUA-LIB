@@ -16,16 +16,16 @@ describe("buzzer #buzz", function ()
     end
 
     it("registers", function()
-        local _, _, d = makeModule()
-        assert.equal(d.REG_BUZZ_LEN, regLen)
-        assert.equal(d.REG_BUZZ_NUM, regNum)
+        local m = makeModule()
+        assert.equal(m.REG_BUZZ_LEN, regLen)
+        assert.equal(m.REG_BUZZ_NUM, regNum)
     end)
 
     it("enumerations", function()
-        local _, _, d = makeModule()
-        assert.equal(d.BUZZ_SHORT,  short)
-        assert.equal(d.BUZZ_MEDIUM, medium)
-        assert.equal(d.BUZZ_LONG,   long)
+        local m = makeModule()
+        assert.equal(m.lengths.short,  short)
+        assert.equal(m.lengths.medium, medium)
+        assert.equal(m.lengths.long,   long)
     end)
 
     -- These tests are digging deep into the non-exposed internals
