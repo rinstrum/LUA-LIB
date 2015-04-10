@@ -408,7 +408,8 @@ end
 -- @param typ type of value to enter ('integer','number','passcode')
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
--- @return value and true if ok pressed at end
+-- @return value
+-- @return true if ok pressed at end
 -- @see sEdit
 -- @see rinLibrary.K400LCD.Units
 -- @see rinLibrary.K400LCD.Other
