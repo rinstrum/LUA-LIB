@@ -350,6 +350,10 @@ function _M.saveTableToFile(f, ...)
         end
     end
 
+    local function unquoted(x)
+        return type(x) == 'string' and x:find '^[%a_][%w_]*$'
+    end
+
     writers = {
         ['nil'] = function(v) f:write('nil') end,
         number  = function(v) f:write(tostring(v)) end,
@@ -362,9 +366,13 @@ function _M.saveTableToFile(f, ...)
                 f:write('{\n')
                 indent = indent .. '  '
                 for x, y in pairs(v) do
-                    f:write(indent, '[')
-                    w(x)
-                    f:write '] = '
+                    if unquoted(x) then
+                        f:write(indent, x, ' = ')
+                    else
+                        f:write(indent, '[')
+                        w(x)
+                        f:write '] = '
+                    end
                     w(y)
                     f:write ',\n'
                 end
@@ -405,9 +413,13 @@ function _M.saveTableToFile(f, ...)
             if type(k) == 'table' then
                 local n = cache[k]
                 for k, v in pairs(k) do
-                    f:write(n, '[')
-                    w(k)
-                    f:write('] = ')
+                    if unquoted(k) then
+                        f:write(n, '.', k, ' = ')
+                    else
+                        f:write(n, '[')
+                        w(k)
+                        f:write('] = ')
+                    end
                     w(v)
                     f:write('\n')
                 end
