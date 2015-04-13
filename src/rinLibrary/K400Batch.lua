@@ -312,7 +312,6 @@ private.registerDeviceInitialiser(function()
     private.exposeFunction('runStage', batching, function(stage)
         _M.setStageRegisters(stage)
         _M.sendKey('f1', 'short')
-        _M.app.delay(0.1)
     end)
 
 -------------------------------------------------------------------------------
