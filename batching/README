@@ -1,9 +1,9 @@
 Batching specific templates are here.
 
-batch-info.xltx is a template Excel file that defines a series of batches.  This file contains three separate worksheets (recipes, materials and stage).
-
-The recipes worksheet is a template for the batch recipes.  The recipe field gives the name of the batch recipe and the datafile field gives the name of the corresponding batch stage CSV file (include the full file name with .csv).  You should edit this and save it in CSV format as recipes.csv in your project.
+batch-info.xltx is a template Excel file that defines a series of batches.  This file contains two separate worksheets (materials and stage).
 
 The materials worksheet is a template for the materials used in a batch.  The name of the materials must match up with the fill_material field in the recipe stages.  The fields with a light blue/grey background are not yet maintained by the Lua libraries and are here for future expansion only.  You should edit this file and save it in CSV format as materials.csv in your project.
 
 The stage worksheet is a template for a batch recipe's stages.  You will need to duplicate this for each recipe and save these under the file names specified on the recipes worksheet.  Each stage worksheet specified the stages in a single recipe.
+
+Once you are happy with your recipe definitons, go to the View tab and activate the Macros pull down.  Pick View Macros and then run the SaveToLua macro.  This will prompt you for a file to write the recipe definitons to.  It is this output recipe definition file that should be copied to the Lua module under the name 'recipes.lua'.
