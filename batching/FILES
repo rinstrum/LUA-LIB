@@ -1,0 +1,5 @@
+make-recipes.vba is the VBA source code for the script that builds the Lua recipe data file from the batch-info.xltm templates.  This uses two worksheets (material and stage).
+
+make-recipes+.vba is the VBA source code for an extended script that again builds a Lua recipe data file but this uses three worksheets (material, recipe, stage).  The extra recipe file allows per recipe attributes to be included in the Lua data file.  This is for user scripts as currently the batching library support doesn't use these.
+
+batch-info.xltm is a template file for the two worksheet version of the recipe database.
