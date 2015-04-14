@@ -308,7 +308,14 @@ private.registerDeviceInitialiser(function()
 -- Run a stage.  Wait until it begins before returning.
 -- @param stage Stage record to run
 -- @usage
+-- local function stageState(stage)
+--     device.runStage(stage)
+-- end
 --
+-- local f, err = device.recipeFSM { name, start=stageStart }
+-- f.trans { 'start', 'begin' }
+-- f.trans { 'finish', 'start' }
+-- app.setMainLoop(f.run)
     private.exposeFunction('runStage', batching, function(stage)
         _M.setStageRegisters(stage)
         _M.sendKey('f1', 'short')
