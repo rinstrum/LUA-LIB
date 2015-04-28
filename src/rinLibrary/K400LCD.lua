@@ -226,9 +226,7 @@ function _M.addDisplay(type, prefix, options)
   
   -- Get the settings. There may be none given.
   local settings = displayPattern:match(options)
-  if (settings) then
-    settings.reg = 0
-  end
+  settings.reg = 0
   
   -- If the user does not specify any addressing options, then set up the 
   -- R400 serial.
