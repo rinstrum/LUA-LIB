@@ -173,11 +173,11 @@ local display = {}
 local function Sw(x) return spc^0 * Ct(x) * spc^0 * -1 end
 
 local serial = P{
-            Sw(V'intf' * (spc^1 * V'port')^-1 * (spc^1 * V'opts')^0 * V'type'),
+            Sw(V'intf' * (spc^1 * V'opts')^0 * V'type'),
     type =  Cg(Cc('serial'), 'type'),
     intf =  Cg((Pi('auto') * S'12') / string.lower, 'intf'),
+    opts =  V'port' + V'rate',
     port =  Cg((Pi'ser' * S'123' * S'abAB') / string.lower, 'port'),
-    opts =  V'rate',
     rate =  Pi'rate='^-1 * Cg(Pi'5hz' + Pi'10hz' + Pi'25hz', 'rate')
 }
 
