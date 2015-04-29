@@ -159,7 +159,10 @@ local REG_SER_SERIAL           = 1
 local REG_SER_FORMAT           = 2
 local REG_SER_SOURCE           = 3
 
-local SER_FORMAT_CUSTOM        = 7
+local SER_FORMAT_CUSTOM
+private.registerDeviceInitialiser(function()
+    SER_FORMAT_CUSTOM = private.k422(8) or 7
+end)
 
 local interfaces = {auto1 = REG_SER1_OFFSET, auto2 = REG_SER2_OFFSET}
 local serials = {['5hz'] = 5, ['10hz'] = 2, ['25hz'] = 3}
