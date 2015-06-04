@@ -245,7 +245,7 @@ private.registerDeviceInitialiser(function()
         end
 
         private.writeReg(REG_BATCH_STAGE_NUMBER, 0)
-        private.writeReg(stageRegisters.stage_type, naming.convertNameToValue(type, stageTypes, 0))
+        private.writeReg(stageRegisters.type, naming.convertNameToValue(type, stageTypes, 0))
 
         for name, reg in pairs(stageRegisters) do
             if name:sub(1, tlen) == type then
