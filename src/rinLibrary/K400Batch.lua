@@ -165,6 +165,33 @@ private.registerDeviceInitialiser(function()
     end
 
 -------------------------------------------------------------------------------
+-- Iterates through the stages in a recipe table and applies
+-- defaults to each stage setting. If the setting doesn't exist
+-- in the stage, the value from recTab.defaults.<setting> is
+-- used, else 0 is applied.
+-- @param recTab Recipe table to change
+-- @local
+    local function applyDefaultsToStages(recTab)
+        if type(recTab) ~= 'table' then
+            return recTab
+        end
+        recTab.defaults = recTab.defaults or {}
+        for _, recipe in pairs(recTab) do
+            for _, stage in ipairs(recipe) do
+                for setting, _ in pairs(sr) do
+                    local val = 0
+                    if setting == 'type' then
+                        val = 'none'
+                    end
+                    stage[setting] = stage[setting] or recTab.defaults[setting] or val
+                end
+            end
+        end
+        return recTab
+    end
+
+
+-------------------------------------------------------------------------------
 -- Load the material and stage data into memory.
 -- This is done automatically on start up and you should only need to call this
 -- function when the files have been modified (e.g. via a load from USB).
@@ -172,12 +199,14 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.loadBatchingDetails()  -- reload the batching databases
     private.exposeFunction('loadBatchingDetails', batching, function(fname)
-        materials. recipes = {}, {}
+        materials, recipes = {}, {}
         pcall(function()
             materials, recipes = loadfile(fname)()
         end)
-        --dbg.info('materials', materials)
+        applyDefaultsToStages(recipes)
+
         --dbg.info('recipes', recipes)
+        --dbg.info('materials', materials)
     end)
 
 -- -----------------------------------------------------------------------------
