@@ -44,71 +44,41 @@ local ADDR_BROADCAST    = 0x00
 -- @field wrfinalhex Write data in hexadecimal format
 -- @field wrfinaldec Write data in decimal format
 -- @field ex Execute with data as execute parameter
-
--- Commands
-local CMD_RDTYPE        = 0x01
-local CMD_RDRANGEMIN    = 0x02
-local CMD_RDRANGEMAX    = 0x03
-local CMD_RDRAW         = 0x04
-
-local CMD_RDLIT         = 0x05
-local CMD_WRRAW         = 0x06
-local CMD_RDDEFAULT     = 0x07
-local CMD_RDNAME        = 0x09
-local CMD_RDITEM        = 0x0D
-local CMD_RDPERMISSION  = 0x0F
-
-local CMD_RDFINALHEX    = 0x11
-local CMD_RDFINALDEC    = 0x16
-local CMD_WRFINALHEX    = 0x12
-local CMD_WRFINALDEC    = 0x17
-local CMD_EX            = 0x10
-
 local commandMap = {
-    rdtype              = CMD_RDTYPE,
-    rdrangemin          = CMD_RDRANGEMIN,
-    rdrangemax          = CMD_RDRANGEMAX,
-    rdraw               = CMD_RDRAW,
-    rdlit               = CMD_RDLIT,
-    wrraw               = CMD_WRRAW,
-    rddefault           = CMD_RDDEFAULT,
-    rdname              = CMD_RDNAME,
-    rditem              = CMD_RDITEM,
-    rdpermission        = CMD_RDPERMISSION,
-    rdfinalhex          = CMD_RDFINALHEX,
-    rdfinaldec          = CMD_RDFINALDEC,
-    wrfinalhex          = CMD_WRFINALHEX,
-    wrfinaldec          = CMD_WRFINALDEC,
-    ex                  = CMD_EX
+    rdtype              = 0x01,
+    rdrangemin          = 0x02,
+    rdrangemax          = 0x03,
+    rdraw               = 0x04,
+
+    rdlit               = 0x05,
+    wrraw               = 0x06,
+    rddefault           = 0x07,
+    rdname              = 0x09,
+    rditem              = 0x0D,
+    rdpermission        = 0x0F,
+
+    rdfinalhex          = 0x11,
+    rdfinaldec          = 0x16,
+    wrfinalhex          = 0x12,
+    wrfinaldec          = 0x17,
+    ex                  = 0x10
 }
 local commandUnmap = invert(commandMap)
 
 --  Errors
-local ERR_UNKNOWN       = 0xC000
-local ERR_NOTIMPLMN     = 0xA000
-local ERR_ACCESSDENIED  = 0x9000
-local ERR_DATAUNDRNG    = 0x8800
-local ERR_DATAOVRRNG    = 0x8400
-local ERR_ILLVALUE      = 0x8200
-local ERR_ILLOP         = 0x8100
-local ERR_BADPARAM      = 0x8040
-local ERR_MENUINUSE     = 0x8020
-local ERR_VIEWMODEREQ   = 0x8010
-local ERR_CHECKSUMREQ   = 0x8008
-
 local errStrings =
 {
-    [ERR_UNKNOWN]       = "Unknown error",
-    [ERR_NOTIMPLMN]     = "Feature not implemented",
-    [ERR_ACCESSDENIED]  = "Access denied",
-    [ERR_DATAUNDRNG]    = "Data under range",
-    [ERR_DATAOVRRNG]    = "Data over range",
-    [ERR_ILLVALUE]      = "Illegal value",
-    [ERR_ILLOP]         = "Illegal operation",
-    [ERR_BADPARAM]      = "Bad parameter",
-    [ERR_MENUINUSE]     = "Menu in use",
-    [ERR_VIEWMODEREQ]   = "Viewer mode required",
-    [ERR_CHECKSUMREQ]   = "Checksum required"
+    [0xC000] = "Unknown error",
+    [0xA000] = "Feature not implemented",
+    [0x9000] = "Access denied",
+    [0x8800] = "Data under range",
+    [0x8400] = "Data over range",
+    [0x8200] = "Illegal value",
+    [0x8100] = "Illegal operation",
+    [0x8040] = "Bad parameter",
+    [0x8020] = "Menu in use",
+    [0x8010] = "Viewer mode required",
+    [0x8008] = "Checksum required"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
@@ -234,14 +204,14 @@ function _M.buildMsg(addr, cmd, reg, data, reply)
     end
 
     if type(cmd) == 'string' then
-        cmd = naming.convertNameToValue(cmd, commandMap, CMD_RDFINALHEX)
+        cmd = naming.convertNameToValue(cmd, commandMap, commandMap.rdfinalhex)
     end
 
     if reply == nil or reply == 'reply' then
         addr = bit32.bor(addr, ADDR_REPLY)
     end
 
-    if cmd == CMD_WRFINALHEX or cmd == CMD_EX then
+    if cmd == commandMap.wrfinalhex or cmd == commandMap.ex then
         if type(data) == 'number' then
             data = string.format("%X", data)
         end

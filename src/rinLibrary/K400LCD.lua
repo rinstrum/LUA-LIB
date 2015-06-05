@@ -159,7 +159,10 @@ local REG_SER_SERIAL           = 1
 local REG_SER_FORMAT           = 2
 local REG_SER_SOURCE           = 3
 
-local SER_FORMAT_CUSTOM        = 7
+local SER_FORMAT_CUSTOM
+private.registerDeviceInitialiser(function()
+    SER_FORMAT_CUSTOM = private.k422(8) or 7
+end)
 
 local interfaces = {auto1 = REG_SER1_OFFSET, auto2 = REG_SER2_OFFSET}
 local serials = {['5hz'] = 5, ['10hz'] = 2, ['25hz'] = 3}
@@ -173,11 +176,11 @@ local display = {}
 local function Sw(x) return spc^0 * Ct(x) * spc^0 * -1 end
 
 local serial = P{
-            Sw(V'intf' * (spc^1 * V'port')^-1 * (spc^1 * V'opts')^0 * V'type'),
+            Sw(V'intf' * (spc^1 * V'opts')^0 * V'type'),
     type =  Cg(Cc('serial'), 'type'),
     intf =  Cg((Pi('auto') * S'12') / string.lower, 'intf'),
+    opts =  V'port' + V'rate',
     port =  Cg((Pi'ser' * S'123' * S'abAB') / string.lower, 'port'),
-    opts =  V'rate',
     rate =  Pi'rate='^-1 * Cg(Pi'5hz' + Pi'10hz' + Pi'25hz', 'rate')
 }
 
