@@ -356,8 +356,8 @@ private.registerDeviceInitialiser(function()
 -- @return stage delay
 -- @local
     local function stageDelay(stage)
-        local start = stage[(stage.type or '')..'_delay_start'] or 0
-        local finish = stage[(stage.type or '')..'_delay_end'] or 0
+        local start = (stage[(stage.type or '')..'_delay_start'] or 0) / 1000
+        local finish = (stage[(stage.type or '')..'_delay_end'] or 0) / 1000
         return start + finish
     end
 
