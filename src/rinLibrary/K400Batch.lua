@@ -103,7 +103,7 @@ private.registerDeviceInitialiser(function()
         materialRegs = blockRegs('material_', mr, numMaterials)
 
         -- Load stage register names into the register database
-        sr = {
+        local sr = {
             type                = { 0xC400, 0x0100 },
             fill_slow           = { 0xC401, 0x0100 },
             fill_medium         = { 0xC402, 0x0100 },
