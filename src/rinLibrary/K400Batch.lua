@@ -178,7 +178,7 @@ private.registerDeviceInitialiser(function()
         recTab.defaults = recTab.defaults or {}
         for _, recipe in pairs(recTab) do
             for _, stage in ipairs(recipe) do
-                for setting, _ in pairs(sr) do
+                for setting, _ in pairs(stageRegisters) do
                     local val = 0
                     if setting == 'type' then
                         val = 'none'
