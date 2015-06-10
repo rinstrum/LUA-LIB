@@ -347,6 +347,7 @@ private.registerDeviceInitialiser(function()
 -- app.setMainLoop(f.run)
     private.exposeFunction('runStage', batching, function(stage)
         _M.setStageRegisters(stage)
+        _M.saveSettings()
         _M.sendKey('f1', 'short')
     end)
 
