@@ -5,7 +5,6 @@
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-local posix = require 'posix'
 local lpeg = require 'lpeg'
 local Cg, Ct, Cs, P = lpeg.Cg, lpeg.Ct, lpeg.Cs, lpeg.P
 

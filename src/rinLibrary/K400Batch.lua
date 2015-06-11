@@ -49,6 +49,7 @@ private.registerDeviceInitialiser(function()
     local materialRegs, batchRegs = {}, {}
     local stageRegisters, extraStageRegisters = {}, {}
     local stageDevice = _M
+    local mr, sr = {}, {}
 
     local REG_BATCH_STAGE_NUMBER    = 0xC005
 
@@ -73,11 +74,10 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Add a block of registers to the register file
 -- Update the definition table so the value is the register name
--- @param prefix Prefix to be applied to the register name
 -- @param regs Table of register and base step pairs.
 -- @param qty Number of times to step for these registers
 -- @local
-        local function blockRegs(prefix, regs, qty)
+        local function blockRegs(regs, qty)
             local r, x = {}, {}
             for name, v in pairs(regs) do
                 r[name] = v[1]
@@ -89,21 +89,21 @@ private.registerDeviceInitialiser(function()
         end
 
         -- Load material register names into the register database
-        local mr = {
+        mr = {
             name                = { 0xC081, 0x01 },
             flight              = { 0xC101, 0x10 },
             medium              = { 0xC102, 0x10 },
             fast                = { 0xC103, 0x10 },
-            total               = { 0xC104, 0x10 },
-            num                 = { 0xC105, 0x10 },
-            error               = { 0xC106, 0x10 },
-            error_pc            = { 0xC107, 0x10 },
-            error_average       = { 0xC108, 0x10 }
+            total               = { 0xC104, 0x10, accumulator=true },
+            num                 = { 0xC105, 0x10, accumulator=true },
+            error               = { 0xC106, 0x10, accumulator=true },
+            error_pc            = { 0xC107, 0x10, accumulator=true },
+            error_average       = { 0xC108, 0x10, accumulator=true }
         }
-        materialRegs = blockRegs('material_', mr, numMaterials)
+        materialRegs = blockRegs(mr, numMaterials)
 
         -- Load stage register names into the register database
-        local sr = {
+        sr = {
             type                = { 0xC400, 0x0100 },
             fill_slow           = { 0xC401, 0x0100 },
             fill_medium         = { 0xC402, 0x0100 },
@@ -155,7 +155,7 @@ private.registerDeviceInitialiser(function()
             pulse_input         = { 0xC46A, 0x0100 },
             pulse_timer         = { 0xC46B, 0x0100 }
         }
-        stageRegisters, extraStageRegisters = blockRegs('stage_', sr, numStages)
+        stageRegisters, extraStageRegisters = blockRegs(sr, numStages)
 
         private.addRegisters{
             batch_start_ilock   = 0xC021,
@@ -205,9 +205,39 @@ private.registerDeviceInitialiser(function()
         end)
         applyDefaultsToStages(recipes)
 
+        os.execute("cp '" .. fname .. "' '" .. fname .. ".old'")
+
         --dbg.info('recipes', recipes)
         --dbg.info('materials', materials)
+        _M.saveBatchingChanges = function()
+            local savname = fname .. '.new'
+            local savf, err = io.open(savname, 'w')
+            if err == nil then
+                utils.saveTableToFile(savf, materials, recipes)
+                savf:close()
+                os.rename(savname, fname)
+                utils.sync(true)
+            end
+            return err
+        end
     end)
+
+-------------------------------------------------------------------------------
+-- Save the batching information back to the bacthing state files
+-- @return nil normally, error on error
+-- @usage
+-- device.saveBatchingChanges()
+    private.exposeFunction('saveBatchingChanges', batching, function()
+        return 'No batching details loaded'
+    end)
+
+-------------------------------------------------------------------------------
+-- Function that is called after all the stages in a batch are finished
+-- @local
+    local function finishedBatch()
+        _M.saveBatchingChanges()
+        _M.lcdControl 'lua'
+    end
 
 -- -----------------------------------------------------------------------------
 -- Save the current batching details to a Lua script file
@@ -247,17 +277,34 @@ private.registerDeviceInitialiser(function()
 -- @return nil if success, error message if failure
 -- @usage
 -- device.setCurrentMaterial 'sand'
-    private.exposeFunction('setMaterialRegisters', batching, function(m)
+-- @local
+    local function setMaterialRegisters(m)
         local rec, err = _M.getMaterial(m)
         if err == nil then
             for name, reg in pairs(materialRegs) do
                 local v = rec[name]
-                if v and v ~= '' then
-                    private.writeRegAsync(reg, v)
+                if v or v == '' then v = 0 end
+                private.writeRegAsync(reg, v)
+            end
+        end
+    end
+
+-------------------------------------------------------------------------------
+-- Load the current material accumulations back from the device
+-- @param s Stage to load back data for
+-- @local
+    local function loadMaterialAccumulations(s)
+        if s.type == 'fill' and s.fill_material then
+            local rec, err = _M.getMaterial(s.fill_material)
+            if err == nil then
+                for name, reg in pairs(materialRegs) do
+                    if mr[name].accumulator then
+                        rec[name] = _M.getRegister(reg)
+                    end
                 end
             end
         end
-    end)
+    end
 
 -------------------------------------------------------------------------------
 -- Set the current stage in the indicator
@@ -265,12 +312,13 @@ private.registerDeviceInitialiser(function()
 -- @param S Stage record to set to
 -- @usage
 -- device.setStageRegisters { type='', fill_slow=1 }
-    private.exposeFunction('setStageRegisters', batching, function(s)
+-- @local
+    local function setStageRegisters(s)
         local type = s.type or 'none'
         local tlen = type:len()
 
-        if s.fill_material then
-            _M.setMaterialRegisters(s.fill_material)
+        if type == 'fill' and s.fill_material then
+            setMaterialRegisters(s.fill_material)
         end
 
         private.writeReg(REG_BATCH_STAGE_NUMBER, 0)
@@ -294,7 +342,7 @@ private.registerDeviceInitialiser(function()
         end
 
         stageDevice = s.device or _M
-    end)
+    end
 
 -------------------------------------------------------------------------------
 -- Return a table that contains the stages in a specified recipe.
@@ -346,7 +394,7 @@ private.registerDeviceInitialiser(function()
 -- f.trans { 'finish', 'start' }
 -- app.setMainLoop(f.run)
     private.exposeFunction('runStage', batching, function(stage)
-        _M.setStageRegisters(stage)
+        setStageRegisters(stage)
         _M.saveSettings()
         _M.sendKey('f1', 'short')
     end)
@@ -467,7 +515,7 @@ private.registerDeviceInitialiser(function()
         local fsm = _M.stateMachine { rname, trace=true }
                         .state { 'start' }
                         .state { 'begin' }
-                        .state { 'finish', enter=function() _M.lcdControl 'lua' end }
+                        .state { 'finish', enter=finishedBatch }
         for bi = 1, #blocks-1 do
             local b1, b2 = blocks[bi], blocks[bi+1]
             local function startStage()
@@ -484,6 +532,7 @@ private.registerDeviceInitialiser(function()
             local function leaveStage()
                 stageReset(true)
                 for i = b1.idx, b2.idx-1 do
+                    loadMaterialAccumulations(stages[i])
                     deviceDone(stages[i])
                 end
             end
