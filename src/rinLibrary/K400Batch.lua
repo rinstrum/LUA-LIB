@@ -165,29 +165,27 @@ private.registerDeviceInitialiser(function()
     end
 
 -------------------------------------------------------------------------------
--- Iterates through the stages in a recipe table and applies
--- defaults to each stage setting. If the setting doesn't exist
--- in the stage, the value from recTab.defaults.<setting> is
--- used, else 0 is applied.
--- @param recTab Recipe table to change
+-- Applies default values to the stage specified.
+-- The defaults come from the material if a fill stage, from the defaults recipe
+-- and finally a zero value.
+-- @param stage Stage to change
+-- @return The modified stage
 -- @local
-    local function applyDefaultsToStages(recTab)
-        if type(recTab) ~= 'table' then
-            return recTab
+    local function applyDefaultsToStage(stage)
+        local defaults, material = recipes.defaults or {}, {}
+        local type, tlen = stage.type, stage.type:len()
+
+        if type == 'fill' and stage.fill_material then
+            material = _M.getMaterial(stage.fill_material) or material
         end
-        recTab.defaults = recTab.defaults or {}
-        for _, recipe in pairs(recTab) do
-            for _, stage in ipairs(recipe) do
-                for setting, _ in pairs(stageRegisters) do
-                    local val = 0
-                    if setting == 'type' then
-                        val = 'none'
-                    end
-                    stage[setting] = stage[setting] or recTab.defaults[setting] or val
-                end
+
+        for setting, _ in pairs(stageRegisters) do
+            if setting:sub(1, tlen) == type then
+                stage[setting] = stage[setting] or material[setting] or defaults[setting] or
+                                    (setting == 'type' and 'none' or 0)
             end
         end
-        return recTab
+        return stage
     end
 
 
@@ -203,7 +201,6 @@ private.registerDeviceInitialiser(function()
         pcall(function()
             materials, recipes = loadfile(fname)()
         end)
-        applyDefaultsToStages(recipes)
 
         os.execute("cp '" .. fname .. "' '" .. fname .. ".old'")
 
@@ -478,8 +475,8 @@ private.registerDeviceInitialiser(function()
         end
 
         local stages = {}
-        for i, r in ipairs(recipe) do
-            table.insert(stages, r)
+        for _, r in ipairs(recipe) do
+            table.insert(stages, applyDefaultsToStage(deepcopy(r)))
         end
         table.sort(stages, function(a, b) return a.order < b.order end)
 
