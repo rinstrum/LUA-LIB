@@ -49,7 +49,7 @@ private.registerDeviceInitialiser(function()
     local materialRegs, batchRegs = {}, {}
     local stageRegisters, extraStageRegisters = {}, {}
     local stageDevice = _M
-    local mr, sr = {}, {}
+    local materialRegisterInfo, stageRegisterInfo = {}, {}
 
     local REG_BATCH_STAGE_NUMBER    = 0xC005
 
@@ -65,6 +65,7 @@ private.registerDeviceInitialiser(function()
         dump_correction     = { none = 0, jog = 1 },
         dump_type           = { weight = 0, time = 1 },
         pulse_link          = { none = 0, prev = 1, next = 2 },
+        pulse_timer         = { use = 0, ignore = 1 },
     }
 
     if batching then
@@ -89,7 +90,7 @@ private.registerDeviceInitialiser(function()
         end
 
         -- Load material register names into the register database
-        mr = {
+        materialRegisterInfo = {
             name                = { 0xC081, 0x01 },
             flight              = { 0xC101, 0x10 },
             medium              = { 0xC102, 0x10 },
@@ -100,10 +101,10 @@ private.registerDeviceInitialiser(function()
             error_pc            = { 0xC107, 0x10, accumulator=true },
             error_average       = { 0xC108, 0x10, accumulator=true }
         }
-        materialRegs = blockRegs(mr, numMaterials)
+        materialRegs = blockRegs(materialRegisterInfo, numMaterials)
 
         -- Load stage register names into the register database
-        sr = {
+        stageRegisterInfo = {
             type                = { 0xC400, 0x0100 },
             fill_slow           = { 0xC401, 0x0100 },
             fill_medium         = { 0xC402, 0x0100 },
@@ -114,12 +115,12 @@ private.registerDeviceInitialiser(function()
             fill_material       = { 0xC407, 0x0100 },
             fill_start_action   = { 0xC408, 0x0100 },
             fill_correction     = { 0xC409, 0x0100 },
-            fill_jog_on         = { 0xC40A, 0x0100 },
-            fill_jog_off        = { 0xC40B, 0x0100 },
+            fill_jog_on_time    = { 0xC40A, 0x0100, ms=true },
+            fill_jog_off_time   = { 0xC40B, 0x0100, ms=true },
             fill_jog_set        = { 0xC40C, 0x0100 },
-            fill_delay_start    = { 0xC40D, 0x0100 },
-            fill_delay_check    = { 0xC40E, 0x0100 },
-            fill_delay_end      = { 0xC40F, 0x0100 },
+            fill_delay_start    = { 0xC40D, 0x0100, ms=true },
+            fill_delay_check    = { 0xC40E, 0x0100, ms=true },
+            fill_delay_end      = { 0xC40F, 0x0100, ms=true },
             fill_max_set        = { 0xC412, 0x0100 },
             fill_input          = { 0xC413, 0x0100 },
             fill_direction      = { 0xC414, 0x0100 },
@@ -133,29 +134,29 @@ private.registerDeviceInitialiser(function()
             dump_ilock          = { 0xC443, 0x0100 },
             dump_type           = { 0xC444, 0x0100 },
             dump_correction     = { 0xC445, 0x0100 },
-            dump_delay_start    = { 0xC446, 0x0100 },
-            dump_delay_check    = { 0xC447, 0x0100 },
-            dump_delay_end      = { 0xC448, 0x0100 },
-            dump_jog_on_time    = { 0xC449, 0x0100 },
-            dump_jog_off_time   = { 0xC44A, 0x0100 },
+            dump_delay_start    = { 0xC446, 0x0100, ms=true },
+            dump_delay_check    = { 0xC447, 0x0100, ms=true },
+            dump_delay_end      = { 0xC448, 0x0100, ms=true },
+            dump_jog_on_time    = { 0xC449, 0x0100, ms=true },
+            dump_jog_off_time   = { 0xC44A, 0x0100, ms=true },
             dump_jog_set        = { 0xC44B, 0x0100 },
             dump_target         = { 0xC44C, 0x0100 },
-            dump_pulse_time     = { 0xC44D, 0x0100 },
+            dump_pulse_time     = { 0xC44D, 0x0100, ms=true },
             dump_on_tol         = { 0xC44E, 0x0100 },
             dump_off_tol        = { 0xC44F, 0x0100 },
             pulse_output        = { 0xC460, 0x0100 },
             pulse_pulse         = { 0xC461, 0x0100 },
-            pulse_delay_start   = { 0xC462, 0x0100 },
-            pulse_delay_end     = { 0xC463, 0x0100 },
+            pulse_delay_start   = { 0xC462, 0x0100, ms=true },
+            pulse_delay_end     = { 0xC463, 0x0100, ms=true },
             pulse_start_action  = { 0xC464, 0x0100 },
-            pulse_link          = { 0xC466, 0x0100 },
-            pulse_time          = { 0xC467, 0x0100 },
+            pulse_link          = { 0xC466, 0x0100, ignore=true },
+            pulse_time          = { 0xC467, 0x0100, ms=true },
             pulse_name          = { 0xC468, 0x0100 },
             pulse_prompt        = { 0xC469, 0x0100 },
             pulse_input         = { 0xC46A, 0x0100 },
             pulse_timer         = { 0xC46B, 0x0100 }
         }
-        stageRegisters, extraStageRegisters = blockRegs(sr, numStages)
+        stageRegisters, extraStageRegisters = blockRegs(stageRegisterInfo, numStages)
 
         private.addRegisters{
             batch_start_ilock   = 0xC021,
@@ -295,7 +296,7 @@ private.registerDeviceInitialiser(function()
             local rec, err = _M.getMaterial(s.fill_material)
             if err == nil then
                 for name, reg in pairs(materialRegs) do
-                    if mr[name].accumulator then
+                    if materialRegisterInfo[name].accumulator then
                         rec[name] = _M.getRegister(reg)
                     end
                 end
@@ -322,16 +323,18 @@ private.registerDeviceInitialiser(function()
         private.writeReg(stageRegisters.type, naming.convertNameToValue(type, stageTypes, 0))
 
         for name, reg in pairs(stageRegisters) do
-            if name:sub(1, tlen) == type then
+            if name:sub(1, tlen) == type and not stageRegisterInfo[name].ignore then
                 local v = s[name]
                 if v and v ~= '' then
                     if name == 'fill_material' then
-                        --_M.setMaterialRegisters(v)
                         v = 0
                     end
                     local map = naming.convertNameToValue(name, enumMaps)
                     if map ~= nil then
                         v = naming.convertNameToValue(v, map, 0)
+                    end
+                    if stageRegisterInfo[name].ms then
+                        v = math.floor(v * 1000 + 0.5)
                     end
                     private.writeRegAsync(reg, v)
                 end
@@ -402,8 +405,8 @@ private.registerDeviceInitialiser(function()
 -- @return stage delay
 -- @local
     local function stageDelay(stage)
-        local start = (stage[(stage.type or '')..'_delay_start'] or 0)/1000
-        local finish = (stage[(stage.type or '')..'_delay_end'] or 0)/1000
+        local start = stage[(stage.type or '')..'_delay_start'] or 0
+        local finish = stage[(stage.type or '')..'_delay_end'] or 0
         return start + finish
     end
 
