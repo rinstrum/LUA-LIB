@@ -105,56 +105,56 @@ private.registerDeviceInitialiser(function()
 
         -- Load stage register names into the register database
         stageRegisterInfo = {
-            type                = { 0xC400, 0x0100 },
-            fill_slow           = { 0xC401, 0x0100 },
-            fill_medium         = { 0xC402, 0x0100 },
-            fill_fast           = { 0xC403, 0x0100 },
-            fill_ilock          = { 0xC404, 0x0100 },
-            fill_output         = { 0xC405, 0x0100 },
-            fill_feeder         = { 0xC406, 0x0100 },
-            fill_material       = { 0xC407, 0x0100 },
-            fill_start_action   = { 0xC408, 0x0100 },
-            fill_correction     = { 0xC409, 0x0100 },
-            fill_jog_on_time    = { 0xC40A, 0x0100, ms=true },
-            fill_jog_off_time   = { 0xC40B, 0x0100, ms=true },
-            fill_jog_set        = { 0xC40C, 0x0100 },
-            fill_delay_start    = { 0xC40D, 0x0100, ms=true },
-            fill_delay_check    = { 0xC40E, 0x0100, ms=true },
-            fill_delay_end      = { 0xC40F, 0x0100, ms=true },
-            fill_max_set        = { 0xC412, 0x0100 },
-            fill_input          = { 0xC413, 0x0100 },
-            fill_direction      = { 0xC414, 0x0100 },
-            fill_input_wait     = { 0xC415, 0x0100 },
-            fill_tol_lo         = { 0xC420, 0x0100 },
-            fill_tol_high       = { 0xC421, 0x0100 },
-            fill_target         = { 0xC422, 0x0100 },
-            dump_dump           = { 0xC440, 0x0100 },
-            dump_output         = { 0xC441, 0x0100 },
-            dump_enable         = { 0xC442, 0x0100 },
-            dump_ilock          = { 0xC443, 0x0100 },
-            dump_type           = { 0xC444, 0x0100 },
-            dump_correction     = { 0xC445, 0x0100 },
-            dump_delay_start    = { 0xC446, 0x0100, ms=true },
-            dump_delay_check    = { 0xC447, 0x0100, ms=true },
-            dump_delay_end      = { 0xC448, 0x0100, ms=true },
-            dump_jog_on_time    = { 0xC449, 0x0100, ms=true },
-            dump_jog_off_time   = { 0xC44A, 0x0100, ms=true },
-            dump_jog_set        = { 0xC44B, 0x0100 },
-            dump_target         = { 0xC44C, 0x0100 },
-            dump_pulse_time     = { 0xC44D, 0x0100, ms=true },
-            dump_on_tol         = { 0xC44E, 0x0100 },
-            dump_off_tol        = { 0xC44F, 0x0100 },
-            pulse_output        = { 0xC460, 0x0100 },
-            pulse_pulse         = { 0xC461, 0x0100 },
-            pulse_delay_start   = { 0xC462, 0x0100, ms=true },
-            pulse_delay_end     = { 0xC463, 0x0100, ms=true },
-            pulse_start_action  = { 0xC464, 0x0100 },
-            pulse_link          = { 0xC466, 0x0100, ignore=true },
-            pulse_time          = { 0xC467, 0x0100, ms=true },
-            pulse_name          = { 0xC468, 0x0100 },
-            pulse_prompt        = { 0xC469, 0x0100 },
-            pulse_input         = { 0xC46A, 0x0100 },
-            pulse_timer         = { 0xC46B, 0x0100 }
+            type                = { 0xC400, 0x0100, default='none' },
+            fill_slow           = { 0xC401, 0x0100, default=0 },
+            fill_medium         = { 0xC402, 0x0100, default=0 },
+            fill_fast           = { 0xC403, 0x0100, default=0 },
+            fill_ilock          = { 0xC404, 0x0100, default=0 },
+            fill_output         = { 0xC405, 0x0100, default=0 },
+            fill_feeder         = { 0xC406, 0x0100, default='multiple' },
+            fill_material       = { 0xC407, 0x0100, default=0 },
+            fill_start_action   = { 0xC408, 0x0100, default='none' },
+            fill_correction     = { 0xC409, 0x0100, default='flight' },
+            fill_jog_on_time    = { 0xC40A, 0x0100, default=0,      ms=true },
+            fill_jog_off_time   = { 0xC40B, 0x0100, default=0,      ms=true },
+            fill_jog_set        = { 0xC40C, 0x0100, default=0 },
+            fill_delay_start    = { 0xC40D, 0x0100, default=0,      ms=true },
+            fill_delay_check    = { 0xC40E, 0x0100, default=0,      ms=true },
+            fill_delay_end      = { 0xC40F, 0x0100, default=0,      ms=true },
+            fill_max_set        = { 0xC412, 0x0100, default=0 },
+            fill_input          = { 0xC413, 0x0100, default=0 },
+            fill_direction      = { 0xC414, 0x0100, default='in' },
+            fill_input_wait     = { 0xC415, 0x0100, default=0 },
+            fill_tol_lo         = { 0xC420, 0x0100, default=0 },
+            fill_tol_high       = { 0xC421, 0x0100, default=0 },
+            fill_target         = { 0xC422, 0x0100, default=0 },
+            dump_dump           = { 0xC440, 0x0100, default=0 },
+            dump_output         = { 0xC441, 0x0100, default=0 },
+            dump_enable         = { 0xC442, 0x0100, default=0 },
+            dump_ilock          = { 0xC443, 0x0100, default=0 },
+            dump_type           = { 0xC444, 0x0100, default='weight' },
+            dump_correction     = { 0xC445, 0x0100, default='none' },
+            dump_delay_start    = { 0xC446, 0x0100, default=0,      ms=true },
+            dump_delay_check    = { 0xC447, 0x0100, default=0,      ms=true },
+            dump_delay_end      = { 0xC448, 0x0100, default=0,      ms=true },
+            dump_jog_on_time    = { 0xC449, 0x0100, default=0,      ms=true },
+            dump_jog_off_time   = { 0xC44A, 0x0100, default=0,      ms=true },
+            dump_jog_set        = { 0xC44B, 0x0100, default=0 },
+            dump_target         = { 0xC44C, 0x0100, default=0 },
+            dump_pulse_time     = { 0xC44D, 0x0100, default=0,      ms=true },
+            dump_on_tol         = { 0xC44E, 0x0100, default=0 },
+            dump_off_tol        = { 0xC44F, 0x0100, default=0 },
+            pulse_output        = { 0xC460, 0x0100, default=0 },
+            pulse_pulse         = { 0xC461, 0x0100, default=0 },
+            pulse_delay_start   = { 0xC462, 0x0100, default=0,      ms=true },
+            pulse_delay_end     = { 0xC463, 0x0100, default=0,      ms=true },
+            pulse_start_action  = { 0xC464, 0x0100, default=0 },
+            pulse_link          = { 0xC466, 0x0100, default='none', ignore=true },
+            pulse_time          = { 0xC467, 0x0100, default=0,      ms=true },
+            pulse_name          = { 0xC468, 0x0100, default=nil },
+            pulse_prompt        = { 0xC469, 0x0100, default=nil },
+            pulse_input         = { 0xC46A, 0x0100, default=0 },
+            pulse_timer         = { 0xC46B, 0x0100, default='use' }
         }
         stageRegisters, extraStageRegisters = blockRegs(stageRegisterInfo, numStages)
 
@@ -173,7 +173,7 @@ private.registerDeviceInitialiser(function()
 -- @return The modified stage
 -- @local
     local function applyDefaultsToStage(stage)
-        local defaults, material = recipes.defaults or {}, {}
+        local material = {}
         local type, tlen = stage.type, stage.type:len()
 
         if type == 'fill' and stage.fill_material then
@@ -182,8 +182,8 @@ private.registerDeviceInitialiser(function()
 
         for setting, _ in pairs(stageRegisters) do
             if setting:sub(1, tlen) == type then
-                stage[setting] = stage[setting] or material[setting] or defaults[setting] or
-                                    (setting == 'type' and 'none' or 0)
+                stage[setting] = stage[setting] or material[setting] or recipes[setting] or
+                                    stageRegisterInfo[setting].default
             end
         end
         return stage
