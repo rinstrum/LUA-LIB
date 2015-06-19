@@ -52,6 +52,9 @@ private.registerDeviceInitialiser(function()
     local materialRegisterInfo, stageRegisterInfo = {}, {}
 
     local REG_BATCH_STAGE_NUMBER    = 0xC005
+    local REG_BATCH_START           = 0x0361
+    local REG_BATCH_PAUSE           = 0x0362
+    local REG_BATCH_ABORT           = 0x0363
 
     local stageTypes = {
         none = 0,   fill = 1,   dump = 2,   pulse = 3,  --start = 4
@@ -97,7 +100,7 @@ private.registerDeviceInitialiser(function()
             flight              = { 0xC101, 0x10 },
             medium              = { 0xC102, 0x10 },
             fast                = { 0xC103, 0x10 },
-            total               = { 0xC104, 0x10, accumulator=true },
+            total               = { 0xC104, 0x10, accumulator=true },-- MORE:change these to print tokens
             num                 = { 0xC105, 0x10, accumulator=true },
             error               = { 0xC106, 0x10, accumulator=true },
             error_pc            = { 0xC107, 0x10, accumulator=true },
@@ -298,7 +301,7 @@ private.registerDeviceInitialiser(function()
             local rec, err = _M.getMaterial(s.fill_material)
             if err == nil then
                 for name, reg in pairs(materialRegs) do
-                    if materialRegisterInfo[name].accumulator then
+                    if materialRegisterInfo[name].accumulator then  -- Modify this to use print tokens
                         rec[name] = _M.getRegister(reg)
                     end
                 end
@@ -401,7 +404,7 @@ private.registerDeviceInitialiser(function()
     private.exposeFunction('runStage', batching, function(stage)
         setStageRegisters(stage)
         _M.saveSettings()               -- MORE: need a smaller hammer here
-        _M.sendKey('f1', 'short')       -- MORE: use a register here
+        _M.runBatch()
     end)
 
 -------------------------------------------------------------------------------
@@ -410,6 +413,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.abortBatch()
     private.exposeFunction('abortBatch', batching, function()
+        private.exRegAsync(REG_BATCH_ABORT, 0);
     end)
 
 -------------------------------------------------------------------------------
@@ -418,14 +422,16 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.pauseBatch()
     private.exposeFunction('pauseBatch', batching, function()
+        private.exRegAsync(REG_BATCH_PAUSE, 0);
     end)
 
 -------------------------------------------------------------------------------
 -- Continue the current batch
--- @function resumeBatch
+-- @function runBatch
 -- @usage
--- device.resumeBatch()
-    private.exposeFunction('resumeBatch', batching, function()
+-- device.runBatch()
+    private.exposeFunction('runBatch', batching, function()
+        private.exRegAsync(REG_BATCH_START, 0);
     end)
 
 -------------------------------------------------------------------------------
