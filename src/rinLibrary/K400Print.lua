@@ -17,8 +17,8 @@ local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
 local P, Pi, V, S, spc = lpeg.P, lpeg.Pi, lpeg.V, lpeg.S, lpeg.space
 
 local REG_PRINTPORT         = 0xA317
+local REG_REPLYLUATOKEN     = 0x004B
 local REG_PRINTTOKENSTR     = 0x004C
-local REG_REPLYTOKENSTR     = 0x004D
 local REG_PRINT_AUTO        = 0x900D
 
 local PRINT_SER1A           = 0
@@ -223,14 +223,14 @@ end
 -------------------------------------------------------------------------------
 -- Called to request response based on custom transmit token string
 -- @param tokenStr custom token string
+-- @return Expanded token string or nil on error
+-- @return nil on success or error code on failure
 -- @see printCustomTransmit
 -- @usage
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
-    local s = private.writeRegHex(REG_REPLYTOKENSTR, '8112004D:'..tokenStr, 1)
-    dbg.printVar(s)
-    return s
+    return private.writeRegHex(REG_REPLYLUATOKEN, tokenStr, 1)
 end
 
 -------------------------------------------------------------------------------
