@@ -348,6 +348,7 @@ private.registerDeviceInitialiser(function()
 
 -------------------------------------------------------------------------------
 -- Return a table that contains the stages in a specified recipe.
+-- @function getRecipe
 -- @param r Names of recipe
 -- @return Recipe table or nil on error
 -- @return Error indicator or nil for no error
@@ -363,6 +364,7 @@ private.registerDeviceInitialiser(function()
 
 -------------------------------------------------------------------------------
 -- Return a table that contains the stages in a user selected recipe.
+-- @function selectRecipe
 -- @param prompt User prompt
 -- @param default Default selection, nil for none
 -- @return Recipe table or nil on error
@@ -385,6 +387,7 @@ private.registerDeviceInitialiser(function()
 
 -------------------------------------------------------------------------------
 -- Run a stage.  Wait until it begins before returning.
+-- @function runStage
 -- @param stage Stage record to run
 -- @usage
 -- local function stageState(stage)
@@ -397,8 +400,32 @@ private.registerDeviceInitialiser(function()
 -- app.setMainLoop(f.run)
     private.exposeFunction('runStage', batching, function(stage)
         setStageRegisters(stage)
-        _M.saveSettings()
-        _M.sendKey('f1', 'short')
+        _M.saveSettings()               -- MORE: need a smaller hammer here
+        _M.sendKey('f1', 'short')       -- MORE: use a register here
+    end)
+
+-------------------------------------------------------------------------------
+-- Terminate the current batch
+-- @function abortBatch
+-- @usage
+-- device.abortBatch()
+    private.exposeFunction('abortBatch', batching, function()
+    end)
+
+-------------------------------------------------------------------------------
+-- Pause the current batch
+-- @function pauseBatch
+-- @usage
+-- device.pauseBatch()
+    private.exposeFunction('pauseBatch', batching, function()
+    end)
+
+-------------------------------------------------------------------------------
+-- Continue the current batch
+-- @function resumeBatch
+-- @usage
+-- device.resumeBatch()
+    private.exposeFunction('resumeBatch', batching, function()
     end)
 
 -------------------------------------------------------------------------------
