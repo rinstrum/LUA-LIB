@@ -17,7 +17,6 @@ local pairs = pairs
 local ipairs = ipairs
 local pcall = pcall
 
-local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation

@@ -403,7 +403,7 @@ private.registerDeviceInitialiser(function()
 -- app.setMainLoop(f.run)
     private.exposeFunction('runStage', batching, function(stage)
         setStageRegisters(stage)
-        _M.saveSettings()               -- MORE: need a smaller hammer here
+        _M.reinitialise 'io'
         _M.runBatch()
     end)
 
@@ -413,7 +413,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.abortBatch()
     private.exposeFunction('abortBatch', batching, function()
-        private.exRegAsync(REG_BATCH_ABORT, 0);
+        private.exRegAsync(REG_BATCH_ABORT, 0)
     end)
 
 -------------------------------------------------------------------------------
@@ -422,7 +422,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.pauseBatch()
     private.exposeFunction('pauseBatch', batching, function()
-        private.exRegAsync(REG_BATCH_PAUSE, 0);
+        private.exRegAsync(REG_BATCH_PAUSE, 0)
     end)
 
 -------------------------------------------------------------------------------
@@ -431,7 +431,7 @@ private.registerDeviceInitialiser(function()
 -- @usage
 -- device.runBatch()
     private.exposeFunction('runBatch', batching, function()
-        private.exRegAsync(REG_BATCH_START, 0);
+        private.exRegAsync(REG_BATCH_START, 0)
     end)
 
 -------------------------------------------------------------------------------

@@ -27,6 +27,7 @@ return function (_M, private, deprecated)
 local REG_RESTART           = 0x0016
 local REG_SAVESETTING       = 0x0010
 local REG_COMMS_START       = 0x0309
+local REG_REINITIALISE      = 0x030B
 local REG_SOFTMODEL         = 0x0003
 local REG_SOFTVER           = 0x0004
 private.REG_SERIALNO        = 0x0005
@@ -65,6 +66,17 @@ local settings = {
 local instrumentModel = nil
 local instrumentSerialNumber = nil
 local instrumentSoftwareVersion = nil
+
+--- Reinitialisation options
+--
+-- These are various subsystems that can be reinitialised individually.
+--@table ReinitialisationOptions
+-- @field io The digital IO ports
+-- @field all Everything
+local initialisation_options = {
+    io      = 0x00000001,
+    all     = 0xffffffff
+}
 
 -------------------------------------------------------------------------------
 -- Called to connect the K400 library to a socket and a system
@@ -109,6 +121,19 @@ end
 -- device.saveSettings()
 function _M.saveSettings()
     private.exReg(REG_SAVESETTING)
+end
+
+-------------------------------------------------------------------------------
+-- Reinitialise the specified subsystems
+-- @param ... Names of subsystems to be reinitialised (none = reinitialise everything)
+-- @usage
+-- device.reinitialise 'io'
+function _M.reinitialise(...)
+    local b = 0
+    for _, i in ipairs{...} do
+        b = bit32.bor(naming.convertNameToValue(i, initialisation_options, 0), b)
+    end
+    private.exReg(REG_REINITIALISE, b ~= 0 and b or initialisation_options.all)
 end
 
 -------------------------------------------------------------------------------
