@@ -126,6 +126,7 @@ end
 -------------------------------------------------------------------------------
 -- Reinitialise the specified subsystems
 -- @param ... Names of subsystems to be reinitialised (none = reinitialise everything)
+-- @see ReinitialisationOptions
 -- @usage
 -- device.reinitialise 'io'
 function _M.reinitialise(...)
