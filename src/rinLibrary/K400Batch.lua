@@ -694,7 +694,7 @@ private.registerDeviceInitialiser(function()
 -- @field pulse_name name of stage (mostly unseen)
 -- @field pulse_prompt what is shown on display during stage
 -- @field pulse_input IO input to end pulse stage
--- @field pulse_timer set to "use" or "ignore"
+-- @field pulse_timer set to <i>use</i> or <i>ignore</i>.
 -- @see RecipeFields
 
 -- @field product_time total time spent filling per product
