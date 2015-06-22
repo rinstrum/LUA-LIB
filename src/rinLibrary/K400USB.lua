@@ -337,4 +337,15 @@ return function (_M, private, deprecated)
         usb.setStorageAddedCallback(nil)
         usb.setStorageRemovedCallback(nil)
     end
+
+-------------------------------------------------------------------------------
+-- Indictor function to tell if the auto USB subsystem is active or not
+-- @return Boolean, true if a menu is active
+-- @usage
+-- if not device.usbStorageInProgress() then
+--     device.display('topLeft', 'HELLO')
+-- end
+    function _M.usbStorageInProgress()
+        return theMenu ~= nil
+    end
 end
