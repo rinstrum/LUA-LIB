@@ -395,7 +395,7 @@ local function step()
 
         -- New events means we've got to force the event loop to exit quickly
         if #userEvents ~= 0 then
-            timers.addEvent(function() end)
+            timers.addEvent(utils.null)
         end
     end
     system.handleEvents()           -- handleEvents runs the event handlers
