@@ -714,9 +714,9 @@ function _M.loadRIS(filename, calibration)
             sendRegWait(cmd, reg, data)
         end
     end
+    file:close()
     private.setCRCmode(oldCRC)
     _M.saveSettings()
-    file:close()
 end
 
 -- Add a timer for the heartbeat (every 5s)
