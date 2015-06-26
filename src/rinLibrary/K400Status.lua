@@ -274,7 +274,7 @@ local setpointTable = {
 local IOID = nil
 local SETPID = nil
 
-local curStatus
+local curStatus, curEStatus
 
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
@@ -422,6 +422,7 @@ end
 -- @param err Potential error message
 -- @local
 local function eStatusCallback(data, err)
+    curEStatus = data
     private.updateSettings(
         bit32.band(data, ESTAT_HIRES) > 0,
         1 + bit32.rshift(bit32.band(data, ESTAT_DISPMODE), ESTAT_DISPMODE_RS),
@@ -561,9 +562,16 @@ end
 -- end
 function _M.anyStatusSet(...)
     for i, v in pairs{...} do
-        local b = naming.convertNameToValue(v, statusMap, 0)
-        if bit32.band(curStatus, b) ~= 0 then
-            return true
+        local b = naming.convertNameToValue(v, statusMap)
+        if b then
+            if bit32.band(curStatus, b) ~= 0 then
+                return true
+            end
+        else
+            b = naming.convertNameToValue(v, estatusMap)
+            if b and bit32.band(curEStatus, b) ~= 0 then
+                return true
+            end
         end
     end
     return false
@@ -591,9 +599,16 @@ function _M.allStatusSet(...)
     end
 
     for i, v in pairs(args) do
-        local b = naming.convertNameToValue(v, statusMap, 0)
-        if bit32.band(curStatus, b) == 0 then
-            return false
+        local b = naming.convertNameToValue(v, statusMap)
+        if b then
+            if bit32.band(curStatus, b) == 0 then
+                return false
+            end
+        else
+            b = naming.convertNameToValue(v, estatusMap)
+            if not b or bit32.band(curEStatus, b) == 0 then
+                return false
+            end
         end
     end
     return true
@@ -613,16 +628,16 @@ end
 -- device.waitStatus('coz')                 -- wait for Centre of zero
 -- device.waitStatus('zero', 'notmotion')   -- wait for no motion and zero
 function _M.waitStatus(...)
-    local stat, finished = 0, False
+    local stat, finished, args = 0, False, {}
     for _, v in pairs({...}) do
         if type(v) == 'number' and v > 0 and finished == False then
             finished = timers.addOneShot(v)
-        else
-            stat = bit32.bor(stat, naming.convertNameToValue(v, statusMap, 0))
+        elseif type(v) == 'string' then
+            table.insert(args, v)
         end
     end
     _M.app.delayUntil(function()
-        return bit32.band(curStatus, stat) == stat or finished()
+        return _M.allStatusSet(unpack(args)) or finished()
     end)
     return not finished()
 end
@@ -1032,7 +1047,7 @@ end
 -- @usage
 -- device.setupStatus()
 function _M.setupStatus()
-    curStatus = 0
+    curStatus, curEStatus = 0, 0
     statID  = _M.addStream(REG_LUA_STATUS, statusCallback, 'change')
     eStatID = _M.addStream(REG_LUA_ESTAT,  eStatusCallback, 'change')
     IOID    = _M.addStream('io_status',    function(d, e) IOsCallback(ioTable, d, e) end, 'change')
