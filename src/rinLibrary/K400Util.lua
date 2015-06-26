@@ -121,6 +121,7 @@ end
 -- device.saveSettings()
 function _M.saveSettings()
     private.exReg(REG_SAVESETTING)
+    _M.waitStatus('init', 5)
 end
 
 -------------------------------------------------------------------------------
