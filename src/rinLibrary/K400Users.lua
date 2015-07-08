@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---- User realtaed Functions.
+--- User related Functions.
 -- Functions to read and write user information
 -- @module rinLibrary.K400Users
 -- @author Pauli
