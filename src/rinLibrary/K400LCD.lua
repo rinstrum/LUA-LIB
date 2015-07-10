@@ -927,6 +927,7 @@ function _M.setAnnunciators(where, ...)
   else
     if not setAnnunciatorsDeprecated then
         dbg.warn('setAnnunciators:', "deprecated. Use setAnnunciators(where, ...).")
+        setAnnunciatorsDeprecated = true
     end
 
     f = naming.convertNameToValue('topLeft', display)
@@ -949,6 +950,7 @@ function _M.clearAnnunciators(where, ...)
   else
     if not clearAnnunciatorsDeprecated then
         dbg.warn('clearAnnunciators:', "deprecated. Use clearAnnunciators(where, ...).")
+        clearAnnunciatorsDeprecated = true
     end
 
     f = naming.convertNameToValue('topLeft', display)
