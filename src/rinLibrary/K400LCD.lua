@@ -989,8 +989,10 @@ end
 -- The other field isn't always supported.  Likewise, not all fields have units.
 -- @param where which display section to write to
 -- @param unts Unit to display
--- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot')
+-- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot', &#8230;)
 -- @see displayField
+-- @see Units
+-- @see Other
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
