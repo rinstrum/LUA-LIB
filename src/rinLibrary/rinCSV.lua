@@ -1090,7 +1090,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Return an iterator over the rows of the given CSV table.
--- Each row is presented as a table indexed numerically.
+-- Each row is presented as a table indexed numerically, thus the first column's
+-- value would be accessed using [1], the second column with [2] et cetera.
 -- @param t CSV table
 -- @return iterator
 -- @usage
