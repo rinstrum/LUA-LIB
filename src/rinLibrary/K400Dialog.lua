@@ -589,7 +589,7 @@ end
 -- @see rinLibrary.K400LCD.Units
 -- @see rinLibrary.K400LCD.Other
 -- @usage
--- local opt = selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
+-- local opt = device.selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     local opts = options or {'cancel'}
     local sel = nil
