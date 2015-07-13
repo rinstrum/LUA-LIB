@@ -151,7 +151,7 @@ end
 -- local t2 = timers.addTimer(1, 0.5, print, 'tock')
 -- timers.addTimer(0, 20, timers.removeTimer, t1)
 -- timers.addTimer(0, 21, timers.removeTimer, t2)
--- timers.addTimer(0, 22, print, 'goodbye)
+-- timers.addTimer(0, 22, print, 'goodbye')
 function _M.addTimer(time, delay, callback, ...)
     return internalAddTimer(time, delay, false, callback, {...})
 end
@@ -176,7 +176,7 @@ end
 -- local t2 = timers.addRegularTimer(1, 0.5, print, 'tock')
 -- timers.addTimer(0, 20, timers.removeTimer, t1)
 -- timers.addTimer(0, 21, timers.removeTimer, t2)
--- timers.addTimer(0, 22, print, 'goodbye)
+-- timers.addTimer(0, 22, print, 'goodbye')
 function _M.addRegularTimer(time, delay, callback, ...)
     return internalAddTimer(time, delay, true, callback, {...})
 end
