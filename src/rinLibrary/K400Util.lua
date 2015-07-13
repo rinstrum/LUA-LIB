@@ -234,7 +234,7 @@ end
 -- @local
 function private.readSettings()
     settings.fullscale = private.readReg('fullscale')
-    settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE))
+    settings.dualRange = string.lower(private.readReg(REG_DUAL_RANGE) or 'single')
 
     for mode, cur in ipairs(settings.dispmode) do
         if cur.reg ~= 0 then
