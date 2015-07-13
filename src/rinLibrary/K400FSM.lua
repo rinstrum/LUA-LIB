@@ -57,10 +57,15 @@ return function (_M, private, deprecated)
 -- @table FiniteStateMachineStates
 -- @field enter A function that will be called whenever this field becomes active.  It
 -- will only be called once per transition.  An enter function cannot raise or clear
--- any events.
+-- any events.  If you want an enter function to raise an event you can do
+-- <i>timers.addEvent(fsm.raise, 'myevent')</i> which will raise the event after the enter
+-- function has finished.
 --
 -- @field leave A function that will be called whenever this field is transitioned
 -- away from (i.e. becoming inactive).  A leave function cannot raise or clear any events.
+-- If you want a leave function to raise an event you can do
+-- <i>timers.addEvent(fsm.raise, 'myevent')</i> which will raise the event after the leave
+-- function has finished.
 --
 -- @field name Name of this state.  Generally use the first positional argument instead
 -- of the <i>name=</i> form for brevity.
@@ -87,7 +92,9 @@ return function (_M, private, deprecated)
 -- @field activate A function that will be execute after this transition activates.  The state
 -- machine will be in the destination state when this executes but the destination's entry
 -- will not yet have been called, it is called after this run function returns.  An
--- activate function cannot raise or clear any events.
+-- activate function cannot raise or clear any events.  If you want an activate function to raise
+-- an event you can do <i>timers.addEvent(fsm.raise, 'myevent')</i> which will raise the event
+-- after the activate function has finished.
 --
 -- @field cond The condition under which the transition will activate.  This function
 -- should return a boolean and if true, the transition will be taken.
@@ -192,7 +199,7 @@ function _M.stateMachine(args)
 -- @local
     local function checkEventStatus(name, verb, event)
         if eventStatus ~= nil then
-            dbg.error(ename(eventStatus), "Event '"..event.."' cannot be "..verb)
+            dbg.error(ename(eventStatus), "Event '"..event.."' cannot be "..verb.." within activate, enter or leave")
             return false
         end
         if events[event] == nil then
