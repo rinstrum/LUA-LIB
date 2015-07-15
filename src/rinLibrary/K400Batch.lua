@@ -163,6 +163,16 @@ private.registerDeviceInitialiser(function()
         }
         stageRegisters, extraStageRegisters = blockRegs(stageRegisterInfo, numStages)
 
+        if private.a418(true) then
+            local analogueRegisterInfo = {
+                analog_slow_fill_percent    = { 0xA80E, 0x0010 },
+                analog_medium_fill_percent  = { 0xA80F, 0x0010 },
+                analog_fast_fill_percent    = { 0xA810, 0x0010 }
+            }
+            local _, analogueRegisters = blockRegs(analogueRegisterInfo, _M.getAnalogModuleMaximum())
+            private.addRegisters(analogueRegisters)
+        end
+
         private.addRegisters{
             batch_start_ilock   = 0xC021,
             batch_zero_ilock    = 0xC029,
