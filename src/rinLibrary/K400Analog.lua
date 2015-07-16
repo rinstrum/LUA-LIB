@@ -170,6 +170,14 @@ local function setClip(module, c)
     end
 end
 
+-------------------------------------------------------------------------------
+-- Return the maximum number of analogue modules this device can support.
+-- This does not mean that this many are installed, can be installed or are usable,
+-- this is just the firmware's supported maximum.
+-- @return Maximum number of modules that are supported.
+-- @usage
+-- maxModules = device.getAnalogModuleMaximum()
+-- print("This device can support at most " .. maxModules .. " analogue modules")
 function _M.getAnalogModuleMaximum()
     return maxAnalogueModules
 end
