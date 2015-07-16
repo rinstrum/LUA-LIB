@@ -5,7 +5,7 @@
 -------------------------------------------------------------------------------
 
 describe("analog #analog", function ()
-    local numAnalog = 4
+    local numAnalog
     local regData   = { 0x0323, 0x030B, 0x030C, 0x030D }
     local regType   = { 0xA801, 0xA811, 0xA821, 0xA831 }
     local regClip   = { 0xA806, 0xA816, 0xA826, 0xA836 }
@@ -18,6 +18,7 @@ describe("analog #analog", function ()
         require("rinLibrary.K400Analog")(m, p, d)
         p.deviceType = device or 'a418'
         p.processDeviceInitialisers()
+        numAnalog = m.getAnalogModuleMaximum()
         return m, p, d
     end
 
@@ -26,6 +27,21 @@ describe("analog #analog", function ()
         assert.equal(current,   d.CUR)
         assert.equal(volt,      d.VOLT)
         assert.equal(comms,     d.ANALOG_COMMS)
+    end)
+
+    describe("getAnalogModuleMaximum", function()
+        for d, n in pairs{
+            k401 = 1,
+            k402 = 1,
+            k410 = 1,
+            k422 = 1,
+            k491 = 1,
+            a418 = 4
+        } do
+            it(d, function()
+                assert.equal(n, makeModule(d).getAnalogModuleMaximum())
+            end)
+        end
     end)
 
     -- These tests are digging deep into the non-exposed internals
