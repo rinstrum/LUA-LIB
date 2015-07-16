@@ -782,7 +782,7 @@ function deprecated.getRegDP(reg)
         if not dp then
             dp = 0
         else
-            dp =  string.len(tmp) - dp
+            dp = string.len(tmp) - dp
         end
 
         return tonumber(tmp), dp
