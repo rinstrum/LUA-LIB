@@ -167,7 +167,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the analog output type.
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param source Source for output.
 -- Must be set to 'comms' to control directly and this is the default.
 -- @usage
@@ -191,7 +191,7 @@ end
 -- Control behaviour of analog output outside of normal range.
 -- If clip is active then output will be clipped to the nominal range
 -- otherwise the output will drive to the limit of the hardware
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param c Boolean, clipping enabled?
 -- @usage
 -- device.setAnalogClip(1, false)
@@ -201,7 +201,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets the analog output to minimum 0 through to maximum 50,000
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param raw value in raw counts (0..50000)
 -- @usage
 -- device.setAnalogRaw(1, 25000)   -- mid scale, first analogue module
@@ -211,7 +211,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param val value 0.0 to 1.0
 -- @usage
 -- device.setAnalogVal(1, 0.5)     -- mid scale, first analogue module
@@ -221,7 +221,7 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0% through to maximum 100%
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param val value 0 to 100 %
 -- @usage
 -- device.setAnalogPC(1, 50)       -- mid scale, first analogue module
@@ -232,7 +232,7 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0V through to maximum 10.0V
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param val value 0.0 to 10.0
 -- @usage
 -- device.setAnalogVolt(1, 5)      -- mid scale, first analogue module
@@ -244,7 +244,7 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 4.0 through to maximum 20.0 mA
--- @param module The analogue module to change
+-- @param module The analogue module to change.  Defaults to 1 (M4401).
 -- @param val value 4.0 to 20.0
 -- @usage
 -- device.setAnalogCur(1, 12)      -- mid scale, first analogue module
