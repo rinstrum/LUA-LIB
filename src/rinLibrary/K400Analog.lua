@@ -56,6 +56,7 @@ local analogSourceMap = {   comms = 3    }
 -------------------------------------------------------------------------------
 -- Provide backward compatibility with older library versions where the module
 -- argument wan't required.
+-- @function decodeModule
 -- @param mod Module argument given
 -- @param x Value argument given
 -- @return Module referenced or nil on error
@@ -80,21 +81,18 @@ local function quietDecodeModule(mod, x)
     return nil
 end
 
--------------------------------------------------------------------------------
--- Provide backward compatibility with older library versions where the module
--- argument wan't required.  Print a warning if the old style call is made.
--- @param mod Module argument given
--- @param x Value argument given
--- @return Module referenced
--- @return Value
--- @local
-local function decodeModule(mod, x)
-    if x == nil then
-        dbg.warn("Depricated:", 'analogue functions take a module argument first, assuming module 1')
-        decodeModule = quietDecodeModule
+local decodeModule = quietDecodeModule
+private.registerDeviceInitialiser(function()
+    if private.a418(true) then
+        decodeModule = function(mod, x)
+            if x == nil then
+                dbg.warn("Depricated:", 'analogue functions take a module argument first, assuming module 1')
+                decodeModule = quietDecodeModule
+            end
+            return quietDecodeModule(mod, x)
+        end
     end
-    return quietDecodeModule(mod, x)
-end
+end)
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
