@@ -51,7 +51,16 @@ local analogNames = utils.invert(analogTypes)
 local curAnalogType = {}
 local lastAnalogue = {}
 
-local analogSourceMap = {   comms = 3    }
+local analogSourceMap
+private.registerDeviceInitialiser(function()
+    analogSourceMap = {
+        gross           = 0,
+        net             = 1,
+        gross_or_net    = 2,
+        comms           = 3,
+        batch           = private.a418(4)
+    }
+end)
 
 -------------------------------------------------------------------------------
 -- Provide backward compatibility with older library versions where the module
@@ -258,6 +267,8 @@ end
 -- Fill in all the deprecated fields
 deprecated.CUR = CUR
 deprecated.VOLT = VOLT
-deprecated.ANALOG_COMMS = analogSourceMap.comms
+private.registerDeviceInitialiser(function()
+    deprecated.ANALOG_COMMS = analogSourceMap.comms
+end)
 
 end
