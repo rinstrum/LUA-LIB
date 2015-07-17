@@ -65,13 +65,12 @@ end)
 -------------------------------------------------------------------------------
 -- Provide backward compatibility with older library versions where the module
 -- argument wan't required.
--- @function decodeModule
 -- @param mod Module argument given
 -- @param x Value argument given
 -- @return Module referenced or nil on error
 -- @return Value
 -- @local
-local function quietDecodeModule(mod, x)
+local function decodeModule(mod, x)
     if x == nil then
         return 1, mod
     end
@@ -90,15 +89,15 @@ local function quietDecodeModule(mod, x)
     return nil
 end
 
-local decodeModule = quietDecodeModule
 private.registerDeviceInitialiser(function()
     if private.a418(true) then
+        local olddm = decodeModule
         decodeModule = function(mod, x)
             if x == nil then
                 dbg.warn("Depricated:", 'analogue functions take a module argument first, assuming module 1')
-                decodeModule = quietDecodeModule
+                decodeModule = olddm
             end
-            return quietDecodeModule(mod, x)
+            return olddm(mod, x)
         end
     end
 end)
