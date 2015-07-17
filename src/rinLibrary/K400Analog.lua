@@ -51,7 +51,7 @@ local analogNames = utils.invert(analogTypes)
 local curAnalogType = {}
 local lastAnalogue = {}
 
-local analogSourceMap
+local analogSourceMap, analogSourceOptions
 private.registerDeviceInitialiser(function()
     analogSourceMap = {
         gross           = 0,
@@ -60,6 +60,7 @@ private.registerDeviceInitialiser(function()
         comms           = 3,
         batch           = private.a418(4)
     }
+    analogSourceOptions = { analogSourceMap.comms, 0, private.a418(4) or 3 }
 end)
 
 -------------------------------------------------------------------------------
@@ -129,7 +130,7 @@ end
 -- @local
 local function setSource(module, source)
     if module then
-        local src = naming.convertNameToValue(source, analogSourceMap, analogSourceMap.comms)
+        local src = naming.convertNameToValue(source, analogSourceMap, unpack(analogSourceOptions))
         private.writeReg(analogueSourceRegisters[module], src)
     end
 end
