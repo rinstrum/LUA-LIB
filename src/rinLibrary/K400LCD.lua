@@ -145,6 +145,7 @@ return function (_M, private, deprecated)
 local REG_LCD                  = 0x0009
 local REG_LCDMODE              = 0x000D
 local REG_MASTER               = 0x00B9
+local REG_ADC_DISPLAY_MODE     = 0x030E
 
 local REG_SERAUT               = 0xA200
 local OPT_AUTO1                = 0
@@ -392,35 +393,66 @@ end
 -- @field lua Communication mode, necessary for LUA control
 -- @field master Change to master display mode
 -- @field product Change to product display mode
-local currentLcdMode, lcdModes = 'default'
+local currentLcdMode, lcdModeMap, lcdModeUnmap
 private.registerDeviceInitialiser(function()
-    lcdModes = {
+    lcdModeMap = {
         default = private.batching(0) or private.k422(0) or 1,
         dual    = private.batching(0) or 1,                         -- dynamic
         lua     = private.batching(1) or 2,
         master  = private.batching(2) or 3,
         product = private.valueByDevice{ k402=0, k422=0, k491=0 }   -- normal
     }
+    lcdModeUnmap = utils.invert(lcdModeMap)
+    currentLcdMode = lcdModeMap.default
 end)
+
+--- ADC Display Modes.
+-- These settings change the ADC display output but do notmake it active.
+--@table adcDisplayModes
+-- @field weight Display weight
+-- @field piece_count Display piece count
+-- @field alternate_units Display alternative units
+local adcModeMap, currentAdcMode = {
+    weight = 0,
+    piece_count = 1,
+    alternate_units = 2
+}
+local adcModeUnmap = utils.invert(adcModeMap)
 
 -------------------------------------------------------------------------------
 -- Called to setup LCD control.
 -- The rinApp framework generally takes care of calling this function for you.
 -- However, sometimes you'll want to return control to the display device
 -- for a time and grab control again later.
--- @param mode  is 'lua' to control display from script or 'default'
--- to return control to the default instrument application.
+-- @param mode is 'lua' to control display from script or 'default'
+-- to return control to the default instrument application.  If not specified,
+-- <i>default</i> is assumed.
 -- @return The previous mode setting
+-- @see lcdControlModes
 -- @usage
 -- device.lcdControl('default')     -- let the display control itself
 -- ...
 -- device.lcdControl('lua')         -- switch on Lua display
 function _M.lcdControl(mode)
     local oldMode = currentLcdMode
-    currentLcdMode = mode
-    local m = naming.convertNameToValue(mode, lcdModes, lcdModes.default)
-    private.exReg(REG_LCDMODE, m)
-    return oldMode
+    currentLcdMode = naming.convertNameToValue(mode, lcdModeMap, lcdModeMap.default)
+    private.exReg(REG_LCDMODE, currentLcdMode)
+    return naming.convertValueToName(oldMode, lcdModeUnmap, oldMode)
+end
+
+-------------------------------------------------------------------------------
+-- Called to set the ADC display mode.
+-- This call does not make the display active.
+-- @param mode The ADC display mode to use, if not specified <i>weight</i> is assumed.
+-- @return The old ADC display mode.
+-- @see adcDisplayModes
+-- @usage
+-- device.adcDisplayMode 'alternate_units'
+function _M.adcDisplayMode(mode)
+    local oldMode = currentAdcMode or private.readReg(REG_ADC_DISPLAY_MODE)
+    currentAdcMode = naming.convertNameToValue(mode, adcModeMap, lcdModeMap.weight)
+    private.writeRegAsync(REG_ADC_DISPLAY_MODE, currentAdcMode)
+    return naming.convertValueToName(oldMode, adcModeUnmap, oldMode)
 end
 
 -------------------------------------------------------------------------------
