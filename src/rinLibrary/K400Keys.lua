@@ -373,6 +373,7 @@ end
 -- @param state The type of key press
 -- @param source The source of the key press
 -- @param modifiers Modified keys active
+-- @local
 dispatchKey = function(key, state, source, modifiers)
     local keyHandler, handled, keyName = keyBinds[key], false, key
     if keyHandler ~= nil then

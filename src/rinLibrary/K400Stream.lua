@@ -223,7 +223,10 @@ function _M.addStream(streamReg, callback, onChange)
             return nil, "already streaming that register"
         end
 
-        local regid, availReg, err
+        local dp = private.getRegDecimalPlaces(reg)
+        local type = private.getRegType(reg)
+        local data, err = private.readRegHex(reg)
+        local regid, availReg
         for k = 1, #availRegisters do
             local v = availRegisters[k]
             if v.reg == 0 then
@@ -245,12 +248,12 @@ function _M.addStream(streamReg, callback, onChange)
             return nil, "no more registers available"
         end
 
-        availReg.dp = private.getRegDecimalPlaces(reg)
+        availReg.dp = dp
         availReg.reg = reg
         availReg.callback = callback
         availReg.onChange = onChange or 'change'
-        availReg.lastData, err = private.readRegHex(reg)
-        availReg.typ = private.getRegType(reg)
+        availReg.lastData = data
+        availReg.typ = type
 
         streamRegisters[reg] = availReg
         utils.call(callback, convertCallbackArg(availReg.lastData, availReg), err)
