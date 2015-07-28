@@ -709,11 +709,11 @@ local function IOsCallback(t, data, err)
     t.current = data
     for k, v in pairs(t.active) do
         local status = v.status(data)
-        if status ~= v.last then
+        if status ~= v.lastStatus then
             if v.running then
                 dbg.warn(t.name .. ' event lost:', k, v.warnlost(status))
             else
-                v.last = status
+                v.lastStatus = status
                 v.running = true
                 v.cb(status)
                 v.running = false
@@ -743,13 +743,13 @@ local function addIOsCallback(t, which, callback)
     else
         local bit = pow2[which-1]
         if callback then
-            t.active[bit] = {
+            t.active[which] = {
                 status = function(s) return bit32.band(s, bit) end,
                 warnlost = function(s) return s ~= 0 end,
                 cb = function(s) return callback(which, s ~= 0) end
             }
         else
-            t.active[bit] = nil
+            t.active[which] = nil
             dbg.debug('addCallback:', 'nil value for '..t.name..' callback function')
         end
     end
