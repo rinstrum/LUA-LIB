@@ -15,7 +15,33 @@ local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
 local timers = require 'rinSystem.rinTimers'
+local pow2 = require 'rinLibrary.powersOfTwo'
 local True, False = utils.True, utils.False
+
+-------------------------------------------------------------------------------
+-- Return the bit position of a set bit in the passed integer value
+-- We use a De Bruijn sequence here for efficiency reasons
+-- @function findSetBit
+-- @param n The number to scan
+-- @return 1 .. 32, or 0 for no set bits
+-- @return Bitmask with the specified bit set
+-- @return The input number with the specified bit removed
+-- @local
+local findSetBitMap = {}
+local function findSetBit(n)
+    if n == 0 then
+        return 0, 0, 0
+    end
+    if bit32.band(n, 0x80000000) ~= 0 then
+        return 32, 0x80000000, bit32.band(n, 0x7fffffff)
+    end
+    local r = findSetBitMap[math.floor(bit32.band(n, -n) * 0.971032835543155670166015625)]
+    local mask = pow2[r-1]
+    return r, mask, n - mask
+end
+for i = 0, 31 do
+    findSetBitMap[math.floor(pow2[i] * 0.971032835543155670166015625)] = i + 1
+end
 
 -------------------------------------------------------------------------------
 -- Function to test if any of the specified bits are set in the data.
@@ -279,6 +305,36 @@ local curStatus, curEStatus
 local netStatusMap = { net1 = 1, net2 = 2, both = 3, none = 0, ["1"] = 1, ["2"] = 2 }
 
 local ioState = {}
+local keyNames = nil
+
+-------------------------------------------------------------------------------
+-- Return the canonical key name for the specified IO/set point
+-- @function formatIOsName
+-- @return formatted IO/set point key name
+-- @local
+function private.formatIOsName(type, n)
+    return type .. '_' .. n
+end
+
+-------------------------------------------------------------------------------
+-- Return a mapping of all IO and set point key names
+-- @function getIOsNames
+-- @return Mapping table of IO and set point names
+-- @local
+function private.getIOsNames()
+    if keyNames == nil then
+        keyNames = {}
+        for n = 1, ioTable.max() do
+            local s = private.formatIOsName('io', n)
+            keyNames[s] = s
+        end
+        for n = 1, _M.setPointCount() do
+            local s = private.formatIOsName('setpoint', n)
+            keyNames[s] = s
+        end
+    end
+    return keyNames
+end
 
 -------------------------------------------------------------------------------
 -- Check if the specified IO is an input
@@ -649,6 +705,7 @@ end
 -- @param err Potential error message
 -- @local
 local function IOsCallback(t, data, err)
+    local old = t.current
     t.current = data
     for k, v in pairs(t.active) do
         local status = v.status(data)
@@ -662,6 +719,13 @@ local function IOsCallback(t, data, err)
                 v.running = false
             end
         end
+    end
+
+    -- Check for simulated key events for this io/set point efficiently
+    local z, n, p2 = bit32.bxor(data, old)
+    while z ~= 0 do
+        n, p2, z = findSetBit(z)
+        private.ioKey(t.name, n, bit32.band(data, p2) ~= 0)
     end
 end
 
@@ -677,7 +741,7 @@ local function addIOsCallback(t, which, callback)
     if which < 1 or which > t.max() then
         dbg.error('addCallback ' .. t.name .. ' Invalid:', which)
     else
-        local bit = bit32.lshift(0x00000001, which-1)
+        local bit = pow2[which-1]
         if callback then
             t.active[bit] = {
                 status = function(s) return bit32.band(s, bit) end,

@@ -31,6 +31,12 @@ local firstKey = true    -- flag to catch any garbage
 --
 -- Digits are represented as the number they are and the rest are
 -- represented as string.
+--
+-- In addition to the keys listed here, there are two additional collections
+-- of pseudo keys: <i>IO_#</i> and <i>setpoint_#</i>.  These represent set point and
+-- IO inputs.  They look like normal key presses and can produce the various key states
+-- but they are sourced from the IO and set point subsystems.  Replace the
+-- <i>#</i> with the IO or set point number in the name.
 --@table keys
 -- @field 0 Key 0 (number)
 -- @field 1 Key 1 (number)
@@ -165,15 +171,20 @@ local usbMetaMap = {
 
 --- Key Groups are defined as follows.
 --
--- This table is in priority order.  If a group call back return true, then any
--- other call backs that would be relevant lower down the table will not be
--- invoked.
+-- Except for the final two entries, this table is in priority order.  If a group
+-- call back returns true, then any other call backs that would be relevant lower
+-- down the table will not be invoked.
 --
 -- For example, a numeric digit is a member of these groups:
 -- <i>numpad</i>, <i>keypad</i>, <i>alphanum</i>, <i>ascii</i> and <i>all</i>.
 -- If the handler for the <i>numpad</i> returns false, the search continues
 -- down the list and the <i>keypad</i> call back is invoked.  If this then returns
 -- true, the later ones will not be called.
+--
+-- The final two key groups are are not actually keys.  Instead they refer to set point and IO
+-- module IO pins.  When these change simulated key presses are generated and these can
+-- be used instead of handling the IO or set point directly.  These two groups are unrelated
+-- to the others but allow detection and processing of all IO or set points.
 --@table keygroups
 -- @field arrow Up, down, okay and cancel.
 -- @field cursor The non-digit keys to the right of the display.
@@ -188,12 +199,14 @@ local usbMetaMap = {
 -- @field ascii ASCII characters.
 -- @field extended Power + key combination keys (pwr_...)
 -- @field all All keys.
+-- @field io All IO based simulated keys (these are not part of the <i>all</i> key group).
+-- @field setpoint All set point based simulated keys (these are not part of the <i>all</i> key group).
 -- @see rinLibrary.K400Dialog.getKey
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
     'keypad',   'numpad',   'primary',  'arrow',
     'alpha',    'alphanum', 'ascii',    'punctuation',
-    'space'
+    'space',    'io',       'setpoint'
 }
 
 --- Key events are grouped into a number of different types.
@@ -294,6 +307,17 @@ local function newKeyBinds()
         end
     end
 
+    -- Add set point and IO key names.  We add all of them here even if not
+    -- all are supported because we're too early in the initialisation to
+    -- do otherwise.  This is fixed by only mapping bindings for those that do
+    -- exist.
+    for i = 1, 32 do
+        r[private.formatIOsName('io', i)] = { 'io' }
+    end
+    for i = 1, 16 do
+        r[private.formatIOsName('setpoint', i)] = { 'setpoint' }
+    end
+
     -- Add the final all grouping
     for k, v in pairs(r) do
         table.insert(v, 'all')
@@ -342,12 +366,13 @@ _M.setKeyRepeatParameters()
 -- Called to generate repeating keys
 -- @param keyHandler The key handler in question
 -- @param key The key being pressed
+-- @param source The source for the key press
 -- @param modifiers Table contain additional key information
 -- @local
-local function keyRepeater(keyHandler, key, modifiers)
-    dispatchKey(key, 'repeat', 'display', modifiers)
+local function keyRepeater(keyHandler, key, source, modifiers)
+    dispatchKey(key, 'repeat', source, modifiers)
     keyHandler.repeatInterval = math.max(keyHandler.repeatInterval * repeatDecay, repeatFinish)
-    keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key, modifiers)
+    keyHandler.repeatTimer = timers.addTimer(0, keyHandler.repeatInterval, keyRepeater, keyHandler, key, source, modifiers)
 end
 
 -------------------------------------------------------------------------------
@@ -382,10 +407,10 @@ dispatchKey = function(key, state, source, modifiers)
         end
         if keyName == nil then return end
 
-        if source == 'display' and hasRepeatHandler(keyHandler) then
+        if source ~= 'usb' and hasRepeatHandler(keyHandler) then
             if state == 'long' then
                 timers.removeTimer(keyHandler.repeatTimer)
-                keyHandler.repeatTimer = timers.addTimer(0, repeatStart, keyRepeater, keyHandler, key, modifiers)
+                keyHandler.repeatTimer = timers.addTimer(0, repeatStart, keyRepeater, keyHandler, key, source, modifiers)
                 keyHandler.repeatInterval = repeatStart
             elseif state == 'up' then
                 timers.removeTimer(keyHandler.repeatTimer)
@@ -497,6 +522,32 @@ local function keyPushback(k)
 end
 
 -------------------------------------------------------------------------------
+-- Simulate a key press from an IO event or a set point event.
+-- @param source io or setpoint
+-- @param key io or setpoint number
+-- @param state Boolean, true for down & false for up
+-- @local
+local ktimers = { }
+function private.ioKey(source, key, state)
+    local src = source:lower()
+    local k = src .. '_' .. key
+
+    if state then       -- key down
+        ktimers[k] = timers.addTimer(0, 2, function()
+            ktimers[k] = nil
+            dispatchKey(k, 'long', src, {})
+        end)
+    else                -- key up
+        if ktimers[k] then
+            timers.removeTimer(ktimers[k])
+            ktimers[k] = nil
+            dispatchKey(k, 'short', src, {})
+        end
+        dispatchKey(k, 'up', src, {})
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Enable or disable USB keyboard processing.
 -- By default key presses on a USB keyboard device (keyboard, bar code scanner,
 -- RFID reader) do not act like keys on the display being pressed.
@@ -596,7 +647,8 @@ end
 function _M.setKeyCallback(keyName, callback, ...)
     utils.checkCallback(callback)
     local key = naming.convertNameToValue(keyName, keyMap) or
-                naming.convertNameToValue(keyName, usb.getKeyboardKeys())
+                naming.convertNameToValue(keyName, usb.getKeyboardKeys()) or
+                naming.convertNameToValue(keyName, private.getIOsNames())
     if key then
         local events = {...}
         if #events == 0 then

@@ -25,14 +25,14 @@ describe("power of ten test #pow10", function ()
         a = p10[39]
         a = p10[128]
         a = p10[-122]
-        for i= -10, 12 do
+        for i = -10, 12 do
             a = p10[i]
         end
 
         -- Compare these values against what they sohuld be
-        for k,v in pairs(p10) do
+        for k, v in pairs(p10) do
             local s = tonumber(string.format("%.0e", v):sub(3), 10)
-            assert.are_equal(s, k)
+            assert.are_equal(k, s)
         end
     end)
 end)
