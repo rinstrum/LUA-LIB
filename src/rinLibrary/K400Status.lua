@@ -35,12 +35,12 @@ local function findSetBit(n)
     if bit32.band(n, 0x80000000) ~= 0 then
         return 32, 0x80000000, bit32.band(n, 0x7fffffff)
     end
-    local r = findSetBitMap[math.floor(bit32.band(n, -n) * 0.971032835543155670166015625)]
+    local r = findSetBitMap[math.floor(bit32.band(n, -n) * 0.971032835543155670166015625) % 32 + 1]
     local mask = pow2[r-1]
     return r, mask, n - mask
 end
 for i = 0, 31 do
-    findSetBitMap[math.floor(pow2[i] * 0.971032835543155670166015625)] = i + 1
+    findSetBitMap[math.floor(pow2[i] * 0.971032835543155670166015625) % 32 + 1] = i + 1
 end
 
 -------------------------------------------------------------------------------
