@@ -8,7 +8,8 @@
 -------------------------------------------------------------------------------
 
 local rinApp = require "rinApp"     --  load in the application framework
-local timers = requre 'rinSystem.rinTimers'
+local timers = require 'rinSystem.rinTimers'
+local dbg = require 'rinLibrary.rinDebug'
 
 --=============================================================================
 -- Connect to the instruments you want to control
@@ -54,8 +55,13 @@ local function handleIO5(IO, active)
   end
 end
 device.setIOCallback(5, handleIO5)
--- set callback to capture changes on IO1
+
 -------------------------------------------------------------------------------
+-- set callback to capture changes on IO1 as a key press
+local function handleIO1(key, state)
+    print('IO key', key, 'was pressed:', state)
+end
+device.setKeyCallback('io_1', handleIO1)
 
 -------------------------------------------------------------------------------
 -- Callback to monitor motion status
@@ -104,19 +110,20 @@ timers.addTimer(chimerRepeat,chimerStart,chimer)
 -------------------------------------------------------------------------------
 -- Callback to monitor real time clock status
 local function handleRTC(status, active)
-   if (device.RTC.min % 15 == 0) and (device.RTC.sec == 0) then  -- every quarter hour
+   local hour, min, sec = device.RTCreadTime()
+   if min % 15 == 0 and sec == 0 then  -- every quarter hour
       chimeTimes = {}
-      if device.RTC.min == 0 then
-          for i = 1,4 do                  -- add 4 fast chimes at the start
+      if min == 0 then
+          for i = 1, 4 do                  -- add 4 fast chimes at the start
              table.insert(chimeTimes, 4)  -- off time
              table.insert(chimeTimes, 6)  -- on time
           end
-          for i = 1,device.RTC.hour%12 do -- %12 to keep in 12 hour mode
+          for i = 1, hour%12 do -- %12 to keep in 12 hour mode
              table.insert(chimeTimes,5)   -- add in long chime for each hour
              table.insert(chimeTimes,20)
           end
       else
-          for i = 1,device.RTC.min/15 do  -- add fast chimes for each quarter hour
+          for i = 1, min/15 do  -- add fast chimes for each quarter hour
              table.insert(chimeTimes, 4)  -- off time
              table.insert(chimeTimes, 6)  -- on time
           end
@@ -147,11 +154,7 @@ device.setIOCallback(CHIME_OUTPUT, handleIO)
 local tickerStart = 0.100    -- time in sec until timer events start triggering
 local tickerRepeat = 0.200    -- time in sec that the timer repeats
 
-local function ticker()
--- insert code here that you want to run on each timer event
-    device.rotWAIT('topLeft', 1)
-end
-timers.addTimer(tickerRepeat,tickerStart,ticker)
+timers.addTimer(tickerRepeat, tickerStart, device.rotWAIT, 'topLeft', 1)
 -------------------------------------------------------------------------------
 
 -------------------------------------------------------------------------------
@@ -161,8 +164,6 @@ local function F1Pressed(key, state)
     device.turnOnTimed(8,0.250)  -- reset setpoints 1 and 2
     device.setUserNumber(1, 1)  -- trigger pulses output on setpoint 4
     device.setUserNumber(1, 0)
-    device.RTC.sec = 58
-    device.RTC.min = 59
     return true -- key handled here, don't send back to instrument for handling
 end
 device.setKeyCallback('f1', F1Pressed)

@@ -1003,7 +1003,7 @@ end
 function _M.rotWAIT(where, dir)
   local f = naming.convertNameToValue(where, display)
 
-  if type(f) == 'table' and utils.callable(f.rotWAIT) then
+  if type(f) == 'table' and utils.callable(f.rotWait) then
     return f.rotWait(dir)
   else
     if not rotWaitWarnedDeprecated then
