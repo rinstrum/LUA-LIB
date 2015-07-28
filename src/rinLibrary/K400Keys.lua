@@ -233,6 +233,7 @@ local REG_APP_KEY_HANDLER  = 0x0325
 local REG_KEY_BUFFER_ENTRY = 0x0008
 
 local keyID = nil
+local ioKeyTimers = { }
 
 -------------------------------------------------------------------------------
 -- Create a table of keygroup callbacks
@@ -527,20 +528,19 @@ end
 -- @param key io or setpoint number
 -- @param state Boolean, true for down & false for up
 -- @local
-local ktimers = { }
 function private.ioKey(source, key, state)
     local src = source:lower()
     local k = src .. '_' .. key
 
     if state then       -- key down
-        ktimers[k] = timers.addTimer(0, 2, function()
-            ktimers[k] = nil
+        ioKeyTimers[k] = timers.addTimer(0, 2, function()
+            ioKeyTimers[k] = nil
             dispatchKey(k, 'long', src, {})
         end)
     else                -- key up
-        if ktimers[k] then
-            timers.removeTimer(ktimers[k])
-            ktimers[k] = nil
+        if ioKeyTimers[k] then
+            timers.removeTimer(ioKeyTimers[k])
+            ioKeyTimers[k] = nil
             dispatchKey(k, 'short', src, {})
         end
         dispatchKey(k, 'up', src, {})
