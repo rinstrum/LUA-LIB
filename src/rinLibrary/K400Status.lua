@@ -27,7 +27,10 @@ local True, False = utils.True, utils.False
 -- @return Bitmask with the specified bit set
 -- @return The input number with the specified bit removed
 -- @local
-local findSetBitMap = {}
+local findSetBitMap = {
+    1, 2, 11, 3, 12, 15, 23, 4, 31, 13, 16, 18, 20, 24, 27, 5, 32, 10,
+    14, 22, 30, 17, 19, 26, 9, 21, 29, 25, 8, 28, 7, 6
+}
 local function findSetBit(n)
     if n == 0 then
         return 0, 0, 0
@@ -38,9 +41,6 @@ local function findSetBit(n)
     local r = findSetBitMap[math.floor(bit32.band(n, -n) * 0.971032835543155670166015625) % 32 + 1]
     local mask = pow2[r-1]
     return r, mask, n - mask
-end
-for i = 0, 31 do
-    findSetBitMap[math.floor(pow2[i] * 0.971032835543155670166015625) % 32 + 1] = i + 1
 end
 
 -------------------------------------------------------------------------------
