@@ -707,6 +707,10 @@ end
 local function IOsCallback(t, data, err)
     local old = t.current
     t.current = data
+
+    -- Process active watchers.  This should be merged into the loop below but
+    -- that will change the behaviour slightly which might break backwards
+    -- compatibility.
     for k, v in pairs(t.active) do
         local status = v.status(data)
         if status ~= v.lastStatus then
