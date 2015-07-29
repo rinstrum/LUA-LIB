@@ -13,8 +13,14 @@ local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
-local deepcopy = utils.deepcopy
+local lpeg   = require "rinLibrary.lpeg"
 local usb = require 'rinLibrary.rinUSB'
+
+local deepcopy = utils.deepcopy
+local C, P, Pi, R = lpeg.C, lpeg.P, lpeg.Pi, lpeg.R
+local ioKeyNames = Pi'io_' * C(R'19' + R'12' * R'09' + P'3' * R'02') / function(n)
+    return tonumber(n) + 0x1F
+end * P(-1)
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -734,20 +740,23 @@ end
 -- @see keys
 -- @local
 local function sendKeyToRegister(keyName, status, register)
-    local key = naming.convertNameToValue(keyName, keyMap)
-    if key then
-        if status == 'long' then
-            key = bit32.bor(key, 0x80)
+    if keyName then
+        local key = naming.convertNameToValue(keyName, keyMap) or ioKeyNames:match(keyName)
+        if key then
+            if status == 'long' then
+                key = bit32.bor(key, 0x80)
+            end
+            private.writeRegAsync(register, key)
+        else
+            dbg.warn('Unknown key :', keyName)
         end
-        private.writeRegAsync(register, key)
-    else
-        dbg.warn('Unknown key :', keyName)
     end
     return true
 end
 
 -------------------------------------------------------------------------------
--- Send an artificial key press to the instrument
+-- Send an artificial key press to the instrument.  This can be any of the
+-- instrument keys or an IO key.
 -- @param keyName Key to simulate
 -- @param status 'long' or 'short'
 -- @return true
@@ -755,25 +764,11 @@ end
 -- @usage
 -- -- Send a short cancel key press to the display
 -- device.sendKey('cancel', 'short')
+--
+-- -- Send a long IO 3 press to the display
+-- device.sendKey('io_3', 'long')
 function _M.sendKey(keyName, status)
     return sendKeyToRegister(keyName, status, REG_APP_DO_KEYS)
-end
-
--------------------------------------------------------------------------------
--- Send an artificial IO key press to the instrument
--- @param io IO number (1 to 32)
--- @param status 'long' or 'short'
--- @usage
--- -- Send a short IO10 key press to the display
--- device.sendIOKey(10, 'short')
-function _M.sendIOKey(io, status)
-    if io and io >= 1 and io <= 32 then
-        local data = io + 0x1F -- IO1 is 0x20
-        if status == 'long' then
-            data = bit32.bor(data, 0x80)
-        end
-        private.writeReg(REG_APP_DO_KEYS, data)
-    end
 end
 
 -------------------------------------------------------------------------------
@@ -834,5 +829,9 @@ deprecated.KEY_PWR_F2       = 'pwr_f2'
 deprecated.KEY_PWR_F3       = 'pwr_f3'
 deprecated.KEY_PWR_CANCEL   = 'pwr_cancel'
 deprecated.KEY_IDLE         = 'idle'
+
+function deprecated.sendIOKey(io, status)
+    return _M.sendKey('io_' .. io, status)
+end
 
 end
