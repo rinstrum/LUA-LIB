@@ -181,8 +181,8 @@ local usbMetaMap = {
 -- down the list and the <i>keypad</i> call back is invoked.  If this then returns
 -- true, the later ones will not be called.
 --
--- The final two key groups are are not actually keys.  Instead they refer to set point and IO
--- module IO pins.  When these change simulated key presses are generated and these can
+-- The final two key groups do not actually deal with keys.  Instead they refer to set point and IO
+-- module IO pins.  When these change, simulated key presses are generated and these can
 -- be used instead of handling the IO or set point directly.  These two groups are unrelated
 -- to the others but allow detection and processing of all IO or set points.
 --@table keygroups
@@ -217,7 +217,6 @@ local allKeyGroups = {
 -- @field short A short press of a key
 -- @field repeat A continued repeating press of a key (preceeded by a long event)
 -- @field up A release of a key
-
 local keyMode = {
     short = true,
     long = true,
