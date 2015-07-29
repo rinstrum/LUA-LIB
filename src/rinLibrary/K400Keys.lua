@@ -307,6 +307,11 @@ local function newKeyBinds()
         end
     end
 
+    -- Add the final all grouping
+    for k, v in pairs(r) do
+        table.insert(v, 'all')
+    end
+
     -- Add set point and IO key names.  We add all of them here even if not
     -- all are supported because we're too early in the initialisation to
     -- do otherwise.  This is fixed by only mapping bindings for those that do
@@ -318,10 +323,6 @@ local function newKeyBinds()
         r[private.formatIOsName('setpoint', i)] = { 'setpoint' }
     end
 
-    -- Add the final all grouping
-    for k, v in pairs(r) do
-        table.insert(v, 'all')
-    end
     return r
 end
 
