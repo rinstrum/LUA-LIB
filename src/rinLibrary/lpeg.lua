@@ -35,7 +35,7 @@ function lpeg.Pi(str)
             if l == u then
                 patt = patt * P(c)
             else
-                patt = patt * (P(l) + P(u))
+                patt = patt * S(l..u)
             end
         end
         return patt
