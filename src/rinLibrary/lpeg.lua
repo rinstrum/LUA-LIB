@@ -31,7 +31,12 @@ function lpeg.Pi(str)
     if type(str) == 'string' then
         local patt = P(true)
         for c in str:gmatch(".") do
-            patt = patt * (P(c:lower()) + P(c:upper()))
+            local l, u = c:lower(), c:upper()
+            if l == u then
+                patt = patt * P(c)
+            else
+                patt = patt * (P(l) + P(u))
+            end
         end
         return patt
     end
