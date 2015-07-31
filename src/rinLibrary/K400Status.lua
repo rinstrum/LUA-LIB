@@ -53,7 +53,7 @@ end
 local function anyBitSet(data, checkf, ...)
     for i,v in ipairs{...} do
         checkf(v)
-        if bit32.band(bit32.lshift(0x01, v-1), data) ~= 0 then
+        if bit32.band(pow2[v-1], data) ~= 0 then
             return true
         end
     end
@@ -75,7 +75,7 @@ local function allBitSet(data, checkf, ...)
 
     for i,v in ipairs(args) do
         checkf(v)
-        if bit32.band(bit32.lshift(0x01, v-1), data) == 0 then
+        if bit32.band(pow2[v-1], data) == 0 then
             return false
         end
     end
@@ -876,7 +876,7 @@ end
 local function getBitStr(data, bits)
     local s = {}
     for i = bits-1, 0, -1 do
-        if bit32.band(data, bit32.lshift(0x01, i)) ~= 0 then
+        if bit32.band(data, pow2[i]) ~= 0 then
             ch = '1'
         else
             ch = '0'
@@ -997,7 +997,7 @@ local function IOsWait(t, bit, state, timeout)
         dbg.error('IOsWait '..t.name..' invalid:', bit)
         return false
     end
-    local mask = bit32.lshift(0x00000001, bit-1)
+    local mask = pow2[bit-1]
     local finished = (timeout or 0) > 0 and timers.addOneShot(timeout) or False
     local ns = not state
 

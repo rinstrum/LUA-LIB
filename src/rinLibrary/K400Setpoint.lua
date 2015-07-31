@@ -11,6 +11,7 @@ local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
+local pow2 = require 'rinLibrary.powersOfTwo'
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -201,7 +202,7 @@ function _M.turnOn(...)
     local curOutputs = lastOutputs or 0
     for _,v in ipairs{...} do
         if v < 32 and v > 0 and private.checkOutput(v) then
-            curOutputs = bit32.bor(curOutputs, bit32.lshift(0x0001,(v-1)))
+            curOutputs = bit32.bor(curOutputs, pow2[v-1])
         end
     end
 
@@ -219,7 +220,7 @@ function _M.turnOff(...)
     local curOutputs = lastOutputs or 0
     for _,v in ipairs{...} do
         if v < 32 and v > 0 and private.checkOutput(v) then
-            curOutputs = bit32.band(curOutputs, bit32.bnot(bit32.lshift(0x0001,(v-1))))
+            curOutputs = bit32.band(curOutputs, bit32.bnot(pow2[v-1]))
         end
     end
 
@@ -236,7 +237,7 @@ end
 -- device.turnOnTimed(1, 5)
 function _M.turnOnTimed(IO, t)
     if private.checkOutput(IO) then
-        local IOMask = bit32.lshift(0x0001,(IO-1))
+        local IOMask = pow2[IO - 1]
         if bit32.band(timedOutputs, IOMask) == 0 then
             _M.turnOn(IO)
             timers.addTimer(0, t, function ()
@@ -266,7 +267,7 @@ function _M.enableOutput(...)
 
     for i,v in ipairs(arg) do
         v = tonumber(v)
-        curIOEnable = bit32.bor(curIOEnable, bit32.lshift(0x0001,(v-1)))
+        curIOEnable = bit32.bor(curIOEnable, pow2[v-1])
         private.setIOkind(v, true)
     end
 
@@ -288,8 +289,7 @@ function _M.releaseOutput(...)
 
     for i,v in ipairs(arg) do
         v = tonumber(v)
-        curIOEnable = bit32.band(curIOEnable,
-                                   bit32.bnot(bit32.lshift(0x0001,(v-1))))
+        curIOEnable = bit32.band(curIOEnable, bit32.bnot(pow2[v-1]))
         private.setIOkind(v, false)
     end
 
