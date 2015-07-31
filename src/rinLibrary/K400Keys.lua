@@ -748,7 +748,7 @@ local function sendKeyToRegister(keyName, status, register)
             end
             private.writeRegAsync(register, key)
         else
-            dbg.warn('Unknown key :', keyName)
+            dbg.warn('Unknown key:', keyName)
         end
     end
     return true
