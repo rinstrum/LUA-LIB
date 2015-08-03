@@ -19,7 +19,7 @@ local timers = require 'rinSystem.rinTimers'
 local canonical = namings.canonicalisation
 
 local lpeg = require 'rinLibrary.lpeg'
-local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
+local C, Cg, Cs = lpeg.C, lpeg.Cg, lpeg.Cs
 local P, Pi, R, S, V, spc = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V, lpeg.space
 local sdot = P'.'
 local scdot = (1 - sdot) * sdot^-1
