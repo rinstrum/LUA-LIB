@@ -217,16 +217,20 @@ local allKeyGroups = {
 
 --- Key events are grouped into a number of different types.
 --
--- By default, both short and long presses are seen
+-- By default, both short and long presses are seen.
 --@table keyEvents
 -- @field long A long press of a key
 -- @field short A short press of a key
--- @field repeat A continued repeating press of a key (preceeded by a long event)
+-- @field repeat A continued repeating press of a key (preceeded
+-- by a long event for most input types but by either short or long for USB
+-- input devices)
 -- @field up A release of a key
+-- @field down A press of a key (only available for IO and set point keys)
 local keyMode = {
     short = true,
     long = true,
     up = true,
+    down = true,
     ['repeat'] = true
 }
 
@@ -539,6 +543,7 @@ function private.ioKey(source, key, state)
     local k = src .. '_' .. key
 
     if state then       -- key down
+        dispatchKey(k, 'down', src, {})
         ioKeyTimers[k] = timers.addTimer(0, 2, function()
             ioKeyTimers[k] = nil
             dispatchKey(k, 'long', src, {})
