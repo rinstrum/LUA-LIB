@@ -221,11 +221,10 @@ local allKeyGroups = {
 --@table keyEvents
 -- @field long A long press of a key
 -- @field short A short press of a key
--- @field repeat A continued repeating press of a key (preceeded
--- by a long event for most input types but by either short or long for USB
--- input devices)
 -- @field up A release of a key
--- @field down A press of a key (only available for IO and set point keys)
+-- @field down A press of a key
+-- @field repeat A continued repeating press of a key (usually
+-- preceeded by a long press)
 local keyMode = {
     short = true,
     long = true,
@@ -470,7 +469,7 @@ dispatchKey = function(key, state, source, modifiers)
         end
     end
 
-    if not handled and state ~= 'repeat' and type(key) == 'number' and (state ~= 'up' or key == KEY_POWER) then
+    if not handled and state ~= 'repeat' and state ~= 'down' and type(key) == 'number' and (state ~= 'up' or key == KEY_POWER) then
         local data = key + (state == 'up' and KEYF_UP or 0) + (state == 'long' and KEYF_LONG or 0)
         private.writeRegAsync(REG_APP_DO_KEYS, data)
     end
@@ -494,11 +493,11 @@ local function keyCallback(data, err)
     end
     if data == KEY_IDLE or data == nil then return end
 
-    local state = "short"
+    local state, downEvent = "short", true
     local key = bit32.band(data, 0x3F)
 
     if bit32.band(data, KEYF_UP) ~= 0 then
-        state = "up"
+        state, downEvent = "up", false
     elseif bit32.band(data, KEYF_LONG) ~= 0 then
         state = "long"
     end
@@ -509,6 +508,9 @@ local function keyCallback(data, err)
     end
     firstKey = false
 
+    if downEvent then
+        dispatchKey(key, 'down', 'display', {})
+    end
     return dispatchKey(key, state, 'display', {})
 end
 
@@ -520,16 +522,19 @@ end
 -- @param k Key stroke defintion structure return from kb_lib in L001-507
 -- @local
 local function keyPushback(k)
-    local c, meta, control = nil, k.meta, k.control
+    local c, meta, control, state = string.lower(k.raw), k.meta, k.control, k.type
     if not control and not meta then
-        c = usbMap[k.raw]
+        c = usbMap[k.raw] or c
     elseif control and not meta then
-        c = usbControlMap[k.raw]
+        c = usbControlMap[k.raw] or c
     elseif meta and not control then
-        c = usbMetaMap[k.raw]
+        c = usbMetaMap[k.raw] or c
     end
-    local state = k.type == 'down' and (k.alt and 'long' or 'short') or k.type
-    return dispatchKey(c or string.lower(k.raw), state, 'usb', k)
+    if k.type == 'down' then
+        state = k.alt and 'long' or 'short'
+        dispatchKey(c, 'down', 'usb', k)
+    end
+    return dispatchKey(c, state, 'usb', k)
 end
 
 -------------------------------------------------------------------------------
