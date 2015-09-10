@@ -18,7 +18,7 @@ local usb = require 'rinLibrary.rinUSB'
 
 local deepcopy = utils.deepcopy
 local C, P, Pi, R = lpeg.C, lpeg.P, lpeg.Pi, lpeg.R
-local ioKeyNames = Pi'io_' * C(R'19' + R'12' * R'09' + P'3' * R'02') / function(n)
+local ioKeyNames = Pi'io_' * C(R'12' * R'09' + P'3' * R'02' + R'19') / function(n)
     return tonumber(n) + 0x1F
 end * P(-1)
 
