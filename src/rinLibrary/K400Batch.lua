@@ -663,7 +663,7 @@ private.registerDeviceInitialiser(function()
 -- @field fill_feeder enable parallel filling (multiple or single)
 -- @field fill_material material number
 -- @field fill_start_action function at start (none, tare or gross)
--- @field fill_correction turn on jogging to get closer to target (flight, jog, auto_flight or auto_jog)
+-- @field fill_correction turn on jogging to get closer to target (flight, jog, auto\_flight or auto\_jog)
 -- @field fill_jog_on_time time on during jog
 -- @field fill_jog_off_time time output off for
 -- @field fill_jog_set number of times to jog before looking at weight
