@@ -701,7 +701,7 @@ private.registerDeviceInitialiser(function()
 -- @field pulse_link only do if other stage ran / will run, not currently implemented
 -- (none, prev or next).
 -- @field pulse_time time to pulse for
--- @field pulse_name name of stage (mostly unseen)
+-- @field pulse_name name of stage
 -- @field pulse_prompt what is shown on display during stage
 -- @field pulse_input IO input to end pulse stage
 -- @field pulse_timer set to <i>use</i> or <i>ignore</i>.
