@@ -296,7 +296,7 @@ private.registerDeviceInitialiser(function()
         if err == nil then
             for name, reg in pairs(materialRegs) do
                 local v = rec[name]
-                if v or v == '' then v = 0 end
+                if v == nil or v == '' then v = 0 end
                 private.writeRegAsync(reg, v)
             end
         end
