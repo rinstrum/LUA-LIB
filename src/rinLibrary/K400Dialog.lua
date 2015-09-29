@@ -712,7 +712,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local index = def
 
     editing = true
-    local restoreBottom = _M.saveBottom()
+    local restoreDisplay = _M.saveDisplay()
     _M.write('topLeft', prompt)
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
     
@@ -734,7 +734,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
         end
     end
     finished()
-    _M.restoreBottom()
+    restoreDisplay()
     return sel
 end
 
