@@ -9,8 +9,13 @@ local socket = require "socket"
 local utils = require 'rinSystem.utilities'
 
 local unpack = unpack
+local math = match
 local floor = math.floor
 local max = math.max
+local tonumber = tonumber
+local pcall = pcall
+local print = print
+local error = error
 
 local _M = {}
 local timers = {}

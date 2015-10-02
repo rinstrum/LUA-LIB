@@ -8,6 +8,22 @@
 local lpeg = require 'lpeg'
 local Cg, Ct, Cs, P = lpeg.Cg, lpeg.Ct, lpeg.Cs, lpeg.P
 
+local type = type
+local setmetatable = setmetatable
+local getmetatable = getmetatable
+local next = next
+local error = error
+local debug = debug
+local os = os
+local pairs = pairs
+local table = table
+local tostring = tostring
+local ipairs = ipairs
+local pcall = pcall
+local string = string
+local loadfile = loadfile
+local io = io
+
 local _M = {}
 
 -------------------------------------------------------------------------------
