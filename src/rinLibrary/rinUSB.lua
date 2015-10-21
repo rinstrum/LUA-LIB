@@ -86,9 +86,9 @@ local rs232ErrorTable = setmetatable({
 --
 -- function registerCB(t)
 --     for _, v in pairs(t) do
---         print('register:', t[1])
---         print('    what:', t[2])   -- 'added' or 'removed'
---         print('    whom:', t[3])
+--         print('register:', v[1])
+--         print('    what:', v[2])   -- 'added' or 'removed'
+--         print('    whom:', v[3])
 --     end
 -- end
 -- usb.setUSBRegisterCallback(registerCB)
