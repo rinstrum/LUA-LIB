@@ -262,7 +262,7 @@ end
 -- if usb.getStorageAddedCallback() == nil then
 --     print('No storage added callback installed')
 -- end
-function _M.getStorageAddedCallback(callback)
+function _M.getStorageAddedCallback()
     return userStorageAddedCallback
 end
 
@@ -291,7 +291,7 @@ end
 -- if usb.getStorageRemovedCallback() == nil then
 --     print('No storage removed callback installed')
 -- end
-function _M.getStorageRemovedCallback(callback)
+function _M.getStorageRemovedCallback()
     return userStorageRemovedCallback
 end
 
