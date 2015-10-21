@@ -34,6 +34,7 @@ local userUSBKBDCallback = nil
 local lineUSBKBDCallback = nil
 local libUSBKBDCallback = nil
 local libUSBSerialCallback = nil
+local userUSBPrinterAddedCallback, userUSBPrinterRemovedCallback = nil, nil
 local eventDevices = {}
 
 local userStorageRemovedCallback, userStorageAddedCallback = nil, nil
@@ -376,6 +377,67 @@ local function eventCallback(sock)
 end
 
 -------------------------------------------------------------------------------
+-- Register a callback to run whenever a USB printer device is inserted
+-- @param callback Callback function takes the printer as a file
+-- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setPrinterAddedCallback(function(printer) 
+--      print('new USB printer '..printer) 
+--      printer:write("test!\r\n")
+--    end)
+function _M.setPrinterAddedCallback(callback)
+    utils.checkCallback(callback)
+    local r = userUSBPrinterAddedCallback
+    userUSBPrinterAddedCallback = callback
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a new USB printer
+-- device is detected
+-- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getPrinterAddedCallback() == nil then
+--     print('No printer added callback installed')
+-- end
+function _M.getPrinterAddedCallback()
+    return userUSBPrinterAddedCallback
+end
+
+-------------------------------------------------------------------------------
+-- Register a callback to run whenever a USB printer device is removed
+-- @return The previous callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- usb.setPrinterRemovedCallback(function() print('USB printer has gone') end)
+function _M.setPrinterRemovedCallback(callback)
+    utils.checkCallback(callback)
+    local r = userUSBPrinterRemovedCallback
+    userUSBPrinterRemovedCallback = callback
+    return r
+end
+
+-------------------------------------------------------------------------------
+-- Called to get current callback that runs whenever whenever a new USB printer
+-- device is removed
+-- @return current callback
+-- @usage
+-- local usb = require 'rinLibrary.rinUSB'
+--
+-- if usb.getPrinterRemovedCallback() == nil then
+--     print('No printer removed callback installed')
+-- end
+function _M.getPrinterRemovedCallback()
+    return userUSBPrinterRemovedCallback
+end
+
+
+-------------------------------------------------------------------------------
 -- Callback to receive meta-events associated with USB device appearance
 -- and disappearance.
 -- @param t Event table
@@ -396,6 +458,12 @@ local function usbCallback(t)
                 utils.call(userStorageAddedCallback, v[3])
             elseif v[2] == 'removed' then
                 utils.call(userStorageRemovedCallback)
+            end
+        elseif v[1] == 'printer' then
+          if v[2] == 'added' then
+                utils.call(userUSBPrinterAddedCallback, v[3])
+            elseif v[2] == 'removed' then
+                utils.call(userUSBPrinterRemovedCallback)
             end
         end
     end
