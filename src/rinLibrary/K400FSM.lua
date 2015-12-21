@@ -12,6 +12,12 @@ local timers = require 'rinSystem.rinTimers'
 local deepcopy = utils.deepcopy
 local null, True, cb = utils.null, utils.True, utils.cb
 
+local table = table
+local type = type
+local unpack = unpack
+local error = error
+local string = string
+
 -------------------------------------------------------------------------------
 -- Check the curent status of a single bit trigger
 -- @param f Bit check function to call
@@ -223,6 +229,8 @@ function _M.stateMachine(args)
         if current ~= nil then
             prevName = current.name
             eventStatus = 'leave'   current.leave(s.name)
+            -- Ensure that all messages are flushed when the state is changed.
+            --_M.flush()
         end
         current = s
         current.activeTime = timers.monotonicTime()
