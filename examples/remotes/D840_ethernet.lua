@@ -1,9 +1,6 @@
 #!/usr/bin/env lua
 -------------------------------------------------------------------------------
--- Example for using the D320 with the R400 serial.
---
--- The D320 should be connected to the USB port of the M4223 using a USB to 
--- RS232 cable.
+-- Example for using the D840 via ethernet.
 -- 
 -------------------------------------------------------------------------------
 
