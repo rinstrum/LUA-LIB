@@ -96,13 +96,13 @@ end
 -- Values for rangerC
 local sT = {gross='G', net='N', uload='U', oload='O', error='E', none='G'}
 local mT = {motion='M', notmotion=' '}
-local zT = {zero='Z', notzero=' '}
+local zT = {coz='Z', notcoz=' '}
 local rT = {range1='1', range2='2', none='-'}
 local uT = {kg=' kg', lb=' lb', t='  t',  g='  g', oz=' oz', n='  n', arrow_l='   ', p='  p', l='  L', arrow_h='   ', none='   '}
 
 -------------------------------------------------------------------------------
 -- Convert a value in an item table to its rangerC value.
--- @param item Item table, i.e. 'status', 'motion', 'zero', 'range', 'units'.
+-- @param item Item table, i.e. 'status', 'motion', 'coz', 'range', 'units'.
 -- @param value Value to get the rangerC value of.
 -- @return string value if valid, nil and invalid otherwise.
 -- @usage
@@ -110,7 +110,7 @@ local uT = {kg=' kg', lb=' lb', t='  t',  g='  g', oz=' oz', n='  n', arrow_l=' 
 --  -- status = 'G'
 function _M.rangerCFunc(item, value)
 
-  local tb = {status=sT, motion=mT, zero=zT, range=rT, units=uT}
+  local tb = {status=sT, motion=mT, coz=zT, range=rT, units=uT}
   
   local itemTb = namings.convertNameToValue(namings.canonicalisation(item) or 'none', tb)
   
@@ -128,14 +128,14 @@ end
 -- @param string String to write to the display
 -- @param status Status to display. Convert using rangerCFunc.
 -- @param motion Motion annunciator. Convert using rangerCFunc.
--- @param zero Zero annunciator. Convert using rangerCFunc.
+-- @param coz Centre-of-zero annunciator. Convert using rangerCFunc.
 -- @param range Range annunciator. Convert using rangerCFunc.
 -- @param units Units annunciator. Convert using rangerCFunc.
 -- @param red Red traffic light annunciator (boolean)
 -- @param green Green traffic light annunciator (boolean)
 -- @param sock Socket if remote USB or ethernet display.
 -- @return string on success, nil and error on failure
-function _M.rangerC(string, status, motion, zero, range, units, red, green, sock)
+function _M.rangerC(string, status, motion, coz, range, units, red, green, sock)
   local sign
   local weight
   
@@ -176,11 +176,11 @@ function _M.rangerC(string, status, motion, zero, range, units, red, green, sock
   end
   
   if (sock) then
-    return '\02' .. sign .. weight .. status .. motion .. zero .. 
+    return '\02' .. sign .. weight .. status .. motion .. coz .. 
       range .. units .. '\03' 
   end
   
-  return '\\02' .. sign .. weight .. status .. motion .. zero .. 
+  return '\\02' .. sign .. weight .. status .. motion .. coz .. 
       range .. units .. '\\03' 
 
 end
@@ -194,7 +194,7 @@ function _M.frameRangerC(displayItem)
   return _M.rangerC(displayItem.curString, 
                     displayItem.curStatus, 
                     displayItem.curMotion, 
-                    displayItem.curZero, 
+                    displayItem.curCoz, 
                     displayItem.curRange, 
                     displayItem.curUnits1,
                     displayItem.curRed,
@@ -246,10 +246,10 @@ function _M.writeStatus(me, anyStatusSet, allStatusSet, dualRangeMode)
     me.curMotion = _M.rangerCFunc('motion', 'notmotion')
   end
   
-  if anyStatusSet('zero') then
-    me.curZero = _M.rangerCFunc('zero', 'zero')
+  if anyStatusSet('coz') then
+    me.curCoz = _M.rangerCFunc('coz', 'coz')
   else
-    me.curZero = _M.rangerCFunc('zero', 'notzero')
+    me.curCoz = _M.rangerCFunc('coz', 'notcoz')
   end
   
   if (dualRangeMode == 'single') then
@@ -280,14 +280,14 @@ function _M.setAnnun(me, ...)
     if (argi == 'all') then 
       me.curStatus = _M.rangerCFunc('status', 'net')
       me.curMotion = _M.rangerCFunc('motion', 'motion')
-      me.curZero = _M.rangerCFunc('zero', 'zero')
+      me.curCoz = _M.rangerCFunc('coz', 'coz')
       me.curRange = _M.rangerCFunc('range', 'range1')
     elseif (argi == 'net' ) then
       me.curStatus = _M.rangerCFunc('status', 'net')
     elseif (argi == 'motion') then
       me.curMotion = _M.rangerCFunc('motion', 'motion')
-    elseif (argi == 'zero') then
-      me.curZero = _M.rangerCFunc('zero', 'zero')
+    elseif (argi == 'coz') then
+      me.curCoz = _M.rangerCFunc('coz', 'coz')
     elseif (argi == 'range1') then
       me.curRange = _M.rangerCFunc('range', 'range1')
     elseif (argi == 'range2') then
@@ -311,14 +311,14 @@ function _M.clearAnnun(me, ...)
     if (argi == 'all') then 
       me.curStatus = _M.rangerCFunc('status', 'gross')
       me.curMotion = _M.rangerCFunc('motion', 'notmotion')
-      me.curZero = _M.rangerCFunc('zero', 'notzero')
+      me.curCoz = _M.rangerCFunc('coz', 'notcoz')
       me.curRange = _M.rangerCFunc('range', 'none')  
     elseif (argi == 'net' ) then
       me.curStatus = _M.rangerCFunc('status', 'gross')
     elseif (argi == 'motion') then
       me.curMotion = _M.rangerCFunc('motion', 'notmotion')
-    elseif (argi == 'zero') then
-      me.curZero = _M.rangerCFunc('zero', 'notzero')
+    elseif (argi == 'coz') then
+      me.curCoz = _M.rangerCFunc('coz', 'notcoz')
     elseif (argi == 'range1') then
       me.curRange = _M.rangerCFunc('range', 'none')
     elseif (argi == 'range2') then

@@ -30,7 +30,7 @@ local function looper()
   rinApp.delay(3)
   
   -- Check the annunciators work on the terminal.
-  device.setAnnunciators("terminal", 'net', 'zero', 'redLight', 'greenLight')
+  device.setAnnunciators("terminal", 'net', 'coz', 'redLight', 'greenLight')
   
   -- Wait for 3 seconds
   rinApp.delay(3)

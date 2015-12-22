@@ -51,13 +51,13 @@ local function looper()
   rinApp.delay(3)
   
   -- Turn on some annunciators on the remote display.
-  device.setAnnunciators('D320', 'net', 'range1')
+  device.setAnnunciators('D320', 'net', 'range1', 'coz')
   
   -- Wait for 3 seconds
   rinApp.delay(3)
   
   -- Turn off some annunciators on the remote display.
-  device.clearAnnunciators('D320', 'net', 'range1')
+  device.clearAnnunciators('D320', 'net', 'range1', 'coz')
   
   -- Clear the remote display
   device.write("D320", "")

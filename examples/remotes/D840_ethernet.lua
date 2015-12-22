@@ -42,13 +42,13 @@ local function looper()
   
   -- Turn on some annunciators on the remote display.
   -- The red and green lights can be turned on simultaneously.
-  device.setAnnunciators("D840", 'net', 'zero', 'redLight', 'greenLight')
+  device.setAnnunciators("D840", 'net', 'coz', 'redLight', 'greenLight')
   
   -- Wait for 3 seconds
   rinApp.delay(3)
   
   -- Turn off some annunciators on the remote display.
-  device.clearAnnunciators('D840', 'net', 'zero', 'redLight', 'greenLight')
+  device.clearAnnunciators('D840', 'net', 'coz', 'redLight', 'greenLight')
   
   -- Flash the green light.
   device.setAnnunciators("D840", 'greenLight')

@@ -39,7 +39,7 @@ function _M.add(private, displayTable, prefix, settings)
     curGreen = false,
     curStatus = dispHelp.rangerCFunc('status', 'none'),
     curMotion = dispHelp.rangerCFunc('motion', 'notmotion'),
-    curZero = dispHelp.rangerCFunc('zero', 'notzero'),
+    curCoz = dispHelp.rangerCFunc('coz', 'notcoz'),
     curRange = dispHelp.rangerCFunc('range', 'none'),
     curUnits1 = dispHelp.rangerCFunc('units', 'none'),
     curUnits2 = nil,
