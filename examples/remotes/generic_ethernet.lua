@@ -17,27 +17,27 @@ local device = rinApp.addK400()                  -- local K401 instrumentH
 
 -- Load the remote display. An extra ip addess option is supplied here to 
 -- connect using ethernet.
-device.addDisplay("terminal", "terminal", "172.17.1.72")
+device.addDisplay("generic", "generic", "172.17.1.72")
 
 -- Loop function
 local function looper()
   
   -- Write a long string and some units.
-  device.write("terminal", "123456789 hello")
-  device.writeUnits("terminal", 't')
+  device.write("generic", "123456789 hello")
+  device.writeUnits("generic", 't')
 
   -- Wait for 3 seconds
   rinApp.delay(3)
   
   -- Check the annunciators work on the terminal.
-  device.setAnnunciators("terminal", 'net', 'coz', 'redLight', 'greenLight')
+  device.setAnnunciators("generic", 'net', 'coz', 'redLight', 'greenLight')
   
   -- Wait for 3 seconds
   rinApp.delay(3)
   
   -- Send an empty string to the terminal.
-  device.write("terminal", "")
-  device.writeUnits("terminal", 'none')
+  device.write("generic", "")
+  device.writeUnits("generic", 'none')
   
   -- Wait for 3 seconds
   rinApp.delay(3)
