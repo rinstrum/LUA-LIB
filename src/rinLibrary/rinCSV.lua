@@ -927,7 +927,7 @@ end
 -- local csv = require('rinLibrary.rinCSV')
 --
 -- local t = csv.toTableCSV(csvTable, 'truck')
--- print('The big red truck's tare is: ' .. t.bigred.tare)
+-- print("The big red truck's tare is: " .. t.bigred.tare)
 function _M.toTableCSV(csvtbl, column)
     if hasData(csvtbl) then
         local c = lookupColumn(csvtbl, column)

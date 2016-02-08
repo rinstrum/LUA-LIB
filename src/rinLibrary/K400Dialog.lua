@@ -382,7 +382,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 strTab[sEditIndex] = string.upper(key)      -- update the string (table) with the new character
                 pKey = key                                  -- remember the key pressed
             end
-        elseif state == "long" then         -- long key press only for cancelling editing
+        elseif state == "long" then         -- long key press only for canceling editing
             if key == 'cancel' then    -- cancel key
                 sEditVal = default               -- reinstate default string
                 editing = false                     -- finish editing
