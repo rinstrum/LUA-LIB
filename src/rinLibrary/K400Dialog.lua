@@ -360,21 +360,21 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 ok = true                           -- accept changes
             --
             elseif key == 'cancel' then    -- cancel key
-                if sEditIndex < sLen then
-                    for i = sEditIndex, sLen-1 do    -- delete current character
-                        strTab[i] = strTab[i+1]         -- shuffle characters along
-                    end
+              if sEditIndex < sLen then
+                for i = sEditIndex, sLen-1 do    -- delete current character
+                  strTab[i] = strTab[i+1]         -- shuffle characters along
                 end
-                if sLen > 1 then					-- if string is more than 1 character long
-					strTab[sLen] = nil					-- clear last character
-					sEditIndex = sEditIndex - 1			-- decrease character position
-				elseif strTab[sLen] == ' '	then    	-- otherwise we are deleting the first character
-                    sEditVal = default               -- reinstate default string
-                    editing = false
-                else
-					strTab[sLen] = ' '					-- clear current character
-				end
-                pKey = key                          -- remember the key pressed
+              end
+              if sLen > 1 then					-- if string is more than 1 character long
+                strTab[sLen] = nil					-- clear last character
+				        sEditIndex = sEditIndex - 1			-- decrease character position
+			        elseif strTab[sLen] == ' ' or strTab[sLen] == nil	then    	-- otherwise we are deleting the first character
+                sEditVal = default               -- reinstate default string
+                editing = false
+              else
+				        strTab[sLen] = ' '					-- clear current character
+			        end
+              pKey = key                          -- remember the key pressed
             else                            -- ASCII key
                 if pKey and (sEditIndex >= sLen) and (strTab[sEditIndex] ~= " ") then     -- if not first key pressed
                     sEditIndex = sEditIndex + 1       -- new key pressed, increment the character position
