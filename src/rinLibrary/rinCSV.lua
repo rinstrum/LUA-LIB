@@ -1212,7 +1212,7 @@ end
 -- csv.loadDB(db)
 -- csv.remLineDB(db, 'temporary table', 3)
 function _M.remLineDB(db, name, line)
-    _M.remLineCSV(db[name].data, line)  -- remove last line from the table
+    _M.remLineCSV(db[name], line)  -- remove last line from the table
     _M.saveCSV(db[name])  -- save the table to .CSV file (overwriting the old one)
 end
 
