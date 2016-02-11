@@ -259,7 +259,8 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     end
 
     local default = def or ' '      -- default string to edit, if no default passed to function, default to one space
-    sEditVal = tostring(default)    -- edit string
+    sEditVal = string.upper(tostring(default))    -- edit string
+    
     local sLen = #sEditVal       -- length of string being edited
     sEditIndex = sLen               -- index in string of character being edited
     local ok = false                -- OK button was pressed to accept editing
