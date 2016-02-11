@@ -16,6 +16,9 @@ local utils = require 'rinSystem.utilities'
 local lpeg   = require "rinLibrary.lpeg"
 local usb = require 'rinLibrary.rinUSB'
 
+local type = type
+local tonumber = tonumber
+
 local deepcopy = utils.deepcopy
 local C, P, Pi, R = lpeg.C, lpeg.P, lpeg.Pi, lpeg.R
 local ioKeyNames = Pi'io_' * C(R'12' * R'09' + P'3' * R'02' + R'19') / function(n)
@@ -30,8 +33,6 @@ return function (_M, private, deprecated)
 --- Keypad Control.
 -- Functions to control instrument keypad
 -- @section Keypad
-
-local firstKey = true    -- flag to catch any garbage
 
 --- Keys are represented as follows.
 --
@@ -501,12 +502,6 @@ local function keyCallback(data, err)
     elseif bit32.band(data, KEYF_LONG) ~= 0 then
         state = "long"
     end
-
-    -- Debug - throw away first 0 key garbage -- this doesn't seem to appear anymore
-    if data == 0 and firstKey then
-        return
-    end
-    firstKey = false
 
     if downEvent then
         dispatchKey(key, 'down', 'display', {})
