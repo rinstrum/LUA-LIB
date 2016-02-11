@@ -218,11 +218,19 @@ local function blinkCursor()
     local pre
     local suf
     local max = #sEditVal
+    local index = sEditIndex
+    
+    -- Shift cursor to the right after a timeout.
+    if sEditKeyTimer > sEditKeyTimeout and string.sub(sEditVal, 1, 2) ~= sCursorChar then
+      print(index)
+      index = index + 1
+    end
+        
     blinkOff = not blinkOff
     if blinkOff then
-        pre = string.sub(sEditVal, 1, sEditIndex-1)
-        if sEditIndex < max then
-            suf = string.sub(sEditVal, sEditIndex+1, -1)
+        pre = string.sub(sEditVal, 1, index-1)
+        if index < max then
+            suf = string.sub(sEditVal, index+1, -1)
         else
             suf = ''
         end
@@ -259,7 +267,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     -- default string to edit, if no default passed to function, default to one space
     local default
     if def then                     -- if a string is supplied
-      default = sTrim(def) .. sCursorChar -- trim whitespace, append cursor
+      default = sTrim(def)          -- trim whitespace, append cursor
     else
       default = sCursorChar
     end
@@ -274,6 +282,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
     local restoreBottom = _M.saveBottom()
+    sEditKeyTimer = sEditKeyTimeout + 1  -- The key should start timed out.
 
     if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
         for i=0,math.min(sLen, maxLen),1 do
@@ -366,6 +375,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 ok = true                           -- accept changes
             --
             elseif key == 'cancel' then    -- cancel key
+              sEditKeyTimer = sEditKeyTimeout + 1 -- Timeout on cancel.
               if sEditIndex < sLen then
                 for i = sEditIndex, sLen-1 do    -- delete current character
                   strTab[i] = strTab[i+1]         -- shuffle characters along
