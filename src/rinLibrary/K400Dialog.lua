@@ -428,6 +428,7 @@ end
 -- @param typ type of value to enter ('integer','number','passcode')
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
+-- @param clearDefault Clear the default value when a key is pressed
 -- @return value
 -- @return true if ok pressed at end
 -- @see sEdit
@@ -435,7 +436,7 @@ end
 -- @see rinLibrary.K400LCD.Other
 -- @usage
 -- local qty = device.edit('QUANTITY', 123, 'integer')
-function _M.edit(prompt, def, typ, units, unitsOther)
+function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
 
     local key, state
     local hide = false
@@ -462,7 +463,12 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     end
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
-    local first = true
+    local first
+    if clearDefault == false then
+      first = false
+    else
+      first = true
+    end
 
     local ok = false
     local finished = _M.startDialog()
