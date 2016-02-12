@@ -221,11 +221,13 @@ local function blinkCursor()
     local index = sEditIndex
     
     -- Shift cursor to the right after a timeout.
-    if sEditKeyTimer > sEditKeyTimeout and string.sub(sEditVal, 1, 2) ~= sCursorChar then
-      print(index)
-      index = index + 1
+    if sEditKeyTimer > sEditKeyTimeout 
+        and string.sub(sEditVal, 1, 2) ~= sCursorChar 
+        and index >= max then
+      sEditIndex = sEditIndex + 1
+      index = sEditIndex
     end
-        
+                
     blinkOff = not blinkOff
     if blinkOff then
         pre = string.sub(sEditVal, 1, index-1)
@@ -236,9 +238,19 @@ local function blinkCursor()
         end
         str = pre .. "_" .. suf
     else
-        str = sEditVal
+        -- If it's the last character that's blinking, display a space to 
+        -- preserve the length
+        if (index > max) then
+          str = sEditVal .. " "
+        else
+          str = sEditVal
+        end
     end
 --  print(str)  -- debug
+    print(index, max, sEditIndex, string.sub(str, index, index), string.sub(str, sEditIndex, sEditIndex))
+
+    -- Only display the 9 rightmost characters
+    str = string.sub(str, -9)
     -- Replace the control character with a space if it exists.
     _M.write('bottomLeft', string.gsub(str, sCursorChar, " "))
 end
