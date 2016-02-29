@@ -222,8 +222,10 @@ local function blinkCursor(notTimer)
     if sEditKeyTimer == sEditKeyTimeout then
       sEditIndex = sEditIndex + 1
     end
-  else
-    blinkOff = true
+  end
+  
+  if notTimer ~= nil then
+    blinkOff = notTimer
   end
   
   -- Ensure there's a character at the position
@@ -269,6 +271,8 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     local timeout = false           -- Did a timeout occur
     local presses = 0               -- number of consecutive presses of a key
     local ok = false                -- Was the OK key pressed?
+    local cursorTmr                 -- Timer for blinking cursor
+    
     maxLen = maxLen or 9
     sEditTab = {}
     
@@ -294,10 +298,14 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     -- Set up the screen
     _M.write('bottomRight', prompt)     
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
-
+    
     -- Add timer to blink the cursor and call it to set up the screen.
-    local cursorTmr = timers.addTimer(scrUpdTm, scrUpdTm, blinkCursor)
-    blinkCursor()
+    local resetTimer = function (blinkOff)
+      timers.removeTimer(cursorTmr)
+      cursorTmr = timers.addTimer(scrUpdTm, scrUpdTm, blinkCursor)
+      blinkCursor(blinkOff)
+    end
+    resetTimer(true)
 
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
@@ -350,28 +358,32 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             -- Update the string and the display, without bumping timer
             pKey = key
             sEditTab[sEditIndex] = keyChar(key, presses)
-            blinkCursor(true)
+            resetTimer(true)
           end
         -- decimal point key
         elseif (key == 'dp') then 
-          -- Only handle if the maxLen hasn't been exceeded, and the last key
-          -- was dp
-          if ((sEditIndex < sLen + 1 or sLen < maxLen) and (key ~= pKey)) then
-            -- If the previous key didn't time out, time it out.
-            if (type(pKey) == 'number' and timeout == false) then
+          -- Only handle if the maxLen hasn't been exceeded
+          if (sEditIndex < sLen + 1 or sLen < maxLen) then
+            -- Do not allow repeat decimal keys
+            if (sEditTab[sEditIndex-1] ~= "." and sEditTab[sEditIndex+1] ~= ".") then
+              -- If the previous key didn't time out, time it out.
+              if (type(pKey) == 'number' and timeout == false) then
+                sEditIndex = sEditIndex + 1
+              end
+            
+              -- Update the string 
+              sEditTab[sEditIndex] = "."                 
+              pKey = key
+  
+              -- Increment the string length and the index
+              if (sEditIndex > sLen) then
+                sLen = sLen + 1
+              end
               sEditIndex = sEditIndex + 1
             end
-          
-            -- Update the string 
-            sEditTab[sEditIndex] = "."                 
-            pKey = key
-
-            -- Increment the string length and the index
-            if (sEditIndex > sLen) then
-              sLen = sLen + 1
-            end
-            sEditIndex = sEditIndex + 1
-            blinkCursor(true)
+            
+            sEditKeyTimer = sEditKeyTimeout + 1
+            resetTimer(true)
           end
         -- Move to previous character
         elseif key == 'up' then                    
@@ -404,7 +416,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             sEditKeyTimer = sEditKeyTimeout + 1
             sEditTab[sEditIndex] = ' '
             pKey = key
-            blinkCursor(true)
+            resetTimer(true)
           end
           
         -- Finish editing if ok is pressed
@@ -421,7 +433,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
               sEditTab[i] = sEditTab[i+1]
             end
             sLen = sLen - 1
-            blinkCursor(true)
+            resetTimer(false)
           -- Clear character at end of the string
           elseif sLen >= 1 then
             -- Only change the index if there was a timeout
@@ -430,7 +442,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             end
             sLen = sLen - 1
             sEditTab[sEditIndex] = nil
-            blinkCursor(true)
+            resetTimer(false)
           -- If there are no characters, exit the editor
           else    
             ok = false
@@ -451,7 +463,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
               sLen = sLen + 1
               sEditKeyTimer = sEditKeyTimeout + 1
             end
-            blinkCursor(true)
+            resetTimer(true)
           end
         end
       elseif state == "long" then
