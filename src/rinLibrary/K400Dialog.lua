@@ -30,8 +30,7 @@ local REG_EDIT_REG = 0x0320
 local dialogRunning = false
 local editing = false
 
-local sCursorChar = '\a'    -- Cursor character.
-local sEditVal = sCursorChar -- default edit value for sEdit()
+local sEditTab = {}         -- Table containing string to edit
 local sEditIndex = 1        -- starting index for sEdit()
 local sEditKeyTimer = 0     -- counts time since a key pressed for sEdit() - in scrUpdTm increments
 local sEditKeyTimeout = 4   -- number of counts before starting a new key in sEdit()
@@ -80,7 +79,7 @@ end
 -- Called to get a key from specified key group
 -- @param keyGroup The key group, 'all' is default. A list of key groups is also
 -- allowed here and the legal keys are a union of these.
--- @param keep True if the existing callbacks should be maintained, this can
+-- @param keep True if the existing callbacks should be maintained, this can 
 -- cause some interference issues unless used prudently.
 -- @return key
 -- @return state ('short' or 'long')
@@ -211,55 +210,48 @@ end
 -------------------------------------------------------------------------------
 -- Simulate a blinking cursor by altering the string periodically.
 -- @local
-local function blinkCursor()
---  used in sEdit() function below
-    sEditKeyTimer = sEditKeyTimer + 1 -- increment key press timer for sEdit()
-    local str
-    local pre
-    local suf
-    local max = #sEditVal
-    local index = sEditIndex
+local function blinkCursor(notTimer)
+  local tempTable = utils.deepcopy(sEditTab)
+  local str
+  
+  if (notTimer ~= true) then
+    -- Increment the timer
+    sEditKeyTimer = sEditKeyTimer + 1
     
-    -- Shift cursor to the right after a timeout.
-    if sEditKeyTimer > sEditKeyTimeout 
-        and string.sub(sEditVal, 1, 2) ~= sCursorChar 
-        and index >= max then
+    -- Shift cursor to the right on timeout if the length is less than max
+    if sEditKeyTimer == sEditKeyTimeout then
       sEditIndex = sEditIndex + 1
-      index = sEditIndex
     end
-                
-    blinkOff = not blinkOff
-    if blinkOff then
-        pre = string.sub(sEditVal, 1, index-1)
-        if index < max then
-            suf = string.sub(sEditVal, index+1, -1)
-        else
-            suf = ''
-        end
-        str = pre .. "_" .. suf
-    else
-        -- If it's the last character that's blinking, display a space to 
-        -- preserve the length
-        if (index > max) then
-          str = sEditVal .. " "
-        else
-          str = sEditVal
-        end
-    end
---  print(str)  -- debug
-    print(index, max, sEditIndex, string.sub(str, index, index), string.sub(str, sEditIndex, sEditIndex))
-
-    -- Only display the 9 rightmost characters
-    str = string.sub(str, -9)
-    -- Replace the control character with a space if it exists.
-    _M.write('bottomLeft', string.gsub(str, sCursorChar, " "))
+  else
+    blinkOff = true
+  end
+  
+  -- Ensure there's a character at the position
+  tempTable[sEditIndex] = tempTable[sEditIndex] or " "
+  
+  -- Set the cursor
+  blinkOff = not blinkOff
+  if blinkOff then
+    tempTable[sEditIndex] = "_"
+  end
+  
+  print(tempTable[1], tempTable[2], tempTable[3], tempTable[4], tempTable[5], tempTable[6], tempTable[7], tempTable[8])
+  
+  -- Convert the table into a string
+  str = table.concat(tempTable)
+  
+  -- Only display the 9 rightmost characters
+  str = string.sub(str, -9)
+  
+  -- Update the display
+  _M.write('bottomLeft', str)
 end
 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a string
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param maxLen maximum number of characters to include
+-- @param maxLen maximum number of characters to include (default 9)
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value
@@ -273,164 +265,215 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
 
     editing = true                  -- is editing occurring
     local key, state, source        -- instrument key values
-    local pKey = nil                -- previous key pressed
+    local pKey                      -- previous key pressed
+    local timeout = false           -- Did a timeout occur
     local presses = 0               -- number of consecutive presses of a key
+    local ok = false                -- Was the OK key pressed?
+    maxLen = maxLen or 9
+    sEditTab = {}
     
-    -- default string to edit, if no default passed to function, default to one space
-    local default
-    if def then                     -- if a string is supplied
-      default = sTrim(def)          -- trim whitespace, append cursor
-    else
-      default = sCursorChar
-    end
-
-    sEditVal = string.upper(tostring(default))    -- edit string
+    -- Start in a timed out state
+    sEditKeyTimer = sEditKeyTimeout + 1
     
-    local sLen = #sEditVal       -- length of string being edited
-    sEditIndex = sLen               -- index in string of character being edited
-    local ok = false                -- OK button was pressed to accept editing
-    local strTab = {}               -- temporary table holding edited string characters
-    local blink = false             -- cursor display variable
-
-    local cursorTmr = timers.addTimer(scrUpdTm, 0, blinkCursor)  -- add timer to blink the cursor
+    -- Set the default string. This should be uppercase as the user can only
+    -- enter upper case values, and a mixed case return does not make sense.
+    local default = string.upper(tostring(def or ""))    -- edit string
+    
+    -- Get the starting index of the string
+    local sLen = #default
+    sEditIndex = sLen + 1
+    
+    -- Save the bottom of the screen before we do anything.
     local restoreBottom = _M.saveBottom()
-    sEditKeyTimer = sEditKeyTimeout + 1  -- The key should start timed out.
-
-    if sLen >= 1 then   -- string length should always be >= 1 because of 'default' assignment above
-        for i=0,math.min(sLen, maxLen),1 do
-            strTab[i] = string.sub(sEditVal, i, i)   -- convert the string to a table for easier character manipulation
-        end
-        --print('strTab = ' .. table.concat(strTab))  -- debug
-    end
-    sEditVal = table.concat(strTab);
-
-    if def then         -- if a default string is given
-        pKey = 'def'    -- give pKey a value so we start editing from the end
+    
+    -- Convert the default to a table
+    for i=0,math.min(sLen, maxLen),1 do
+        sEditTab[i] = string.sub(default, i, i)   
     end
 
-    _M.write('bottomRight', prompt)        -- write the prompt
-    _M.write('bottomLeft', sEditVal)    -- write the default string to edit
-    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
+    -- Set up the screen
+    _M.write('bottomRight', prompt)     
+    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
+
+    -- Add timer to blink the cursor and call it to set up the screen.
+    local cursorTmr = timers.addTimer(scrUpdTm, scrUpdTm, blinkCursor)
+    blinkCursor()
 
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        key, state, source = _M.getKey{'keypad', 'ascii'}  -- wait for a key press
-        if sEditKeyTimer > sEditKeyTimeout then   -- if a key is not pressed for a couple of seconds
-            pKey = 'timeout'                            -- ignore previous key presses and treat this as a different key
-        end
-        sEditKeyTimer = 0                        -- reset the timeout counter now a key has been pressed
-        if not _M.dialogRunning() then    -- editing aborted so return default
+      -- Wait for a key press
+      key, state, source = _M.getKey({'keypad', 'ascii'})
+      
+      -- If a key wasn't been pressed within the timeout period, set the 
+      -- previous key as timeout to force this key to be treated as an 
+      -- independent key press.
+      if sEditKeyTimer > sEditKeyTimeout then   
+        timeout = true
+      else
+        timeout = false
+      end
+      
+      -- Reset the key press timer if we're not at the end of the string
+      if (sLen < maxLen) then
+        sEditKeyTimer = 0
+      end
+      
+      -- The dialog isn't running for some reason, so return.
+      if not _M.dialogRunning() then    
+        ok = false
+        editing = false
+      -- If there was a short keypress
+      elseif state == "short" then
+        -- If a numeric key was pressed on the display
+        if type(key) == 'number' and source == 'display' then
+          -- Only handle if the maxLen hasn't been exceeded
+          if (sEditIndex < sLen + 1 or sLen < maxLen) then
+            -- If the key is the same as the previous key increment the press
+            -- count, otherwise reset it.
+            if key == pKey and timeout == false then
+              presses = presses + 1
+            else
+              presses = 1
+              
+              -- Bump the index if this is a new key press that was not after
+              -- a timeout at the end of the string.
+              if (timeout == false) then
+                sEditIndex = sEditIndex + 1
+              end
+              
+              -- Increment the length if this is a new key press at the end of 
+              -- the string.
+              if (sEditIndex > sLen) then
+                sLen = sLen + 1
+              end
+            end
+            -- Update the string and the display, without bumping timer
+            pKey = key
+            sEditTab[sEditIndex] = keyChar(key, presses)
+            blinkCursor(true)
+          end
+        -- decimal point key
+        elseif (key == 'dp') then 
+          -- Only handle if the maxLen hasn't been exceeded, and the last key
+          -- was dp
+          if ((sEditIndex < sLen + 1 or sLen < maxLen) and (key ~= pKey)) then
+            -- If the previous key didn't time out, time it out.
+            if (type(pKey) == 'number' and timeout == false) then
+              sEditIndex = sEditIndex + 1
+            end
+          
+            -- Update the string 
+            sEditTab[sEditIndex] = "."                 
+            pKey = key
+
+            -- Increment the string length and the index
+            if (sEditIndex > sLen) then
+              sLen = sLen + 1
+            end
+            sEditIndex = sEditIndex + 1
+            blinkCursor(true)
+          end
+        -- Move to previous character
+        elseif key == 'up' then                    
+          sEditIndex = sEditIndex - 1
+          if sEditIndex < 1 then
+              sEditIndex = math.min(sLen, maxLen) + 1
+          end
+          -- Update pKey, and update the timer so the timeout won't occur
+          pKey = key
+          sEditKeyTimer = sEditKeyTimeout + 1
+        -- Move to next character
+        elseif key == 'down' then
+          sEditIndex = math.min(sEditIndex, maxLen + 1) + 1
+          if sEditIndex > sLen + 1 then
+              sEditIndex = 1
+          end
+          -- Update pKey, and update the timer so the timeout won't occur
+          pKey = key
+          sEditKeyTimer = sEditKeyTimeout + 1
+        -- Insert a character
+        elseif key == 'plusminus' then
+          if sEditIndex < sLen + 1 and sLen + 1 <= maxLen then
+            sLen = sLen + 1
+            
+            -- Shuffle the characters along
+            for i = sLen, sEditIndex, -1 do
+              sEditTab[i] = sEditTab[i-1]             
+            end
+            
+            sEditKeyTimer = sEditKeyTimeout + 1
+            sEditTab[sEditIndex] = ' '
+            pKey = key
+            blinkCursor(true)
+          end
+          
+        -- Finish editing if ok is pressed
+        elseif key == 'ok' then
+          editing = false
+          ok = true
+        -- Cancel editing
+        elseif key == 'cancel' then 
+          sEditKeyTimer = sEditKeyTimeout + 1
+          
+          -- Delete character in the middle of the string
+          if sEditIndex < sLen + 1 then
+            for i = sEditIndex, sLen do
+              sEditTab[i] = sEditTab[i+1]
+            end
+            sLen = sLen - 1
+            blinkCursor(true)
+          -- Clear character at end of the string
+          elseif sLen >= 1 then
+            -- Only change the index if there was a timeout
+            if timeout == true then        
+              sEditIndex = sEditIndex - 1
+            end
+            sLen = sLen - 1
+            sEditTab[sEditIndex] = nil
+            blinkCursor(true)
+          -- If there are no characters, exit the editor
+          else    
             ok = false
             editing = false
-            sEditVal = default
-        elseif state == "short" then                            -- short key presses for editing
-            if type(key) == 'number' and source == 'display' then     -- keys 0 to 9 on the keypad
---              print('i:' .. sEditIndex .. ' l:' .. sLen)   -- debug
-                if key == pKey then         -- if same as the previous key pressed
-                    presses = presses + 1   -- add 1 to number of presses of this key
-                else
-                    presses = 1             -- otherwise reset presses to 1
-                    if pKey and (sEditIndex >= sLen) and (strTab[sEditIndex] ~= sCursorChar) then     -- if not first key pressed
-                        sEditIndex = sEditIndex + 1       -- new key pressed, increment the character position
-                    end
-                    pKey = key              -- remember the key pressed
-                end
---              print('i:' .. sEditIndex)    -- debug
-                strTab[sEditIndex] = keyChar(key, presses)    -- update the string (table) with the new character
-            --
-            elseif (key == 'dp') and (key ~= pKey) then        -- decimal point key (successive decimal points not allowed)
-                if (pKey and (sEditIndex >= sLen)) or (strTab[sEditIndex] == sCursorChar) then    -- if not first key pressed and not space at end
-                    sEditIndex = sEditIndex + 1           -- new key pressed, increment the character position
-                end
-                strTab[sEditIndex] = "."                 -- update the string (table) with the new character
-                pKey = key                                  -- remember the key pressed
-            --
-            elseif key == 'up' then                    -- up key, previous character
-                sEditIndex = sEditIndex - 1               -- decrease index
-                if sEditIndex < 1 then                       -- if at first character
-                    sEditIndex = sLen                            -- go to last character
-                end
-                pKey = key                                  -- remember the key pressed
-            --
-            elseif key == 'down' then          -- down key, next character
-                sEditIndex = sEditIndex + 1       -- increment index
-                if sEditIndex > sLen then            -- if at last character
-                    if strTab[sLen] ~= sCursorChar then         -- and last character is not a space
-                        if sLen < maxLen then               -- and length of string < maximum
-                            sLen = sLen + 1                     -- increase length of string
-                            strTab[sLen] = sCursorChar                  -- and add a space to the end
-                        else                                -- string length = maximum
-                            sEditIndex = 1                   -- go to the first character
-                        end
-                    else                                -- otherwise (last character is a space)
-                        if sLen > 1 then                    -- as long as the string is more than 1 character long
-                            strTab[sLen] = nil              -- delete the last character
-                            sLen = sLen - 1                 -- decrease the length of the string
-                            sEditIndex = 1               -- and go to the first character
-                        end
-                    end
-                end
-                pKey = key                                  -- remember the key pressed
-            --
-            elseif key == 'plusminus' then     -- plus/minus key - insert a character
-                if sLen < maxLen then
-                    sLen = sLen + 1                     -- increase the length of the string
-                end
-                for i = sLen, sEditIndex+1, -1 do
-                    strTab[i] = strTab[i-1]             -- shuffle the characters along
-                end
-                strTab[sEditIndex] = sCursorChar             -- insert a space
-                pKey = key                          -- remember the key pressed
-            --
-            elseif key == 'ok' then        -- OK key
-                editing = false                      -- finish editing
-                ok = true                           -- accept changes
-            --
-            elseif key == 'cancel' then    -- cancel key
-              sEditKeyTimer = sEditKeyTimeout + 1 -- Timeout on cancel.
-              if sEditIndex < sLen then
-                for i = sEditIndex, sLen-1 do    -- delete current character
-                  strTab[i] = strTab[i+1]         -- shuffle characters along
-                end
-              end
-              if sLen > 1 then					-- if string is more than 1 character long
-                strTab[sLen] = nil					-- clear last character
-				        sEditIndex = sEditIndex - 1			-- decrease character position
-			        elseif strTab[sLen] == sCursorChar or strTab[sLen] == nil	then    	-- otherwise we are deleting the first character
-                sEditVal = default               -- reinstate default string
-                editing = false
-              else
-				        strTab[sLen] = sCursorChar					-- clear current character
-			        end
-              pKey = key                          -- remember the key pressed
-            else                            -- ASCII key
-                if pKey and (sEditIndex >= sLen) and (strTab[sEditIndex] ~= sCursorChar) then     -- if not first key pressed
-                    sEditIndex = sEditIndex + 1       -- new key pressed, increment the character position
-                end
-                strTab[sEditIndex] = string.upper(key)      -- update the string (table) with the new character
-                pKey = key                                  -- remember the key pressed
+          end
+          pKey = key
+          
+        -- ASCII keys. This gives some support for usb keyboard, but no 
+        -- backspace, arrow keys, or insert
+        else     
+          -- Only handle if the maxLen hasn't been exceeded
+          if (sLen < maxLen) then
+            sEditTab[sEditIndex] = string.upper(key)
+            pKey = key
+            -- Increment the indexes and timeout
+            if (sEditIndex > sLen) then
+              sEditIndex = sEditIndex + 1
+              sLen = sLen + 1
+              sEditKeyTimer = sEditKeyTimeout + 1
             end
-        elseif state == "long" then         -- long key press only for canceling editing
-            if key == 'cancel' then    -- cancel key
-                sEditVal = default               -- reinstate default string
-                editing = false                     -- finish editing
-            end
+            blinkCursor(true)
+          end
         end
-        if editing or ok then                       -- if editing or OK is selected
-            sEditVal = table.concat(strTab)      -- update edited string
-            sLen = #sEditVal
+      elseif state == "long" then
+        -- Exit the editor
+        if key == 'cancel' then    
+          ok = false
+          editing = false
         end
+      end
     end
+    
+    -- Clean up
     finished()
-
-    restoreBottom() -- restore previously displayed messages
-
-    timers.removeTimer(cursorTmr) -- remove cursor blink timer
-    -- Remove the trailing cursor before returning
-    if string.sub(sEditVal,-1) == sCursorChar then
-      sEditVal = string.sub(sEditVal,1,-2)
+    restoreBottom()
+    timers.removeTimer(cursorTmr)
+    
+    -- Return the entered value.
+    if (ok == true)then
+      return table.concat(sEditTab), true
+    else
+      return default, false
     end
-    return sEditVal, ok                  -- return edited string and OK status
 end
 
 -------------------------------------------------------------------------------
