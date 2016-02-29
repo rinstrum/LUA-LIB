@@ -18,6 +18,7 @@ local usb = require 'rinLibrary.rinUSB'
 
 local type = type
 local tonumber = tonumber
+local table = table
 
 local deepcopy = utils.deepcopy
 local C, P, Pi, R = lpeg.C, lpeg.P, lpeg.Pi, lpeg.R
