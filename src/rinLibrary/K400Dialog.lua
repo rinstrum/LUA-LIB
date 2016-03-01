@@ -241,8 +241,6 @@ local function blinkCursor(notTimer)
     end
   end
   
-  print(tempTable[1], tempTable[2], tempTable[3], tempTable[4], tempTable[5], tempTable[6], tempTable[7], tempTable[8])
-  
   -- Convert the table into a string
   str = table.concat(tempTable)
   
