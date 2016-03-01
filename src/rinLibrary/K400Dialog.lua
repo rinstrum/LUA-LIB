@@ -234,7 +234,11 @@ local function blinkCursor(notTimer)
   -- Set the cursor
   blinkOff = not blinkOff
   if blinkOff then
-    tempTable[sEditIndex] = "_"
+    if (tempTable[sEditIndex] == "_") then
+      tempTable[sEditIndex] = " "
+    else
+      tempTable[sEditIndex] = "_"
+    end
   end
   
   print(tempTable[1], tempTable[2], tempTable[3], tempTable[4], tempTable[5], tempTable[6], tempTable[7], tempTable[8])
@@ -355,9 +359,13 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
                 sLen = sLen + 1
               end
             end
-            -- Update the string and the display, without bumping timer
+            -- Update the string and the display
             pKey = key
             sEditTab[sEditIndex] = keyChar(key, presses)
+            -- If we're in the middle of the string, then reset the timer
+            if (sEditIndex < sLen + 1) then
+              sEditKeyTimer = 0
+            end
             resetTimer(true)
           end
         -- decimal point key
@@ -414,7 +422,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
             end
             
             sEditKeyTimer = sEditKeyTimeout + 1
-            sEditTab[sEditIndex] = ' '
+            sEditTab[sEditIndex] = '_'
             pKey = key
             resetTimer(true)
           end
