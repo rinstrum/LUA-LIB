@@ -701,7 +701,7 @@ function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, units
             end
           else
             defaultsIndex = defaultsIndex - 1
-            if defaults[defaultsIndex] == nil then
+            if defaultsIndex < 0 then
               defaultsIndex = #defaults
             end
           end
