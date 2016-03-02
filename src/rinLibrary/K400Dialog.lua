@@ -535,6 +535,8 @@ function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, units
   local ok = false                -- Was the OK key pressed?
   local cursorTmr                 -- Timer for blinking cursor
   local defaultsIndex = 0         -- Index for cycling through recent
+  local autoIndex = 0             -- Index for cycling through autocompletes
+  local prefix                    -- Prefix at time autocomplete pressed 
   
   maxLen = maxLen or 9
   sEditTab = {}
@@ -713,13 +715,50 @@ function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, units
             sEditIndex = 1
           else
             sEditTab = toTable(defaults[defaultsIndex])
-            sLen = #defaults[defaultsIndex]
+            sLen = #sEditTab
             sEditIndex = sLen + 1
           end
           
           pKey = key
           resetTimer(true)
-        end
+        else
+          -- On first press, save the prefix
+          if (autoIndex == 0) then
+            prefix = utils.deepcopy(sEditTab)
+          end
+          
+          -- Iterate until we're at the prefix again, or the prefix matches
+          local prefixIter, preLen = table.concat(prefix), #prefix
+          repeat
+            if key == 'up' then
+              -- Circular index
+              autoIndex = autoIndex + 1
+              if autocompletes[autoIndex] == nil then
+                autoIndex = 0
+              end
+            else
+              autoIndex = autoIndex - 1
+              if autoIndex < 0 then
+                autoIndex = #autocompletes
+              end
+            end
+          until autoIndex == 0 or prefixIter == string.sub(autocompletes[autoIndex], 1, preLen)
+          
+          -- Write the string to the screen
+          if autoIndex == 0 then
+            sEditTab = utils.deepcopy(prefix)
+            sLen = #prefix
+          else
+            sEditTab = toTable(autocompletes[autoIndex])
+            sLen = #sEditTab
+          end
+          
+          sEditIndex = sLen + 1
+          pKey = key
+          sEditKeyTimer = sEditKeyTimeout + 1
+          resetTimer(true)
+          
+        end 
       -- Swap to numeric input
       elseif key == 'plusminus' then
         -- If the previous key didn't time out, time it out.
