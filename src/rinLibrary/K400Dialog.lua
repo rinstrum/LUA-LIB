@@ -336,14 +336,22 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
       elseif state == "short" then
         -- If a numeric key was pressed on the display
         if type(key) == 'number' and source == 'display' then
-          --print(sEditIndex, sLen, maxLen)
-          -- Only handle if the maxLen hasn't been exceeded
-          if (sEditIndex < sLen) or (sEditIndex < sLen + 1 and sLen < maxLen) then
             -- If the key is the same as the previous key increment the press
             -- count, otherwise reset it.
             if key == pKey and timeout == false then
               presses = presses + 1
-            else
+              
+              -- Update the string and the display
+              pKey = key
+              sEditTab[sEditIndex] = keyChar(key, presses)
+              -- If we're in the middle of the string, then reset the timer
+              if (sEditIndex < sLen + 1) then
+                sEditKeyTimer = 0
+              end
+              resetTimer(true)
+            -- Only handle if the maxLen hasn't been exceeded
+            elseif (sEditIndex < sLen) or 
+                (sEditIndex <= sLen + 1 and sLen < maxLen) then
               presses = 1
               
               -- Bump the index if this is a new key press that was not after
@@ -357,16 +365,16 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
               if (sEditIndex > sLen) then
                 sLen = sLen + 1
               end
+              
+              -- Update the string and the display
+              pKey = key
+              sEditTab[sEditIndex] = keyChar(key, presses)
+              -- If we're in the middle of the string, then reset the timer
+              if (sEditIndex < sLen + 1) then
+                sEditKeyTimer = 0
+              end
+              resetTimer(true)
             end
-            -- Update the string and the display
-            pKey = key
-            sEditTab[sEditIndex] = keyChar(key, presses)
-            -- If we're in the middle of the string, then reset the timer
-            if (sEditIndex < sLen + 1) then
-              sEditKeyTimer = 0
-            end
-            resetTimer(true)
-          end
         -- decimal point key
         elseif (key == 'dp') then 
           -- Only handle if the maxLen hasn't been exceeded
@@ -457,8 +465,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
           end
           pKey = key
           
-        -- ASCII keys. This gives some support for usb keyboard, but no 
-        -- backspace, arrow keys, or insert
+        -- ASCII keys. This gives some support for usb keyboard
         else     
           -- Only handle if the maxLen hasn't been exceeded
           if (sLen < maxLen) then
