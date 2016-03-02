@@ -336,8 +336,9 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
       elseif state == "short" then
         -- If a numeric key was pressed on the display
         if type(key) == 'number' and source == 'display' then
+          --print(sEditIndex, sLen, maxLen)
           -- Only handle if the maxLen hasn't been exceeded
-          if (sEditIndex < sLen + 1 or sLen < maxLen) then
+          if (sEditIndex < sLen) or (sEditIndex < sLen + 1 and sLen < maxLen) then
             -- If the key is the same as the previous key increment the press
             -- count, otherwise reset it.
             if key == pKey and timeout == false then
