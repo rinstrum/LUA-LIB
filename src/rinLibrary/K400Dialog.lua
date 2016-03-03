@@ -557,6 +557,7 @@ function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, units
   
   -- Save the bottom of the screen before we do anything.
   local restore = _M.saveDisplay()
+  local restoreTop = _M.saveAutoLeft()
   
   local toTable = function (str)
     local tab = {}
@@ -820,6 +821,7 @@ function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, units
   -- Clean up
   finished()
   restore()
+  restoreTop()
   timers.removeTimer(cursorTmr)
   
   -- Return the entered value.

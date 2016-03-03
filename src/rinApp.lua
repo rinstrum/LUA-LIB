@@ -174,6 +174,14 @@ function _M.addK400(model, ip, portA, portB)
     device.setupStatus()
     device.lcdControl('lua')
     device.configure()
+    
+    -- Set up the topLeft and bottomLeft. Ensures that when displays are saved
+    -- these are correctly restored without being explicitly written by the user.
+    local old = device.readAuto('topLeft')
+    device.writeAuto('topLeft', old)
+    old = device.readAuto('bottomLeft')
+    device.writeAuto('bottomLeft', old)
+    
     return device
 end
 
