@@ -524,7 +524,9 @@ end
 -- @see rinLibrary.K400LCD.Units
 -- @see rinLibrary.K400LCD.Other
 -- @usage
--- local name = device.sEdit('NEW NAME', 'ZINC', 8)
+-- local defaults = {"BUS", "CAR", "BIKE"}
+-- local autos = {"BUS", "CAR", "BIKE", "SCOOTER", "SKATEBOARD"}
+-- local name = device.tEdit('NEW NAME', defaults, 8, autos, false)
 function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, unitsOther)
 
   editing = true                  -- is editing occurring
