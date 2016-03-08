@@ -12,6 +12,11 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local ccitt = require "rinLibrary.rinCCITT"
+
+local pairs = pairs
+local tostring = tostring
+
 return function (_M, private, deprecated)
 -------------------------------------------------------------------------------
 -- Get gross or net weight from instrument.
@@ -99,6 +104,71 @@ end
 -- local rawAdc = device.getRawADC()
 function _M.getRawADC()
     return private.readReg 'rawadc'
+end
+
+local traceableRegisters = {
+    'tracevalid', 'traceid', 'traceweight', 'traceweightalt', 'tracetare', 
+    'tracept', 'traceyear', 'tracemonth', 'traceday', 'tracehour', 
+    'traceminute', 'tracesecond'
+}
+
+-------------------------------------------------------------------------------
+-- Calculate the checksum of a table, table keys will be processed by keyorder
+-- @return Checksum
+-- @local
+local function calcTableChecksum(tbl, keyorder)
+  local str = ""
+  
+  for i = 1,#keyorder do
+    str = str .. keyorder[i] .. tostring(tbl[keyorder[i]])
+  end
+  
+  return ccitt(str)
+end
+
+-------------------------------------------------------------------------------
+-- Get traceable weight data
+-- @return Table containing traceable ADC data. Keys: 'tracevalid', 'traceid', 
+-- 'traceweight', 'traceweightalt', 'tracetare', 
+-- 'tracept', 'traceyear', 'tracemonth', 'traceday', 'tracehour', 
+-- 'traceminute', 'tracesecond'. Converts flags to booleans.
+-- @return error string if any error received, nil otherwise
+-- @see checkTraceable
+-- @usage
+-- local traceable = device.getTraceable()
+function _M.getTraceable()
+    local tab = {}
+    local err = nil
+    
+    -- Read each register
+    for k, register in pairs(traceableRegisters) do
+      tab[register], err = private.readReg(register)
+      
+      -- Add the failed register to the error message if it exists
+      if (err ~= nil) then
+        err = register .. ": " .. err
+        break
+      end
+    end
+    
+    -- Convert flags to booleans.
+    tab.tracevalid = tab.tracevalid == 1
+    tab.tracept = tab.tracept == 1
+    
+    tab.crc = calcTableChecksum(tab, traceableRegisters)
+  
+    return  tab, err
+end
+
+-------------------------------------------------------------------------------
+-- Check traceable weight data
+-- @return True if traceable table is valid, false otherwise
+-- @see getTraceable
+-- @usage
+-- local traceable = device.getTraceable()
+-- assert(device.checkTraceable(traceable) == true)
+function _M.checkTraceable(traceable)
+  return calcTableChecksum(traceable, traceableRegisters) == traceable.crc
 end
 
 private.registerDeviceInitialiser(function()

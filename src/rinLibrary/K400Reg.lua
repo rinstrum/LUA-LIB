@@ -48,6 +48,18 @@ private.registerDeviceInitialiser(function()
 -- @field altnet Net weight in secondary units
 -- @field fullscale Fullscale weight
 -- @field piececount Piece count
+-- @field tracevalid Is the traceable weight valid
+-- @field traceid Traceable weight unique id
+-- @field traceweight Traceable weight
+-- @field traceweightalt Alternate traceable weight
+-- @field tracetare Tare weight associated with traceable weight
+-- @field tracept Traceable preset tare flag
+-- @field traceyear Date and time that the traceable weight was acquired
+-- @field tracemonth Date and time that the traceable weight was acquired
+-- @field traceday Date and time that the traceable weight was acquired
+-- @field tracehour Date and time that the traceable weight was acquired
+-- @field traceminute Date and time that the traceable weight was acquired
+-- @field tracesecond Date and time that the traceable weight was acquired
 -- @field unfiltered_weight Raw weight readings
         adcsample               = 0x0020,
         sysstatus               = 0x0021,
@@ -64,6 +76,18 @@ private.registerDeviceInitialiser(function()
         rawadc                  = 0x002D,
         altnet                  = private.nonbatching(0x002E),
         fullscale               = 0x002F,
+        tracevalid              = 0x0030,
+        traceid                 = 0x0031,
+        traceweight             = 0x0032,
+        traceweightalt          = 0x0033,
+        tracetare               = 0x0035,
+        tracept                 = 0x0036,
+        traceyear               = 0x0037,
+        tracemonth              = 0x0038,
+        traceday                = 0x0039,
+        tracehour               = 0x003A,
+        traceminute             = 0x003B,
+        tracesecond             = 0x003C,
         piececount              = private.nonbatching(0x0053),
         unfiltered_weight       = private.k422(0x0055),
 
