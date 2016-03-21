@@ -7,6 +7,8 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local string = string
+local pairs = pairs
+
 local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
@@ -245,7 +247,11 @@ end
 -- local params = { gross = 1.234 }
 -- print(device.formatPrintString(params, 'Gross is {gross}'))
 function _M.formatPrintString(subs, s)
-    formatSubstitutions = subs
+    formatSubstitutions = {}
+    for k, v in pairs(subs) do
+      formatSubstitutions[can(k)] = v
+    end
+
     return formatObject(s)
 end
 
