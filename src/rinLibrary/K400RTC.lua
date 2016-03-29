@@ -87,7 +87,7 @@ local RTC = {
     hour = 0, min = 0, sec = 0,
     day = 1, month = 1, year = 2010,
     load_date = false, load_time = false,
-    first = 'day', second = 'month', third = 'year'
+    first = 'day', second = 'month', third = 'year', yearlen = 4
 }
 
 for k,v in pairs(stringDateUnmap) do
@@ -124,12 +124,19 @@ end
 -- @param fmt Date format (numeric)
 -- @local
 local function setDateFormat(fmt)
-    if fmt == TM_DDMMYYYY or fmt == TM_DDMMYY then
-        date.setDateFormat('day', 'month', 'year')
-    elseif fmt == TM_MMDDYYYY or fmt == TM_MMDDYY then
-        date.setDateFormat('month', 'day', 'year')
+    local _, count = string.gsub(fmt, "Y", "")
+    if count > 2 then
+      RTC.yearlen = 4
     else
-        date.setDateFormat('year', 'month', 'day')
+      RTC.yearlen = 2
+    end
+
+    if fmt == TM_DDMMYYYY or fmt == TM_DDMMYY then
+        date.setDateFormat('day', 'month', 'year', RTC.yearlen)
+    elseif fmt == TM_MMDDYYYY or fmt == TM_MMDDYY then
+        date.setDateFormat('month', 'day', 'year', RTC.yearlen)
+    else
+        date.setDateFormat('year', 'month', 'day', RTC.yearlen)
     end
 end
 

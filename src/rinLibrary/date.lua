@@ -81,7 +81,7 @@ local reformationDates = {
 }
 
 local gregorianChange, gregorianFirstDay
-local date_first, date_second, date_third = 'day', 'month', 'year'
+local date_first, date_second, date_third, date_yearlen = 'day', 'month', 'year', 4
 
 -------------------------------------------------------------------------------
 -- Test if a date is from the Gregorian or Julian calendar.
@@ -302,6 +302,7 @@ end
 -- @param first  = 'day', 'month' or 'year'
 -- @param second  = 'day', 'month' or 'year'
 -- @param third = 'day','month' or 'year'
+-- @param yearLen Exact number of digits in year (default 4)
 -- @see getDateFormat
 -- @usage
 -- -- Set the current date format to year then day then month
@@ -310,10 +311,11 @@ end
 -- local date = require'rinLibrary.date'
 --
 -- date.setDateFormat('year', 'day', 'month')
-function _M.setDateFormat(first, second, third)
+function _M.setDateFormat(first, second, third, yearLen)
     local first = first or 'day'
     local second = second or 'month'
     local third = third or 'year'
+    local yearLen = yearLen or 4
 
     local check = { day = 0, month = 0, year = 0 }
     check[first] = check[first] + 1
@@ -324,6 +326,7 @@ function _M.setDateFormat(first, second, third)
         date_first = first
         date_second = second
         date_third = third
+        date_yearlen = yearLen
     else
         dbg.warn('date: illegal date format specified:', first, second, third)
     end
@@ -334,6 +337,7 @@ end
 -- @return first field
 -- @return second field
 -- @return third field
+-- @return year length (exact number of digits in year)
 -- @see setDateFormat
 -- @usage
 -- local date = require'rinLibrary.date'
@@ -343,7 +347,7 @@ end
 --     print('Someone is being silly with the date formatting')
 -- end
 function _M.getDateFormat()
-    return date_first, date_second, date_third
+    return date_first, date_second, date_third, date_yearlen
 end
 
 -------------------------------------------------------------------------------
@@ -359,8 +363,13 @@ end
 --
 -- print(date.formatDate(2000, 12, 17))
 function _M.formatDate(year, month, day)
-    local t = { year = year, month = month, day = day }
-    return string.format("%02d/%02d/%02d", t[date_first], t[date_second], t[date_third])
+    local tempDay = string.format("%02d", day)
+    local tempMonth = string.format("%02d", month)
+    local tempYearStr = "%" .. string.format("0%dd", date_yearlen)
+    local tempYear = string.format(tempYearStr, year % (10^date_yearlen))
+
+    local t = { year = tempYear, month = tempMonth, day = tempDay }
+    return string.format("%s/%s/%s", t[date_first], t[date_second], t[date_third])
 end
 
 return _M
