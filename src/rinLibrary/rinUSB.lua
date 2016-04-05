@@ -558,30 +558,6 @@ function _M.initUSB()
     end
 end
 
--------------------------------------------------------------------------------
--- Add deprecated wrapper routines to the given table/object.
--- This routing is called automatically by the rinApp framework.
--- @param app The object to add the wrapper routines to
--- @usage
--- local usb = require 'rinUSB'
--- local t = {}
--- usb.deprecatedUSBhandlers(t)
--- t.initUSB() -- call the usb.initUSB() function.
-function _M.deprecatedUSBhandlers(app)
-    for k, v in pairs(_M) do
-        if type(k) == "string" and type(v) == "function" and "deprecatedUSBhandlers" ~= k then
-            local deprecatedWarned = false
-            app[k] =    function(...)
-                            if not deprecatedWarned then
-                                dbg.warn('USB deprecated function ', k..' use rinLibrary.rinUSB')
-                                deprecatedWarned = true
-                            end
-                            return v(...)
-                        end
-        end
-    end
-end
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 --- USB Storage Helper Functions
 --

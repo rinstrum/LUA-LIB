@@ -19,6 +19,7 @@ local bit32 = require "bit"
 
 local lpeg = require "rinLibrary.lpeg"
 local space, digit, P, S = lpeg.space, lpeg.digit, lpeg.P, lpeg.S
+local math = math
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -745,73 +746,6 @@ end
 
 -- Add a timer for the heartbeat (every 5s)
 timers.addTimer(5.0, 0, private.writeRegAsync, REG_HEARTBEAT, 10)
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-private.registerDeviceInitialiser(function()
-    private.registerDeprecated{
-        'keybuffer', 'lcd',
-
-        'absmvv', 'adcsample', 'altgross', 'altnet', 'fullscale',
-        'grandtotal', 'gross', 'grossnet', 'manhold', 'net',
-        'peakhold', 'rawadc', 'syserr', 'sysstatus', 'tare',
-
-        'active_product_name', 'active_product_no', 'clr_all_totals',
-        'clr_docket_totals', 'select_product_delete',
-        'select_product_name', 'select_product_no',
-        'select_product_rename'
-    }
-end)
-
-deprecated.TYP_CHAR     = TYP_CHAR
-deprecated.TYP_UCHAR    = TYP_UCHAR
-deprecated.TYP_SHORT    = TYP_SHORT
-deprecated.TYP_USHORT   = TYP_USHORT
-deprecated.TYP_LONG     = TYP_LONG
-deprecated.TYP_ULONG    = TYP_ULONG
-deprecated.TYP_STRING   = TYP_STRING
-deprecated.TYP_OPTION   = TYP_OPTION
-deprecated.TYP_MENU     = TYP_MENU
-deprecated.TYP_WEIGHT   = TYP_WEIGHT
-deprecated.TYP_BLOB     = TYP_BLOB
-deprecated.TYP_EXECUTE  = TYP_EXECUTE
-deprecated.TYP_BITFIELD = TYP_BITFIELD
-
-deprecated.literalToFloat = literalToFloat
-deprecated.toFloat = private.toFloat
-deprecated.sendReg = sendReg
-deprecated.sendRegWait = sendRegWait
-deprecated.readReg = private.readReg
-deprecated.writeReg = private.writeReg
-deprecated.exReg = private.exReg
-
--------------------------------------------------------------------------------
--- Called to read a register value and return value and dp position
--- Used to work out the dp position of a register value so subsequent
--- reads can use the hexadecimal format and convert locally using
--- toFloat
--- @function getRegDP
--- @param reg  register to read
--- @return register value number
--- @return dp position
--- @local
-function deprecated.getRegDP(reg)
-    local data, err = sendRegWait('rdlit', reg)
-    if err then
-        dbg.error('getDP: ', reg, err)
-        return nil, nil
-    else
-        local tmp = string.match(data,'[+-]?%s*(%d*%.?%d*)')
-        local dp = string.find(tmp,'%.')
-        if not dp then
-            dp = 0
-        else
-            dp = string.len(tmp) - dp
-        end
-
-        return tonumber(tmp), dp
-    end
-end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Expose some internals for testing purposes

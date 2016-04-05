@@ -64,7 +64,6 @@ describe("Analog #analog", function ()
     it("linearity", function()
         --  Callback to capture changes to current weight
         local curWeight = 0
-        -- Change the following to 'grossnet' once the REG_ version is deprecated
         lower.addStream('grossnet', function(d, e) curWeight = d end, 'change')
 
         local data = require("tests.regression")()

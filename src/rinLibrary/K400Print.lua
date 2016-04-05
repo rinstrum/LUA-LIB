@@ -265,15 +265,6 @@ function _M.printModeAuto(setting)
     private.writeRegAsync(REG_PRINT_AUTO, v)
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.PRINT_SER1A = PRINT_SER1A
-deprecated.PRINT_SER1B = PRINT_SER1B
-deprecated.PRINT_SER2A = PRINT_SER2A
-deprecated.PRINT_SER2B = PRINT_SER2B
-
-deprecated.expandCustomTransmit = expandCustomTransmit
-
 if _TEST then
     _M.escapeNonPrintable = escapeNonPrintable
     _M.expandCustomTransmit = expandCustomTransmit

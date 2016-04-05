@@ -440,27 +440,4 @@ function _M.clearLin(pt)
     return doCmd(REG_CLRLIN, pt-1, 1.0)
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_ADC_ZERO         = REG_ADC_ZERO
-deprecated.REG_ADC_TARE         = REG_ADC_TARE
-deprecated.REG_ADC_PT           = REG_ADC_PT
-deprecated.REG_ADC_GROSS_NET    = REG_ADC_GROSS_NET
-deprecated.REG_ADC_HI_RES       = REG_ADC_HI_RES
-deprecated.REG_CALIBWGT         = REG_CALIBWGT
-deprecated.REG_CALIBZERO        = REG_CALIBZERO
-deprecated.REG_CALIBSPAN        = REG_CALIBSPAN
-deprecated.REG_CALIBLIN         = REG_CALIBLIN
-deprecated.REG_CLRLIN           = REG_CLRLIN
-deprecated.REG_CALIBDIRZERO     = REG_CALIBDIRZERO
-deprecated.REG_CALIBDIRSPAN     = REG_CALIBDIRSPAN
-
-deprecated.REG_ZEROMVV          = REG_ZEROMVV
-deprecated.REG_SPANWGT          = REG_SPANWGT
-deprecated.REG_SPANMVV          = REG_SPANMVV
-deprecated.REG_LINWGT           = REG_LINWGT
-deprecated.REG_LINPC            = REG_LINPC
-
-deprecated.NUM_LINPTS           = NUM_LINPTS
-
 end

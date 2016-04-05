@@ -27,10 +27,7 @@ local usb = require "rinLibrary.rinUSB"
 local dbg = require "rinLibrary.rinDebug"
 local canonical = require('rinLibrary.namings').canonicalisation
 
-local deprecatedFields, warned = {
-    system = system,
-    dbg = dbg
-}, {}
+local deprecatedFields, warned = {}, {}
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -55,8 +52,6 @@ _M.userio = require "IOSocket.Pack"
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
 dbg.configureDebug(_M.config)
-
-usb.deprecatedUSBhandlers(_M)
 
 local userTerminalCallback = nil
 local bidirectionalSocket = nil

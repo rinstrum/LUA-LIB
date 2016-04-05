@@ -271,12 +271,4 @@ function _M.setAnalogCur(module, val)
     return setVal(module, (val - 4) * 0.0625)
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.CUR = CUR
-deprecated.VOLT = VOLT
-private.registerDeviceInitialiser(function()
-    deprecated.ANALOG_COMMS = analogSourceMap.comms
-end)
-
 end

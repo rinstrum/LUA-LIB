@@ -124,7 +124,7 @@ function _M.socketACallback()
 end
 
 -------------------------------------------------------------------------------
--- Disconnect from the R400.
+-- Disconnect from the device.
 -- This routine is called by the rinApp application framework.  You don't usually
 -- need to call it yourself.
 -- @usage
@@ -376,15 +376,5 @@ function _M.socketDebugAcceptCallback(sock, ip, port)
     sockets.addSocketSet("debug", sock, function (s, m) return m end, true)
     dbg.info('debug connection from', ip, port)
 end
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.dbg = dbg
-deprecated.sendRaw = sendRaw
-deprecated.send = private.send
-deprecated.sendMsg = sendMsg
-deprecated.getDeviceRegister = private.getDeviceRegister
-deprecated.bindRegister = private.bindRegister
-deprecated.unbindRegister = private.unbindRegister
 
 end

@@ -494,48 +494,6 @@ function _M.editTimeDate(seconds)
 end
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_TIMECUR      = REG_TIMECUR
-deprecated.REG_TIMEFORMAT   = REG_TIMEFORMAT
-deprecated.REG_TIMEDAY      = REG_TIMEDAY
-deprecated.REG_TIMEMON      = REG_TIMEMON
-deprecated.REG_TIMEYEAR     = REG_TIMEYEAR
-deprecated.REG_TIMEHOUR     = REG_TIMEHOUR
-deprecated.REG_TIMEMIN      = REG_TIMEMIN
-deprecated.REG_TIMESEC      = REG_TIMESEC
-deprecated.REG_MSEC1000     = REG_MSEC1000 
-deprecated.REG_MSEC         = REG_MSEC   
-deprecated.REG_MSECLAST     = REG_MSECLAST
-deprecated.TM_DDMMYY        = TM_DDMMYY
-deprecated.TM_DDMMYYYY      = TM_DDMMYYYY
-deprecated.TM_MMDDYY        = TM_MMDDYY
-deprecated.TM_MMDDYYYY      = TM_MMDDYYYY
-deprecated.TM_YYMMDD        = TM_YYMMDD
-deprecated.TM_YYYYMMDD      = TM_YYYYMMDD
-
-deprecated.RTC              = RTC
-deprecated.RTCread          = private.RTCread
-
-local warnSetDateFormat = true
-function deprecated.RTCdateFormat(first, second, third)
-    if warnSetDateFormat then
-        dbg.warn('K400RTC:', 'RTCdateFormat deprecated, use rinLibary.date.setDateFormat instead')
-        warnSetDateFormat = false
-    end
-    date.setDateFormat(first, second, third)
-end
-
-local warnGetDateFormat = true
-function deprecated.RTCgetDateFormat()
-    if warnGetDateFormat then
-        dbg.warn('K400RTC:', 'RTCgetDateFormat deprecated, use rinLibary.date.getDateFormat instead')
-        warnGetDateFormat = false
-    end
-    return date.getDateFormat()
-end
-
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Expose some internals for testing purposes
 if _TEST then
     _M.monthLength = monthLength

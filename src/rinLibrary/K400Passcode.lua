@@ -138,13 +138,4 @@ function _M.changePasscode(pc, oldCode, newCode)
     return false, nil
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_FULLPCODEDATA    = REG_FULLPCODEDATA
-deprecated.REG_SAFEPCODEDATA    = REG_SAFEPCODEDATA
-deprecated.REG_OPERPCODEDATA    = REG_OPERPCODEDATA
-deprecated.REG_FULLPCODE        = REG_FULLPCODE
-deprecated.REG_SAFEPCODE        = REG_SAFEPCODE
-deprecated.REG_OPERPCODE        = REG_OPERPCODE
-
 end

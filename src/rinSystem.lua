@@ -12,6 +12,10 @@ local timers    = require "rinSystem.rinTimers"
 local sockets   = require "rinSystem.rinSockets"
 local dbg       = require "rinLibrary.rinDebug"
 
+local math = math
+local rawset = rawset
+local setmetatable = setmetatable
+
 local deprecatedFields, warned = {
     timers = timers,
     sockets = sockets

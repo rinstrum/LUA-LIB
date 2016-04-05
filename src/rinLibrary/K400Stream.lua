@@ -365,29 +365,4 @@ function _M.init()
     _M.sendKey('cancel', 'long')
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_STREAMDATA    = REG_STREAMDATA
-deprecated.REG_STREAMMODE    = REG_STREAMMODE
-deprecated.REG_STREAMREG1    = REG_STREAMREG1
-deprecated.REG_STREAMREG2    = REG_STREAMREG2
-deprecated.REG_STREAMREG3    = REG_STREAMREG3
-deprecated.REG_STREAMREG4    = REG_STREAMREG4
-deprecated.REG_STREAMREG5    = REG_STREAMREG5
-deprecated.REG_LUALIB        = REG_LUALIB
-deprecated.REG_LUAUSER       = REG_LUAUSER
-
-deprecated.STM_START         = STM_START
-deprecated.STM_STOP          = STM_STOP
-deprecated.STM_FREQ_MANUAL   = STM_FREQ_MANUAL
-deprecated.STM_FREQ_AUTO     = STM_FREQ_AUTO
-deprecated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
-deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
-deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
-deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
-
-deprecated.addStreamLib      = _M.addStream
-deprecated.removeStreamLib   = _M.removeStream
-deprecated.setStreamFreqLib  = _M.setStreamFreq
-
 end

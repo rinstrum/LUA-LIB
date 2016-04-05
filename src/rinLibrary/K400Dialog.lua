@@ -1178,43 +1178,4 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     return sel
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_EDIT_REG = REG_EDIT_REG
-local warnDelay = true
-deprecated.delay = function(t)
-    if warnDelay then
-        dbg.warn("K400:", "delay has been moved to rinApp")
-        warnDelay = false
-    end
-    _M.app.delay(t)
-end
-
-local warnDisplayMessage, warnDisplayMessageWait = true, true
-function deprecated.displayMessage(msg, t, units, unitsOther)
-    if warnDisplayMessage then
-        dbg.warn("K400:", "instead of displayMessage, use write with 'restore'")
-        warnDisplayMessage = false
-    end
-    local t = t or 0.5
-
-	if msg and t > 0 then
-		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
-		_M.write('bottomLeft', msg, 'restore, time='..t)			-- display message
-	end
-end
-
-function deprecated.displayMessageWait(msg, t, units, unitsOther)
-    if warnDisplayMessageWait then
-        dbg.warn("K400:", "instead of displayMessageWait, use write with 'restore, wait'")
-        warnDisplayMessageWait = false
-    end
-    local t = t or 0.5
-
-	if msg and t > 0 then
-		_M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none') -- display optional units
-		_M.write('bottomLeft', msg, 'wait, restore, time='..t)			-- display message
-	end
-end
-
 end

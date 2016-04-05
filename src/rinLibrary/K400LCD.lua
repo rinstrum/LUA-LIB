@@ -26,10 +26,6 @@ local utils = require 'rinSystem.utilities'
 local deepcopy = utils.deepcopy
 local dispHelp = require 'rinLibrary.displayHelper'
 
--- This shouldn't need to be here, but supports deprecated functions.
--- Remove when possible
-local R400Reg = require 'rinLibrary.display.R400'
-
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct, Cmt, Cc = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct, lpeg.Cmt, lpeg.Cc
 local P, Pi, R, S, V = lpeg.P, lpeg.Pi, lpeg.R, lpeg.S, lpeg.V
@@ -942,8 +938,6 @@ end)
 -- @field second Second annunicator
 -- @field slash Slash line
 -- @field total Total annunciator
-local rotWaitWarnedDeprecated = false
-local setAnnunciatorsDeprecated, clearAnnunciatorsDeprecated = false, false
 
 -------------------------------------------------------------------------------
 -- Turns the annunciators on
@@ -956,16 +950,7 @@ function _M.setAnnunciators(where, ...)
 
   if type(f) == 'table' and utils.callable(f.setAnnun) then
     return f.setAnnun(...)
-  else
-    if not setAnnunciatorsDeprecated then
-        dbg.warn('setAnnunciators:', "deprecated. Use setAnnunciators(where, ...).")
-        setAnnunciatorsDeprecated = true
-    end
-
-    f = naming.convertNameToValue('topLeft', display)
-    return f.setAnnun(where, ...)
- end
-
+  end
 end
 
 -------------------------------------------------------------------------------
@@ -979,16 +964,7 @@ function _M.clearAnnunciators(where, ...)
 
   if type(f) == 'table' and utils.callable(f.clearAnnun) then
     return f.clearAnnun(...)
-  else
-    if not clearAnnunciatorsDeprecated then
-        dbg.warn('clearAnnunciators:', "deprecated. Use clearAnnunciators(where, ...).")
-        clearAnnunciatorsDeprecated = true
-    end
-
-    f = naming.convertNameToValue('topLeft', display)
-    return f.clearAnnun(where, ...)
   end
-
 end
 
 -------------------------------------------------------------------------------
@@ -1005,14 +981,6 @@ function _M.rotWAIT(where, dir)
 
   if type(f) == 'table' and utils.callable(f.rotWait) then
     return f.rotWait(dir)
-  else
-    if not rotWaitWarnedDeprecated then
-        dbg.warn('rotWAIT:', "deprecated. Use rotWAIT(where, ...).")
-        rotWaitWarnedDeprecated = true
-    end
-
-    f = naming.convertNameToValue('topLeft', display)
-    return f.rotWait(dir or where)
   end
 end
 
@@ -1103,120 +1071,6 @@ end
 --  end
 function _M.setRawLCD(data)
     private.writeRegAsync(REG_MASTER, data, 'crc')
-end
-
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_LCDMODE                  = R400Reg.REG_LCDMODE
-deprecated.REG_DISP_BOTTOM_LEFT         = R400Reg.REG_DISP_BOTTOM_LEFT
-deprecated.REG_DISP_BOTTOM_RIGHT        = R400Reg.REG_DISP_BOTTOM_RIGHT
-deprecated.REG_DISP_TOP_LEFT            = R400Reg.REG_DISP_TOP_LEFT
-deprecated.REG_DISP_TOP_RIGHT           = R400Reg.REG_DISP_TOP_RIGHT
-deprecated.REG_DISP_TOP_ANNUN           = R400Reg.REG_DISP_TOP_ANNUN
-deprecated.REG_DISP_TOP_UNITS           = R400Reg.REG_DISP_TOP_UNITS
-deprecated.REG_DISP_BOTTOM_ANNUN        = R400Reg.REG_DISP_BOTTOM_ANNUN
-deprecated.REG_DISP_BOTTOM_UNITS        = R400Reg.REG_DISP_BOTTOM_UNITS
-deprecated.REG_DISP_AUTO_TOP_ANNUN      = R400Reg.REG_DISP_AUTO_TOP_ANNUN
-deprecated.REG_DISP_AUTO_TOP_LEFT       = R400Reg.REG_DISP_AUTO_TOP_LEFT
-deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = R400Reg.REG_DISP_AUTO_BOTTOM_LEFT
-deprecated.REG_LCD                      = R400Reg.REG_LCD
-
-
-deprecated.setAutoTopAnnun              = _M.writeAutoTopAnnun
-deprecated.setAutoTopLeft               = _M.writeAutoTopLeft
-deprecated.setAutoBotLeft               = _M.writeAutoBotLeft
-deprecated.setBitsTopAnnuns             = _M.setAnnunciators
-deprecated.clrBitsTopAnnuns             = _M.clearAnnunciators
-deprecated.setBitsBotAnnuns             = _M.setAnnunciators
-deprecated.clrBitsBotAnnuns             = _M.clearAnnunciators
-
--- Support the released function names with spelling errors :(
-deprecated.setAnnunicators              = _M.setAnnunciators
-deprecated.clearAnnunicators            = _M.clearAnnunciators
-
-deprecated.BATTERY                      = 'battery'
-deprecated.CLOCK                        = 'clock'
-deprecated.BAT_LO                       = 'bat_lo'
-deprecated.BAT_MIDL                     = 'bat_midl'
-deprecated.BAT_MIDH                     = 'bat_midh'
-deprecated.BAT_HI                       = 'bat_hi'
-deprecated.BAT_FULL                     = 'bat_full'
-deprecated.WAIT                         = 'wait'
-deprecated.WAIT45                       = 'wait45'
-deprecated.WAIT90                       = 'wait90'
-deprecated.WAIT135                      = 'wait135'
-deprecated.WAITALL                      = 'waitall'
-deprecated.SIGMA                        = 'sigma'
-deprecated.BALANCE                      = 'balance'
-deprecated.COZ                          = 'coz'
-deprecated.HOLD                         = 'hold'
-deprecated.MOTION                       = 'motion'
-deprecated.NET                          = 'net'
-deprecated.RANGE                        = 'range'
-deprecated.ZERO                         = 'zero'
-deprecated.BAL_SEGA                     = 'bal_sega'
-deprecated.BAL_SEGB                     = 'bal_segb'
-deprecated.BAL_SEGC                     = 'bal_segc'
-deprecated.BAL_SEGD                     = 'bal_segd'
-deprecated.BAL_SEGE                     = 'bal_sege'
-deprecated.BAL_SEGF                     = 'bal_segf'
-deprecated.BAL_SEGG                     = 'bal_segg'
-deprecated.RANGE_SEGADG                 = 'range_segadg'
-deprecated.RANGE_SEGC                   = 'range_segc'
-deprecated.RANGE_SEGE                   = 'range_sege'
-deprecated.UNITS_NONE                   = 'none'
-deprecated.UNITS_KG                     = 'kg'
-deprecated.UNITS_LB                     = 'lb'
-deprecated.UNITS_T                      = 't'
-deprecated.UNITS_G                      = 'g'
-deprecated.UNITS_OZ                     = 'oz'
-deprecated.UNITS_N                      = 'n'
-deprecated.UNITS_ARROW_L                = 'arrow_l'
-deprecated.UNITS_P                      = 'p'
-deprecated.UNITS_L                      = 'l'
-deprecated.UNITS_ARROW_H                = 'arrow_h'
-deprecated.UNITS_OTHER_PER_H            = 'per_h'
-deprecated.UNITS_OTHER_PER_M            = 'per_m'
-deprecated.UNITS_OTHER_PER_S            = 'per_s'
-deprecated.UNITS_OTHER_PC               = 'pc'
-deprecated.UNITS_OTHER_TOT              = 'total'
-
-deprecated.rightJustify                 = dispHelp.rightJustify
-
--------------------------------------------------------------------------------
--- Save the bottom left and right fields and units.
--- Don't use this function, use saveBottom instead.
--- @function saveBot
--- @see saveBottom
--- @usage
--- device.saveBot()
--- device.writeBotLeft('fnord')
--- device.restoreBot()
-function deprecated.saveBot()
-    map(function(v) return v.bottom end,
-        function(v)
-            v.saveCurrent = v.current
-            v.saveParams = v.params
-            v.saveUnits1 = v.units1
-            v.saveUnits2 = v.units2
-        end)
-end
-
--------------------------------------------------------------------------------
--- Restore the bottom left and right fields and units.
--- Don't use this function, use saveBottom instead.
--- @function restoreBot
--- @see saveBottom
--- @usage
--- device.saveBot()
--- device.writeBotLeft('fnord')
--- device.restoreBot()
-function deprecated.restoreBot()
-    map(function(v) return v.bottom end,
-        function(v)
-            write(v, v.saveCurrent, v.saveParams)
-            v.nits(v.saveUnits1, v.saveUnits2)
-        end)
 end
 
 if _TEST then

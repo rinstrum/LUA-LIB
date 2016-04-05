@@ -426,21 +426,4 @@ function _M.restart(what)
     error('Restart failed')
 end
 
--- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
--- Fill in all the deprecated fields
-deprecated.REG_PRIMARY_DISPMODE     = REG_PRIMARY_DISPMODE
-deprecated.REG_SECONDARY_DISPMODE   = REG_SECONDARY_DISPMODE
-deprecated.REG_SOFTMODEL            = REG_SOFTMODEL
-deprecated.REG_SOFTVER              = REG_SOFTVER
-deprecated.REG_SERIALNO             = private.REG_SERIALNO
-
-deprecated.readSettings = private.readSettings
-deprecated.settings = utils.readonlyreference(settings)
-deprecated.units = utils.readonlyreference(units)
-deprecated.countby = utils.readonlyreference(countby)
-
-deprecated.DISPMODE_PRIMARY      = DISPMODE_PRIMARY
-deprecated.DISPMODE_PIECES       = DISPMODE_PIECES
-deprecated.DISPMODE_SECONDARY    = DISPMODE_SECONDARY
-
 end
