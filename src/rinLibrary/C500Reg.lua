@@ -61,22 +61,22 @@ private.registerDeviceInitialiser(function()
 -- @field tracehour Date and time that the traceable weight was acquired
 -- @field traceminute Date and time that the traceable weight was acquired
 -- @field tracesecond Date and time that the traceable weight was acquired
--- @field unfiltered_weight Raw weight readings
+-- @field piececount Number of pieces corresponding to the current weight
         adcsample               = 0x0020,
-        sysstatus               = 0x0021,
-        syserr                  = 0x0022,
-        absmvv                  = 0x0023, 
+--        sysstatus               = 0x0021,
+--        syserr                  = 0x0022,
+--        absmvv                  = 0x0023, 
         grossnet                = 0x0025,
         gross                   = 0x0026,
         net                     = 0x0027,
         tare                    = 0x0028,
-        peakhold                = private.nonbatching(0x0029),
-        manhold                 = private.nonbatching(0x002A),
-        grandtotal              = 0x002B,
-        altgross                = private.nonbatching(0x002C),
-        rawadc                  = 0x002D,
-        altnet                  = private.nonbatching(0x002E),
-        fullscale               = 0x002F,
+        peakhold                = 0x0029,
+--        manhold                 = 0x002A,
+--        grandtotal              = 0x002B,
+--        altgross                = 0x002C,
+--        rawadc                  = 0x002D,
+--        altnet                  = 0x002E,
+--        fullscale               = 0x002F,
         tracevalid              = 0x0030,
         traceid                 = 0x0031,
         traceweight             = 0x0032,
@@ -89,36 +89,7 @@ private.registerDeviceInitialiser(function()
         tracehour               = 0x003A,
         traceminute             = 0x003B,
         tracesecond             = 0x003C,
-        piececount              = private.nonbatching(0x0053),
-        unfiltered_weight       = private.k422(0x0055),
-
---- Product Registers.
---@table productRegisters
--- @field active_product_no Read the Active Product Number, Write to set the active product by number
--- @field active_product_name Read the Active Product Name, Write to set Active Product by name
--- @field clr_all_totals Clears all product totals (EXECUTE)
--- @field clr_docket_totals Clears all docket sub-totals (EXECUTE)
--- @field select_product_no Read the Selected Product Number, Write to set the Selected product by number
--- @field select_product_name Read the Selected Product Name, Write to set the Selected product by Name
--- @field select_product_delete Delete Selected Product, totals must be 0 (EXECUTE)
--- @field select_product_rename Execute with a string as an argument to change name of selected product (EXECUTE)
--- @field product_total_weight ?
--- @field product_total_alt_weight ?
--- @field product_total_count ?
--- @field product_total_number ?
-        active_product_no       = 0xB000,
-        active_product_name     = 0xB006,
-        clr_all_totals          = 0xB002,
-        clr_docket_totals       = 0xB004,
-        select_product_no       = 0xB00F,
-        select_product_name     = 0xB010,
-        select_product_delete   = 0xB011,
-        select_product_rename   = 0xB012,
-
-        product_total_weight    = 0xB102,
-        product_total_alt_weight= 0xB103,
-        product_total_count     = 0xB104,
-        product_total_number    = 0xB105
+--        piececount              = 0x0053,
     }
 end)
 

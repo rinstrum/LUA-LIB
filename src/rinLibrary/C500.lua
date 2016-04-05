@@ -1,37 +1,17 @@
 -------------------------------------------------------------------------------
--- Library for K400 application support.
+-- Library for C500 application support.
 -- Provides wrappers for all device services
--- @module rinLibrary.K400
--- @author Pauli
--- @copyright 2014 Rinstrum Pty Ltd
+-- @module rinLibrary.C500
+-- @author Merrick
+-- @copyright 2016 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local loader = require('rinLibrary.deviceLoader')
 
 -- submodules are merged in as follows (and in this order):
 local modules = {
     "rinCon",
-    "K400Reg",
+    "C500Reg",
     "GenericReg",
-    "K400Util",
-    "K400Stream",
-    "K400Status",
-    "K400Axle",
-    "K400Keys",
-    "K400Buzz",
-    "K400LCD",
-    "K400Dialog",
-    "K400FSM",
-    "K400Menu",
-    "K400RTC",
-    "K400Analog",
-    "K400Batch",
-    "K400Setpoint",
-    "K400Print",
-    "K400Command",
-    "K400Users",
-    "K400Passcode",
-    "K400USB",
-    "K400Weights"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
