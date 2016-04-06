@@ -19,25 +19,6 @@ describe("Streaming #stream", function ()
         return m, p, d
     end
 
-    describe("deprecated registers", function()
-        local _, _, d = makeModule()
-        for k, v in pairs({
-            streamdata      = 0x0040,
-            streammode      = 0x0041,
-            streamreg1      = 0x0042,
-            streamreg2      = 0x0043,
-            streamreg3      = 0x0044,
-            streamreg4      = 0x0045,
-            streamreg5      = 0x0046,
-            lualib          = 0x0300,
-            luauser         = 0x0310
-        }) do
-            it("test "..k, function()
-                assert.equal(v, d["REG_" .. string.upper(k)])
-            end)
-        end
-    end)
-
     it("enumerations", function()
         local _, _, d = makeModule()
         for k, v in pairs{
