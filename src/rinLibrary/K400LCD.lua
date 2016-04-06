@@ -746,129 +746,6 @@ function _M.readAuto(where)
     return readAuto(naming.convertNameToValue(where, display))
 end
 
--------------------------------------------------------------------------------
--- Write string to Top Left of LCD.  The write interface is preferred.
--- @function writeTopLeft
--- @param s string to display
--- @param params displayControl parameter
--- @see write
--- @see displayControl
--- @usage
--- device.writeTopLeft('HELLO WORLD', 0.6)
-function _M.writeTopLeft(s, params)
-    return _M.write('topleft', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Top Right of LCD.  The write interface is preferred.
--- @function writeTopRight
--- @param s string to display
--- @param params displayControl parameter
--- @see write
--- @see displayControl
--- @usage
--- device.writeTopRight('ABCD')
-function _M.writeTopRight(s, params)
-    return _M.write('topright', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Bottom Left of LCD.  The write interface is preferred.
--- @function writeBotLeft
--- @param s string to display
--- @param params displayControl parameter
--- @see write
--- @see displayControl
--- @usage
--- device.writeBotLeft('AARDVARK BOTHER HORSES')
-function _M.writeBotLeft(s, params)
-    return _M.write('bottomleft', s, params)
-end
-
--------------------------------------------------------------------------------
--- Write string to Bottom Right of LCD.  The write interface is preferred.
--- @function writeBotRight
--- @param s string to display
--- @param params deldisplayControl parameterssage
--- @see write
--- @see displayControl
--- @usage
--- device.writeBotRight('HORSES BOTHER AARDVARK')
-function _M.writeBotRight(s, params)
-    return _M.write('bottomright', s, params)
-end
-
------------------------------------------------------------------------------
--- Link register address with Top Left display to update automatically.
--- The writeAuto interface is preferred.
--- @function writeAutoTopLeft
--- @param register address of register to link Top Left display to.
--- Set to 0 to enable direct control of the area
--- @see writeAuto
--- @usage
--- device.writeAutoTopLeft('grossnet')
-function _M.writeAutoTopLeft(param)
-    return _M.writeAuto('topLeft', param)
-end
-
------------------------------------------------------------------------------
--- Reads the current Top Left auto update register
--- The readAuto interface is preferred.
--- @function readAutoTopLeft
--- @return register that is being used for auto update, 0 if none
--- @see readAuto
--- @usage
--- local old = device.readAutoTopLeft()
--- device.writeAuto('topLeft', 0)
--- ...
--- device.writeAuto('topLeft', old)
-function _M.readAutoTopLeft()
-    return _M.readAuto('topLeft')
-end
-
------------------------------------------------------------------------------
--- Link register address with Bottom Left display to update automatically
--- The writeAuto interface is preferred.
--- @function writeAutoBotLeft
--- @param register address of register to link Bottom Left display to.
--- Set to 0 to enable direct control of the area
--- @see writeAuto
--- @usage
--- device.writeAutoBotLeft('grossnet')
-function _M.writeAutoBotLeft(param)
-    return _M.writeAuto('bottomLeft', param)
-end
-
------------------------------------------------------------------------------
--- Reads the current Bottom Left auto update register
--- The readAuto interface is preferred.
--- @function readAutoBotLeft
--- @return register that is being used for auto update, 0 if none
--- @see readAuto
--- @usage
--- local old = device.readAutoBotLeft()
--- device.writeAuto('bottomLeft', 0)
--- ...
--- device.writeAuto('bottomLeft', old)
-function _M.readAutoBotLeft()
-    return _M.readAuto('bottomLeft')
-end
-
------------------------------------------------------------------------------
--- Link register address with Top annunciators to update automatically
--- @function writeAutoTopAnnun
--- @param register address of register to link Top Annunciator state to.
--- Set to 0 to enable direct control of the area.
--- @usage
--- device.writeAutoTopAnnun(0)
-local writeAutoTopAnnun
-private.registerDeviceInitialiser(function()
-    writeAutoTopAnnun = private.exposeFunction('writeAutoTopAnnun', R400Reg.REG_DISP_AUTO_TOP_ANNUN, function(register)
-        local r = private.getRegisterNumber(register)
-        private.writeRegHexAsync(R400Reg.REG_DISP_AUTO_TOP_ANNUN, r)
-    end)
-end)
-
 --- LCD Annunciators
 -- These are the definitions of all the annunciators top, bottom, and remote.
 -- Some displays may not support all annunciators. If an annunciator is not
@@ -1007,27 +884,6 @@ function _M.writeUnits(where, unts, other)
 end
 
 -------------------------------------------------------------------------------
--- Set top units.  The writeUnits interface is preferred.
--- @param unts Unit to display
--- @see writeUnits
--- @usage
--- device.writeTopUnits('kg')
-function _M.writeTopUnits(unts)
-    return _M.writeUnits('topLeft', unts)
-end
-
--------------------------------------------------------------------------------
--- Set bottom units.  The writeUnits interface is preferred.
--- @param unts Unit to display
--- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot')
--- @see writeUnits
--- @usage
--- device.writeBotUnits('oz', 'per_m')
-function _M.writeBotUnits(unts, other)
-    return _M.writeUnits('bottomLeft', unts, other)
-end
-
--------------------------------------------------------------------------------
 -- Called to restore the LCD to its default state
 -- @usage
 -- device.restoreLcd()
@@ -1036,7 +892,7 @@ function _M.restoreLcd()
     writeAuto(display.topleft, 'grossnet')
     writeAuto(display.bottomright, 0)
 
-    writeAutoTopAnnun(0)
+    writeAuto('topLeft', 0)
     _M.clearAnnunciators('bottomLeft', 'all')
     _M.writeUnits('bottomLeft', 'none')
 end
@@ -1078,7 +934,6 @@ if _TEST then
     _M.strSubLCD = dispHelp.strSubLCD
     _M.padDots    = dispHelp.padDots
     _M.splitWords = splitWords
-    _M.convertAnnunciatorBits = R400Reg.convertAnnunciatorBits
 end
 
 end
