@@ -181,6 +181,63 @@ function _M.addK400(model, ip, portA, portB)
 end
 
 -------------------------------------------------------------------------------
+-- Called to connect to the C500 instrument, and establish the timers,
+-- streams and other services
+-- @param model Software model expected for the instrument (eg "C500")
+-- @param ip IP address for the socket, "127.0.0.1" used as a default
+-- @param portA port address for the SERA socket (2222 used as default)
+-- @param portB port address for the SERB socket (2223 used as default)
+-- @return device object for this instrument
+-- @usage
+-- local rinApp = require "rinApp"
+--
+-- local device = rinApp.addC500()
+-- local otherDevice = rinApp.addC500('C500', '1.1.1.1')
+function _M.addC500(model, ip, portA, portB)
+    -- Create the socket
+    local device = require("rinLibrary.K400")(model)
+    table.insert(_M.devices, device)
+
+    device.ipaddress = ip or os.getenv('C500IP') or "127.0.0.1"
+    device.portA = portA or 2222
+    device.portB = portB or 2223
+
+    local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
+    local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
+
+    -- Connect to the K400, and attach system if using the system library
+    device.connect(sA, sB, _M)
+
+    -- Register the K400 with system
+    socks.addSocket(device.socketA, device.socketACallback)
+    socks.addSocket(device.socketB, device.socketBCallback)
+
+    -- Create the extra debug port
+    socks.createServerSocket(2226, device.socketDebugAcceptCallback)
+    dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
+
+    device.initialisation(model)
+
+    -- Flush the key presses
+    device.flushKeys()
+    device.streamCleanup()  -- Clean up any existing streams on connect
+    device.setupKeys()
+    device.addDisplay("C500", "", 'embedded')
+    device.addDisplay("console", "", 'embedded')
+    device.setupStatus()
+    device.lcdControl('lua')
+    device.configure()
+    
+    -- Set up the topLeft and bottomLeft. Ensures that when displays are saved
+    -- these are correctly restored without being explicitly written by the user.
+    local old = device.readAuto('C500')
+    device.writeAuto('C500', old)
+    
+    return device
+end
+
+
+-------------------------------------------------------------------------------
 -- Write to the bidirectional socket
 -- @param msg The message to write
 -- @usage
