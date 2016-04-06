@@ -7,14 +7,15 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
-local string        = string
-local format        = string.format
-local tonumber      = tonumber
-local type          = type
-local floor         = math.floor
-local ipairs        = ipairs
-local unpack        = unpack
-local error         = error
+local string = string
+local format = string.format
+local tonumber = tonumber
+local type = type
+local floor = math.floor
+local ipairs = ipairs
+local unpack = unpack
+local error = error
+local os = os
 local bit32         = require "bit"
 local powersOfTen   = require "rinLibrary.powersOfTen"
 local system        = require 'rinSystem'

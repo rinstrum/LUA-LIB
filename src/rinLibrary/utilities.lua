@@ -16,6 +16,16 @@ local regPattern = P'REG_' * C(R('AZ', '09', '__')^1)
 
 local lower = string.lower
 local min, max = math.min, math.max
+local error = error
+local tostring = tostring
+local pairs = pairs
+local type = type
+local assert = assert
+local rawset = rawset
+local string = string
+local ipairs = ipairs
+local unpack = unpack
+local table = table
 
 return function(mod, private, deprecated)
     local regMap, regUnmap = { [0] = 0 }, { [0] = 0 }
@@ -174,7 +184,7 @@ return function(mod, private, deprecated)
             value = value + inc % size
             if value > size then value = value - size end
         else
-            value = math.min(size, math.max(1, value + inc))
+            value = min(size, max(1, value + inc))
         end
         return value
     end
