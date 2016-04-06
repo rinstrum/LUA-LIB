@@ -91,7 +91,6 @@ install: compile
 	$(INSTALL_EXEC) src/rinLibrary/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary	
 	$(INSTALL_EXEC) src/rinLibrary/display/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinLibrary/display
 	$(INSTALL_EXEC) src/rinSystem/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem
-	$(INSTALL_EXEC) src/rinSystem/rinSockets/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinSockets
 	$(INSTALL_EXEC) src/rinSystem/rinTimers/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
 	
 	cp -rp examples/* $(DEST_DIR)/home/lualib_examples
