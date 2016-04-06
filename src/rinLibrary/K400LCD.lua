@@ -929,6 +929,27 @@ function _M.setRawLCD(data)
     private.writeRegAsync(REG_MASTER, data, 'crc')
 end
 
+-- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
+-- Add in the registers from the R400 Display
+-- These are necessary so that when readAuto returns a register, the register
+-- is recognised by the library.
+-- 
+local R400Reg = require 'rinLibrary.display.R400'
+
+deprecated.REG_LCDMODE                  = R400Reg.REG_LCDMODE
+deprecated.REG_DISP_BOTTOM_LEFT         = R400Reg.REG_DISP_BOTTOM_LEFT
+deprecated.REG_DISP_BOTTOM_RIGHT        = R400Reg.REG_DISP_BOTTOM_RIGHT
+deprecated.REG_DISP_TOP_LEFT            = R400Reg.REG_DISP_TOP_LEFT
+deprecated.REG_DISP_TOP_RIGHT           = R400Reg.REG_DISP_TOP_RIGHT
+deprecated.REG_DISP_TOP_ANNUN           = R400Reg.REG_DISP_TOP_ANNUN
+deprecated.REG_DISP_TOP_UNITS           = R400Reg.REG_DISP_TOP_UNITS
+deprecated.REG_DISP_BOTTOM_ANNUN        = R400Reg.REG_DISP_BOTTOM_ANNUN
+deprecated.REG_DISP_BOTTOM_UNITS        = R400Reg.REG_DISP_BOTTOM_UNITS
+deprecated.REG_DISP_AUTO_TOP_ANNUN      = R400Reg.REG_DISP_AUTO_TOP_ANNUN
+deprecated.REG_DISP_AUTO_TOP_LEFT       = R400Reg.REG_DISP_AUTO_TOP_LEFT
+deprecated.REG_DISP_AUTO_BOTTOM_LEFT    = R400Reg.REG_DISP_AUTO_BOTTOM_LEFT
+deprecated.REG_LCD                      = R400Reg.REG_LCD
+
 if _TEST then
     _M.strLenLCD = dispHelp.strLenLCD
     _M.strSubLCD = dispHelp.strSubLCD
