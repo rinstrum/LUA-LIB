@@ -12,6 +12,7 @@ local modules = {
     "rinCon",
     "C500Reg",
     "GenericReg",
+    "GenericUtil"
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

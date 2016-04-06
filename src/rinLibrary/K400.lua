@@ -12,7 +12,7 @@ local modules = {
     "rinCon",
     "K400Reg",
     "GenericReg",
-    "K400Util",
+    "GenericUtil",
     "K400Stream",
     "K400Status",
     "K400Axle",

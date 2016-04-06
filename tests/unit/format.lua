@@ -7,7 +7,7 @@
 describe("format #format", function()
     local function makeModule()
         local m, p, d = {}, {}, {}
-        require("rinLibrary.K400Util")(m, p, d)
+        require("rinLibrary.GenericUtil")(m, p, d)
         return m, p, d
     end
 

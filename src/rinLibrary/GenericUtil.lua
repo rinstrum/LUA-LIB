@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 ---  General Utilities.
 -- General Functions for configuring the instrument
--- @module rinLibrary.K400Util
+-- @module rinLibrary.GenericUtil
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -12,6 +12,9 @@ local format        = string.format
 local tonumber      = tonumber
 local type          = type
 local floor         = math.floor
+local ipairs        = ipairs
+local unpack        = unpack
+local error         = error
 local bit32         = require "bit"
 local powersOfTen   = require "rinLibrary.powersOfTen"
 local system        = require 'rinSystem'
@@ -276,7 +279,7 @@ function _M.initialisation(model)
         instrumentModel = ''
         return err
     elseif model ~= nil and model ~= instrumentModel then
-        dbg.warn('K400:', 'wrong software model '..model..' (device is '..instrumentModel..')')
+        dbg.warn('Device:', 'wrong software model '..model..' (device is '..instrumentModel..')')
     end
 
     private.deviceType = string.lower(instrumentModel)
