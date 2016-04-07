@@ -271,9 +271,14 @@ function _M.setAnalogCur(module, val)
     return setVal(module, (val - 4) * 0.0625)
 end
 
+-- Include to preserve tests
 if _TEST then
-  private.CUR = CUR
-  private.VOLT = VOLT
+  deprecated.CUR = CUR
+  deprecated.VOLT = VOLT
+  
+  private.registerDeviceInitialiser(function()
+    deprecated.ANALOG_COMMS = analogSourceMap.comms
+  end)
 end
 
 end

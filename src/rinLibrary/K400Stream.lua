@@ -365,4 +365,15 @@ function _M.init()
     _M.sendKey('cancel', 'long')
 end
 
+if _TEST then
+  deprecated.STM_START         = STM_START
+  deprecated.STM_STOP          = STM_STOP
+  deprecated.STM_FREQ_MANUAL   = STM_FREQ_MANUAL
+  deprecated.STM_FREQ_AUTO     = STM_FREQ_AUTO
+  deprecated.STM_FREQ_AUTO10   = STM_FREQ_AUTO10
+  deprecated.STM_FREQ_AUTO3    = STM_FREQ_AUTO3
+  deprecated.STM_FREQ_AUTO1    = STM_FREQ_AUTO1
+  deprecated.STM_FREQ_ONCHANGE = STM_FREQ_ONCHANGE
+end
+
 end

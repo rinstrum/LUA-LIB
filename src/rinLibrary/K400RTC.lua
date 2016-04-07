@@ -499,6 +499,12 @@ if _TEST then
     _M.monthLength = monthLength
     _M.setDateFormat = setDateFormat
     _M.rtc = RTC
+    deprecated.TM_DDMMYY = TM_DDMMYY
+    deprecated.TM_DDMMYYYY = TM_DDMMYYYY
+    deprecated.TM_MMDDYY = TM_MMDDYY
+    deprecated.TM_MMDDYYYY = TM_MMDDYYYY
+    deprecated.TM_YYMMDD = TM_YYMMDD
+    deprecated.TM_YYYYMMDD = TM_YYYYMMDD
 end
 
 end
