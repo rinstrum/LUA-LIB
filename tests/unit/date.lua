@@ -166,16 +166,20 @@ describe('Date tests #date', function()
 
     it("format", function()
         local yr, mo, da = 2022, 1, 2
-        date.setDateFormat('month', 'day', 'year')
+        date.setDateFormat('month', 'day', 'year', 4)
         assert.is_equal("01/02/2022", date.formatDate(yr, mo, da))
-        assert.is_same({ "month", "day", "year" }, {date.getDateFormat()})
+        assert.is_same({ "month", "day", "year", 4 }, {date.getDateFormat()})
 
-        date.setDateFormat('year', 'month', 'day')
+        date.setDateFormat('year', 'month', 'day', 4)
         assert.is_equal("2022/01/02", date.formatDate(yr, mo, da))
-        assert.is_same({ "year", "month", "day" },  {date.getDateFormat()})
+        assert.is_same({ "year", "month", "day", 4 },  {date.getDateFormat()})
 
-        date.setDateFormat('day', 'month', 'year')
+        date.setDateFormat('day', 'month', 'year', 4)
         assert.is_equal("02/01/2022", date.formatDate(yr, mo, da))
-        assert.is_same({ "day", "month", "year" }, {date.getDateFormat()})
+        assert.is_same({ "day", "month", "year", 4 }, {date.getDateFormat()})
+        
+        date.setDateFormat('day', 'month', 'year', 2)
+        assert.is_equal("02/01/22", date.formatDate(yr, mo, da))
+        assert.is_same({ "day", "month", "year", 2 }, {date.getDateFormat()})
     end)
 end)
