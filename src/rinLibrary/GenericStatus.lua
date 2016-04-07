@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Status Monitoring.
 -- Functions associated with the status monitoring
--- @module rinLibrary.K400Status
+-- @module rinLibrary.GenericStatus
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -9,6 +9,7 @@
 local string = string
 local pairs = pairs
 local ipairs = ipairs
+local math = math
 local bit32 = require "bit"
 local system = require 'rinSystem'
 local dbg = require "rinLibrary.rinDebug"
@@ -597,7 +598,7 @@ function private.setStatusMainCallback(status, callback)
         statBinds[stat].mainf = callback
         statBinds[stat].lastStatus = nil
     else
-        setEStatusMainCallback(status, callback)
+        private.setEStatusMainCallback(status, callback)
     end
 end
 
