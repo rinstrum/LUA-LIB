@@ -31,15 +31,6 @@ describe("RTC #rtc", function ()
         return m, p, d
     end
 
-    describe("deprecated registers", function()
-        local _, _, d = makeModule()
-            for k, v in pairs(dregs) do
-            it("test "..k, function()
-                assert.equal(v, d["REG_" .. string.upper(k)])
-            end)
-        end
-    end)
-
     it("enumerations", function()
         local _, _, d = makeModule()
         assert.equal(dmy,   d.TM_DDMMYY)
