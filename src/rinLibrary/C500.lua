@@ -14,6 +14,7 @@ local modules = {
     "GenericReg",
     "GenericUtil",
     "GenericStream",
+    "GenericStatus",
     "GenericKeys",
     "GenericLCD",
     "GenericRTC",

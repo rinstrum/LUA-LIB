@@ -14,7 +14,7 @@ local modules = {
     "GenericReg",
     "GenericUtil",
     "GenericStream",
-    "K400Status",
+    "GenericStatus",
     "K400Axle",
     "GenericKeys",
     "K400Buzz",

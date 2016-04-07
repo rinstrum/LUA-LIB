@@ -135,7 +135,7 @@ return function (_M, private, deprecated)
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
 --
--- @see rinLibrary.K400Status.luastatus
+-- @see rinLibrary.GenericStatus.luastatus
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
