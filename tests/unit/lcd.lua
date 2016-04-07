@@ -23,7 +23,7 @@ describe("LCD #lcd", function ()
     local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
-        require("rinLibrary.K400LCD")(m, p, d)
+        require("rinLibrary.GenericLCD")(m, p, d)
         m.flushed = 0
         m.flush = function() m.flushed = m.flushed + 1 end
         return m, p, d
@@ -41,7 +41,7 @@ describe("LCD #lcd", function ()
     describe("K422 non-longer missing registers", function()
         local m, p, d = {}, { deviceType = 'k422' }, {}
         require("rinLibrary.utilities")(m, p, d)
-        require("rinLibrary.K400LCD")(m, p, d)
+        require("rinLibrary.GenericLCD")(m, p, d)
 
         for k, v in pairs(dregs) do
             if v >= 16 then

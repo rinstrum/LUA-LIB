@@ -6,11 +6,16 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
-local string = string
-local tonumber = tonumber
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local date = require 'rinLibrary.date'
+
+local string = string
+local tonumber = tonumber
+local pairs = pairs
+local table = table
+local ipairs = ipairs
+local unpack = unpack
 
 local monthLength = date.monthLength
 

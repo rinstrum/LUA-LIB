@@ -13,7 +13,7 @@ describe("Streaming #stream", function ()
         require("rinLibrary.utilities")(m, p, d)
         require("rinLibrary.rinCon")(m, p, d)
         require("rinLibrary.K400Reg")(m, p, d)
-        require("rinLibrary.K400Stream")(m, p, d)
+        require("rinLibrary.GenericStream")(m, p, d)
         require("rinLibrary.K400Setpoint")(m, p, d)
         p.processDeviceInitialisers()
         return m, p, d

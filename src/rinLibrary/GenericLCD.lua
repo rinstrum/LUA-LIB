@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- LCD Services.
 -- Functions to configure the LCD
--- @module rinLibrary.K400LCD
+-- @module rinLibrary.GenericLCD
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -509,14 +509,14 @@ local function writeArgs(t)
     elseif type(t) == 'string' then
         local r = writeArgPat:match(t)
         if r == nil then
-            dbg.error("K400LCD: unparsable display parameter:", t)
+            dbg.error("LCD: unparsable display parameter:", t)
             return {}
         end
         return r
     elseif type(t) == 'table' then
         return deepcopy(t)
     end
-    dbg.error("K400LCD: unknown display parameter:", tostring(t))
+    dbg.error("LCD: unknown display parameter:", tostring(t))
     return {}
 end
 

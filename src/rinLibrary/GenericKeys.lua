@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Key Handling.
 -- Functions associated with the handing key presses
--- @module rinLibrary.K400Keys
+-- @module rinLibrary.GenericKeys
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

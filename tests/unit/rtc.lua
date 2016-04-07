@@ -25,7 +25,7 @@ describe("RTC #rtc", function ()
     local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
-        require("rinLibrary.K400RTC")(m, p, d)
+        require("rinLibrary.GenericRTC")(m, p, d)
         m.flushed = 0
         m.flush = function() m.flushed = m.flushed + 1 end
         return m, p, d

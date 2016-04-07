@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 ---  Streaming Utilities.
 -- Functions associated with streaming registers
--- @module rinLibrary.K400Stream
+-- @module rinLibrary.GenericStream
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
