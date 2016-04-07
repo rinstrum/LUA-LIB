@@ -137,15 +137,15 @@ describe("RTC #rtc", function ()
         assert.is_same({ yr, mo, da, n=3 }, table.pack(m.RTCreadDate()))
         assert.is_same({ ho, mi, se, n=3 }, table.pack(m.RTCreadTime()))
         assert.is_equal("01/02/2022 03:04:05", m.RTCtostring())
-        assert.is_same({ "month", "day", "year" }, {date.getDateFormat()})
+        assert.is_same({ "month", "day", "year", 4 }, {date.getDateFormat()})
 
         date.setDateFormat('year', 'month', 'day', 4)
         assert.is_equal("2022/01/02 03:04:05", m.RTCtostring())
-        assert.is_same({ "year", "month", "day" }, {date.getDateFormat()})
+        assert.is_same({ "year", "month", "day", 4 }, {date.getDateFormat()})
 
         date.setDateFormat('day', 'month', 'year', 4)
         assert.is_equal("02/01/2022 03:04:05", m.RTCtostring())
-        assert.is_same({ "day", "month", "year" }, {date.getDateFormat()})
+        assert.is_same({ "day", "month", "year", 4 }, {date.getDateFormat()})
     end)
 
     describe("time format #time12", function()
