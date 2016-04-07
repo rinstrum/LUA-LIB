@@ -271,4 +271,9 @@ function _M.setAnalogCur(module, val)
     return setVal(module, (val - 4) * 0.0625)
 end
 
+if _TEST then
+  private.CUR = CUR
+  private.VOLT = VOLT
+end
+
 end
