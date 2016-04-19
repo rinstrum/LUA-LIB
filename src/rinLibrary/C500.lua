@@ -18,6 +18,7 @@ local modules = {
     "GenericKeys",
     "GenericLCD",
     "GenericRTC",
+    "K400Dialog", -- Remove this after dialog is fixed.
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

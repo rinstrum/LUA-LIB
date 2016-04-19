@@ -259,7 +259,7 @@ function _M.addStream(streamReg, callback, onChange)
         utils.call(callback, convertCallbackArg(availReg.lastData, availReg), err)
 
         private.writeRegHexAsync(availReg.mode, convertFrequency(freqUser))
-        private.writeRegAsync(availReg.stream, regid)
+        private.writeRegHexAsync(availReg.stream, regid)
         private.exRegAsync(availReg.data, STM_START)
 
         private.bindRegister(availReg.data, function(data, err)

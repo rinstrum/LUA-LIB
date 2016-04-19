@@ -195,10 +195,11 @@ end
 -- local otherDevice = rinApp.addC500('C500', '1.1.1.1')
 function _M.addC500(model, ip, portA, portB)
     -- Create the socket
-    local device = require("rinLibrary.K400")(model)
+    local device = require("rinLibrary.C500")(model)
     table.insert(_M.devices, device)
 
     device.ipaddress = ip or os.getenv('C500IP') or "127.0.0.1"
+
     device.portA = portA or 2222
     device.portB = portB or 2223
 
@@ -210,7 +211,7 @@ function _M.addC500(model, ip, portA, portB)
 
     -- Register the K400 with system
     socks.addSocket(device.socketA, device.socketACallback)
-    socks.addSocket(device.socketB, device.socketBCallback)
+    --socks.addSocket(device.socketB, device.socketBCallback)
 
     -- Create the extra debug port
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
@@ -230,8 +231,8 @@ function _M.addC500(model, ip, portA, portB)
     
     -- Set up the topLeft and bottomLeft. Ensures that when displays are saved
     -- these are correctly restored without being explicitly written by the user.
-    local old = device.readAuto('C500')
-    device.writeAuto('C500', old)
+    --local old = device.readAuto('C500')
+    --device.writeAuto('C500', old)
     
     return device
 end

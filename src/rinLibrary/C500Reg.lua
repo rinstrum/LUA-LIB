@@ -76,7 +76,7 @@ private.registerDeviceInitialiser(function()
 --        altgross                = 0x002C,
 --        rawadc                  = 0x002D,
 --        altnet                  = 0x002E,
---        fullscale               = 0x002F,
+        fullscale               = 0x002F,
         tracevalid              = 0x0030,
         traceid                 = 0x0031,
         traceweight             = 0x0032,

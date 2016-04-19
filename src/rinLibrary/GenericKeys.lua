@@ -593,7 +593,7 @@ end
 function _M.setupKeys()
     _M.flushKeys()
     private.writeRegHex(REG_APP_KEY_HANDLER, 1)
-    keyID = _M.addStream(REG_GET_KEY, keyCallback, 'change')
+    keyID = _M.addStream(REG_GET_KEY, keyCallback, 'change') 
 end
 
 -------------------------------------------------------------------------------

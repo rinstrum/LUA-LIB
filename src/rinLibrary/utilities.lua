@@ -272,7 +272,7 @@ return function(mod, private, deprecated)
 -- @see valueByDevice
 -- @local
     function private.nonbatching(v)
-		assert(private.deviceType ~= nil)
+	assert(private.deviceType ~= nil)
         private.nonbatching = private.valueByDevice{
             k410 = nilly,
             a418 = nilly,

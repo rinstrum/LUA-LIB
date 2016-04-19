@@ -220,7 +220,7 @@ function _M.addDisplay(type, prefix, options)
   if (success == false) then
     return false, disp
   end
-
+   
   prefix = naming.canonicalisation(prefix)
   
   -- Get the settings. There may be none given.
@@ -228,7 +228,7 @@ function _M.addDisplay(type, prefix, options)
   settings.reg = 0
   
   -- If the user does not specify any addressing options, then set up the 
-  -- R400 serial.
+  -- device serial.
   if (settings and settings.type == 'serial') then
     local reg_off = interfaces[settings.intf]
     settings.reg = reg_off
@@ -253,7 +253,7 @@ function _M.addDisplay(type, prefix, options)
 
     _M.saveSettings()
   end
-
+  
   display, err = disp.add(private, display, prefix, settings)
   
   if (err) then

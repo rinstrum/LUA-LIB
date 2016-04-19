@@ -125,6 +125,7 @@ private.registerDeviceInitialiser(function()
     }
 end)
 
+local REG_LUA_IOSTATUS = 0x0051
 local REG_LUA_STATUS   = 0x0329
 local REG_LUA_ESTAT    = 0x0305
 local REG_LUA_STAT_RTC = 0x032A
@@ -1119,7 +1120,7 @@ function _M.setupStatus()
     curStatus, curEStatus = 0, 0
     statID  = _M.addStream(REG_LUA_STATUS, statusCallback, 'change')
     eStatID = _M.addStream(REG_LUA_ESTAT,  eStatusCallback, 'change')
-    IOID    = _M.addStream('io_status',    function(d, e) IOsCallback(ioTable, d, e) end, 'change')
+    IOID    = _M.addStream(REG_LUA_IOSTATUS, function(d, e) IOsCallback(ioTable, d, e) end, 'change')
     SETPID  = _M.addStream(REG_SETPSTATUS, function(d, e) IOsCallback(setpointTable, d, e) end, 'change')
     private.RTCread()
     private.setEStatusMainCallback('rtc',  handleRTC)
