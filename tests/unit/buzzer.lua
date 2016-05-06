@@ -11,7 +11,7 @@ describe("buzzer #buzz", function ()
     local function makeModule()
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
-        require("rinLibrary.K400Buzz")(m, p, d)
+        require("rinLibrary.GenericBuzz")(m, p, d)
         return m, p, d
     end
 

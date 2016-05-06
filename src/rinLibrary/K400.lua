@@ -17,7 +17,7 @@ local modules = {
     "GenericStatus",
     "K400Axle",
     "GenericKeys",
-    "K400Buzz",
+    "GenericBuzz",
     "GenericLCD",
     "K400Dialog",
     "GenericFSM",

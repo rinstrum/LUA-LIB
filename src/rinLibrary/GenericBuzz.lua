@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Buzzer Handling.
 -- Functions associated with the making of noise
--- @module rinLibrary.K400Buzz
+-- @module rinLibrary.GenericBuzz
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
