@@ -1,0 +1,24 @@
+digraph "demoFSM" {
+ graph [label="demoFSM", labelloc=t, fontsize=20];
+ "nowhere" [label="Nowhere" fontsize=14];
+  "nowhere" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+  "nowhere" -> "somewhere" [color="#009E73" label="t=2.4" fontsize=10];
+ "zero" [label="Zero" fontsize=14];
+  "zero" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+ "somewhere" [label="Somewhere" fontsize=14];
+  "somewhere" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+  "somewhere" -> "finish" [color="#D55E00" label="fin" fontsize=10];
+  "somewhere" -> "steady" [color="#009E73" label="t=1.8" fontsize=10];
+ "steady" [label="Steady" fontsize=14];
+  "steady" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+  "steady" -> "nowhere" [color="#009E73:#D55E00" label="t=4\nfin" fontsize=10];
+ "finish" [label="Finish" fontsize=14];
+  "finish" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+ "start" [label="Start" style=filled color="#F0E442" fontsize=14];
+  "start" -> "motion" [color="#CC79A7" label="motion" fontsize=10];
+  "start" -> "zero" [color="#CC79A7" label="zero\nnotmotion" fontsize=10];
+  "start" -> "steady" [color="#CC79A7" label="notzero\nnotmotion" fontsize=10];
+ "motion" [label="Motion" fontsize=14];
+  "motion" -> "zero" [color="#CC79A7" label="zero\nnotmotion" fontsize=10];
+  "motion" -> "steady" [color="#CC79A7" label="notzero\nnotmotion" fontsize=10];
+}

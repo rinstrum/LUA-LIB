@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Finite State Machine Infrastructure.
 -- Library routines to make the implementation of finite automata easier.
--- @module rinLibrary.K400FSM
+-- @module rinLibrary.GenericFSM
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -172,7 +172,7 @@ function _M.stateMachine(args)
 -- @return Module string for debug library
 -- @local
     local function ename(module)
-        return 'K400FSM ' .. module .. ' (' .. name .. '):'
+        return 'FSM ' .. module .. ' (' .. name .. '):'
     end
 
 -------------------------------------------------------------------------------
@@ -223,7 +223,7 @@ function _M.stateMachine(args)
     local function setState(s, f)
         local prevName
         if trace then
-            dbg.info('K400FSM', name..' state = ' ..s.name)
+            dbg.info('FSM', name..' state = ' ..s.name)
         end
         raiseEvents = {}
         if current ~= nil then
