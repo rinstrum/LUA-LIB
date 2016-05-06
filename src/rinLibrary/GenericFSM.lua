@@ -427,7 +427,7 @@ function _M.stateMachine(args)
             for _, t in ipairs(current.trans) do
                 if t.cond() and checkEvent(t, raiseEvents) and checkBitConditions(t) and checkTime(t) then
                     if trace then
-                        dbg.info('K400FSM', name..' trans '..t.name)
+                        dbg.info('FSM', name..' trans '..t.name)
                     end
                     setState(t.dest, t.activate)
                     break
