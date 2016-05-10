@@ -26,5 +26,5 @@ local modules = {
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
 return function (model)
-    return loader(model, modules)
+    return loader(model, "c500", modules)
 end

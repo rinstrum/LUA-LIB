@@ -10,11 +10,12 @@ local dbg = require "rinLibrary.rinDebug"
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Module factory function begins here
-return function (device, modules)
+return function (device, deviceType, modules)
     local _M, kt = {}, {}
     local deprecated, dwarned = {}, {}
 
     _M.model = device
+    _M.deviceType = deviceType
     local private = { modules = { utilities = true } }
 
     local function devColon()
