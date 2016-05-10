@@ -19,7 +19,7 @@ local modules = {
     "GenericBuzz",
     "GenericLCD",
     "GenericRTC",
-    "K400Dialog", -- Remove this after dialog is fixed.
+    "C500Dialog", 
     "GenericFSM",
 }
 

@@ -140,7 +140,7 @@ function _M.add(private, displayTable, prefix)
     saveAuto = 0,
     write = function (s, sync) return dispHelp.writeRegHex(private, sync, _M.REG_DISP_TOP_LEFT, s) end,
     writeUnits = function (units1)
-                local me = displayTable[prefix .. "C500"]
+                local me = displayTable[prefix .. "topleft"]
                 local v = naming.convertNameToValue(units1, unitAnnunciators, 0)
 
                 if me.units1 ~= v then
