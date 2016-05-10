@@ -297,6 +297,15 @@ local function newKeyBinds()
         [KEY_PWR_CANCEL] = { 'extended'                               }
     }
 
+    if _M.deviceType == "c500" then
+        r[KEY_ZERO]   =    { 'arrow', 'primary'                       }
+        r[KEY_TARE]   =    { 'arrow', 'primary'                       }
+        r[KEY_SEL]    =    { 'arrow', 'primary'                       }
+        r[KEY_F1]     =    { 'arrow', 'primary', 'functions'          }
+        r[KEY_F2]     =    { 'arrow', 'primary', 'functions'          }
+        r[KEY_F3]     =    { 'arrow', 'primary', 'functions'          }
+    end
+
     -- The USB keyboard character groups are algorithmatically generated
     for k in usb.usbKeyboardKeyIterator() do
         if usbMap[k] == nil and r[k] == nil then
