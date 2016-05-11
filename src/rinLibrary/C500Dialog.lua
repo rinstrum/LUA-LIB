@@ -1044,7 +1044,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     end
 
     editing = true
-    local restoreBottom = _M.saveBottom()
+    local restoreDisplay = _M.saveDisplay()
     _M.write('topLeft', prompt, 'time=1,wait')
     _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
 
@@ -1065,16 +1065,16 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
         end
     end
     finished()
-    restoreBottom()
+    restoreDisplay()
     return sel
 end
 
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a multiselect object.  The legal selections
 -- are displayed in alphabetic order and any number of items can be selected.
--- Keys uses are up and down to navigate, +/- to select or deselect, zero to
--- select none, decimal point to select all, ok to accept the current selections
--- and cancel to exit and revert to the original selections.
+-- Keys uses are up and down to navigate, > to select and deselect, ok to 
+-- accept the current selections and cancel to exit and revert to the original
+-- selections.
 -- @param prompt string to put on bottom right LCD, this is preceeded by an
 -- asterik or a space to indicate selection.
 -- @param options multiselect object
@@ -1098,36 +1098,32 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     local origSelected = options.getSelected()
 
     editing = true
-    local restoreBottom = _M.saveBottom()
-    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
+    local restoreDisplay = _M.saveDisplay()
+    _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
+    _M.write('topLeft', prompt, 'time=1,wait')
 
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('bottomLeft', string.upper(opts[index]))
-        _M.write('bottomRight', (options.isSelected(opts[index]) and "*" or " ")..prompt)
+        _M.write('topLeft', (options.isSelected(opts[index]) and "*" or " ")..string.upper(opts[index]))
 
-        local key = _M.getKey('keypad')
+        local key = _M.getKey('arrow')
 
-        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
+        if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             options.selectOnly(unpack(origSelected))
             editing = false
-        elseif key == 'down' then
+        elseif key == 'zero' then
             index = private.addModBase1(index, 1, #opts, loop)
-        elseif key == 'up' then
+        elseif key == 'f1' then
             index = private.addModBase1(index, -1, #opts, loop)
-        elseif key == 'plusminus' then
+        elseif key == 'sel' then
             options.toggle(opts[index])
         elseif key == 'ok' then
             editing = false
-        elseif key == 0 then
-            options.deselectAll()
-        elseif key == 'dp' then
-            options.selectAll()
         end
     end
     finished()
-    restoreBottom()
+    restoreDisplay()
     return options.getSelected()
 end
 
