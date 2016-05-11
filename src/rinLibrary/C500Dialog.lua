@@ -1140,7 +1140,7 @@ end
 -- @see rinLibrary.GenericLCD.Units
 -- @see rinLibrary.GenericLCD.Other
 -- @usage
--- local opt = selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
+-- local opt = device.selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local opts = options or {'cancel'}
     local sel = nil
@@ -1149,22 +1149,21 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
 
     editing = true
     local restoreDisplay = _M.saveDisplay()
-    _M.write('topLeft', prompt)
-    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
+    _M.write('topLeft', prompt, 'time=1,wait')
+    _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
     
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('bottomLeft', string.upper(opts[index][1]))
-        _M.write('bottomRight', string.upper(opts[index][2]))
+        _M.write('topLeft', string.upper(opts[index][1] .. ": " .. opts[index][2]))
         local key = _M.getKey('arrow')
-        if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
+        if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             editing = false
-        elseif key == 'down' then
+        elseif key == 'zero' or key == 'tare' then
             index = private.addModBase1(index, 1, #opts, loop)
-        elseif key == 'up' then
+        elseif key == 'f1' or key == 'sel' then
             index = private.addModBase1(index, -1, #opts, loop)
-        elseif key == 'ok' then
+        elseif key == 'f2' then
             sel = index
             editing = false
         end
