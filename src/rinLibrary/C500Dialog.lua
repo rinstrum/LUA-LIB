@@ -390,9 +390,9 @@ function _M.askOK(prompt, q, units, unitsOther)
     local askOKResult = 'cancel'
 
     local restore = _M.saveDisplay()
-    _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
     _M.write('topLeft', q or '', 'time=1,wait')
-    _M.write('topLeft', prompt or '')
+    _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
+    _M.write('topLeft', prompt or '', units and '' or 'align=right')
 
     local finished = _M.startDialog()
     while _M.app.isRunning() do
@@ -445,7 +445,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', string.upper(opts[index]))
+        _M.write('topLeft', string.upper(opts[index]), units and '' or 'align=right')
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             editing = false
@@ -499,7 +499,9 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', (options.isSelected(opts[index]) and "*" or " ")..string.upper(opts[index]))
+        _M.write('topLeft', 
+            (options.isSelected(opts[index]) and "*" or " ")..string.upper(opts[index]),
+            units and '' or 'align=right')
 
         local key = _M.getKey('arrow')
 
@@ -549,7 +551,9 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', string.upper(opts[index][1] .. ": " .. opts[index][2]))
+        _M.write('topLeft', 
+            string.upper(opts[index][1] .. ": " .. opts[index][2]),
+            units and '' or 'align=right')
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             editing = false
