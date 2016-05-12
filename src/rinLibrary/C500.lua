@@ -21,6 +21,7 @@ local modules = {
     "GenericRTC",
     "C500Dialog", 
     "GenericFSM",
+    "GenericWeights",
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
