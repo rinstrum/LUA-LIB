@@ -32,8 +32,6 @@ local editing = false
 
 local sEditTab = {}         -- Table containing string to edit
 local sEditIndex = 1        -- starting index for sEdit()
-local sEditKeyTimer = 0     -- counts time since a key pressed for sEdit() - in scrUpdTm increments
-local sEditKeyTimeout = 4   -- number of counts before starting a new key in sEdit()
 
 local scrUpdTm = 0.5        -- screen update frequency in Sec
 local blinkOff = false      -- blink cursor for string editing
@@ -159,33 +157,21 @@ local function keyCharSelect(s, p)
     return s:sub(z, z)
 end
 
+-------------------------------------------------------------------------------
+-- Helper function that takes a string and returns the position of the first
+-- character that matches c.
+-- @param s String of legal characters
+-- @param c Character to find in string
+-- @local
+local function keyCharGet(s, c)
+  return string.find(s, c, nil, true)
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
 -- This table defines the mapping from the numeric keys to alpha characters.
 -- The first press results in the first character, the second the second and
 -- so forth.
-local keyMapping = {
-    [1] = "$/\\+-1",
-    [2] = "ABC2",
-    [3] = "DEF3",
-    [4] = "GHI4",
-    [5] = "JKL5",
-    [6] = "MNO6",
-    [7] = "PQRS7",
-    [8] = "TUV8",
-    [9] = "WXYZ9",
-    [0] = "_0"
-}
-
--------------------------------------------------------------------------------
--- Return a character for the key pressed, according to the number of times it
--- has been pressed.
--- @param k key pressed
--- @param p number of times key has been pressed
--- @return letter, number or symbol character represented on the number key pad
--- @local
-local function keyChar(k, p)
-    return keyCharSelect(keyMapping[k], p)
-end
+local numKeyMapping = "0123456789."
 
 -------------------------------------------------------------------------------
 -- Trim white space from a string.
@@ -195,38 +181,11 @@ local function sTrim(s)       -- removes whitespace from strings
 end
 
 -------------------------------------------------------------------------------
--- Set the key timeout in terms of the number of blink half cycles
--- @param n The timeout
--- @return The previous timeout
--- @usage
--- device.setEditKeyTimeout(3)
-function _M.setEditKeyTimeout(n)
-    local old = sEditKeyTimeout
-    sEditKeyTimeout = n or 4
-    if n < 2 then n = 4 end
-    return old
-end
-
--------------------------------------------------------------------------------
 -- Simulate a blinking cursor by altering the string periodically.
 -- @local
 local function blinkCursor(notTimer)
   local tempTable = utils.deepcopy(sEditTab)
   local str
-  
-  if (notTimer ~= true) then
-    -- Increment the timer
-    sEditKeyTimer = sEditKeyTimer + 1
-    
-    -- Shift cursor to the right on timeout if the length is less than max
-    if sEditKeyTimer == sEditKeyTimeout and sEditTab[sEditIndex] ~= nil then
-      sEditIndex = sEditIndex + 1
-    end
-  end
-  
-  if notTimer ~= nil then
-    blinkOff = notTimer
-  end
   
   -- Ensure there's a character at the position
   tempTable[sEditIndex] = tempTable[sEditIndex] or " "
@@ -246,18 +205,18 @@ local function blinkCursor(notTimer)
   -- Convert the table into a string
   str = table.concat(tempTable)
   
-  -- Only display the 9 rightmost characters
-  str = string.sub(str, -9)
+  -- Only display the 6 rightmost characters
+  str = string.sub(str, -6)
   
   -- Update the display
-  _M.write('bottomLeft', str)
+  _M.write('topLeft', str)
 end
 
 -------------------------------------------------------------------------------
--- Called to prompt operator to enter a string
+-- Called to prompt operator to enter a number
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param maxLen maximum number of characters to include (default 9)
+-- @param maxLen maximum number of characters to include (default 6)
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return value
@@ -266,22 +225,17 @@ end
 -- @see rinLibrary.GenericLCD.Units
 -- @see rinLibrary.GenericLCD.Other
 -- @usage
--- local name = device.sEdit('NEW NAME', 'ZINC', 8)
-function _M.sEdit(prompt, def, maxLen, units, unitsOther)
+-- local name = device.edit('Update Num', '0.04', 6)
+function _M.edit(prompt, def, maxLen, units, unitsOther)
 
     editing = true                  -- is editing occurring
     local key, state, source        -- instrument key values
-    local pKey                      -- previous key pressed
-    local timeout = false           -- Did a timeout occur
-    local presses = 0               -- number of consecutive presses of a key
+    local alphabetIndex = 0         -- Index in alphabet of editor
     local ok = false                -- Was the OK key pressed?
     local cursorTmr                 -- Timer for blinking cursor
     
-    maxLen = maxLen or 9
+    maxLen = maxLen or 6
     sEditTab = {}
-    
-    -- Start in a timed out state
-    sEditKeyTimer = sEditKeyTimeout + 1
     
     -- Set the default string. This should be uppercase as the user can only
     -- enter upper case values, and a mixed case return does not make sense.
@@ -289,19 +243,26 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     
     -- Get the starting index of the string
     local sLen = #default
-    sEditIndex = sLen + 1
+    sEditIndex = sLen
     
-    -- Save the bottom of the screen before we do anything.
-    local restoreBottom = _M.saveBottom()
+    -- Save the display before we do anything.
+    local restoreDisplay = _M.saveDisplay()
     
     -- Convert the default to a table
     for i=0,math.min(sLen, maxLen),1 do
         sEditTab[i] = string.sub(default, i, i)   
     end
-
+    
+    -- Set up the initial string
+    if sEditIndex == 0 or (sEditIndex < maxLen and sEditTab[sEditIndex] == nil) then
+      sEditIndex = sEditIndex + 1
+      sLen = sLen + 1
+      sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
+    end
+    
     -- Set up the screen
-    _M.write('bottomRight', prompt)     
-    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
+    _M.write('topLeft', prompt, "time=1,wait")     
+    _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
     
     -- Add timer to blink the cursor and call it to set up the screen.
     local resetTimer = function (blinkOff)
@@ -312,23 +273,9 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     resetTimer(true)
 
     local finished = _M.startDialog()
-    while editing and _M.app.isRunning() do
+    while editing and _M.app.isRunning() do    
       -- Wait for a key press
-      key, state, source = _M.getKey({'keypad', 'ascii'})
-      
-      -- If a key wasn't been pressed within the timeout period, set the 
-      -- previous key as timeout to force this key to be treated as an 
-      -- independent key press.
-      if sEditKeyTimer > sEditKeyTimeout then   
-        timeout = true
-      else
-        timeout = false
-      end
-      
-      -- Reset the key press timer if we're not at the end of the string
-      if (sLen < maxLen) then
-        sEditKeyTimer = 0
-      end
+      key, state, source = _M.getKey({'arrow'})
       
       -- The dialog isn't running for some reason, so return.
       if not _M.dialogRunning() then    
@@ -336,155 +283,79 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
         editing = false
       -- If there was a short keypress
       elseif state == "short" then
-        -- If a numeric key was pressed on the display
-        if type(key) == 'number' and source == 'display' then
-            -- If the key is the same as the previous key increment the press
-            -- count, otherwise reset it.
-            if key == pKey and timeout == false then
-              presses = presses + 1
-              
-              -- Update the string and the display
-              pKey = key
-              sEditTab[sEditIndex] = keyChar(key, presses)
-              -- If we're in the middle of the string, then reset the timer
-              if (sEditIndex < sLen + 1) then
-                sEditKeyTimer = 0
-              end
-              resetTimer(true)
-            -- Only handle if the maxLen hasn't been exceeded
-            elseif (sEditIndex < sLen) or 
-                (sEditIndex <= sLen + 1 and sLen < maxLen) then
-              presses = 1
-              
-              -- Bump the index if this is a new key press that was not after
-              -- a timeout at the end of the string.
-              if (timeout == false) then
-                sEditIndex = sEditIndex + 1
-              end
-              
-              -- Increment the length if this is a new key press at the end of 
-              -- the string.
-              if (sEditIndex > sLen) then
-                sLen = sLen + 1
-              end
-              
-              -- Update the string and the display
-              pKey = key
-              sEditTab[sEditIndex] = keyChar(key, presses)
-              -- If we're in the middle of the string, then reset the timer
-              if (sEditIndex < sLen + 1) then
-                sEditKeyTimer = 0
-              end
-              resetTimer(true)
-            end
-        -- decimal point key
-        elseif (key == 'dp') then 
-          -- Only handle if the maxLen hasn't been exceeded
-          if (sEditIndex < sLen + 1 or sLen < maxLen) then
-            -- Do not allow repeat decimal keys
-            if (sEditTab[sEditIndex-1] ~= "." and sEditTab[sEditIndex+1] ~= ".") then
-              -- If the previous key didn't time out, time it out.
-              if (type(pKey) == 'number' and timeout == false) then
-                sEditIndex = sEditIndex + 1
-              end
-            
-              -- Update the string 
-              sEditTab[sEditIndex] = "."                 
-              pKey = key
-  
-              -- Increment the string length and the index
-              if (sEditIndex > sLen) then
-                sLen = sLen + 1
-              end
-              sEditIndex = sEditIndex + 1
-            end
-            
-            sEditKeyTimer = sEditKeyTimeout + 1
-            resetTimer(true)
+        -- Arrow keys
+        if key == 'f1' or key == 'zero' then
+          -- Get the new alphabet index, and increment or decrement as necessary
+          alphabetIndex = keyCharGet(numKeyMapping, sEditTab[sEditIndex])
+          if key == 'zero' then
+            alphabetIndex = alphabetIndex - 1
+          elseif key == 'f1' then
+            alphabetIndex = alphabetIndex + 1
           end
+            
+          -- Update the string and the display
+          sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, alphabetIndex)
+          resetTimer(true)
         -- Move to previous character
-        elseif key == 'up' then                    
+        elseif key == 'tare' then                    
           sEditIndex = sEditIndex - 1
           if sEditIndex < 1 then
-              sEditIndex = math.min(sLen, maxLen) + 1
+            sEditIndex = math.min(sLen, maxLen)
           end
-          -- Update pKey, and update the timer so the timeout won't occur
-          pKey = key
-          sEditKeyTimer = sEditKeyTimeout + 1
+          resetTimer(true)
         -- Move to next character
-        elseif key == 'down' then
-          sEditIndex = math.min(sEditIndex, maxLen + 1) + 1
-          if sEditIndex > sLen + 1 then
-              sEditIndex = 1
+        elseif key == 'sel' then
+          sEditIndex = math.min(sEditIndex, maxLen) + 1
+          
+          -- Loop around
+          if sEditIndex > maxLen then
+            sEditIndex = 1
           end
-          -- Update pKey, and update the timer so the timeout won't occur
-          pKey = key
-          sEditKeyTimer = sEditKeyTimeout + 1
-        -- Insert a character
-        elseif key == 'plusminus' then
-          if sEditIndex < sLen + 1 and sLen + 1 <= maxLen then
+          
+          -- Fill the character with a 0 if it's nil
+          if sEditTab[sEditIndex] == nil then
+            sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
             sLen = sLen + 1
-            
-            -- Shuffle the characters along
-            for i = sLen, sEditIndex, -1 do
-              sEditTab[i] = sEditTab[i-1]             
-            end
-            
-            sEditKeyTimer = sEditKeyTimeout + 1
-            sEditTab[sEditIndex] = '_'
-            pKey = key
-            resetTimer(true)
           end
           
         -- Finish editing if ok is pressed
-        elseif key == 'ok' then
+        elseif key == 'f2' then
           editing = false
           ok = true
         -- Cancel editing
-        elseif key == 'cancel' then 
-          sEditKeyTimer = sEditKeyTimeout + 1
-          
+        elseif key == 'f3' then          
           -- Delete character in the middle of the string
-          if sEditIndex < sLen + 1 then
+          if sEditIndex < sLen then
             for i = sEditIndex, sLen do
               sEditTab[i] = sEditTab[i+1]
             end
             sLen = sLen - 1
             resetTimer(false)
           -- Clear character at end of the string
-          elseif sLen >= 1 then
+          elseif sLen > 1 then
             -- Only change the index if there was a timeout
-            if timeout == true then        
-              sEditIndex = sEditIndex - 1
-            end
-            sLen = sLen - 1
             sEditTab[sEditIndex] = nil
+            sEditIndex = sEditIndex - 1
+            sLen = sLen - 1            
             resetTimer(false)
-          -- If there are no characters, exit the editor
-          else    
-            ok = false
-            editing = false
           end
-          pKey = key
           
-        -- ASCII keys. This gives some support for usb keyboard
-        else     
-          -- Only handle if the maxLen hasn't been exceeded
-          if (sLen < maxLen) then
-            sEditTab[sEditIndex] = string.upper(key)
-            pKey = key
-            -- Increment the indexes and timeout
-            if (sEditIndex > sLen) then
-              sEditIndex = sEditIndex + 1
-              sLen = sLen + 1
-              sEditKeyTimer = sEditKeyTimeout + 1
-            end
-            resetTimer(true)
-          end
+--        -- ASCII keys. This gives some support for usb keyboard
+--        else     
+--          -- Only handle if the maxLen hasn't been exceeded
+--          if (sLen < maxLen) then
+--            sEditTab[sEditIndex] = string.upper(key)
+--            -- Increment the indexes and timeout
+--            if (sEditIndex > sLen) then
+--              sEditIndex = sEditIndex + 1
+--              sLen = sLen + 1
+--            end
+--            resetTimer(true)
+--          end
         end
       elseif state == "long" then
         -- Exit the editor
-        if key == 'cancel' then    
+        if key == 'f3' then    
           ok = false
           editing = false
         end
@@ -493,7 +364,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     
     -- Clean up
     finished()
-    restoreBottom()
+    restoreDisplay()
     timers.removeTimer(cursorTmr)
     
     -- Return the entered value.
@@ -502,483 +373,6 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
     else
       return default, false
     end
-end
-
--------------------------------------------------------------------------------
--- Called to prompt operator to enter a string. tEdit is similar to sEdit, but
--- allows for the user to enter text in a numeric mode, and allows for 
--- auto-complete using the arrow keys. This removes the insert and scroll 
--- functionality from sEdit
--- @param prompt string displayed on bottom right LCD
--- @param defaults Table of strings to be used when user presses arrow keys 
--- with no text entered.
--- @param maxLen maximum number of characters to include (default 9)
--- @param autocompletes Table of strings to be used to auto-complete user 
--- entered text. Table should be ordered by user.
--- @param numeric Use numeric mode by default?
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return value
--- @return true if ok pressed at end
--- @see edit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
--- @usage
--- local defaults = {"BUS", "CAR", "BIKE"}
--- local autos = {"BUS", "CAR", "BIKE", "SCOOTER", "SKATEBOARD"}
--- local name = device.tEdit('NEW NAME', defaults, 8, autos, false)
-function _M.tEdit(prompt, defaults, maxLen, autocompletes, numeric, units, unitsOther)
-
-  editing = true                  -- is editing occurring
-  local key, state, source        -- instrument key values
-  local pKey                      -- previous key pressed
-  local timeout = false           -- Did a timeout occur
-  local presses = 0               -- number of consecutive presses of a key
-  local ok = false                -- Was the OK key pressed?
-  local cursorTmr                 -- Timer for blinking cursor
-  local defaultsIndex = 0         -- Index for cycling through recent
-  local autoIndex = 0             -- Index for cycling through autocompletes
-  local prefix                    -- Prefix at time autocomplete pressed 
-  
-  maxLen = maxLen or 9
-  sEditTab = {}
-  defaults = defaults or {}
-  autocompletes = autocompletes or {}
-  
-  -- Start in a timed out state
-  sEditKeyTimer = sEditKeyTimeout + 1
-  
-  -- Set the default string.
-  local default = ""
-  
-  -- Get the starting index of the string
-  local sLen = #default
-  sEditIndex = sLen + 1
-  
-  -- Save the bottom of the screen before we do anything.
-  local restore = _M.saveDisplay()
-  local restoreTop = _M.saveAutoLeft()
-  
-  local toTable = function (str)
-    local tab = {}
-    -- Convert the default to a table
-    for i=0,math.min(#str, maxLen),1 do
-        tab[i] = string.sub(str, i, i)   
-    end
-    return tab
-  end
-  sEditTab = toTable(default)
-
-  -- Set up the screen
-  _M.write('topLeft', prompt)
-  _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
-  
-  -- Add timer to blink the cursor and call it to set up the screen.
-  local resetTimer = function (blinkOff)
-    if numeric == true then
-      _M.write('bottomRight', "NUM")
-    else
-      _M.write('bottomRight', "STR")
-    end
-    timers.removeTimer(cursorTmr)
-    cursorTmr = timers.addTimer(scrUpdTm, scrUpdTm, blinkCursor)
-    blinkCursor(blinkOff)
-  end
-  resetTimer(true)
-  
-  local bumpIndex = function ()
-    if sEditTab[sEditIndex] ~= nil then
-      sEditIndex = sEditIndex + 1
-    end
-  end
-
-  local finished = _M.startDialog()
-  while editing and _M.app.isRunning() do
-    -- Wait for a key press
-    key, state, source = _M.getKey({'keypad', 'ascii'})
-    
-    -- If a key wasn't been pressed within the timeout period, set the 
-    -- previous key as timeout to force this key to be treated as an 
-    -- independent key press.
-    if sEditKeyTimer > sEditKeyTimeout then   
-      timeout = true
-    else
-      timeout = false
-    end
-    
-    -- Reset the key press timer if we're not at the end of the string
-    if (sLen < maxLen) then
-      sEditKeyTimer = 0
-    end
-    
-    -- The dialog isn't running for some reason, so return.
-    if not _M.dialogRunning() then    
-      ok = false
-      editing = false
-    -- If there was a short keypress
-    elseif state == "short" then
-      -- If a numeric key was pressed on the display
-      if type(key) == 'number' and source == 'display' then
-        if (numeric == true) then
-          -- Only handle if the maxLen hasn't been exceeded
-          if (sLen < maxLen) then
-            -- If the previous key didn't time out, time it out.
-            if (type(pKey) == 'number' and timeout == false) then
-              bumpIndex()
-            end
-            -- Increment the string length and the index
-            if (sEditIndex > sLen) then
-              sLen = sLen + 1
-            end
-            sEditKeyTimer = sEditKeyTimeout + 1
-             -- Update the string 
-            sEditTab[sEditIndex] = tostring(key)                
-            pKey = key
-            bumpIndex()
-            resetTimer(true)
-          end
-        else
-          -- If the key is the same as the previous key increment the press
-          -- count, otherwise reset it.
-          if key == pKey and timeout == false then
-            presses = presses + 1
-            
-            -- Update the string and the display
-            pKey = key
-            sEditTab[sEditIndex] = keyChar(key, presses)
-            resetTimer(true)
-          -- Only handle if the maxLen hasn't been exceeded
-          elseif (sLen < maxLen) then
-            presses = 1 
-            -- Bump the index if this is a new key press that was not after
-            -- a timeout at the end of the string.
-            if (timeout == false) then
-              bumpIndex()
-            end
-            
-            -- Increment the length if this is a new key press at the end of 
-            -- the string.
-            if (sEditIndex > sLen) then
-              sLen = sLen + 1
-            end
-            
-            -- Update the string and the display
-            pKey = key
-            sEditTab[sEditIndex] = keyChar(key, presses)
-            resetTimer(true)
-          end
-        end
-        
-      -- decimal point key
-      elseif (key == 'dp') then 
-        -- Only handle if the maxLen hasn't been exceeded
-        if (sLen < maxLen) then
-          -- Do not allow repeat decimal keys
-          if (sEditTab[sEditIndex-1] ~= "." and sEditTab[sEditIndex+1] ~= ".") then
-            -- If the previous key didn't time out, time it out.
-            if (type(pKey) == 'number' and timeout == false) then
-              bumpIndex()
-            end
-          
-            -- Update the string 
-            sEditTab[sEditIndex] = "."                 
-            pKey = key
-
-            -- Increment the string length and the index
-            if (sEditIndex > sLen) then
-              sLen = sLen + 1
-            end
-            bumpIndex()
-          end
-          
-          sEditKeyTimer = sEditKeyTimeout + 1
-          resetTimer(true)
-        end
-      -- Move through defaults or prefixes.
-      elseif key == 'up' or key == 'down' then
-        -- Cycle through the defaults when sLen = 0 or we're already cycling.            
-        if (sLen == 0 or defaultsIndex > 0) then
-          if key == 'up' then
-            -- Circular index
-            defaultsIndex = defaultsIndex + 1
-            if defaults[defaultsIndex] == nil then
-              defaultsIndex = 0
-            end
-          else
-            defaultsIndex = defaultsIndex - 1
-            if defaultsIndex < 0 then
-              defaultsIndex = 0
-              while defaults[defaultsIndex+1] ~= nil do
-                defaultsIndex = defaultsIndex + 1
-              end
-            end
-          end
-          
-          -- Write the defaults index to the screen
-          if defaultsIndex == 0 then
-            sEditTab = {}
-            sLen = 0
-            sEditIndex = 1
-          else
-            sEditTab = toTable(defaults[defaultsIndex])
-            sLen = #sEditTab
-            sEditIndex = sLen + 1
-          end
-          
-          pKey = key
-          resetTimer(true)
-        else
-          -- On first press, save the prefix
-          if (autoIndex == 0) then
-            prefix = utils.deepcopy(sEditTab)
-          end
-          
-          -- Iterate until we're at the prefix again, or the prefix matches
-          local prefixIter, preLen = table.concat(prefix), #prefix
-          repeat
-            if key == 'up' then
-              -- Circular index
-              autoIndex = autoIndex + 1
-              if autocompletes[autoIndex] == nil then
-                autoIndex = 0
-              end
-            else
-              autoIndex = autoIndex - 1
-              if autoIndex < 0 then
-                autoIndex = #autocompletes
-              end
-            end
-          until autoIndex == 0 or prefixIter == string.sub(autocompletes[autoIndex], 1, preLen)
-          
-          -- Write the string to the screen
-          if autoIndex == 0 then
-            sEditTab = utils.deepcopy(prefix)
-            sLen = #prefix
-          else
-            sEditTab = toTable(autocompletes[autoIndex])
-            sLen = #sEditTab
-          end
-          
-          sEditIndex = sLen + 1
-          pKey = key
-          sEditKeyTimer = sEditKeyTimeout + 1
-          resetTimer(true)
-          
-        end 
-      -- Swap to numeric input
-      elseif key == 'plusminus' then
-        -- If the previous key didn't time out, time it out.
-        if (numeric ~= true and type(pKey) == 'number' and timeout == false) then
-          bumpIndex()
-        end
-        numeric = not numeric
-        sEditKeyTimer = sEditKeyTimeout + 1
-        resetTimer(true)
-      -- Finish editing if ok is pressed
-      elseif key == 'ok' then
-        editing = false
-        ok = true
-      -- Cancel editing
-      elseif key == 'cancel' then 
-        sEditKeyTimer = sEditKeyTimeout + 1
-        
-        if sLen >= 1 then
-          -- Only change the index if there was a timeout
-          if timeout == true then        
-            sEditIndex = sEditIndex - 1
-          end
-          sLen = sLen - 1
-          sEditTab[sEditIndex] = nil
-          resetTimer(false)
-        -- If there are no characters, exit the editor
-        else    
-          ok = false
-          editing = false
-        end
-        pKey = key
-        
-      -- ASCII keys. This gives some support for usb keyboard
-      else     
-        -- Only handle if the maxLen hasn't been exceeded
-        if (sLen < maxLen) then
-          sEditTab[sEditIndex] = string.upper(key)
-          pKey = key
-          -- Increment the indexes and timeout
-          if (sEditIndex > sLen) then
-            bumpIndex()
-            sLen = sLen + 1
-            sEditKeyTimer = sEditKeyTimeout + 1
-          end
-          resetTimer(true)
-        end
-      end
-    elseif state == "long" then
-      -- Exit the editor
-      if key == 'cancel' then    
-        ok = false
-        editing = false
-      end
-    end
-  end
-  
-  -- Clean up
-  finished()
-  restore()
-  restoreTop()
-  timers.removeTimer(cursorTmr)
-  
-  -- Return the entered value.
-  if (ok == true)then
-    return table.concat(sEditTab), true
-  else
-    return default, false
-  end
-end
-
--------------------------------------------------------------------------------
--- Called to prompt operator to enter a value, numeric digits and '.' only
--- @param prompt string displayed on bottom right LCD
--- @param def default value
--- @param typ type of value to enter ('integer','number','passcode')
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @param clearDefault Clear the default value when a key is pressed
--- @return value
--- @return true if ok pressed at end
--- @see sEdit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
--- @usage
--- local qty = device.edit('QUANTITY', 123, 'integer')
-function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
-
-    local key, state
-    local hide = false
-
-    if typ == 'passcode' then
-        typ = 'integer'
-        hide = true
-    end
-
-    local def = def or ''
-    if type(def) ~= 'string' then
-         def = tostring(def)
-     end
-
-    local editVal = def
-    local editType = typ or 'integer'
-    editing = true
-    local restoreBottom = _M.saveBottom()
-    _M.write('bottomRight', prompt)
-    if hide then
-       _M.write('bottomLeft', string.rep('+',#editVal))
-    else
-       _M.write('bottomLeft', editVal)
-    end
-    _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
-
-    local first
-    if clearDefault == false then
-      first = false
-    else
-      first = true
-    end
-
-    local ok = false
-    local finished = _M.startDialog()
-    while editing and _M.app.isRunning() do
-        key, state = _M.getKey('keypad')
-        if not _M.dialogRunning() then    -- editing aborted so return default
-            ok = false
-            editing = false
-            editVal = def
-        elseif state == 'short' then
-            if type(key) == 'number' then
-                if first then
-                    editVal = tostring(key)
-                else
-                    editVal = editVal .. key
-                end
-                first = false
-            elseif key == 'dp' and editType ~= 'integer' then
-                if editType == 'number' then
-                    if first or string.len(editVal) == 0 then
-                       editVal = '0.'
-                       first = false
-                    elseif not string.find(editVal,'%.')  then
-                       editVal = editVal .. '.'
-                    end
-                else
-                   editVal = editVal .. '.'
-                end
-            elseif key == 'ok' then
-                editing = false
-                 if string.len(editVal) == 0 then
-                    editVal = def
-                 end
-                ok = true
-            elseif key == 'cancel' then
-                if string.len(editVal) == 0 then
-                    editVal = def
-                    editing = false
-                else
-                    editVal = string.sub(editVal,1,-2)
-                end
-            end
-        elseif state == 'long' then
-            if key == 'cancel' then
-                editVal = def
-                editing = false
-            end
-        end
-        if hide then
-           _M.write('bottomLeft', string.rep('+',#editVal))
-        else
-           _M.write('bottomLeft', editVal..' ')
-        end
-    end
-    finished()
-    restoreBottom()
-
-    return tonumber(editVal), ok
-end
-
--------------------------------------------------------------------------------
--- Called to edit value of specified register
--- @param register is the address of the register to edit
--- @param prompt is true if name of register to be displayed during editing,
--- or set to a literal prompt to display
--- @return value of register
--- @usage
--- device.editReg('userid1', 'NAME')
-function _M.editReg(register, prompt)
-    local reg = private.getRegisterNumber(register)
-    local restoreBottom = nil
-
-    if prompt then
-        restoreBottom = _M.saveBottom()
-        if type(prompt) == 'string' then
-            _M.write('bottomRight', prompt)
-        else
-            _M.write('bottomRight', private.getRegName(reg))
-        end
-    end
-    private.writeReg(REG_EDIT_REG, reg)
-    local finished = _M.startDialog()
-    while true do
-        local data,err = private.readRegHex(REG_EDIT_REG)
-
-        if err or (data and tonumber(data,16) ~= reg) then
-            break
-        end
-        _M.app.delay(0.050)
-        if not _M.dialogRunning() or not _M.app.isRunning() then
-            _M.sendKey('cancel', 'long')
-        end
-    end
-    finished()
-    utils.call(restoreBottom)
-    return private.readReg(reg)
 end
 
 -------------------------------------------------------------------------------
