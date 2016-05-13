@@ -27,7 +27,7 @@ local modules = {
     "K400Batch",
     "K400Setpoint",
     "K400Print",
-    "K400Command",
+    "GenericCommand",
     "K400Users",
     "K400Passcode",
     "K400USB",
