@@ -7,7 +7,7 @@
 -- information.  Generally, it is better to use the streaming
 -- support and to cache the current values of interest locally.  This
 -- avoids pauses and delays when these values require access.
--- @module rinLibrary.K400Weights
+-- @module rinLibrary.GenericWeights
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

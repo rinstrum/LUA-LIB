@@ -23,7 +23,7 @@ local modules = {
     "GenericFSM",
     "K400Menu",
     "GenericRTC",
-    "K400Analog",
+    "GenericAnalog",
     "K400Batch",
     "K400Setpoint",
     "K400Print",
