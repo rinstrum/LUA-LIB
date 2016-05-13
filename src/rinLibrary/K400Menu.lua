@@ -17,6 +17,15 @@ local callable, cb = utils.callable, utils.cb
 local null, True, False = utils.null, utils.True, utils.False
 local csv = require 'rinLibrary.rinCSV'
 
+local type = type
+local string = string
+local table = table
+local error = error
+local tonumber = tonumber
+local math = math
+local tostring = tostring
+local pairs = pairs
+
 -------------------------------------------------------------------------------
 -- A function that wrappers another function with a check for a readonly field
 -- @return wrappered function

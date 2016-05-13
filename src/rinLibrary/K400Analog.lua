@@ -12,6 +12,9 @@ local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
 local dbg = require 'rinLibrary.rinDebug'
 
+local unpack = unpack
+local tonumber = tonumber
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
