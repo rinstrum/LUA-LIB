@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Analogue Functions.
 -- Functions to control M4401 analogue output
--- @module rinLibrary.K400Analog
+-- @module rinLibrary.GenericAnalog
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Real Time Clock.
 -- Functions to control Real Time Clock
--- @module rinLibrary.K400RTC
+-- @module rinLibrary.GenericRTC
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
