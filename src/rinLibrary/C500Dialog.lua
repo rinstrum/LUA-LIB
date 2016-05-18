@@ -32,6 +32,7 @@ local editing = false
 
 local sEditTab = {}         -- Table containing string to edit
 local sEditIndex = 1        -- starting index for sEdit()
+local hide = false
 
 local scrUpdTm = 0.5        -- screen update frequency in Sec
 local blinkOff = false      -- blink cursor for string editing
@@ -171,7 +172,8 @@ end
 -- This table defines the mapping from the numeric keys to alpha characters.
 -- The first press results in the first character, the second the second and
 -- so forth.
-local numKeyMapping = "0123456789."
+local numKeyList = "0123456789."
+local intKeyList = "0123456789"
 
 -------------------------------------------------------------------------------
 -- Trim white space from a string.
@@ -200,6 +202,15 @@ local function blinkCursor(notTimer)
     end
   end
   
+  -- Handle passcode
+  if hide == true then
+    for i = 1, #tempTable do
+      if i ~= sEditIndex then
+        tempTable[i] = '+'
+      end
+    end
+  end
+  
   --print(tempTable[1], tempTable[2], tempTable[3], tempTable[4], tempTable[5], tempTable[6], tempTable[7], tempTable[8])
   
   -- Convert the table into a string
@@ -216,9 +227,10 @@ end
 -- Called to prompt operator to enter a number
 -- @param prompt string displayed on bottom right LCD
 -- @param def default value
--- @param maxLen maximum number of characters to include (default 6)
+-- @param typ type of value to enter ('integer','number','passcode')
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
+-- @param clearDefault Not implemented in C500
 -- @return value
 -- @return true if ok pressed at end
 -- @see edit
@@ -226,16 +238,25 @@ end
 -- @see rinLibrary.GenericLCD.Other
 -- @usage
 -- local name = device.edit('Update Num', '0.04', 6)
-function _M.edit(prompt, def, maxLen, units, unitsOther)
+function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
 
     editing = true                  -- is editing occurring
     local key, state, source        -- instrument key values
     local alphabetIndex = 0         -- Index in alphabet of editor
     local ok = false                -- Was the OK key pressed?
     local cursorTmr                 -- Timer for blinking cursor
+    local keyMapping
     
-    maxLen = maxLen or 6
+    local maxLen = 50
     sEditTab = {}
+    
+    -- Set up the state for the editor
+    hide = (typ == 'passcode')
+    if (typ == 'integer' or typ == 'passcode') then
+      keyMapping = intKeyList
+    else
+      keyMapping = numKeyList
+    end
     
     -- Set the default string. This should be uppercase as the user can only
     -- enter upper case values, and a mixed case return does not make sense.
@@ -257,7 +278,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
     if sEditIndex == 0 or (sEditIndex < maxLen and sEditTab[sEditIndex] == nil) then
       sEditIndex = sEditIndex + 1
       sLen = sLen + 1
-      sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
+      sEditTab[sEditIndex] = keyCharSelect(keyMapping, 1)
     end
     
     -- Set up the screen
@@ -286,7 +307,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
         -- Arrow keys
         if key == 'f1' or key == 'zero' then
           -- Get the new alphabet index, and increment or decrement as necessary
-          alphabetIndex = keyCharGet(numKeyMapping, sEditTab[sEditIndex])
+          alphabetIndex = keyCharGet(keyMapping, sEditTab[sEditIndex])
           if key == 'zero' then
             alphabetIndex = alphabetIndex - 1
           elseif key == 'f1' then
@@ -294,7 +315,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
           end
             
           -- Update the string and the display
-          sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, alphabetIndex)
+          sEditTab[sEditIndex] = keyCharSelect(keyMapping, alphabetIndex)
           resetTimer(true)
         -- Move to previous character
         elseif key == 'tare' then                    
@@ -314,7 +335,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
           
           -- Fill the character with a 0 if it's nil
           if sEditTab[sEditIndex] == nil then
-            sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
+            sEditTab[sEditIndex] = keyCharSelect(keyMapping, 1)
             sLen = sLen + 1
           end
           
