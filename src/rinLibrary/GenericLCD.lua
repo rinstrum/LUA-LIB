@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- LCD Services.
 -- Functions to configure the LCD
--- @module rinLibrary.GenericLCD
+-- @module rinLibrary.Device.LCD
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Offer functions for sockets that are compatible with the app framework
+--- Offer functions for sockets that are compatible with the app framework
 -- @module rinSystem.rinSockets
 -- @author Merrick Heley
 -- @author Pauli

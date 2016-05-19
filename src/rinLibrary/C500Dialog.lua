@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Dialog Control.
 -- Functions for user interface dialogues
--- @module rinLibrary.C500Dialog
+-- @module rinLibrary.Device.Dialog
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -83,7 +83,7 @@ end
 -- @return key
 -- @return state ('short' or 'long')
 -- @return source ('display' or 'usb')
--- @see rinLibrary.GenericKeys.keygroups
+-- @see rinLibrary.Device.Keys.keygroups
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
@@ -234,8 +234,8 @@ end
 -- @return value
 -- @return true if ok pressed at end
 -- @see edit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local name = device.edit('Update Num', '0.04', 6)
 function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
@@ -403,8 +403,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return either 'ok' or 'cancel'
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
@@ -441,8 +441,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local opt = device.selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
@@ -497,8 +497,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return array containing selected item names
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
 -- local options = multiselect()
@@ -554,8 +554,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected option string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local opt = device.selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)

@@ -5,7 +5,7 @@
 -- Look at the <a href="../examples/menu.lua.html">menu.lua</a> example file
 -- for a more detailed usage example of this subsystem.
 --
--- @module rinLibrary.K400Menu
+-- @module rinLibrary.Device.Menu
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

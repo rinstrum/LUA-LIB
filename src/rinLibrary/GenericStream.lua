@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 ---  Streaming Utilities.
 -- Functions associated with streaming registers
--- @module rinLibrary.GenericStream
+-- @module rinLibrary.Device.Stream
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

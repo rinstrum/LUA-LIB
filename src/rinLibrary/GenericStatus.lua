@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Status Monitoring.
 -- Functions associated with the status monitoring
--- @module rinLibrary.GenericStatus
+-- @module rinLibrary.Device.Status
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

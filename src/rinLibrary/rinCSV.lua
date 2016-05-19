@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Functions for working with .CSV files and creating multi-table databases
+--- Functions for working with .CSV files and creating multi-table databases
 -- @module rinLibrary.rinCSV
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd

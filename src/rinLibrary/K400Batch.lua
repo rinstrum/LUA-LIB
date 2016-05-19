@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Batching scale functions.
 -- Functions to support the K410 Batching and products
--- @module rinLibrary.K400Batch
+-- @module rinLibrary.Device.Batch
 -- @author Pauli
 -- @copyright 2015 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

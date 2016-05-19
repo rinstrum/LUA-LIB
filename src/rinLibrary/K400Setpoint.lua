@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Setpoint Functions.
 -- Functions to control setpoint outputs
--- @module rinLibrary.K400Setpoint
+-- @module rinLibrary.Device.Setpoint
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

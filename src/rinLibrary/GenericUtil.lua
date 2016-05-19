@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 ---  General Utilities.
 -- General Functions for configuring the instrument
--- @module rinLibrary.GenericUtil
+-- @module rinLibrary.Device.Util
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd

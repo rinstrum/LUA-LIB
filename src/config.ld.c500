@@ -1,0 +1,46 @@
+project="rinLIB-C500 <font size=\"-1\">version %LATEST%</font>"
+title="Rinstrum Lua Library API"
+format='markdown'   -- 'discount' is faster but isn't available on the device.
+readme= { 'topics' }
+style = '!pale'
+use_markdown_titles = true
+sort_modules=true
+
+file={
+    'rinLibrary/C500Dialog.lua',
+    'rinLibrary/C500Reg.lua',
+    exclude={
+    	'rinLibrary/displayHelper.lua'
+    },
+}
+
+output='index'
+examples={          -- We should be able to wildcard this.
+    '../examples/helloLua.lua',
+    '../examples/hello.lua',
+    '../examples/multi-hello.lua',
+    '../examples/external.lua',
+    '../examples/fsm.lua',
+    '../examples/marquee.lua',
+    '../examples/menu.lua',
+    '../examples/myApp.lua',
+    '../examples/myCalApp.lua',
+    '../examples/myUSBApp.lua',
+    '../examples/oneArmedBandit.lua',
+    '../examples/printCopy.lua',
+    '../examples/setpIO/setpIO.lua',
+    '../examples/usbStorage.lua',
+    '../examples/usbMenu.lua',
+    '../examples/sandbox.lua'
+}
+
+full_description=[[
+# rinLIB-C500: API for programming the C500 in Lua 
+
+Copyright &copy; 2013-2016 Rinstrum.
+
+This reference is correct for library version %LATEST% only.
+
+If you do not know where to begin, please start with the <a href="topics/overview.md.html">introduction</a>.
+
+]]

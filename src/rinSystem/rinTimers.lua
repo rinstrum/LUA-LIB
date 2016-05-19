@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Offer functions for timers that are compatible with the app framework
+--- Offer functions for timers that are compatible with the app framework
 -- @module rinSystem.rinTimers
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd

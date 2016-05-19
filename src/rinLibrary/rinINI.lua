@@ -1,5 +1,5 @@
 ------------------------------------------------------------------------------
--- Services for saving and restoring settings in a table to .INI config file
+--- Services for saving and restoring settings in a table to .INI config file
 -- @module rinLibrary.rinINI
 -- @author Darren Pearson
 -- @copyright 2013 Rinstrum Pty Ltd

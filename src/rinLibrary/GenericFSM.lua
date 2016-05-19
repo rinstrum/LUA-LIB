@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Finite State Machine Infrastructure.
 -- Library routines to make the implementation of finite automata easier.
--- @module rinLibrary.GenericFSM
+-- @module rinLibrary.Device.FSM
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ return function (_M, private, deprecated)
 -- time will have elapsed before the transition activates.  Of course, all of the other
 -- trigger conditions also have to be met.
 --
--- @see rinLibrary.GenericStatus.luastatus
+-- @see rinLibrary.Device.Status.luastatus
 
 -------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger

@@ -2,7 +2,7 @@
 --- USB Helper Infrastructure.
 -- Support routines to provide a semi-standard interface to USB file copying
 -- and package installation.
--- @module rinLibrary.K400USB
+-- @module rinLibrary.Device.USB
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Module that manages IO functions
+--- Module that manages IO functions
 -- @module rinSystem.IOSockets
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd

@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Library for K400 high level command support.
--- @module rinLibrary.GenericCommand
+--- Library for K400 high level command support.
+-- @module rinLibrary.Device.Command
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd

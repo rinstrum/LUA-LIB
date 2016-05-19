@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Printing Functions.
 -- Functions to control instrument printing
--- @module rinLibrary.K400Print
+-- @module rinLibrary.Device.Print
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
