@@ -1,8 +1,25 @@
+#
+# This builds the lua libraries and their documentation for the R400 and C500.
+#
+
+ifeq ($(DEV),K400)
+LDOC_CONFIG=src/config.ld.k400
+EXAMPLES_DIR=K400Examples
+M01_NAME = M01
+M01_DIR = $(M01_NAME)
+else ifeq ($(DEV),C500)
+LDOC_CONFIG=src/config.ld.c500
+EXAMPLES_DIR=C500Examples
+M01_NAME = M03
+M01_DIR = $(M01_NAME)
+else
+$(error Undefined or invalid DEV setting)
+endif
+
 #Directories
 BUILDDIR := $(shell pwd)
 export LUA_MOD_DIR = usr/local/share/lua/5.1
 export STAGE_DIR = opkg
-M01_DIR = M01
 WWW_DIR = usr/local/www/html
 DEST_DIR ?=$(BUILDDIR)/$(STAGE_DIR)
 
@@ -30,21 +47,19 @@ PKGNAME := $(shell sed -n -r "s/Package: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/contr
 PKGVERS := $(shell sed -n -r "s/Version: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
 PKGARCH := $(shell sed -n -r "s/Architecture: (.*)/\1/p" < $(STAGE_DIR)/CONTROL/control)
 PKGNAMEVERS=$(PKGNAME)-$(PKGVERS)
-RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-M01.opk
-PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-M01.pdf
+RELEASE_M01_TARGET = $(M01_DIR)/$(PKGNAMEVERS)-$(M01_NAME).opk
+PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-$(M01_NAME).pdf
 CHECKSUM_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-checksum
 LDOCOUT := $(shell mktemp /tmp/$(PKGNAMEVERS)-XXXXXXXXX)
 
 LDOC_OPTS=--config config.ld
-LDOC_CONFIG=src/config.ld.k400
-EXAMPLES_DIR=K400Examples
 
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
 .PHONY: clean install compile net pdf checksum $(RELEASE_M01_TARGET)
 
-all: $(RELEASE_M01_TARGET)
+all: clean $(RELEASE_M01_TARGET)
 
 clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
@@ -105,7 +120,7 @@ install: compile
 	@if [ -s $(LDOCOUT) ]; then echo Errors in LuaDoc; cat $(LDOCOUT); rm -f $(LDOCOUT); exit 1; fi
 	@rm -f $(LDOCOUT)
 	
-	sed -i s/%LATEST%/$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
+	sed -i s/%LATEST%/$(DEV)-$(PKGVERS)/g $(DEST_DIR)/$(LUA_MOD_DIR)/rinApp.lua
 
 # Rule to create M01 release target
 $(RELEASE_M01_TARGET): install checksum pdf

@@ -5,7 +5,6 @@ readme= { 'topics' }
 style = '!pale'
 use_markdown_titles = true
 sort_modules=true
-boilerplate=true
 
 file={
 	'rinApp.lua',

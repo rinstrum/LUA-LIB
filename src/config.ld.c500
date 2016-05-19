@@ -7,31 +7,41 @@ use_markdown_titles = true
 sort_modules=true
 
 file={
-    'rinLibrary/C500Dialog.lua',
-    'rinLibrary/C500Reg.lua',
-    exclude={
-    	'rinLibrary/displayHelper.lua'
-    },
+	'rinApp.lua',
+	'rinLibrary/C500Dialog.lua',
+	'rinLibrary/C500Reg.lua',
+	
+	'rinLibrary/GenericAnalog.lua',
+    'rinLibrary/GenericBuzz.lua',
+    'rinLibrary/GenericCommand.lua',
+    'rinLibrary/GenericFSM.lua',
+    'rinLibrary/GenericKeys.lua',
+    'rinLibrary/GenericLCD.lua',
+    'rinLibrary/GenericReg.lua',
+    'rinLibrary/GenericRTC.lua',
+    'rinLibrary/GenericStatus.lua',
+    'rinLibrary/GenericStream.lua',
+    'rinLibrary/GenericUtil.lua',
+    
+    'rinLibrary/date.lua',
+    'rinLibrary/ldocUsage.lua',
+    'rinLibrary/lpeg.lua',
+    'rinLibrary/namings.lua',
+    'rinLibrary/rinCSV.lua',
+    'rinLibrary/rinDebug.lua',
+    'rinLibrary/rinINI.lua',
+    'rinLibrary/rinVT100.lua',
+    'rinSystem/IOSockets.lua',
+    'rinSystem/rinSockets.lua',
+    'rinSystem/rinTimers.lua',
+    'rinSystem/utilities.lua',
 }
 
 output='index'
 examples={          -- We should be able to wildcard this.
-    '../examples/helloLua.lua',
-    '../examples/hello.lua',
-    '../examples/multi-hello.lua',
-    '../examples/external.lua',
-    '../examples/fsm.lua',
-    '../examples/marquee.lua',
-    '../examples/menu.lua',
-    '../examples/myApp.lua',
-    '../examples/myCalApp.lua',
-    '../examples/myUSBApp.lua',
-    '../examples/oneArmedBandit.lua',
-    '../examples/printCopy.lua',
-    '../examples/setpIO/setpIO.lua',
-    '../examples/usbStorage.lua',
-    '../examples/usbMenu.lua',
-    '../examples/sandbox.lua'
+    '../C500Examples/hello.lua',
+    '../C500Examples/fsm.lua',
+    '../C500Examples/marquee.lua',
 }
 
 full_description=[[

@@ -154,9 +154,9 @@ function _M.addK400(model, ip, portA, portB)
     socks.addSocket(device.socketA, device.socketACallback)
     socks.addSocket(device.socketB, device.socketBCallback)
 
-	-- Create the extra debug port
+	  -- Create the extra debug port
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
-	dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
+	  dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
 
     device.initialisation(model)
 
