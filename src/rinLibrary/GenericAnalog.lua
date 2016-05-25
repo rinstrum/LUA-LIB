@@ -19,11 +19,6 @@ local tonumber = tonumber
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
--------------------------------------------------------------------------------
---- Analogue Output Control.
--- Functions to configure and control the analogue output module
--- @section analogue
-
 local maxAnalogueModules, warnedModuleNumberRange
 private.registerDeviceInitialiser(function()
     maxAnalogueModules = private.a418(4) or 1
@@ -65,6 +60,15 @@ private.registerDeviceInitialiser(function()
     }
     analogSourceOptions = { analogSourceMap.comms, 0, private.a418(4) or 3 }
 end)
+
+--- Analog Source Map
+-- Options for the analog 
+--@table AnalogSource
+-- @field gross Use gross weight only
+-- @field net Use net weight only
+-- @field gross_or_net Use either gross or net depending on which is currently displayed.
+-- @field comms Control analogue using comms
+-- @field batch Control using batch (A418 only)
 
 -------------------------------------------------------------------------------
 -- Provide backward compatibility with older library versions where the module
@@ -177,7 +181,7 @@ end
 -- Return the maximum number of analogue modules this device can support.
 -- This does not mean that this many are installed, can be installed or are usable,
 -- this is just the firmware's supported maximum.
--- @return Maximum number of modules that are supported.
+-- @treturn int Maximum number of modules that are supported.
 -- @usage
 -- maxModules = device.getAnalogModuleMaximum()
 -- print("This device can support at most " .. maxModules .. " analogue modules")
@@ -187,8 +191,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the analog output type.
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param source Source for output.
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @tparam AnalogSource source Source for output.
 -- Must be set to 'comms' to control directly and this is the default.
 -- @usage
 -- device.setAnalogSource(1, 'comms')
@@ -198,9 +202,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the analog output type
--- @param module The analogue module to change
--- @param oType Type for output 'current' or 'volt'
--- @return The previous analog output type
+-- @int module The analogue module to change
+-- @string oType Type for output, 'current' or 'volt'
+-- @treturn string The previous analog output type
 -- @usage
 -- device.setAnalogType(1, 'volt')
 function _M.setAnalogType(module, oType)
@@ -211,8 +215,8 @@ end
 -- Control behaviour of analog output outside of normal range.
 -- If clip is active then output will be clipped to the nominal range
 -- otherwise the output will drive to the limit of the hardware
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param c Boolean, clipping enabled?
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @bool c Clipping enabled?
 -- @usage
 -- device.setAnalogClip(1, false)
 function _M.setAnalogClip(module, c)
@@ -221,8 +225,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets the analog output to minimum 0 through to maximum 50,000
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param raw value in raw counts (0..50000)
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @int raw value in raw counts (0..50000)
 -- @usage
 -- device.setAnalogRaw(1, 25000)   -- mid scale, first analogue module
 function _M.setAnalogRaw(module, raw)
@@ -231,8 +235,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0 through to maximum 1.0
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param val value 0.0 to 1.0
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @number val value 0.0 to 1.0
 -- @usage
 -- device.setAnalogVal(1, 0.5)     -- mid scale, first analogue module
 function _M.setAnalogVal(module, val)
@@ -241,8 +245,8 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0% through to maximum 100%
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param val value 0 to 100 %
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @number val Value 0 to 100 (in percent)
 -- @usage
 -- device.setAnalogPC(1, 50)       -- mid scale, first analogue module
 function _M.setAnalogPC(module, val)
@@ -252,8 +256,8 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 0.0V through to maximum 10.0V
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param val value 0.0 to 10.0
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @number val value 0.0 to 10.0
 -- @usage
 -- device.setAnalogVolt(1, 5)      -- mid scale, first analogue module
 function _M.setAnalogVolt(module, val)
@@ -264,8 +268,8 @@ end
 
  ------------------------------------------------------------------------------
 -- Sets the analogue output to minimum 4.0 through to maximum 20.0 mA
--- @param module The analogue module to change.  Defaults to 1 (M4401).
--- @param val value 4.0 to 20.0
+-- @int module The analogue module to change.  Defaults to 1 (M4401).
+-- @number val value 4.0 to 20.0
 -- @usage
 -- device.setAnalogCur(1, 12)      -- mid scale, first analogue module
 function _M.setAnalogCur(module, val)
