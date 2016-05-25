@@ -674,7 +674,7 @@ local registerReadAccessors = {
 }
 
 -------------------------------------------------------------------------------
--- Type and range congiscent register query function
+-- Type and range cogniscent register query function
 -- @param reg Register to read
 -- @param[opt] method Force register read using a 
 -- specific method. Options are 'literal', 'hex', or 'dec'.
