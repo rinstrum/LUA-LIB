@@ -14,7 +14,7 @@ local dbg = require 'rinLibrary.rinDebug'
 --=============================================================================
 -- Connect to the instruments you want to control
 --=============================================================================
-local device = rinApp.addK400()        --  make a connection to the instrument
+local device = rinApp.addC500()        --  make a connection to the instrument
 
 -------------------------------------------------------------------------------
 -- Callback to handle PWR+ABORT key and end application
