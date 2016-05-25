@@ -2,7 +2,7 @@ project="rinLIB-K400 <font size=\"-1\">version %LATEST%</font>"
 title="Rinstrum Lua Library API"
 format='markdown'   -- 'discount' is faster but isn't available on the device.
 readme= { 'topics' }
-style = '!pale'
+style = '!fixed'
 use_markdown_titles = true
 sort_modules=true
 
@@ -34,6 +34,7 @@ file={
     'rinLibrary/date.lua',
     'rinLibrary/ldocUsage.lua',
     'rinLibrary/lpeg.lua',
+    'rinLibrary/multiselect.lua',
     'rinLibrary/namings.lua',
     'rinLibrary/rinCSV.lua',
     'rinLibrary/rinDebug.lua',

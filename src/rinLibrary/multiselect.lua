@@ -1,8 +1,12 @@
 -------------------------------------------------------------------------------
 --- Multiple selection list handling functions.
--- @module rinLibrary.multiselect
+-- @classmod multiselect
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
+-- 
+-- @usage
+--  local multiselect = require 'rinLibrary.multiselect'
+--  local options = multiselect()
 -------------------------------------------------------------------------------
 
 return function()

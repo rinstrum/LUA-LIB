@@ -40,7 +40,7 @@ local blinkOff = false      -- blink cursor for string editing
 
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
--- @return true iff a dialog is displayed
+-- @treturn bool True if a dialog is displayed, false otherwise
 -- @usage
 -- if not device.dialogRunning() then
 --     write('bottomLeft', 'hello')
@@ -77,13 +77,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup The key group, 'all' is default. A list of key groups is also
+-- @string[opt] keyGroup The key group, 'all' is default. A list of key groups is also
 -- allowed here and the legal keys are a union of these.
--- @param keep True if the existing callbacks should be maintained, this can 
+-- @bool[opt] keep True if the existing callbacks should be maintained, this can 
 -- cause some interference issues unless used prudently.
--- @return key
--- @return state ('short' or 'long')
--- @return source ('display' or 'usb')
+-- @treturn string key
+-- @treturn string state ('short' or 'long')
+-- @treturn string source ('display' or 'usb')
 -- @see rinLibrary.Device.Keys.keygroups
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
@@ -119,7 +119,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
--- @return true if editing false otherwise
+-- @treturn bool true if editing false otherwise
 -- @usage
 -- if not device.isEditing() then
 --     device.write('bottomLeft', 'idle')
@@ -130,13 +130,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Change the screen update frequency for the next dialog presented.
--- @param s The update frequency in seconds to set for next time
--- @return The previous update frequency
+-- @number period The update frequency in seconds to set for next time
+-- @treturn number The previous update period
 -- @usage
--- device.setScreenUpdateFrequency(1)   -- slow down updates
-function _M.setScreenUpdateFrequency(s)
+-- device.setScreenUpdatePeriod(1)   -- slow down updates
+function _M.setScreenUpdatePeriod(period)
     local old = scrUpdTm
-    scrUpdTm = s or 0.5
+    scrUpdTm = period or 0.5
     if scrUpdTm < .1 then
         scrUpdTm = .5
     end
@@ -196,8 +196,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the key timeout in terms of the number of blink half cycles
--- @param n The timeout
--- @return The previous timeout
+-- @number n The timeout (in number of blink half cycles)
+-- @treturn number The previous timeout
 -- @usage
 -- device.setEditKeyTimeout(3)
 function _M.setEditKeyTimeout(n)
