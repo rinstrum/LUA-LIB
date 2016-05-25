@@ -604,10 +604,11 @@ end
 -------------------------------------------------------------------------------
 -- Query all the information about a register.
 -- @param reg Register to query information about
--- @return Table containing all the register information
+-- @return Table containing all the register information (name, type, min, max, 
+-- decimalPlaces, permissions).
 -- @usage
 -- local regInfo = device.getRegInfo('grossnet')
--- print('grossnet decimals', regInfo.dp)
+-- print('grossnet decimals', regInfo.decimalPlaces)
 function _M.getRegInfo(reg)
     return {
         name            = private.getRegName(reg) or canonical(reg),
@@ -666,24 +667,40 @@ local registerAccessorsByType = {
     bitfield    = { private.readRegHex,     private.writeRegHexAsync    },
 }
 
+local registerReadAccessors = {
+    literal     = private.readRegLiteral,
+    hex         = private.readRegHex,
+    dec         = getNumber,
+}
+
 -------------------------------------------------------------------------------
 -- Type and range congiscent register query function
 -- @param reg Register to read
+-- @param[opt] method Force register read using a 
+-- specific method. Options are 'literal', 'hex', or 'dec'.
 -- @return Register's value, nil on error
 -- @return Error message, nil for no error
 -- @usage
 -- local value = getRegister('')
-function _M.getRegister(reg)
-    local t, err = private.getRegType(reg)
-    if t == nil then
-        return nil, err
-    end
-
-    local acc = registerAccessorsByType[t]
-    if acc and acc[1] then
-        return acc[1](reg)
-    end
-    return nil, (acc == nil) and "unknown register type" or 'cannot get register'
+function _M.getRegister(reg, method)
+    if method == nil then
+      local t, err = private.getRegType(reg)
+      if t == nil then
+          return nil, err
+      end
+  
+      local acc = registerAccessorsByType[t]
+      if acc and acc[1] then
+          return acc[1](reg)
+      end
+      return nil, (acc == nil) and "unknown register type" or 'cannot get register'
+   else
+      local acc = registerReadAccessors[method]
+      if acc then
+        return acc(reg)
+      end
+      return nil, 'unknown method'
+   end
 end
 
 -------------------------------------------------------------------------------
