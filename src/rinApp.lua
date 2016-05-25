@@ -62,7 +62,7 @@ local userEvents = {}
 
 -------------------------------------------------------------------------------
 -- Check if the application is still running
--- @return boolean, true if running
+-- @treturn bool True if running, false otherwise
 -- @usage
 -- if not rinApp.isRunning() then
 --     ...
@@ -73,7 +73,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Tell the application to stop running
--- @return true
+-- @treturn bool Always returns true
 -- @usage
 -- device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
 function _M.finish()
@@ -86,7 +86,7 @@ end
 -- Nothing is called unless the user hits <Enter>.  The callback function is
 -- called with the data entered by the user.  Have the callback return true
 -- to indicate that the message has been processed, false otherwise.
--- @param f callback given data entered by user in the terminal screen
+-- @func f callback given data entered by user in the terminal screen
 -- @usage
 -- rinApp.setUserTerminal(function(data) print('received', data) end)
 function _M.setUserTerminal(f)
@@ -125,11 +125,11 @@ end
 -------------------------------------------------------------------------------
 -- Called to connect to the K400 instrument, and establish the timers,
 -- streams and other services
--- @param model Software model expected for the instrument (eg "K401")
--- @param ip IP address for the socket, "127.0.0.1" used as a default
--- @param portA port address for the SERA socket (2222 used as default)
--- @param portB port address for the SERB socket (2223 used as default)
--- @return device object for this instrument
+-- @string[opt] model Software model expected for the instrument (eg "K401")
+-- @string[opt] ip IP address for the socket, "127.0.0.1" used as a default
+-- @int[opt] portA port address for the SERA socket (2222 used as default)
+-- @int[opt] portB port address for the SERB socket (2223 used as default)
+-- @return rinLibrary.Device object for this instrument
 -- @usage
 -- local rinApp = require "rinApp"
 --
@@ -183,11 +183,11 @@ end
 -------------------------------------------------------------------------------
 -- Called to connect to the C500 instrument, and establish the timers,
 -- streams and other services
--- @param model Software model expected for the instrument (eg "C500")
--- @param ip IP address for the socket, "127.0.0.1" used as a default
--- @param portA port address for the SERA socket (2222 used as default)
--- @param portB port address for the SERB socket (2223 used as default)
--- @return device object for this instrument
+-- @string[opt] model Software model expected for the instrument (eg "C500")
+-- @string[opt] ip IP address for the socket, "127.0.0.1" used as a default
+-- @int[opt] portA port address for the SERA socket (2222 used as default)
+-- @int[opt] portB port address for the SERB socket (2223 used as default)
+-- @return rinLibrary.Device object for this instrument
 -- @usage
 -- local rinApp = require "rinApp"
 --
@@ -240,7 +240,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Write to the bidirectional socket
--- @param msg The message to write
+-- @string msg The message to write
 -- @usage
 -- rinApp.writeBidirectional('hello world!')
 function _M.writeBidirectional(msg)
@@ -251,7 +251,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set a call back that receives all incoming bidirectional communication.
--- @param f Call back function, takes one argument which contains the current message.
+-- @func f Call back function, takes one argument which contains the current message.
 -- @usage
 -- rinApp.setUserBidirectionalCallback(function(m) print('message received', m) end)
 function _M.setUserBidirectionalCallback(f)
@@ -263,7 +263,7 @@ end
 -- @param sock Socket that has something ready to read.
 -- @local
 local function bidirectionalFromExternal(sock)
-	m, err = socks.readSocket(sock)
+	  local m, err = socks.readSocket(sock)
     if err ~= nil then
     	socks.removeSocket(sock)
         bidirectionalSocket = nil
@@ -276,7 +276,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set a call back that handles incoming bidirectional socket connections.
--- @param f Call back function.
+-- @func f Call back function.
 -- @usage
 -- function cb(sock, ip, port)
 --     print('connection from', ip, port)
@@ -346,7 +346,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to register application's main loop function
--- @param f Mail Loop function to call
+-- @func f Mail Loop function to call
 -- @usage
 -- local function mainLoop()
 --     ...
@@ -359,7 +359,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to register application's cleanup function
--- @param f cleanup function to call
+-- @func f cleanup function to call
 -- @usage
 -- local function cleanUp()
 --     ...
@@ -417,14 +417,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Add an event that will be processed only when all dialogs, editing and
--- main loop processing is finished.  The optional name prevents multiple
+-- main loop processing is finished. The name prevents multiple
 -- events from being scheduled simultaneously.  Only the first scheduled event
 -- of a specific name is execute each time around the main loop.
--- @param name Name of this event, optional
--- @param callback Function to run when timer is complete
--- @param ... Function arguments
+-- @string name Name of this event, optional
+-- @func callback Function to run when timer is complete
+-- @param[opt] ... Function arguments
 -- @usage
--- rinApp.addIdleEvent(print, 'things have calmed down')
+-- rinApp.addIdleEvent('printer', print, 'things have calmed down')
 function _M.addIdleEvent(name, callback, ...)
     local args
     if utils.callable(name) then
@@ -467,7 +467,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Delay until the specified condition occurs
--- @param cond Condition function
+-- @func cond Condition function, should return either true or false
 -- @usage
 -- rinApp.delayUntil(function() return finished end)
 function _M.delayUntil(cond)
@@ -482,7 +482,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to delay for t sec while keeping event handlers running
--- @param t delay time in sec
+-- @number t Delay time in sec
 -- @usage
 -- rinApp.delay(0.1)    -- pause for 100 ms
 function _M.delay(t)
