@@ -373,9 +373,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the repeat interval parameters.
--- @param start The initial time between repeat key events (default 0.5 seconds)
--- @param decay The multiplicative decay factor between key events (default 0.85)
--- @param finish The fastest repeat interval permitted (default 0.12 seconds)
+-- @number[opt] start The initial time between repeat key events (default 0.5 seconds)
+-- @number[opt] decay The multiplicative decay factor between key events (default 0.85)
+-- @number[opt] finish The fastest repeat interval permitted (default 0.12 seconds)
 function _M.setKeyRepeatParameters(start, decay, finish)
     repeatStart = start or 0.5
     repeatDecay = decay or 0.85
@@ -572,7 +572,7 @@ end
 -- Enable or disable USB keyboard processing.
 -- By default key presses on a USB keyboard device (keyboard, bar code scanner,
 -- RFID reader) do not act like keys on the display being pressed.
--- @param enable Boolean, true means to process keys as per the display and false
+-- @bool enable True means to process keys as per the display and false
 -- doesn't.  The default is false.
 -- @usage
 -- device.usbProcessKeys(true)
@@ -610,7 +610,8 @@ end
 -- This function must be called after the application's main loop finishes.
 -- This routine is called automatically by the standard rinApp application
 -- framework.
--- @param flush Flush the current keypresses that have not yet been handled
+-- @bool[opt] flush Flush the current keypresses that have not yet been handled. 
+-- Default false.
 -- @usage
 -- -- Close down the key handling subsystem
 -- device.endKeys()
@@ -630,8 +631,8 @@ end
 -------------------------------------------------------------------------------
 -- Set a callback to run if more than t seconds of idle time is detected
 -- between keys.  This is used to trap operator leaving without proper menu exit.
--- @param f function to run when idle time expired
--- @param t is timeout in seconds
+-- @func f function to run when idle time expired
+-- @number t is timeout in seconds
 -- @usage
 -- local function idle()
 --     device.abortDialog()
@@ -645,10 +646,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for an existing key
--- @param keyName to monitor
--- @param callback Function to run when there is an event for that key.
--- @param ... Events for which this callback should be used ('short', 'long', 'up', 'repeat')
--- @see keys
+-- @tparam keys keyName to monitor
+-- @func callback Function to run when there is an event for that key.
+-- @tparam[opt] keyEvents ... Events for which this callback should be used 
+-- ('short', 'long', 'up', 'repeat'). Default all.
 -- @usage
 -- -- Callback function parameters are key ('ok' etc) and state ('short', 'long', 'up' or 'repeat')
 -- local function F1Pressed(key, state)
@@ -690,12 +691,13 @@ end
 -- An individual key handler will override a group handler.  Likewise, the
 -- groups have their own priority order from the fine grained to the all
 -- encompassing.
--- @param keyGroupName A keygroup name
--- @param callback Function to run when there is an event on the keygroup
--- @param ... Events for which this callback should be used ('short', 'long', 'up')
--- Callback function parameters are key ('ok' etc) and state ('short' or 'long')
--- Return true in the callback to prevent the handling from being passed along to the next keygroup
--- @see keygroups
+-- @tparam keygroups keyGroupName A keygroup name
+-- @tparam func callback Function to run when there is an event on the keygroup.
+-- Callback function parameters are key ('ok' etc) and state ('short' or 'long').
+-- Return true in the callback to prevent the handling from being passed along 
+-- to the next keygroup.
+-- @tparam[opt] keyEvents ... Events for which this callback should be used 
+-- ('short', 'long', 'up', 'repeat'). Default all.
 -- @usage
 -- -- Callback to handle F1 key event
 -- local function handleKey(key, state)
@@ -729,7 +731,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Save all key call backs, optionally deleting all existing callbacks
--- @param keep True if the existing callbacks should be maintained
+-- @bool[opt] keep True if the existing callbacks should be maintained, default false.
 -- @return Function that when called restores the key handlers
 -- @usage
 -- local savedKeyHandlers = device.saveKeyCallbacks()
@@ -748,11 +750,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Send an artificial key press to the given instrument register
--- @param keyName Key to simulate
--- @param status 'long' or 'short'
+-- @tparam key keyName Key to simulate
+-- @tparam keyEvents status 'long' or 'short'
 -- @param register Register to send the key press to
 -- @return true
--- @see keys
 -- @local
 local function sendKeyToRegister(keyName, status, register)
     if keyName then
@@ -772,10 +773,9 @@ end
 -------------------------------------------------------------------------------
 -- Send an artificial key press to the instrument.  This can be any of the
 -- instrument keys or an IO key.
--- @param keyName Key to simulate
--- @param status 'long' or 'short'
--- @return true
--- @see keys
+-- @tparam keys keyName Key to simulate
+-- @tparam keyEvents status 'long' or 'short'
+-- @treturn bool true
 -- @usage
 -- -- Send a short cancel key press to the display
 -- device.sendKey('cancel', 'short')
@@ -791,10 +791,9 @@ end
 -- This differs from sendKey in that the entire key processing sequence
 -- occurs.  This means that this Lua application will see the key come back.
 -- You will almost always want to use sendKey not this function.
--- @param keyName Key to simulate
--- @param status 'long' or 'short'
--- @return true
--- @see keys
+-- @tparam keys keyName Key to simulate
+-- @tparam keyEvents status 'long' or 'short'
+-- @treturn bool true
 -- @see sendKey
 -- @usage
 -- -- Send a short cancel key press to the display for return here
