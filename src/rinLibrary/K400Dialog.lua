@@ -997,7 +997,7 @@ function _M.askOK(prompt, q, units, unitsOther)
 
     local restoreBottom = _M.saveBottom() 
     _M.write('bottomRight', prompt or '')
-    _M.write('bottomLeft', q or '')
+    _M.write('bottomLeft', q or '', units and '' or 'align=right')
     _M.writeUnits('bottomLeft', units or 'none', unitsOther or 'none')
 
     local finished = _M.startDialog()
@@ -1051,7 +1051,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('bottomLeft', string.upper(opts[index]))
+        _M.write('bottomLeft', string.upper(opts[index]), units and '' or 'align=right')
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
             editing = false
@@ -1104,7 +1104,7 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('bottomLeft', string.upper(opts[index]))
+        _M.write('bottomLeft', string.upper(opts[index]), units and '' or 'align=right')
         _M.write('bottomRight', (options.isSelected(opts[index]) and "*" or " ")..prompt)
 
         local key = _M.getKey('keypad')
@@ -1159,7 +1159,7 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('bottomLeft', string.upper(opts[index][1]))
+        _M.write('bottomLeft', string.upper(opts[index][1]), units and '' or 'align=right')
         _M.write('bottomRight', string.upper(opts[index][2]))
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'cancel' then    -- editing aborted so return default
