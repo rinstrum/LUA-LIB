@@ -150,9 +150,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Define and create a new state machine
--- @param args State machine parameteres
--- @return state machine
--- @see FiniteStateMachineDefinition
+-- @tparam[opt] FiniteStateMachineDefinition args State machine parameteres
+-- @return State machine
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
 --                      .state { 'initialise' }
@@ -243,9 +242,8 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Add a state to a finite state machine
 -- @function state
--- @param args State definition arguments
+-- @tparam FiniteStateMachineStates args State definition arguments
 -- @return The finite state machine
--- @see FiniteStateMachineStates
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
 --                      .state { 'initialise' }
@@ -278,9 +276,8 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Add a state transition to a finite state machine
 -- @function trans
--- @param args Transition arguments table
+-- @tparam FiniteStateMachineTransitions args Transition arguments table
 -- @return The finite state machine
--- @see FiniteStateMachineTransitions
 -- @usage
 -- local fsm = device.stateMachine { 'my FSM' }
 --                      .state { 'initialise' }
@@ -329,7 +326,7 @@ function _M.stateMachine(args)
 -------------------------------------------------------------------------------
 -- Get the name of the current finite state machine state
 -- @function getState
--- @return string or nil if no current state
+-- @treturn string Current state or nil if no current state
 -- @see setState
 -- @usage
 -- print('state is currently', fsm.getState())
@@ -342,8 +339,8 @@ function _M.stateMachine(args)
 -- This function ignores all the defined transitions but still calls the enter
 -- and leave callbacks properly.
 -- @function setState
--- @param s State to set to
--- @return True
+-- @tparam string s State to set to
+-- @treturn bool True
 -- @see getState
 -- @see reset
 -- @usage
@@ -363,7 +360,7 @@ function _M.stateMachine(args)
 -- This function ignores all the defined transitions but still calls the enter
 -- and leave callbacks properly.
 -- @function reset
--- @return True
+-- @treturn bool True
 -- @see setState
 -- @usage
 -- fsm.reset()
@@ -377,8 +374,8 @@ function _M.stateMachine(args)
 -- The event must be one that has been defined in a transition.
 -- Events are cleared on a state transition or state change.
 -- @function raise
--- @return True
--- @param event The event to raise
+-- @treturn bool True
+-- @string event The event to raise
 -- @usage
 -- fsm.raise('begin')
     function fsm.raise(event)
@@ -393,8 +390,8 @@ function _M.stateMachine(args)
 -- Clear an event.
 -- The event must be one that has been defined in a transition.
 -- @function clear
--- @return True
--- @param event The event to raise
+-- @treturn bool True
+-- @string event The event to raise
 -- @usage
 -- fsm.clear('begin')
     function fsm.clear(event)
@@ -413,7 +410,7 @@ function _M.stateMachine(args)
 -- You will usually want to call the finite state machine's run function from your
 -- main loop.
 -- @function run
--- @return True
+-- @treturn bool True
 -- @usage
 -- device.setMainLoop(fsm.run)
     function fsm.run()
@@ -444,9 +441,9 @@ function _M.stateMachine(args)
 --
 -- dot -Tpdf >myGraph.pdf <myGraph.dot
 -- @function dump
--- @param filename Name of the output file.
--- @param showCurrent Boolean, highlight the current node.  By default, this
--- is not highlighted.
+-- @string filename Name of the output file.
+-- @bool showCurrent Highlight the current node.  By default, this
+-- is false..
 -- @return The finite state machine
 -- @usage
 -- fsm.dump('myGraph.dot')
