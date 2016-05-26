@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Axle scle functions.
 -- Functions to support the K422 Axle Weigher
--- @module rinLibrary.K400Axle
+-- @module rinLibrary.Device.Axle
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

@@ -19,8 +19,24 @@ local modules = {
     "GenericBuzz",
     "GenericLCD",
     "GenericRTC",
+    "GenericAnalog",
     "C500Dialog", 
     "GenericFSM",
+    "GenericCommand",
+    "GenericWeights",
+    
+    -- Not done on C500
+    --K400Axle (not done on C500)
+    --K400Batch (recode batching entirely)
+    --K400Users (no need in C500)
+    
+    -- To do
+
+    -- "K400Print", (doing this totally different, wait for hw support)
+    -- "K400Setpoint", (leave for now)
+    -- "K400Passcode", (wait for Sean to do registers)
+    -- "K400USB", (wait for USB hw supprt)
+    -- "K400Menu", (too complicated for now, and not widely used)
 }
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -

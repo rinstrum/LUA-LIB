@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Dialog Control.
 -- Functions for user interface dialogues
--- @module rinLibrary.C500Dialog
+-- @module rinLibrary.Device.Dialog
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -32,13 +32,14 @@ local editing = false
 
 local sEditTab = {}         -- Table containing string to edit
 local sEditIndex = 1        -- starting index for sEdit()
+local hide = false
 
 local scrUpdTm = 0.5        -- screen update frequency in Sec
 local blinkOff = false      -- blink cursor for string editing
 
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
--- @return true iff a dialog is displayed
+-- @treturn bool True if a dialog is displayed, false otherwise
 -- @usage
 -- if not device.dialogRunning() then
 --     write('bottomLeft', 'hello')
@@ -75,14 +76,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup The key group, 'all' is default. A list of key groups is also
+-- @tparam[opt] rinLibrary.Device.Keys.keygroups keyGroup The key group, 'all' is default. A list of key groups is also
 -- allowed here and the legal keys are a union of these.
--- @param keep True if the existing callbacks should be maintained, this can 
+-- @bool[opt] keep True if the existing callbacks should be maintained, this can 
 -- cause some interference issues unless used prudently.
--- @return key
--- @return state ('short' or 'long')
--- @return source ('display' or 'usb')
--- @see rinLibrary.GenericKeys.keygroups
+-- @treturn string key
+-- @treturn string state ('short' or 'long')
+-- @treturn string source ('display' or 'usb')
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
@@ -117,7 +117,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
--- @return true if editing false otherwise
+-- @treturn bool true if editing false otherwise
 -- @usage
 -- if not device.isEditing() then
 --     device.write('bottomLeft', 'idle')
@@ -128,13 +128,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Change the screen update frequency for the next dialog presented.
--- @param s The update frequency in seconds to set for next time
--- @return The previous update frequency
+-- @number period The update frequency in seconds to set for next time
+-- @treturn number The previous update period
 -- @usage
--- device.setScreenUpdateFrequency(1)   -- slow down updates
-function _M.setScreenUpdateFrequency(s)
+-- device.setScreenUpdatePeriod(1)   -- slow down updates
+function _M.setScreenUpdatePeriod(period)
     local old = scrUpdTm
-    scrUpdTm = s or 0.5
+    scrUpdTm = period or 0.5
     if scrUpdTm < .1 then
         scrUpdTm = .5
     end
@@ -171,7 +171,8 @@ end
 -- This table defines the mapping from the numeric keys to alpha characters.
 -- The first press results in the first character, the second the second and
 -- so forth.
-local numKeyMapping = "0123456789."
+local numKeyList = "0123456789."
+local intKeyList = "0123456789"
 
 -------------------------------------------------------------------------------
 -- Trim white space from a string.
@@ -200,6 +201,15 @@ local function blinkCursor(notTimer)
     end
   end
   
+  -- Handle passcode
+  if hide == true then
+    for i = 1, #tempTable do
+      if i ~= sEditIndex then
+        tempTable[i] = '+'
+      end
+    end
+  end
+  
   --print(tempTable[1], tempTable[2], tempTable[3], tempTable[4], tempTable[5], tempTable[6], tempTable[7], tempTable[8])
   
   -- Convert the table into a string
@@ -214,28 +224,36 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a number
--- @param prompt string displayed on bottom right LCD
--- @param def default value
--- @param maxLen maximum number of characters to include (default 6)
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return value
--- @return true if ok pressed at end
--- @see edit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @string prompt string displayed on bottom right LCD
+-- @tparam[opt] number/string def Default value.
+-- @string[opt] typ type of value to enter ('number' (default),'integer','passcode')
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
+-- @treturn number Number input by the user
+-- @treturn bool True if ok pressed at end, false otherwise
 -- @usage
--- local name = device.edit('Update Num', '0.04', 6)
-function _M.edit(prompt, def, maxLen, units, unitsOther)
+-- local name = device.edit('Update Num', '0.04', 'number')
+function _M.edit(prompt, def, typ, units, unitsOther)
 
     editing = true                  -- is editing occurring
     local key, state, source        -- instrument key values
     local alphabetIndex = 0         -- Index in alphabet of editor
     local ok = false                -- Was the OK key pressed?
     local cursorTmr                 -- Timer for blinking cursor
+    local keyMapping
     
-    maxLen = maxLen or 6
+    local maxLen = 50
     sEditTab = {}
+    
+    typ = typ or 'number'
+    
+    -- Set up the state for the editor
+    hide = (typ == 'passcode')
+    if (typ == 'integer' or typ == 'passcode') then
+      keyMapping = intKeyList
+    else
+      keyMapping = numKeyList
+    end
     
     -- Set the default string. This should be uppercase as the user can only
     -- enter upper case values, and a mixed case return does not make sense.
@@ -257,7 +275,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
     if sEditIndex == 0 or (sEditIndex < maxLen and sEditTab[sEditIndex] == nil) then
       sEditIndex = sEditIndex + 1
       sLen = sLen + 1
-      sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
+      sEditTab[sEditIndex] = keyCharSelect(keyMapping, 1)
     end
     
     -- Set up the screen
@@ -286,7 +304,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
         -- Arrow keys
         if key == 'f1' or key == 'zero' then
           -- Get the new alphabet index, and increment or decrement as necessary
-          alphabetIndex = keyCharGet(numKeyMapping, sEditTab[sEditIndex])
+          alphabetIndex = keyCharGet(keyMapping, sEditTab[sEditIndex])
           if key == 'zero' then
             alphabetIndex = alphabetIndex - 1
           elseif key == 'f1' then
@@ -294,7 +312,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
           end
             
           -- Update the string and the display
-          sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, alphabetIndex)
+          sEditTab[sEditIndex] = keyCharSelect(keyMapping, alphabetIndex)
           resetTimer(true)
         -- Move to previous character
         elseif key == 'tare' then                    
@@ -314,7 +332,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
           
           -- Fill the character with a 0 if it's nil
           if sEditTab[sEditIndex] == nil then
-            sEditTab[sEditIndex] = keyCharSelect(numKeyMapping, 1)
+            sEditTab[sEditIndex] = keyCharSelect(keyMapping, 1)
             sLen = sLen + 1
           end
           
@@ -369,7 +387,7 @@ function _M.edit(prompt, def, maxLen, units, unitsOther)
     
     -- Return the entered value.
     if (ok == true)then
-      return table.concat(sEditTab), true
+      return tonumber(table.concat(sEditTab)), true
     else
       return default, false
     end
@@ -377,22 +395,20 @@ end
 
 -------------------------------------------------------------------------------
 -- Prompts operator and waits for OK or CANCEL key press
--- @param prompt string to put on bottom right LCD
--- @param q string to put on bottom left LCD
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return either 'ok' or 'cancel'
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @string[opt] prompt String to show before prompting user (displays after message).
+-- @string[opt] message First string to show when editor opens.
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
+-- @treturn string Either 'ok' or 'cancel'
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
-function _M.askOK(prompt, q, units, unitsOther)
+function _M.askOK(prompt, message, units, unitsOther)
     local askOKResult = 'cancel'
 
     local restore = _M.saveDisplay()
+    _M.write('topLeft', message or '', 'time=1,wait')
     _M.writeUnits('topLeft', units or 'none', unitsOther or 'none')
-    _M.write('topLeft', q or '', 'time=1,wait')
-    _M.write('topLeft', prompt or '')
+    _M.write('topLeft', prompt or '', units and '' or 'align=right')
 
     local finished = _M.startDialog()
     while _M.app.isRunning() do
@@ -413,15 +429,13 @@ end
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a list of options using
 -- arrow keys and ok
--- @param prompt string to put on bottom right LCD
--- @param options table of option strings
--- @param def default selection string.byte
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return selected string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @string prompt Prompt to display on LCD
+-- @tparam {string,...} options table of option strings
+-- @string[opt] def Default selection string.byte
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
+-- @treturn String Selected string if OK pressed or nil if CANCEL pressed
 -- @usage
 -- local opt = device.selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
@@ -445,7 +459,7 @@ function _M.selectOption(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', string.upper(opts[index]))
+        _M.write('topLeft', string.upper(opts[index]), units and '' or 'align=right')
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             editing = false
@@ -469,15 +483,13 @@ end
 -- Keys uses are up and down to navigate, > to select and deselect, ok to 
 -- accept the current selections and cancel to exit and revert to the original
 -- selections.
--- @param prompt string to put on bottom right LCD, this is preceeded by an
+-- @string prompt string to put on bottom right LCD, this is preceeded by an
 -- asterik or a space to indicate selection.
--- @param options multiselect object
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return array containing selected item names
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @tparam multiselect options Multiselect object
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
+-- @treturn {string,...} Array containing selected item names
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
 -- local options = multiselect()
@@ -499,7 +511,9 @@ function _M.selectFromOptions(prompt, options, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', (options.isSelected(opts[index]) and "*" or " ")..string.upper(opts[index]))
+        _M.write('topLeft', 
+            (options.isSelected(opts[index]) and "*" or " ")..string.upper(opts[index]),
+            units and '' or 'align=right')
 
         local key = _M.getKey('arrow')
 
@@ -524,22 +538,20 @@ end
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a list of options using
 -- arrow keys and ok, simultaneously showing the current value of the option
--- @param prompt string to put on top left LCD
--- @param options table of option strings and values
--- @param def default selection index in options
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return selected option string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @string prompt String to put on LCD
+-- @tparam {{string,string},...} options Table of option strings and values
+-- @int[opt] def Default selection index in options
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
+-- @treturn string Selected option string if OK pressed or nil if CANCEL pressed
 -- @usage
 -- local opt = device.selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     local opts = options or {'cancel'}
     local sel = nil
 
-    local index = def
+    local index = def or 1
 
     editing = true
     local restoreDisplay = _M.saveDisplay()
@@ -549,7 +561,9 @@ function _M.selectConfig(prompt, options, def, loop, units, unitsOther)
     loop = loop == nil and true or loop
     local finished = _M.startDialog()
     while editing and _M.app.isRunning() do
-        _M.write('topLeft', string.upper(opts[index][1] .. ": " .. opts[index][2]))
+        _M.write('topLeft', 
+            string.upper(opts[index][1] .. ": " .. opts[index][2]),
+            units and '' or 'align=right')
         local key = _M.getKey('arrow')
         if not _M.dialogRunning() or key == 'f3' then    -- editing aborted so return default
             editing = false

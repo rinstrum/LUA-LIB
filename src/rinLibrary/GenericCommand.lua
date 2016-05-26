@@ -1,6 +1,6 @@
 -------------------------------------------------------------------------------
--- Library for K400 high level command support.
--- @module rinLibrary.K400Command
+--- Library for K400 high level command support.
+-- @module rinLibrary.Device.Command
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
@@ -131,8 +131,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to execute a Zero command
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @string command string, nil on error
+-- @string error string, nil if no error
 -- @usage
 -- device.zero()
 function _M.zero()
@@ -141,8 +141,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to execute a Tare command
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @string command string, nil on error
+-- @string error string, nil if no error
 -- @usage
 -- device.tare()
 function _M.tare()
@@ -151,19 +151,21 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to execute a Pre-set Tare command
--- @param pt is the preset tare value
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @number pt Preset tare value, in final value units.
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
--- device.presetTare(0)
+-- -- If device is set to kg, this will set the presetTare at 30.05kg.
+-- device.presetTare(30.05)
 function _M.presetTare(pt)
-    return doCmd(REG_ADC_PT, pt or 0, 5.0)
+    pt = _M.toPrimary(pt or 0)
+    return doCmd(REG_ADC_PT, pt, 5.0)
 end
 
 -------------------------------------------------------------------------------
 -- Command to set Gross Mode
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- device.gross()
 function _M.gross()
@@ -172,8 +174,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to set Net mode
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- device.net()
 function _M.net()
@@ -182,8 +184,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to toggle Gross Net status
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- device.grossNetToggle()
 function _M.grossNetToggle()
@@ -222,8 +224,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Zero
--- @return command string, nil on error
--- @return error code or nil for none
+-- @treturn string command string, nil on error
+-- @treturn string error code or nil for none
 -- @usage
 -- local msg, err = device.calibrateZero()
 -- if err == nil then
@@ -236,9 +238,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
--- @param span weight value for calibration
--- @return command string, nil on error
--- @return error code or nil for none
+-- @number span Weight value for calibration
+-- @treturn string command string, nil on error
+-- @treturn string error code or nil for none
 -- @usage
 -- local msg, err = device.calibrateSpan(device.editReg('calibwgt'))
 -- if err == 0 then
@@ -261,9 +263,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Zero using MV/V signal
--- @param MVV signal for zero
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @number MVV signal for zero
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- local MVV = device.edit('MVV ZERO', '0', 'number')
 -- local ret, msg = device.calibrateZeroMVV(MVV)
@@ -277,9 +279,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Span using MV/V signal
--- @param MVV signal for fullscale
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @number MVV signal for fullscale
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- local MVV = device.edit('MVV SPAN','2.0','number')
 -- local ret, msg = device.calibrateSpanMVV(MVV)
@@ -294,9 +296,9 @@ end
 -------------------------------------------------------------------------------
 -- Command read calibration code
 -- @param reg Register to query
--- @param dp Number of decimal places in value (optional)
--- @return value or nil on error
--- @return error string if error encountered, nil otherwise
+-- @int[opt] dp Number of decimal places in value
+-- @treturn string value or nil on error
+-- @treturn string error string if error encountered, nil otherwise
 -- @local
 local function readCalibration(reg, dp)
     local data, err = private.readRegHex(reg)
@@ -310,8 +312,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to read MVV zero calibration
--- @return MVV signal or nil on error
--- @return error string if error encountered, nil otherwise
+-- @number MVV signal or nil on error
+-- @treturn string error string if error encountered, nil otherwise
 -- @usage
 -- local msg, err = device.calibrateZero()
 -- if err == nil then
@@ -324,8 +326,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to read MVV span calibration
--- @return MVV signal or nil on error
--- @return error string if error encountered, nil otherwise
+-- @number MVV signal or nil on error
+-- @treturn string error string if error encountered, nil otherwise
 -- @usage
 -- local msg, err = device.readSpanMVV(device.editReg('calibwgt'))
 -- if err == nil then
@@ -339,8 +341,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to read span calibration weight
--- @return span weight used on the last span calibration or nil on error
--- @return error string if error encountered, nil otherwise
+-- @treturn string span weight used on the last span calibration or nil on error
+-- @treturn string error string if error encountered, nil otherwise
 -- @usage
 -- local msg, err = device.readSpanWeight(device.editReg('calibwgt'))
 -- if err == nil then
@@ -354,10 +356,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to read linearisation results
--- @return linearisation results in a table of 10 lines with each line having
+-- @treturn {{pc=number, correction=number},...} Linearisation results in a 
+-- table of 10 lines with each line having
 -- pc (percentage of fullscale that point in applied),
 -- correction (amount of corrected weight)
--- @return error string or nil for no error
+-- @treturn string error string or nil for no error
 -- @usage
 -- local ret, msg = device.calibrateLin(pt, device.editReg('calibwgt'))
 -- if ret == 0 then
@@ -387,10 +390,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate linearisation point
--- @param pt is the linearisation point 1..10
--- @param val is the weight value for the current linearisation point
--- @return command string, nil on error
--- @return error code or nil for none
+-- @int pt Linearisation point 1..10
+-- @number val Weight value for the current linearisation point
+-- @treturn string command string, nil on error
+-- @treturn string error code or nil for none
 -- @usage
 -- local msg, err = device.calibrateLin(pt, device.editReg('calibwgt'))
 -- if err == nil then
@@ -419,9 +422,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to calibrate Span
--- @param pt is the linearisation point 1..10
--- @return command string, nil on error
--- @return error string, nil if no error
+-- @int pt Linearisation point 1..10
+-- @treturn string command string, nil on error
+-- @treturn string error string, nil if no error
 -- @usage
 -- local ret, msg = device.clearLin(pt)
 -- if ret == 0 then

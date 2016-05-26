@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Register Functions.
 -- Functions to read, write and execute commands on instrument registers directly
--- @module rinLibrary.K400Reg
+-- @module rinLibrary.Device.Reg
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -65,7 +65,7 @@ private.registerDeviceInitialiser(function()
         adcsample               = 0x0020,
 --        sysstatus               = 0x0021,
 --        syserr                  = 0x0022,
---        absmvv                  = 0x0023, 
+        absmvv                  = 0x0023, 
         grossnet                = 0x0025,
         gross                   = 0x0026,
         net                     = 0x0027,
@@ -74,7 +74,7 @@ private.registerDeviceInitialiser(function()
 --        manhold                 = 0x002A,
 --        grandtotal              = 0x002B,
 --        altgross                = 0x002C,
---        rawadc                  = 0x002D,
+        rawadc                  = 0x002D,
 --        altnet                  = 0x002E,
         fullscale               = 0x002F,
         tracevalid              = 0x0030,

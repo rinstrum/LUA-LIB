@@ -1,5 +1,5 @@
 --------------------------------------------------------------------------------
--- Documentation of the ldoc features
+--- Documentation of the ldoc features
 -- @module rinLibrary.ldocUsage
 -- @author Darren Pearson
 -- @copyright 2014 Rinstrum Pty Ltd

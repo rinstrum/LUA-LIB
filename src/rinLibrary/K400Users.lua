@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- User related Functions.
 -- Functions to read and write user information
--- @module rinLibrary.K400Users
+-- @module rinLibrary.Device.Users
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

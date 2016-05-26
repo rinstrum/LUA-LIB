@@ -1,17 +1,12 @@
 -------------------------------------------------------------------------------
 --- Buzzer Handling.
 -- Functions associated with the making of noise
--- @module rinLibrary.GenericBuzz
+-- @module rinLibrary.Device.Buzz
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local min, max = math.min, math.max
 local naming = require 'rinLibrary.namings'
-
--------------------------------------------------------------------------------
---- Buzzer Control.
--- Functions to control instrument buzzer
--- @section buzzer
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
@@ -42,8 +37,8 @@ return function (_M, private, deprecated)
 -------------------------------------------------------------------------------
 -- Called to trigger instrument buzzer.
 -- There are no gaps between long beeps.
--- @param times - number of times to buzz, 1..4, default is one
--- @param len - length of buzzer sound ('short', 'medium' or 'long'), default is short
+-- @int[opt] times Number of times to buzz, 1..4, default is one
+-- @int[opt] len Length of buzzer sound ('short', 'medium' or 'long'), default is short
 -- @usage
 -- -- Emit an SOS sequence
 -- -- The delays are required since execution continues

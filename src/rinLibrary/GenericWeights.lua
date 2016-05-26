@@ -7,7 +7,7 @@
 -- information.  Generally, it is better to use the streaming
 -- support and to cache the current values of interest locally.  This
 -- avoids pauses and delays when these values require access.
--- @module rinLibrary.K400Weights
+-- @module rinLibrary.Device.Weights
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -24,7 +24,7 @@ return function (_M, private, deprecated)
 -- This is the value that is usually displayed in the top left of the screen.
 -- @return gross or net weight
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @see getNet
 -- @usage
@@ -37,7 +37,7 @@ end
 -- Get gross weight from instrument.
 -- @return gross weight
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @see getAltGross
 -- @usage
@@ -50,7 +50,7 @@ end
 -- Get net weight from instrument.
 -- @return net weight
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @see getAltNet
 -- @usage
@@ -63,7 +63,7 @@ end
 -- Get tare from instrument.
 -- @return tare
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @see getGross
 -- @usage
@@ -86,7 +86,7 @@ end
 -- Get raw mV/V from instrument.
 -- @return mV/V
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getRawADC
 -- @usage
 -- local mvv = device.getMVV()
@@ -98,7 +98,7 @@ end
 -- Get raw ADC reading from instrument.
 -- @return raw ADC reading
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getMVV
 -- @usage
 -- local rawAdc = device.getRawADC()
@@ -179,7 +179,7 @@ private.registerDeviceInitialiser(function()
 -- @function getAltGross
 -- @return alternative gross weight
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @usage
 -- local gross = device.getAltGross()
@@ -194,7 +194,7 @@ private.registerDeviceInitialiser(function()
 -- @function getAltNet
 -- @return alternative net weight
 -- @return error string if error received, nil otherwise
--- @see rinLibrary.GenericStream.addStream
+-- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @usage
 -- local net = device.getAltNet()

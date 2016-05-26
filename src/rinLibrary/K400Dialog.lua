@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Dialog Control.
 -- Functions for user interface dialogues
--- @module rinLibrary.K400Dialog
+-- @module rinLibrary.Device.Dialog
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -40,7 +40,7 @@ local blinkOff = false      -- blink cursor for string editing
 
 -------------------------------------------------------------------------------
 -- Is a dialog currently being displayed?
--- @return true iff a dialog is displayed
+-- @treturn bool True if a dialog is displayed, false otherwise
 -- @usage
 -- if not device.dialogRunning() then
 --     write('bottomLeft', 'hello')
@@ -77,14 +77,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get a key from specified key group
--- @param keyGroup The key group, 'all' is default. A list of key groups is also
+-- @string[opt] keyGroup The key group, 'all' is default. A list of key groups is also
 -- allowed here and the legal keys are a union of these.
--- @param keep True if the existing callbacks should be maintained, this can 
+-- @bool[opt] keep True if the existing callbacks should be maintained, this can 
 -- cause some interference issues unless used prudently.
--- @return key
--- @return state ('short' or 'long')
--- @return source ('display' or 'usb')
--- @see rinLibrary.GenericKeys.keygroups
+-- @treturn string key
+-- @treturn string state ('short' or 'long')
+-- @treturn string source ('display' or 'usb')
+-- @see rinLibrary.Device.Keys.keygroups
 -- @usage
 -- device.write('bottomLeft', 'Press key', 'time=3')
 -- print('key pressed was:', device.getKey())
@@ -119,7 +119,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Check to see if editing routines active
--- @return true if editing false otherwise
+-- @treturn bool true if editing false otherwise
 -- @usage
 -- if not device.isEditing() then
 --     device.write('bottomLeft', 'idle')
@@ -130,13 +130,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Change the screen update frequency for the next dialog presented.
--- @param s The update frequency in seconds to set for next time
--- @return The previous update frequency
+-- @number period The update frequency in seconds to set for next time
+-- @treturn number The previous update period
 -- @usage
--- device.setScreenUpdateFrequency(1)   -- slow down updates
-function _M.setScreenUpdateFrequency(s)
+-- device.setScreenUpdatePeriod(1)   -- slow down updates
+function _M.setScreenUpdatePeriod(period)
     local old = scrUpdTm
-    scrUpdTm = s or 0.5
+    scrUpdTm = period or 0.5
     if scrUpdTm < .1 then
         scrUpdTm = .5
     end
@@ -196,8 +196,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the key timeout in terms of the number of blink half cycles
--- @param n The timeout
--- @return The previous timeout
+-- @number n The timeout (in number of blink half cycles)
+-- @treturn number The previous timeout
 -- @usage
 -- device.setEditKeyTimeout(3)
 function _M.setEditKeyTimeout(n)
@@ -263,8 +263,8 @@ end
 -- @return value
 -- @return true if ok pressed at end
 -- @see edit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local name = device.sEdit('NEW NAME', 'ZINC', 8)
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
@@ -521,8 +521,8 @@ end
 -- @return value
 -- @return true if ok pressed at end
 -- @see edit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local defaults = {"BUS", "CAR", "BIKE"}
 -- local autos = {"BUS", "CAR", "BIKE", "SCOOTER", "SKATEBOARD"}
@@ -846,8 +846,8 @@ end
 -- @return value
 -- @return true if ok pressed at end
 -- @see sEdit
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local qty = device.edit('QUANTITY', 123, 'integer')
 function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
@@ -988,8 +988,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return either 'ok' or 'cancel'
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
@@ -1026,8 +1026,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local opt = device.selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
@@ -1082,8 +1082,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return array containing selected item names
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
 -- local options = multiselect()
@@ -1141,8 +1141,8 @@ end
 -- @param units optional units to display
 -- @param unitsOther optional other units to display
 -- @return selected option string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.GenericLCD.Units
--- @see rinLibrary.GenericLCD.Other
+-- @see rinLibrary.Device.LCD.Units
+-- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local opt = selectConfig('COMMAND', { {'HELP', 'ME'}, {'QUIT', 'IT'} }, 1, true)
 function _M.selectConfig(prompt, options, def, loop, units, unitsOther)

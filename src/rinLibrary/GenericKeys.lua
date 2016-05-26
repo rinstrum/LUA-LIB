@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Key Handling.
 -- Functions associated with the handing key presses
--- @module rinLibrary.GenericKeys
+-- @module rinLibrary.Device.Keys
 -- @author Darren Pearson
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
@@ -209,7 +209,7 @@ local usbMetaMap = {
 -- @field all All keys.
 -- @field io All IO based simulated keys (these are not part of the <i>all</i> key group).
 -- @field setpoint All set point based simulated keys (these are not part of the <i>all</i> key group).
--- @see rinLibrary.K400Dialog.getKey
+-- @see rinLibrary.Device.Dialog.getKey
 local allKeyGroups = {
     'all',      'cursor',   'extended', 'functions',
     'keypad',   'numpad',   'primary',  'arrow',

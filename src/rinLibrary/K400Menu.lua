@@ -5,7 +5,7 @@
 -- Look at the <a href="../examples/menu.lua.html">menu.lua</a> example file
 -- for a more detailed usage example of this subsystem.
 --
--- @module rinLibrary.K400Menu
+-- @module rinLibrary.Device.Menu
 -- @author Pauli
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -16,6 +16,15 @@ local deepcopy = utils.deepcopy
 local callable, cb = utils.callable, utils.cb
 local null, True, False = utils.null, utils.True, utils.False
 local csv = require 'rinLibrary.rinCSV'
+
+local type = type
+local string = string
+local table = table
+local error = error
+local tonumber = tonumber
+local math = math
+local tostring = tostring
+local pairs = pairs
 
 -------------------------------------------------------------------------------
 -- A function that wrappers another function with a check for a readonly field

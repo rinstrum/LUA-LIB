@@ -61,7 +61,7 @@ local function bidirectionalFromExternal(sock)
     	sockets.removeSocket(sock)
         bidirectionalSocket = nil
     else
-    	lines = split(m)
+    	  local lines = split(m)
         for i = 1, #lines do
     	    if lines[i] == "ping" then
         	    writeBidirectional("pong\r\n")
