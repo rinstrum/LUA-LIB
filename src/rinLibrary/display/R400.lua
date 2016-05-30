@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- R400 LCD Services
 -- Functions to add the R400 LCD to the display fields
--- @module rinLibrary.display.R400
+-- @module rinLibrary.Device.LCD
 -- @author Merrick Heley
 -- @copyright 2015 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -28,6 +28,76 @@ _M.REG_DISP_BOTTOM_UNITS    = 0x00B5
 _M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
 _M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
 _M.REG_DISP_AUTO_BOTTOM_LEFT= 0x00B8    -- Register
+
+--- LCD Annunciators
+-- These are the definitions of all the annunciators top, bottom, and remote.
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
+--@table Annunciators
+-- @field all All annunciators top and bottom
+-- @field balance (top)
+-- @field bal_sega (top)
+-- @field bal_segb (top)
+-- @field bal_segc (top)
+-- @field bal_segd (top)
+-- @field bal_sege (top)
+-- @field bal_segf (top)
+-- @field bal_segg (top)
+-- @field bat_full Top battery charge bar (bottom)
+-- @field bat_hi Second from top battery charge bar (bottom)
+-- @field bat_midh Middle battery charge bar (bottom)
+-- @field bat_midl Second from bottom battery charge bar (bottom)
+-- @field bat_lo Bottom battery charge bar (bottom)
+-- @field battery Battery icon (bottom)
+-- @field clock (bottom)
+-- @field coz (top, remote)
+-- @field hold (top)
+-- @field motion (top, remote)
+-- @field net (top, remote)
+-- @field range_segadg (top)
+-- @field range_segc (top)
+-- @field range_sege (top)
+-- @field range (top)
+-- @field sigma (top)
+-- @field wait135 Diagonal wait annunciator (bottom)
+-- @field wait45 Diagonal wait annunciator (bottom)
+-- @field wait90 Horizontal wait annunciator (bottom)
+-- @field waitall All four wait annunciators (bottom)
+-- @field wait Vertical wait annunciator (bottom)
+-- @field zero (top)
+-- @field redlight Turn on the red traffic light (remote)
+-- @field greenlight Turn on the green traffic light (remote)
+
+--- Main Units
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
+--@table Units
+-- @field none No annunciator selected
+-- @field kg Kilogram annunciator
+-- @field lb Pound  annunciator
+-- @field t Ton/Tonne  annunciator
+-- @field g Gramme  annunciator
+-- @field oz Ounce annunciator
+-- @field n
+-- @field arrow_l
+-- @field p
+-- @field l
+-- @field arrow_h
+
+--- Additional modifiers on bottom display
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
+--@table Other
+-- @field none No annuciator selected
+-- @field hour Hour annunciator
+-- @field minute Minute annunciator
+-- @field percent Percent annunciator (includes slash)
+-- @field per_h Per hour annunciator (slash + hour)
+-- @field per_m Per meter annunciator (slash + minute)
+-- @field per_s Per second annuicator (slash + second)
+-- @field second Second annunicator
+-- @field slash Slash line
+-- @field total Total annunciator
 
 local unitAnnunciators = {
     none      = 0,

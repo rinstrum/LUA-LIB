@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 --- Register Functions.
 -- Functions to read, write and execute commands on instrument registers directly
--- @submodule rinLibrary.Device.Reg
+-- @module rinLibrary.Device.Reg
 -- @author Merrick Heley
 -- @copyright 2016 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------

@@ -18,6 +18,7 @@ local modules = {
     "GenericKeys",
     "GenericBuzz",
     "GenericLCD",
+    "C500LCD",
     "GenericRTC",
     "GenericAnalog",
     "C500Dialog", 

@@ -17,7 +17,7 @@ local timers = require 'rinSystem.rinTimers'
 _M.REG_AUTO_OUT = 4
 
 -------------------------------------------------------------------------------
--- Add the D840 to the displayTable. This will add a remote display field to 
+-- Add the generic to the displayTable. This will add a remote display field to 
 -- the displayTable
 -- @param private Functions from rinLibrary
 -- @param displayTable displayTable used by rinLibrary

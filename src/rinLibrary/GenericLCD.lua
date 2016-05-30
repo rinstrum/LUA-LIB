@@ -78,8 +78,8 @@ local function xform(t, f)
         end
     end
     return t
-end
 
+end
 -------------------------------------------------------------------------------
 -- Split a long string into shorter strings of multiple words
 -- that fit into length len.
@@ -166,6 +166,10 @@ local ports = {ser1a = 0, ser1b = 1, ser2a = 2, ser2b = 3, ser3a = 4, ser3b = 5}
 
 local display = {}
 
+function private.getDisplay()
+  return display
+end
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 -- Define the interfaces
 
@@ -198,18 +202,29 @@ local embedded =  Sw(Cg(Pi'embedded', 'type'))
 
 local displayPattern = embedded + serial + usb + network
 
+--- Displays.
+--
+-- It is possible to add these displays to the displayField table.
+--
+-- @table displays
+-- @field console Console display. Anything written to this will print in the console.
+-- @field D320 D320 remote display type. Communicates using ranger C.
+-- @field D840 D840 remote display type. Communicates using ranger C.
+-- @field Generic Generic remote display type. Communicates using ranger C, supports 7 characters.
+
 -------------------------------------------------------------------------------
 -- Called to add a display to the framework
--- @param type Type of display to add. These are stored in rinLibrary.display
--- @param prefix Name prefix for added display fields
--- @param options Extra addressing information. 
--- For R400 serial ports, this of the form '(auto1/auto2) [serial (ser1a-ser3b)] [Rate (5hz, 10hz, 25hz)]'.
+-- @tparam displays type Type of display to add. These are stored in rinLibrary.display
+-- @string prefix Name for added display fields. This will be added to @{displayField}.
+-- @string[opt] options Extra addressing information. 
+-- For device serial ports, this of the form '(auto1/auto2) [serial (ser1a-ser3b)] [Rate (5hz, 10hz, 25hz)]'.
 -- Optional arguments (i.e. serial and rate) will not be written to the device unless they are explicitly set.
 -- For USB serial ports: 'usb'
 -- For Network serial ports: 'XXX.XXX.XXX.XXX:port'
--- @return boolean showing success of adding the framework, error message
+-- @treturn bool Boolean showing success of adding the framework
+-- @treturn string Error message if err, nil otherwise
 -- @usage
--- local succeeded, err = device.addDisplay('D320', 'D320', 'auto1 ser1a 5hz')
+-- local succeeded, err = device.addDisplay('D320', 'MyD320', 'auto1 ser1a 5hz')
 function _M.addDisplay(type, prefix, options)
   local err
 
@@ -267,10 +282,10 @@ end
 -- Link display fields
 -- Operations performed on a linked display field will apply to all displays 
 -- that have been linked.
--- @param name The name for the linked display
--- @param ... Displays to link
+-- @string name The name for the linked display
+-- @tparam displayField ... Displays to link.
 -- @usage
--- device.linkDisplay('link1', 'bottomLeft', 'topLeft')
+-- device.linkDisplay('link1', 'topLeft', 'MyD320')
 -- device.writeDisplay('link1', "Display this message to both display fields")
 function _M.linkDisplay(name, ...)
   local fields = {...}
@@ -305,10 +320,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Show the status (net/gross, overload, etc.) on a display
--- @param displayDevice The display to mirror to
--- @param setting boolean value, true for mirror, false for off
+-- @tparam displayField displayDevice The display to mirror to
+-- @bool[opt] setting True for mirror, false for off (default)
 function _M.mirrorStatus(displayDevice, setting)
   local name = naming.canonicalisation(displayDevice)
+  setting = setting or false
   displayDevice = naming.convertNameToValue(name or 'none', display)
 
   if (displayDevice and displayDevice.remote) then
@@ -326,6 +342,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Private function to update the status (if mirrorStatus enabled)
+-- @local
 function private.callbackLCDStatus()
   for k,v in pairs(display) do
     if v.writeStatus and v.mirrorStatus then
@@ -372,16 +389,6 @@ end
 -- the message has been fully displayed (default: don't wait).  The wait implies the once option.
 -- The wait option and linked displays do not work well together.
 
---- Display Fields.
---
--- These are use as the first arugment the the @see write and associated functions.
---
--- @table displayField
--- @field bottomLeft The bottom left field
--- @field bottomRight The bottom right field
--- @field topLeft The top left field
--- @field topRight The top right field
-
 --- LCD Control Modes.
 --@table lcdControlModes
 -- @field default Set to a default setting (currently dual)
@@ -420,11 +427,10 @@ local adcModeUnmap = utils.invert(adcModeMap)
 -- The rinApp framework generally takes care of calling this function for you.
 -- However, sometimes you'll want to return control to the display device
 -- for a time and grab control again later.
--- @param mode is 'lua' to control display from script or 'default'
+-- @tparam lcdControlModes mode is 'lua' to control display from script or 'default'
 -- to return control to the default instrument application.  If not specified,
 -- <i>default</i> is assumed.
--- @return The previous mode setting
--- @see lcdControlModes
+-- @treturn lcdControlModes The previous mode setting
 -- @usage
 -- device.lcdControl('default')     -- let the display control itself
 -- ...
@@ -439,11 +445,11 @@ end
 -------------------------------------------------------------------------------
 -- Called to set the ADC display mode.
 -- This call does not make the display active.
--- @param mode The ADC display mode to use, if not specified <i>weight</i> is assumed.
--- @return The old ADC display mode.
--- @see adcDisplayModes
+-- @tparam[opt] adcDisplayModes mode The ADC display mode to use, if not 
+-- specified <i>weight</i> is assumed.
+-- @treturn adcDisplayModes The old ADC display mode.
 -- @usage
--- device.adcDisplayMode 'alternate_units'
+-- device.adcDisplayMode('alternate_units')
 function _M.adcDisplayMode(mode)
     local oldMode = currentAdcMode or private.readReg(REG_ADC_DISPLAY_MODE)
     currentAdcMode = naming.convertNameToValue(mode, adcModeMap, lcdModeMap.weight)
@@ -451,48 +457,6 @@ function _M.adcDisplayMode(mode)
     return naming.convertValueToName(oldMode, adcModeUnmap, oldMode)
 end
 
--------------------------------------------------------------------------------
--- Remove the timer associated with sliding the display, if present and
--- clean up
-local function removeSlideTimer(f)
-    timers.removeTimer(f.slideTimer)
-    f.slideTimer = nil
-end
-
--------------------------------------------------------------------------------
--- Query the auto register for a display field
--- @param f Display field
--- @return Register name
--- @local
-local function readAuto(f)
-    if f == nil or f.regAuto == nil then
-        return nil
-    end
-    local reg = private.readRegDec(f.regAuto)
-    reg = tonumber(reg)
-    f.auto = reg
-    return private.getRegisterName(reg)
-end
-
--------------------------------------------------------------------------------
--- Set the auto register for a display field
--- @param f Display field
--- @param register Register name
--- @local
-local function writeAuto(f, register)
-    if f ~= nil and register ~= nil then
-        local reg = private.getRegisterNumber(register)
-
-        if f.regAuto ~= nil and reg ~= f.auto then
-            removeSlideTimer(f)
-            f.current = nil
-            f.currentReg = nil
-            private.writeRegHexAsync(f.regAuto, reg)
-            f.saveAuto = f.auto or 0
-            f.auto = reg
-        end
-    end
-end
 
 -------------------------------------------------------------------------------
 -- Decode the time argument to the write function.
@@ -521,14 +485,23 @@ local function writeArgs(t)
 end
 
 -------------------------------------------------------------------------------
+-- Remove the timer associated with sliding the display, if present and
+-- clean up
+-- @local
+function private.removeSlideTimer(f)
+    timers.removeTimer(f.slideTimer)
+    f.slideTimer = nil
+end
+
+-------------------------------------------------------------------------------
 -- Write a message to the given display field.
 -- @param f Display field.
 -- @param s String to write
 -- @param params Display parameters
 -- @local
-local function write(f, s, params)
+function private.write(f, s, params)
     if f then
-        removeSlideTimer(f)
+        private.removeSlideTimer(f)
         if s then
             local t = writeArgs(params)
             utils.checkCallback(t.finish)
@@ -541,7 +514,7 @@ local function write(f, s, params)
                 if t.restore then
                     local c, p, u, w = f.current, f.params, f.units1, f.units2
                     t.finish = function()
-                        write(f, c, p)
+                        private.write(f, c, p)
                         utils.call(f.writeUnits, u, w)
                     end
                 elseif t.clear then
@@ -552,7 +525,9 @@ local function write(f, s, params)
                 end
             end
 
-            writeAuto(f, 0)
+            if private.writeAuto then
+              private.writeAuto(f, 0)
+            end
             f.params, f.current = t, tostring(s)
             local slidePos, slideWords = 1, splitWords(f, f.current, t.align)
 
@@ -567,18 +542,18 @@ local function write(f, s, params)
             f.slideTimer = timers.addTimer(time, time, function()
                 slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
                 if slidePos == 1 and once then
-                    removeSlideTimer(f)
+                    private.removeSlideTimer(f)
                     wait = false
                     utils.call(t.finish)
                 elseif #slideWords == 1 then
-                    removeSlideTimer(f)
+                    private.removeSlideTimer(f)
                 else
                     writeToDisplay(slideWords[slidePos])
                 end
             end)
             _M.app.delayUntil(function() return not wait end)
-        elseif f.auto == nil or f.auto == 0 then
-            writeAuto(f, f.saveAuto)
+        elseif f.auto == nil or f.auto == 0 and private.writeAuto then
+            private.writeAuto(f, f.saveAuto)
         end
 
     end
@@ -608,8 +583,8 @@ end
 -- @param p Predicate that selects which elements to act on
 -- @param f Function to apply
 -- @local
-local function map(p, f)
-    for _, v in pairs(display) do
+function private.map(p, f)
+    for _, v in pairs(private.getDisplay()) do
         if p(v) then f(v) end
     end
 end
@@ -620,15 +595,15 @@ end
 -- @param p Predicate that selects which elements to act on
 -- @return Function to restore selected display elements
 -- @local
-local function saver(p)
+function private.saver(p)
     local restorations = {}
-    map(p, function(v)
+    private.map(p, function(v)
             table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units1, w=v.units2, wu=v.writeUnits })
         end)
 
     return function()
         for _, v in ipairs(restorations) do
-            write(v.f, v.c, v.p)
+            private.write(v.f, v.c, v.p)
             if (v.wu) then
               v.wu(v.u, v.w)
             end
@@ -638,64 +613,31 @@ end
 
 -------------------------------------------------------------------------------
 -- Save the all display fields and fields and units.
--- @return Function that restores the display fields to their current values
+-- @treturn func Function that restores the display fields to their current values
 -- @usage
 -- local restore = device.saveDisplay()
--- device.writeBotLeft('fnord')
+-- device.write('topLeft', 'fnord')
 -- restore()
 function _M.saveDisplay()
-    return saver(function(v) return v.localDisplay end)
-end
-
--------------------------------------------------------------------------------
--- Save the bottom left and right fields and units.
--- @return Function that restores the bottom fields to their current values
--- @usage
--- local restoreBottom = device.saveBottom()
--- device.writeBotLeft('fnord')
--- restoreBottom()
-function _M.saveBottom()
-    return saver(function(v) return v.bottom end)
-end
-
-
--------------------------------------------------------------------------------
--- Save the top and bottom left field auto settings
--- @return Function that restores the left auto fields to their current values
--- @usage
--- device.saveAutoLeft()
-function _M.saveAutoLeft()
-    local restorations = {}
-    map(function(v) return v.left end,
-        function(v)
-            v.saveAuto = v.auto or 0
-            table.insert(restorations, { f=v, a=v.saveAuto })
-        end)
-    return function()
-        for _, v in ipairs(restorations) do
-            writeAuto(v.f, v.a)
-        end
-    end
+    return private.saver(function(v) return v.localDisplay end)
 end
 
 -------------------------------------------------------------------------------
 -- Write string to this specified display section
--- @param where which display section to write to
--- @param s string to display
--- @param params displayControl parameter
--- @see displayField
--- @see displayControl
+-- @tparam displayField where Which display to write to
+-- @string s string to display
+-- @tparam[opt] displayControl params displayControl parameters
 -- @usage
--- device.write('TopLeft', 'HELLO WORLD', 0.6)
+-- device.write('topLeft', 'HELLO WORLD', 'time=2, wait')
 function _M.write(where, s, params)
     local disp = naming.convertNameToValue(where, display)
     
     if (disp and disp.linkedDisplay) then
       for k, v in pairs(disp.linkedDisplays) do
-        write(naming.convertNameToValue(v, display), s, params)  
+        private.write(naming.convertNameToValue(v, display), s, params)  
       end
     else
-      write(disp, s, params)  
+      private.write(disp, s, params)  
     end
 end
 
@@ -703,10 +645,9 @@ end
 -- Write a message directly to the given display field. 
 -- This message may include tokens, (only valid for displays connected directly 
 -- to the R400 i.e. the R400 LCD), or may include user-implemented protocols.
--- THIS FUNCTION IS NOT RECOMMENDED FOR TYPICAL USE, see write()
--- @param where which display section to write to
--- @param s String to write
--- @local
+-- THIS FUNCTION IS NOT RECOMMENDED FOR TYPICAL USE, see @{write}
+-- @tparam displayField where which display section to write to
+-- @string s String to write
 function _M.writeDirect(where, s)
   local disp = naming.convertNameToValue(where, display)
   
@@ -720,106 +661,10 @@ function _M.writeDirect(where, s)
 
 end
 
------------------------------------------------------------------------------
--- Link register address with display field to update automatically.
--- Not all fields support this functionality.
--- @param where which display section to write to
--- @param register address of register to link display to.
--- Set to 0 to enable direct control of the area
--- @see displayField
--- @usage
--- device.writeAuto('topLeft', 'grossnet')
-function _M.writeAuto(where, register)
-    return writeAuto(naming.convertNameToValue(where, display), register)
-end
-
------------------------------------------------------------------------------
--- Reads the current auto update register for the specified field
--- @return register that is being used for auto update, 0 if none
--- @see displayField
--- @usage
--- local old = device.readAuto('topLeft')
--- device.writeAuto('topLeft', 'none')
--- ...
--- device.writeAuto('topLeft', old)
-function _M.readAuto(where)
-    return readAuto(naming.convertNameToValue(where, display))
-end
-
---- LCD Annunciators
--- These are the definitions of all the annunciators top, bottom, and remote.
--- Some displays may not support all annunciators. If an annunciator is not
--- supported, no action will occur.
---@table Annunciators
--- @field all All annunciators top and bottom
--- @field balance (top)
--- @field bal_sega (top)
--- @field bal_segb (top)
--- @field bal_segc (top)
--- @field bal_segd (top)
--- @field bal_sege (top)
--- @field bal_segf (top)
--- @field bal_segg (top)
--- @field bat_full Top battery charge bar (bottom)
--- @field bat_hi Second from top battery charge bar (bottom)
--- @field bat_midh Middle battery charge bar (bottom)
--- @field bat_midl Second from bottom battery charge bar (bottom)
--- @field bat_lo Bottom battery charge bar (bottom)
--- @field battery Battery icon (bottom)
--- @field clock (bottom)
--- @field coz (top, remote)
--- @field hold (top)
--- @field motion (top, remote)
--- @field net (top, remote)
--- @field range_segadg (top)
--- @field range_segc (top)
--- @field range_sege (top)
--- @field range (top)
--- @field sigma (top)
--- @field wait135 Diagonal wait annunciator (bottom)
--- @field wait45 Diagonal wait annunciator (bottom)
--- @field wait90 Horizontal wait annunciator (bottom)
--- @field waitall All four wait annunciators (bottom)
--- @field wait Vertical wait annunciator (bottom)
--- @field zero (top)
--- @field redlight Turn on the red traffic light (remote)
--- @field greenlight Turn on the green traffic light (remote)
-
---- Main Units
--- Some displays may not support all annunciators. If an annunciator is not
--- supported, no action will occur.
---@table Units
--- @field none No annunciator selected
--- @field kg Kilogram annunciator
--- @field lb Pound  annunciator
--- @field t Ton/Tonne  annunciator
--- @field g Gramme  annunciator
--- @field oz Ounce annunciator
--- @field n
--- @field arrow_l
--- @field p
--- @field l
--- @field arrow_h
-
---- Additional modifiers on bottom display
--- Some displays may not support all annunciators. If an annunciator is not
--- supported, no action will occur.
---@table Other
--- @field none No annuciator selected
--- @field hour Hour annunciator
--- @field minute Minute annunciator
--- @field percent Percent annunciator (includes slash)
--- @field per_h Per hour annunciator (slash + hour)
--- @field per_m Per meter annunciator (slash + minute)
--- @field per_s Per second annuicator (slash + second)
--- @field second Second annunicator
--- @field slash Slash line
--- @field total Total annunciator
-
 -------------------------------------------------------------------------------
 -- Turns the annunciators on
--- @param where which display section to write to
--- @param ... holds annunciator names
+-- @tparam displayField where which display section to write to
+-- @tparam Annunciators ... holds annunciator names
 -- @usage
 -- device.setAnnunciators('topLeft', 'battery', 'clock', 'balance')
 function _M.setAnnunciators(where, ...)
@@ -832,8 +677,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns the annunciators off
--- @param where which display section to write to
--- @param ... holds annunciator names
+-- @tparam displayField where which display section to write to
+-- @tparam Annunciators ... holds annunciator names
 -- @usage
 -- device.clearAnnunciators('topLeft', 'net', 'battery', 'hold')
 function _M.clearAnnunciators(where, ...)
@@ -845,31 +690,11 @@ function _M.clearAnnunciators(where, ...)
 end
 
 -------------------------------------------------------------------------------
--- Rotate the WAIT annunciator
--- @param where which display section to write to
--- @param dir 1 clockwise, -1 anticlockwise 0 no change
--- @usage
--- while true do
---     device.rotWAIT('topLeft', -1)
---     rinApp.delay(0.7)
--- end
-function _M.rotWAIT(where, dir)
-  local f = naming.convertNameToValue(where, display)
-
-  if type(f) == 'table' and utils.callable(f.rotWait) then
-    return f.rotWait(dir)
-  end
-end
-
--------------------------------------------------------------------------------
 -- Set units for specified field.
 -- The other field isn't always supported.  Likewise, not all fields have units.
--- @param where which display section to write to
--- @param unts Unit to display
--- @param other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot', &#8230;)
--- @see displayField
--- @see Units
--- @see Other
+-- @tparam displayField where Which display to write to
+-- @tparam Units unts Unit to display
+-- @tparam Other other ('per&#95;h', 'per&#95;m', 'per&#95;s', 'pc', 'tot', &#8230;)
 -- @usage
 -- device.writeUnits('topLeft', 'kg')
 function _M.writeUnits(where, unts, other)
@@ -881,20 +706,6 @@ function _M.writeUnits(where, unts, other)
     else
       return nil, nil, "Invalid name"
     end
-end
-
--------------------------------------------------------------------------------
--- Called to restore the LCD to its default state
--- @usage
--- device.restoreLcd()
-function _M.restoreLcd()
-    map(function(v) return v.localDisplay end, function(v) write(v, '') end)
-    writeAuto(display.topleft, 'grossnet')
-    writeAuto(display.bottomright, 0)
-
-    writeAuto('topLeft', 0)
-    _M.clearAnnunciators('bottomLeft', 'all')
-    _M.writeUnits('bottomLeft', 'none')
 end
 
 -------------------------------------------------------------------------------

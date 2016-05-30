@@ -1,7 +1,7 @@
 -------------------------------------------------------------------------------
 -- C500 LCD Services
 -- Functions to add the C500 LCD to the display fields
--- @module rinLibrary.display.C500
+-- @module rinLibrary.Device.LCD
 -- @author Merrick Heley
 -- @copyright 2016 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -21,7 +21,6 @@ _M.REG_DISP_TOP_ANNUN       = 0x00B2
 _M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
 
 _M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
-_M.REG_DISP_AUTO_TOP_LEFT   = 0x00B7    -- Register
 
 local unitAnnunciators = {
     none      = 0,
@@ -37,27 +36,67 @@ local unitAnnunciators = {
     arrow_h   = 0x0A
 }
 
-local otherAunnuncitors = {
-    none    = 0,
-    per_h   = 0x14,
-    per_m   = 0x11,
-    per_s   = 0x12,
-    percent = 0x30,     pc  = 0x30,
-    total   = 0x08,     tot = 0x08,
-    second  = 0x02,     s = 0x02,
-    minute  = 0x01,     m = 0x01,
-    hour    = 0x04,     h = 0x04,
-    slash   = 0x10
-}
+--- LCD Annunciators
+-- These are the definitions of all the annunciators top, bottom, and remote.
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
+--@table Annunciators
+-- @field all All annunciators top and bottom
+-- @field coz Centre-of-zero (above zero key)
+-- @field motion Motion (above tare key)
+-- @field gross Gross annun
+-- @field net Net annun (above select key)
+-- @field zero Zero band (above f1 key)
+-- @field hold Hold (above f2 key)
+-- @field spare Square ligth (above f3 key)
+-- @field range1 Range annuns (above main lcd)
+-- @field range2 Range annuns (above main lcd)
+-- @field range3 Range annuns (above main lcd)
+-- @field check_under2 Under2 annun (left of main lcd)
+-- @field check_under1 Under1 annun (left of main lcd)
+-- @field check_pass Pass annun (left of main lcd)
+-- @field check_over1 Over1 annun (left of main lcd)
+-- @field check_over2 Over2 annun (left of main lcd)
+-- @field io1 io1 annun (above main lcd)
+-- @field io2 io2 annun (above main lcd)
+-- @field io3 io3 annun (above main lcd)
+-- @field io4 io4 annun (above main lcd)
+-- @field io5 io5 annun (above main lcd)
+-- @field io6 io6 annun (above main lcd)
+-- @field io7 io7 annun (above main lcd)
+-- @field io8 io8 annun (above main lcd)
+-- @field redlight Turn on the red traffic light (remote)
+-- @field greenlight Turn on the green traffic light (remote)
 
 -- REG_DISP_TOP_ANNUN BIT SETTINGS
 local annunciatorMap = {
-    coz             = { v=0x00004,  locn='top' },
-    hold            = { v=0x00008,  locn='top' },
-    motion          = { v=0x00010,  locn='top' },
-    net             = { v=0x00020,  locn='top' },
-    zero            = { v=0x00080,  locn='top' },
-    all             = { v=1,        locn='all'  }
+    none            = { v=0x00000000, locn='top'},
+    coz             = { v=0x00000001, locn='top'},
+    motion          = { v=0x00000002, locn='top'},
+    gross           = { v=0x00000004, locn='top'},
+    net             = { v=0x00000008, locn='top'},
+    zero            = { v=0x00000010, locn='top'},
+    hold            = { v=0x00000020, locn='top'},
+    spare           = { v=0x00000040, locn='top'},
+    range1          = { v=0x00000080, locn='top'},
+    range2          = { v=0x00000100, locn='top'},
+    range3          = { v=0x00000200, locn='top'},
+    check_under2    = { v=0x00000400, locn='top'},
+    check_under1    = { v=0x00000800, locn='top'},
+    check_pass      = { v=0x00001000, locn='top'},
+    check_over1     = { v=0x00002000, locn='top'},
+    check_over2     = { v=0x00004000, locn='top'},
+    io1             = { v=0x00008000, locn='top'},
+    io2             = { v=0x00010000, locn='top'},
+    io3             = { v=0x00020000, locn='top'},
+    io4             = { v=0x00040000, locn='top'},
+    io5             = { v=0x00080000, locn='top'},
+    io6             = { v=0x00100000, locn='top'},
+    io7             = { v=0x00200000, locn='top'},
+    io8             = { v=0x00400000, locn='top'},
+    spare2          = { v=0x00800000, locn='top'},
+    spare3          = { v=0x01000000, locn='top'},
+    all             = { v=0xFFFFFFFF, locn='all'}
 }
 
 local botAnnunState = 0
@@ -131,7 +170,7 @@ function _M.add(private, displayTable, prefix)
     rightJustify = function(s) return dispHelp.rightJustify(s, 6) end,
     reg = _M.REG_DISP_TOP_LEFT,
     regUnits = _M.REG_DISP_TOP_UNITS,
-    regAuto = _M.REG_DISP_AUTO_TOP_LEFT,
+    regAuto = nil,
     strlen = dispHelp.strLenLCD,
     finalFormat = dispHelp.padDots,
     strsub = dispHelp.strSubLCD,
