@@ -172,6 +172,7 @@ function _M.addK400(model, ip, portA, portB)
     
     -- Set up the topLeft and bottomLeft. Ensures that when displays are saved
     -- these are correctly restored without being explicitly written by the user.
+    device.saveAutoLeft()
     local old = device.readAuto('topLeft')
     device.writeAuto('topLeft', old)
     old = device.readAuto('bottomLeft')

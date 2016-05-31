@@ -19,6 +19,7 @@ local modules = {
     "GenericKeys",
     "GenericBuzz",
     "GenericLCD",
+    "K400LCD",
     "K400Dialog",
     "GenericFSM",
     "K400Menu",

@@ -259,7 +259,6 @@ function private.readSettings()
             end
         end
     end
-    _M.saveAutoLeft()
 end
 
 -------------------------------------------------------------------------------
