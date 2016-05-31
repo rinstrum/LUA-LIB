@@ -367,9 +367,9 @@ function _M.formatValue(display, value, dp, countby, units)
     -- Get countby value
     if countby == nil then
       if _M.anyStatusSet('range1') then
-        countby = _M.getDispModeCountBy(display)[1]
+        countby = _M.getDispModeCountBy(display)
       else
-        countby = _M.getDispModeCountBy(display)[2]
+        _, countby = _M.getDispModeCountBy(display)
       end
     end
 
