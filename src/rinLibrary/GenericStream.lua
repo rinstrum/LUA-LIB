@@ -10,6 +10,8 @@
 local string = string
 local tonumber = tonumber
 local pairs = pairs
+local table = table
+
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
@@ -52,7 +54,7 @@ local frequencyTable = {
     auto1    = STM_FREQ_AUTO1,
     onchange = STM_FREQ_ONCHANGE,
 }
---- Frequence streaming setttings
+--- Frequencey streaming setttings
 -- @table StreamingFrequencies
 -- @param auto 20z stearming
 -- @param auto10 10Hz streaming
@@ -203,12 +205,11 @@ end
 -- Add a stream to the device (must be connected)
 -- Takes parameter 'change' (default) to run callback only if data
 -- received changed, 'always' otherwise
--- @param streamReg Register to stream from
--- @param callback Function to bind to streaming register
--- @param onChange Change parameter ('change' or 'always')
--- @return streamReg identity
--- @return error message
--- @see StreamingFrequencies
+-- @string streamReg Register to stream from (e.g. @{rinLibrary.Device.Reg.rdgRegisters})
+-- @func callback Function to bind to streaming register
+-- @string[opt] onChange Change parameter ('change' or 'always'). Default 'change'.
+-- @treturn string streamReg
+-- @see setStreamFreq
 -- @usage
 -- local function handleWeight(data, err)
 --     print('Weight = ', data)
@@ -271,7 +272,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Remove a stream from the device
--- @param streamReg Register to be removed
+-- @string streamReg Register to stream from (e.g. @{rinLibrary.Device.Reg.rdgRegisters})
 -- @usage
 -- device.removeStream('grossnet')
 function _M.removeStream(streamReg)
@@ -305,6 +306,7 @@ end
 -- This routine is called automatically by the rinApp application framework.
 -- @usage
 -- device.streamCleanup()
+-- @local
 function _M.streamCleanup()
     local function stop(r)
         if r ~= nil then
@@ -324,8 +326,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the frequency used for streaming.
--- @param freq Frequency of streaming
--- @return The previous frequency
+-- @tparam StreamingFrequencies freq Frequency of streaming
+-- @treturn StreamingFrequencies The previous frequency
 -- @usage
 -- device.setStreamFreq('onchange')
 function _M.setStreamFreq(freq)
@@ -360,6 +362,7 @@ end
 -- This routine is called automatically by the rinApp application framework.
 -- @usage
 -- device.init()
+-- @local
 function _M.init()
     _M.renewStreamData()
     _M.sendKey('cancel', 'long')

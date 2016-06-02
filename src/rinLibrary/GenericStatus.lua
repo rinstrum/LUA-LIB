@@ -422,6 +422,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Check if any of the listed system statuses are present.
+-- @tparam sysstatus status System status code
 -- @tparam sysstatus ... Statuses to check for
 -- @treturn bool True if any one of the referenced statuses is current
 -- @see checkAllSystemStatus
