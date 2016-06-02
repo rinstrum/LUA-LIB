@@ -22,6 +22,22 @@ _M.REG_DISP_TOP_UNITS       = 0x00B3    -- Takes string
 
 _M.REG_DISP_AUTO_TOP_ANNUN  = 0x00B6    -- Register
 
+--- Main Units
+-- Some displays may not support all annunciators. If an annunciator is not
+-- supported, no action will occur.
+--@table Units
+-- @field none No annunciator selected
+-- @field kg Kilogram annunciator
+-- @field lb Pound  annunciator
+-- @field t Ton/Tonne  annunciator
+-- @field g Gramme  annunciator
+-- @field oz Ounce annunciator
+-- @field n
+-- @field arrow_l
+-- @field p
+-- @field l
+-- @field arrow_h
+
 local unitAnnunciators = {
     none      = 0,
     kg        = 0x01,

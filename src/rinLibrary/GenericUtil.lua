@@ -96,6 +96,7 @@ local initialisation_options = {
 -- local sB = sockets.createTCPsocket('1.1.1.1', 2223, 0.001)
 --
 -- device.connect(sA, sB, me)
+-- @local
 function _M.connect(sockA, sockB, app)
     _M.socketA = sockA
     _M.socketB = sockB
@@ -111,6 +112,7 @@ end
 -- The rinApp framework takes care of calling this function for you.
 -- @usage
 -- device.terminate()
+-- @local
 function _M.terminate()
     _M.restoreLcd()
     _M.lcdControl('default')
@@ -130,8 +132,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Reinitialise the specified subsystems
--- @param ... Names of subsystems to be reinitialised (none = reinitialise everything)
--- @see ReinitialisationOptions
+-- @tparam[opt] ReinitialisationOptions ... Names of subsystems to be reinitialised.
+-- Default = reinitialise everything.
 -- @usage
 -- device.reinitialise 'io'
 function _M.reinitialise(...)
@@ -144,7 +146,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query if the data stream is high resolution or not
--- @return true if high resolution
+-- @treturn bool True if high resolution
 -- @usage
 -- if device.isHiRes() then
 --     print('high resolution readings')
@@ -155,8 +157,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query if we're in single range, dual interval or dual range mode
--- @return String describing the range setting
--- @see DualRangeModes
+-- @treturn DualRangeModes String describing the range setting
 -- @usage
 -- print('Device is in '..device.dualRangeMode()..' range mode')
 function _M.dualRangeMode()
@@ -166,9 +167,15 @@ end
 --- Dual range modes
 -- @table DualRangeModes
 -- @field single Single range mode
--- @field dual.i Dual interval mode
--- @field dual.r Dual range mode
+-- @field duali Dual interval mode. This is actually <i>dual.i</i>.
+-- @field dualr Dual range mode. This is actually <i>dual.r</i>.
 -- @see dualRangeMode
+
+--- Weight displays
+-- @table DisplayType
+-- @field Primary Primary display
+-- @field Secondary Secondary weight display (not available on all devices)
+-- @field Pieces Piece weight display (not available on all devices)
 
 -------------------------------------------------------------------------------
 -- Query the current setting of a given field in the specified display mode
@@ -189,8 +196,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the current number of decimal places in the specified display mode
--- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @return The number of decimal places.
+-- @tparam DisplayType display The display type.
+-- @treturn int The number of decimal places.
 -- @usage
 -- print(device.getDispModeDP('primary')..' decimal places in the primary display.')
 function _M.getDispModeDP(display)
@@ -199,8 +206,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the current units in the specified display mode
--- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @return The units being used.
+-- @tparam DisplayType display The display type.
+-- @treturn rinLibrary.Device.LCD.Units The units being used.
 -- @usage
 -- print(device.getDispModeUnits('primary')..' are the primary units.')
 function _M.getDispModeUnits(display)
@@ -209,7 +216,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the current count by setting in the specified display mode
--- @param display The display mode: 'primary', 'secondary' or 'pieces'.
+-- @tparam DisplayType display The display type.
 -- @return The countby setting as a three element unpacked vector.
 -- @usage
 -- local countby = { device.getDispModeCountBy('primary') }
@@ -264,9 +271,10 @@ end
 -------------------------------------------------------------------------------
 -- Called to initially set up the instrument library
 -- The rinApp framework takes care of calling this function for you.
--- @return nil if ok or error string if model doesn't match
+-- @treturn string nil if ok or error string if model doesn't match
 -- @usage
 -- device.initialisation('K401')
+-- @local
 function _M.initialisation(model)
     local s, err = private.readRegLiteral(REG_SOFTMODEL)
     if not err then
@@ -292,6 +300,7 @@ end
 -- The rinApp framework takes care of calling this function for you.
 -- @usage
 -- device.configure()
+-- @local
 function _M.configure()
     private.readSettings()
     private.exRegAsync(REG_COMMS_START)  -- clear start message
@@ -299,21 +308,21 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the instrument's model number, e.g. "K401"
--- @return Unit model number
+-- @treturn string Unit model number
 function _M.getModel()
     return instrumentModel
 end
 
 -------------------------------------------------------------------------------
 -- Query the instrument's serial number
--- @return Unit serial number
+-- @treturn string Unit serial number
 function _M.getSerialNumber()
     return instrumentSerialNumber
 end
 
 -------------------------------------------------------------------------------
 -- Query the instrument's software version, e.g. "V1.00"
--- @return Unit software version
+-- @treturn string Unit software version
 function _M.getVersion()
     if instrumentSoftwareVersion == nil then
         instrumentSoftwareVersion = private.readRegLiteral(REG_SOFTVER)
@@ -324,9 +333,9 @@ end
 -------------------------------------------------------------------------------
 -- Called to convert a floating point value to a decimal integer based on then
 -- primary instrument weighing settings
--- @param v is value to convert
--- @param dp decimal position (if nil then instrument dp used)
--- @return floating point value suitable for a WRFINALDEC
+-- @int v is value to convert
+-- @int dp decimal position (if nil then instrument dp used)
+-- @treturn number floating point value suitable for a WRFINALDEC
 -- @usage
 -- local curWeight = 0
 -- device.addStream('grossnet', function(data, err) curWeight = data end, 'change')
@@ -344,12 +353,14 @@ end
 -------------------------------------------------------------------------------
 -- Format a value using the current display mode.
 -- The value is correctly rounded in the final digit.
--- @param display The display mode: 'primary', 'secondary' or 'pieces'.
--- @param value The floating point value to format.
--- @param dp Decimal point position (integer >= 0). If specified, this overrides the display value.
--- @param countby The minimum change in the final decimal point value (integer). If specified, this overrides the display value.
--- @param units The units string. If specified (3 chars max), this overrides the display value. If false, no units will be displayed.
--- @return Formatted string.
+-- @tparam DisplayType display The display type.
+-- @number value The floating point value to format.
+-- @int[opt] dp Decimal point position (integer >= 0). If specified, this overrides the display value.
+-- @int[opt] countby The minimum change in the final decimal point value. 
+-- If specified, this overrides the display value.
+-- @tparam[opt] rinLibrary.Device.LCD.Units units If specified (3 chars max), this overrides 
+-- the display value. If false, no units will be displayed.
+-- @treturn string Formatted string.
 -- @usage
 -- print('Weight is', device.formatValue('primary', currentWeight))
 -- print('Weight is', device.formatValue(nil, 15.9532, 3, 2, false)) -- Returns 15.954
