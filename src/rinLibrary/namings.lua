@@ -10,6 +10,7 @@
 
 local string = string
 local tostring = tostring
+local type = type
 
 local lpeg = require 'rinLibrary.lpeg'
 local Cs, spc = lpeg.Cs, lpeg.space
@@ -34,8 +35,8 @@ end
 
 -------------------------------------------------------------------------------
 -- @function canonicalisation
--- @param s String to convert
--- @return Canonical form for string
+-- @string s String to convert
+-- @treturn string Canonical form for string
 -- @usage
 -- print(namings.canonicalisation('  hello  WoRlD  '))
 
@@ -44,12 +45,12 @@ local _M = { canonicalisation = canonical }
 -------------------------------------------------------------------------------
 -- Convert a named value into a real value but also let real values through
 -- unmodified.
--- @param n Name to be converted
--- @param map Mapping from names to numeric values, names should be lower case canonical form
--- @param default Default value to return if something is amiss
--- @param l Least value allowed
--- @param u Uppermost value allowed
--- @return The numeric code associted with the specified name
+-- @string n Name to be converted
+-- @tab map Mapping from names to numeric values, names should be lower case canonical form
+-- @string default Default value to return if something is amiss
+-- @number l Least value allowed
+-- @number u Uppermost value allowed
+-- @treturn number The numeric code associted with the specified name
 -- @usage
 -- local name = require 'rinLibrary.namings'
 --
@@ -81,10 +82,10 @@ end
 -------------------------------------------------------------------------------
 -- Convert a named value into a real value but also let real values through
 -- unmodified.
--- @param n Number to be converted
--- @param map Mapping from numeric values to names, names should be lower case canonical form
--- @param default Default value to return if something is amiss
--- @return The name associted with the specified code
+-- @number n Number to be converted
+-- @tab map Mapping from numeric values to names, names should be lower case canonical form
+-- @string default Default value to return if something is amiss
+-- @treturn string The name associted with the specified code
 -- @usage
 -- local name = require 'rinLibrary.namings'
 --
