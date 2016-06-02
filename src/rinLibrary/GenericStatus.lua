@@ -10,6 +10,10 @@ local string = string
 local pairs = pairs
 local ipairs = ipairs
 local math = math
+local type = type
+local tonumber = tonumber
+local table = table
+
 local bit32 = require "bit"
 local system = require 'rinSystem'
 local dbg = require "rinLibrary.rinDebug"
@@ -418,10 +422,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Check if any of the listed system statuses are present.
--- @param status System status code, this is optional but must be first if present
--- @param ... Statuses to check for (as strings)
--- @return True iff any one of the referenced statuses is current
--- @see sysstatus
+-- @tparam sysstatus ... Statuses to check for
+-- @treturn bool True if any one of the referenced statuses is current
 -- @see checkAllSystemStatus
 -- @usage
 -- local nonZero = not device.checkAnySystemStatus('zero')
@@ -438,10 +440,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Check if all of the listed system statuses are present.
--- @param status System status code, this is optional but must be first if present
--- @param ... Statuses to check for (as strings)
--- @return True iff any one of the referenced statuses is current
--- @see sysstatus
+-- @tparam sysstatus status System status code
+-- @tparam[opt] sysstatus ... Statuses to check for (as strings)
+-- @treturn bool True if any one of the referenced statuses is current
 -- @see checkAnySystemStatus
 -- @usage
 -- local zeroNet = device.checkAllSystemStatus('zero', 'net')
@@ -563,9 +564,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a status bit
--- @param status status name
--- @param callback Function to run when there is an event on change in status
--- @see luastatus
+-- @tparam luastatus status Status name
+-- @func callback Function to run when there is an event on change in status
 -- @see anyStatusSet
 -- @see allStatusSet
 -- @see waitStatus
@@ -605,9 +605,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current instrument status
--- @param ... Status bits to check
--- @return true if any of the status bits are set in current instrument status
--- @see luastatus
+-- @tparam luastatus ... Status bits to check
+-- @treturn bool True if any of the status bits are set in current instrument status
 -- @see setStatusCallback
 -- @see allStatusSet
 -- @see waitStatus
@@ -637,9 +636,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current instrument status
--- @param ... Status bits to check
--- @return true if all of the status bits are set in cur instrument status
--- @see luastatus
+-- @tparam luastatus ... Status bits to check
+-- @treturn bool True if all of the status bits are set in cur instrument status
 -- @see setStatusCallback
 -- @see anyStatusSet
 -- @see waitStatus
@@ -674,9 +672,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until selected status bits are true
--- @param ... Status bits to wait for, number to specify an optional timeout
--- @return true if the wait succeeded and false otherwise
--- @see luastatus
+-- @tparam luastatus ... Status bits to wait for (can also take an int to 
+-- specify an optional timeout)
+-- @treturn bool True if the wait succeeded and false otherwise
 -- @see setStatusCallback
 -- @see anyStatusSet
 -- @see allStatusSet
@@ -781,8 +779,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a IO
--- @param io 1..32
--- @param callback Function taking IO and on/off status as parameters
+-- @int io 1..32
+-- @func callback Function taking IO and on/off status as parameters
 -- @see setAllIOCallback
 -- @see getCurIO
 -- @see anyIOSet
@@ -802,7 +800,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set a callback function that is called whenever any IO status changes
--- @param callback Function taking current IO status as a parameter
+-- @func callback Function taking current IO status as a parameter
 -- @see setIOCallback
 -- @see getCurIO
 -- @see anyIOSet
@@ -820,8 +818,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a SETP
--- @param setpoint 1 .. setPointCount()
--- @param callback Function taking SETP and on/off status as parameters
+-- @int setpoint 1 .. setPointCount()
+-- @func callback Function taking SETP and on/off status as parameters
 -- @see setAllSETPCallback
 -- @see anySETPSet
 -- @see allSETPSet
@@ -839,7 +837,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set a callback function that is called whenever any SETP status changes
--- @param callback Function taking current SETP status as a parameter
+-- @func callback Function taking current SETP status as a parameter
 -- @see setSETPCallback
 -- @see anySETPSet
 -- @see allSETPSet
@@ -856,7 +854,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO
--- @return 32 bits of IO data
+-- @treturn int 32 bits of IO data
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIOStr
@@ -877,6 +875,7 @@ end
 -- @local
 local function getBitStr(data, bits)
     local s = {}
+    local ch
     for i = bits-1, 0, -1 do
         if bit32.band(data, pow2[i]) ~= 0 then
             ch = '1'
@@ -890,7 +889,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 32 bits of IO as a string of 1s and 0s
--- @return 32 characters of IO data
+-- @treturn string 32 characters of IO data
 -- @see getCurIO
 -- @usage
 -- print('current IO bits are: ' .. device.getCurIOStr())
@@ -900,8 +899,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current IO
--- @param ... IOs to check
--- @return true if any of the listed IO are active
+-- @int ... IOs to check
+-- @treturn bool True if any of the listed IO are active
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -920,8 +919,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of IO
--- @param ... IOs to check
--- @return true if all of the listed IO are active
+-- @int ... IOs to check
+-- @treturn bool True if all of the listed IO are active
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -940,7 +939,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get current state of the 16 setpoints
--- @return 16 bits of SETP status data
+-- @treturn int 16 bits of SETP status data
 -- @usage
 -- print('current setpoint bits are', device.getCurSETP())
 function _M.getCurSETP()
@@ -949,8 +948,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of current SETP
--- @param ... Set points to check
--- @return true if any of the listed SETP are active
+-- @int ... Set points to check
+-- @treturn bool True if any of the listed SETP are active
 -- @see setSETPCallback
 -- @see setAllSETPCallback
 -- @see allSETPSet
@@ -968,9 +967,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to check state of SETP
--- @param t Table defining the type of bit event
--- @param ... Set points to check
--- @return true if all of the listed IO are active
+-- @tab t Table defining the type of bit event
+-- @int ... Set points to check
+-- @treturn bool True if all of the listed IO are active
 -- @see setSETPCallback
 -- @see setAllSETPCallback
 -- @see anySETPSet
@@ -1011,10 +1010,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until IO is in a particular state
--- @param IO 1..32
--- @param state true to wait for IO to come on or false to wait for it to go off, default off
--- @param timeout the maximum time to wait for the IOs, default to wait forever
--- @return true if the wait succeeded and false otherwise
+-- @int IO 1..32
+-- @bool[opt] state True to wait for IO to come on or false to wait for it to 
+-- go off. Default false.
+-- @int[opt] timeout The maximum time in seconds to wait for the IOs. Default to 
+-- wait forever.
+-- @treturn bool True if the wait succeeded and false otherwise
 -- @see setIOCallback
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -1029,10 +1030,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Wait until SETP is in a particular state
--- @param SETP 1 .. setPointCount()
--- @param state true to wait for SETP to come on or false to wait for it to go off, default off
--- @param timeout the maximum time to wait for the setpoints, default to wait forever
--- @return true if the wait succeeded and false otherwise
+-- @int SETP 1 .. setPointCount()
+-- @bool[opt] state True to wait for SETP to come on or false to wait for it to
+--  go off. Default false.
+-- @int[opt] timeout The maximum time in seconds to wait for the IOs. Default to 
+-- wait forever.
+-- @treturn bool True if the wait succeeded and false otherwise
 -- @see setSETPCallback
 -- @see setAllSETPCallback
 -- @see anySETPSet
@@ -1101,7 +1104,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Control the use of Net status bits
--- @param status net1, net2, both or none
+-- @string status net1, net2, both or none
 -- @usage
 -- device.writeNetStatus('net1')
 -- device.writeNetStatus('none')

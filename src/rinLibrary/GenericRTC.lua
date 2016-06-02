@@ -459,7 +459,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Present the user a wizard that lets them set the time on the device
--- @bool[opt] seconds Boolean, true if seconds should be prompted for or false if
+-- @bool[opt] seconds True if seconds should be prompted for or false if
 -- seconds should just be left alone.  By default, seconds are not edited.
 -- @treturn bool true
 -- @usage
