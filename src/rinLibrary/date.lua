@@ -12,6 +12,7 @@ local type = type
 local unpack = unpack
 local tonumber = tonumber
 local dbg = dbg
+local string = string
 
 local namings = require 'rinLibrary.namings'
 
