@@ -36,6 +36,7 @@ file={
     'rinLibrary/GenericStatus.lua',
     'rinLibrary/GenericStream.lua',
     'rinLibrary/GenericUtil.lua',
+    'rinLibrary/GenericWeights.lua',
     
     'rinLibrary/date.lua',
     'rinLibrary/ldocUsage.lua',

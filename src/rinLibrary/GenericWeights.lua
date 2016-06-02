@@ -22,8 +22,8 @@ return function (_M, private, deprecated)
 -- Get gross or net weight from instrument.
 --
 -- This is the value that is usually displayed in the top left of the screen.
--- @return gross or net weight
--- @return error string if error received, nil otherwise
+-- @treturn int Gross or net weight
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @see getNet
@@ -35,8 +35,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get gross weight from instrument.
--- @return gross weight
--- @return error string if error received, nil otherwise
+-- @treturn int Gross weight
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @see getAltGross
@@ -48,8 +48,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get net weight from instrument.
--- @return net weight
--- @return error string if error received, nil otherwise
+-- @treturn int Net weight
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @see getAltNet
@@ -61,8 +61,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get tare from instrument.
--- @return tare
--- @return error string if error received, nil otherwise
+-- @treturn int Tare
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @see getGross
@@ -74,8 +74,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get full scale reading from instrument.
--- @return full scale
--- @return error string if error received, nil otherwise
+-- @treturn int Full scale
+-- @return error String if error received, nil otherwise
 -- @usage
 -- local fullScale = device.getFullScale()
 function _M.getFullScale()
@@ -84,8 +84,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get raw mV/V from instrument.
--- @return mV/V
--- @return error string if error received, nil otherwise
+-- @treturn number mV/V
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getRawADC
 -- @usage
@@ -96,8 +96,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get raw ADC reading from instrument.
--- @return raw ADC reading
--- @return error string if error received, nil otherwise
+-- @treturn int raw ADC reading
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getMVV
 -- @usage
@@ -106,10 +106,26 @@ function _M.getRawADC()
     return private.readReg 'rawadc'
 end
 
+--- Traceable weight table
+-- @table Traceable
+-- @field valid Boolean, is traceable table valid or not?
+-- @field id Traceable id
+-- @field weight Weight displayed on screen
+-- @field wightalt Weight in alternate units
+-- @field tare Tare for traceable weight
+-- @field pt Boolean for preset tare
+-- @field year Year traceable was obtained
+-- @field month Month traceable was obtained
+-- @field day Day traceable was obtained
+-- @field hour Hour traceable was obtained
+-- @field minute Minute traceable was obtained
+-- @field second Second traceable was obtained
+-- @field crc CRC used to determine whether traceable weight table information is valid.
+
 local traceableRegisters = {
-    'tracevalid', 'traceid', 'traceweight', 'traceweightalt', 'tracetare', 
-    'tracept', 'traceyear', 'tracemonth', 'traceday', 'tracehour', 
-    'traceminute', 'tracesecond'
+    'valid', 'id', 'weight', 'weightalt', 'tare', 
+    'pt', 'year', 'month', 'day', 'hour', 
+    'minute', 'second'
 }
 
 -------------------------------------------------------------------------------
@@ -128,11 +144,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Get traceable weight data
--- @return Table containing traceable ADC data. Keys: 'tracevalid', 'traceid', 
--- 'traceweight', 'traceweightalt', 'tracetare', 
--- 'tracept', 'traceyear', 'tracemonth', 'traceday', 'tracehour', 
--- 'traceminute', 'tracesecond'. Converts flags to booleans.
--- @return error string if any error received, nil otherwise
+-- @treturn Traceable Traceable weight table
+-- @treturn string Error string if any error received, nil otherwise
 -- @see checkTraceable
 -- @usage
 -- local traceable = device.getTraceable()
@@ -152,8 +165,8 @@ function _M.getTraceable()
     end
     
     -- Convert flags to booleans.
-    tab.tracevalid = tab.tracevalid == 1
-    tab.tracept = tab.tracept == 1
+    tab.valid = tab.valid == 1
+    tab.pt = tab.pt == 1
     
     tab.crc = calcTableChecksum(tab, traceableRegisters)
   
@@ -162,7 +175,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Check traceable weight data
--- @return True if traceable table is valid, false otherwise
+-- @tparam Traceable traceable Traceable weight table
+-- @treturn bool True if traceable table is valid, false otherwise
 -- @see getTraceable
 -- @usage
 -- local traceable = device.getTraceable()
@@ -177,8 +191,8 @@ private.registerDeviceInitialiser(function()
 --
 -- This function is only available on non batching units.
 -- @function getAltGross
--- @return alternative gross weight
--- @return error string if error received, nil otherwise
+-- @treturn int alternative gross weight
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getGross
 -- @usage
@@ -192,8 +206,8 @@ private.registerDeviceInitialiser(function()
 --
 -- This function is only available on non batching units.
 -- @function getAltNet
--- @return alternative net weight
--- @return error string if error received, nil otherwise
+-- @treturn int alternative net weight
+-- @treturn string Error string if error received, nil otherwise
 -- @see rinLibrary.Device.Stream.addStream
 -- @see getNet
 -- @usage
