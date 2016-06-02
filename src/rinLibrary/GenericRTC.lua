@@ -43,7 +43,7 @@ local REG_MSEC              = 0x015D
 local REG_MSECLAST          = 0x015F
 
 --- Registers.
---@table Registers
+--@table Registers that can be read using @{rinLibrary.Device.Reg.getRegister}.
 -- @field msec Millisecond timer from the display
 -- @field mseclast Millisecond time when the last ADC reading was taken.
 -- @field msec1000 Millisecond timer modulo 1000
@@ -126,7 +126,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Decode the numeric format field and set the appropriate ordering
--- @param fmt Date format (numeric)
+-- @tparam DateFormats fmt Date format (numeric)
 -- @local
 local function setDateFormat(fmt)
     local _, count = string.gsub(fmt, "Y", "")
@@ -147,8 +147,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Read the instrument date format
--- @return Date format ('dmy', 'ymd', 'mdy', 'dmyy', 'yymd' or 'mdyy')
--- @see sendDateFormat
+-- @treturn DateFormats Date format
 -- @usage
 -- if device.readDateFormat() == 'mdy' then
 --     -- American date format
@@ -162,8 +161,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the instrument date format
--- @param f Date format ('dmy', 'ymd', 'mdy', 'dmyy', 'yymd' or 'mdyy')
--- @see readDateFormat
+-- @tparam DateFormats  f Date format
 -- @usage
 -- -- Set to international date format
 -- device.sendDateFormat("ymd")
@@ -255,9 +253,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Write Real Time Clock date to instrument
--- @param year The year to write or nil to leave unchanged
--- @param month The month to write or nil to leave unchanged
--- @param day The day to write or nil to leave unchanged
+-- @int[opt] year The year to write or nil to leave unchanged
+-- @int[opt] month The month to write or nil to leave unchanged
+-- @int[opt] day The day to write or nil to leave unchanged
 -- @see RTCwrite
 -- @see RTCwriteTime
 -- @usage
@@ -272,9 +270,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Write Real Time Clock time to instrument
--- @param hour The hour to write or nil to leave unchanged
--- @param minute The minute to write or nil to leave unchanged
--- @param second The second to write or nil to leave unchanged
+-- @int[opt] hour The hour to write or nil to leave unchanged
+-- @int[opt] minute The minute to write or nil to leave unchanged
+-- @int[opt] second The second to write or nil to leave unchanged
 -- @see RTCwrite
 -- @see RTCwriteDate
 -- @usage
@@ -290,12 +288,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Write Real Time Clock date and time to instrument
--- @param year The year to write or nil to leave unchanged
--- @param month The month to write or nil to leave unchanged
--- @param day The day to write or nil to leave unchanged
--- @param hour The hour to write or nil to leave unchanged
--- @param minute The minute to write or nil to leave unchanged
--- @param second The second to write or nil to leave unchanged
+-- @int[opt] year The year to write or nil to leave unchanged
+-- @int[opt] month The month to write or nil to leave unchanged
+-- @int[opt] day The day to write or nil to leave unchanged
+-- @int[opt] hour The hour to write or nil to leave unchanged
+-- @int[opt] minute The minute to write or nil to leave unchanged
+-- @int[opt] second The second to write or nil to leave unchanged
 -- @see RTCwriteTime
 -- @see RTCwriteDate
 -- @usage
@@ -308,9 +306,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Return the current date
--- @return year
--- @return month
--- @return day
+-- @treturn int year
+-- @treturn int month
+-- @treturn int day
 -- @see RTCreadTime
 -- @see RTCwriteDate
 -- @usage
@@ -322,9 +320,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Return the current time
--- @return hours
--- @return minutes
--- @return seconds
+-- @treturn int hours
+-- @treturn int minutes
+-- @treturn int seconds
 -- @see RTCreadDate
 -- @see RTCwriteTime
 -- @usage
@@ -355,7 +353,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns formated date string
--- @return Formatted date string
+-- @treturn string Formatted date string
 -- @see RTCtime
 -- @see RTCtostring
 -- @usage
@@ -366,8 +364,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns formated time string
--- @param timeFormat Either '12' or '24' to set the time format, default 24.
--- @return Formatted time string
+-- @int[opt] timeFormat Either '12' or '24' to set the time format, default 24.
+-- @treturn string Formatted time string
 -- @see RTCdate
 -- @see RTCtostring
 -- @usage
@@ -385,8 +383,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns formated date/time string
--- @param timeFormat Either '12' or '24' to set the time format, default 24.
--- @return Formatted date and time string
+-- @int[opt] timeFormat Either '12' or '24' to set the time format, default 24.
+-- @treturn string Formatted date and time string
 -- @see RTCtime
 -- @see RTCdate
 -- @usage
@@ -461,9 +459,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Present the user a wizard that lets them set the time on the device
--- @param seconds Boolean, true if seconds should be prompted for or false if
+-- @bool[opt] seconds Boolean, true if seconds should be prompted for or false if
 -- seconds should just be left alone.  By default, seconds are not edited.
--- @return true
+-- @treturn bool true
 -- @usage
 -- device.editTime()
 function _M.editTime(seconds)
@@ -474,7 +472,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Present the user a wizard that lets them set the date on the device
--- @return true
+-- @treturn bool true
 -- @usage
 -- device.editDate()
 function _M.editDate()
@@ -485,9 +483,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Present the user a wizard that lets them set the time and date on the device
--- @param seconds Boolean, true if seconds should be prompted for or false if
+-- @bool[opt] seconds True if seconds should be prompted for or false if
 -- seconds should just be left alone.  By default, seconds are not edited.
--- @return true
+-- @treturn bool true
 -- @usage
 -- -- Set up a call back to map a long press of 1 to the set date functionality
 -- device.setKeyCallback(1, function() return device.editTimeDate() end, 'long')

@@ -6,6 +6,7 @@ style = '!fixed'
 use_markdown_titles = true
 sort_modules=true
 merge=true
+not_luadoc=true
 
 file={
 	'rinApp.lua',
