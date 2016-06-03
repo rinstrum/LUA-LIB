@@ -16,6 +16,8 @@ local tostring  = tostring
 local error     = error
 local rename    = os.rename
 local stat      = require('posix').stat
+local type      = type
+local math      = math
 
 local dbg       = require "rinLibrary.rinDebug"
 local namings   = require 'rinLibrary.namings'
@@ -60,16 +62,11 @@ local field = '"' * Cs(((P(1) - '"') + P'""' / '"')^0) * '"' +
 local record = Ct(field * (',' * field)^0) * (S('\r\n')^1 + -1)
 local sizings = nil
 
--------------------------------------------------------------------------------
---- CSV Functions.
--- Functions to manage CSV files directly
--- @section CSV
-
 --- CSV table file fields
 --
 -- A CSV table contains a number of controlling fields.  These fields should
 -- only be set initially and not during the lifetime of the CSV table.
--- @table CVSFields
+-- @table CSVFields
 -- @field fname Name of the CSV file, if not specified file cannot be loaded or
 -- saved.
 -- @field labels Names of columns of the CSV table.  If not specifed, this will
@@ -91,16 +88,16 @@ local sizings = nil
 -- loss.
 -- @field fast Schedule changes immediately but don't wait for them to fully
 -- commit before continuing.  This is the default.
--- @field event Schedule the write back when event processing next takes place.
 -- @field unsafe Never schedule change commits explicitly.  Instead the
 -- underlying file system's methods are used.  This can mean a delay of up to
 -- thirty second between making a change and that change being committed to
 -- backing storage.
+-- @field event Schedule the write back when event processing next takes place.
 
 -------------------------------------------------------------------------------
 -- Takes an escaped CSV string and returns a line (1d array)
--- @param s CSV string
--- @return table (1d array)
+-- @string s CSV string
+-- @treturn tab Table (1d array)
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local fields = csv.fromCSV('1,"hello, there!",14')
@@ -119,8 +116,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Function to check if a table is a CSV table and that it has some data
--- @param t Table
--- @return Boolean indicating if this is a CSV table with data or not
+-- @tab t Table
+-- @treturn bool Boolean indicating if this is a CSV table with data or not
 -- @local
 local function hasData(t)
     return isCSV(t) and t.data ~= nil
@@ -284,8 +281,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Save table t to a .CSV file
--- @param t database table to save.
--- @return table in same format
+-- @tparam CSV t CSV table to save.
+-- @treturn CSV Table in same format
 -- @see loadCSV
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
@@ -323,10 +320,9 @@ end
 -- If no CSV file found or contents different then file created with structure in it.
 -- If the source table doesn't include the labels, then all fields will be loaded
 -- and the labels will be filled in as per the file.
--- @param t is table, optionally with structure of expected CSV included
--- which won't be loaded into memory, by default the file will be loaded.
--- @return CSV table
--- @return A result code describing what was done (see below for explanation)
+-- @tparam {CSVFields,...} t Table of CSV fields 
+-- @treturn CSV CSV table
+-- @treturn  loadCSVCodes A result code describing what was done
 -- @see saveCSV
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
@@ -419,7 +415,7 @@ function _M.loadCSV(t)
 end
 
 --- Result codes from the loadCSV function.
---@table loadCSV
+--@table loadCSVCodes
 -- @field create File didn't exist, returned an empty CSV table
 -- @field empty File was empty, returned an empty CSV table
 -- @field load File loaded fine
@@ -467,8 +463,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the maximum log size before log cycling
--- @param t CSV table
--- @param s Maximum log file size, this can be a number or a sting that can
+-- @tparam CSV t CSV table
+-- @int s Maximum log file size, this can be a number or a sting that can
 -- include a suffix 'k' or 'm' for kilobytes and megabytes.
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -493,8 +489,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the maximum log size before log cycling occurs
--- @param t CSV table
--- @return Log cycle size
+-- @tparam CSV t CSV table
+-- @treturn int Log cycle size
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- print('cycle size is ' .. csv.getLogSize(csvTable))
@@ -508,8 +504,8 @@ end
 -- This call removes all in memory data form the CSV table and the only copy is
 -- in the file.  Specifically, this means you cannot search the CSV file after
 -- making this call -- whatever you search for will <b>not</b> be found.
--- @param t is table describing CSV data
--- @param line is a row of data (1d array) to save
+-- @tparam CSV t CSV Table
+-- @tab line Row of data (1d array) to save
 -- @see addLineCSV
 -- @see undoLogLineCSV
 -- @usage
@@ -526,7 +522,7 @@ function _M.logLineCSV(t, line)
             if #line == 0 then
                 line = recordToLine(t, line)
             end
-            if posix.stat(t.fname, 'size') > _M.getLogSize(t) then
+            if stat(t.fname, 'size') > _M.getLogSize(t) then
                 for i = 9, 1, -1 do
                     rename(t.fname .. '.' .. (i-1), t.fname .. '.' .. i)
                 end
@@ -545,8 +541,8 @@ end
 --
 -- If there has been no line added to the CSV file using logLineCSV, this
 -- function does nothing.
--- @param t is table describing CSV data
--- @return Boolean, true indicates the last line was successfullyt removed.
+-- @tparam CSV t CSV table
+-- @treturn bool True indicates the last line was successfullyt removed.
 -- @see logLineCSV
 -- @usage
 -- -- Append a line to the CSV file in storage and then remove it.
@@ -571,9 +567,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a table
--- @param t is table holding CSV data
--- @param line of data (1d array) to add to the table
--- @return row location of line new line in table
+-- @tparam CSV t CSV Table
+-- @tab line Data (1d array) to add to the table
+-- @treturn int Row location of line new line in table
 -- @see logLineCSV
 -- @see remLineCSV
 -- @usage
@@ -605,8 +601,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Makes a duplicate copy of a line of data
--- @param line is the line of data (1-d array)
--- @return duplicate copy of line
+-- @tab line Line of data (1-d array)
+-- @treturn tab Duplicate copy of line
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -629,9 +625,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Removes line of data in a table (does not save .CSV file)
--- @param t is table holding CSV data
--- @param row is row number of table data 1..n to remove.
--- removes last line of data if row is nil
+-- @tparam CSV t CSV Table
+-- @int[opt] row Row number of table data 1..n to remove.
+-- Removes last line of data if row is nil.
 -- @see addLineCSV
 -- @usage
 -- -- Remove all lines from the CSV table
@@ -649,8 +645,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Look up a column in the passed CSV file
--- @param t CSV table
--- @param c Column number or name
+-- @tparam CSV t CSV Table
+-- @tparam string c Column number (int) or name (string)
 -- @return Column index
 -- @local
 local function lookupColumn(t, c)
@@ -666,11 +662,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns a line of data from the table with matching val in column col
--- @param t is table holding CSV data
--- @param val is value of the cell to find
--- @param col is the column of data to match (default is col 1)
--- @return row that val found in or nil if not found
--- @return line of data found at that row with matching val data in column col
+-- @tparam CSV t CSV Table
+-- @string val Value of the cell to find
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @treturn int Row that val found in or nil if not found
+-- @treturn tab Line of data found at that row with matching val data in column col
 -- @see getRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -715,10 +711,10 @@ end
 -------------------------------------------------------------------------------
 -- Return a table containung a row of a CSV file.  Unlike getLineCSV, the
 -- fields are named using the column labels.
--- @param t is table holding CSV data
--- @param val is value of the cell to find
--- @param col is the column of data to match (default is col 1)
--- @return table containing the fields index by their canonical names
+-- @tparam CSV t CSV Table
+-- @string val Value of the cell to find
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @treturn tab Table containing the fields index by their canonical names
 -- @see getLineCSV
 -- @see setRecordCSV
 -- @usage
@@ -739,10 +735,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Set a specified row in a CSV file to match the passed record
--- @param t Table holding CSV data
--- @param val is value of the cell to find
--- @param col is the column of data to match
--- @param f Record of new values
+-- @tparam CSV t CSV Table
+-- @string val Value of the cell to find
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @tab f Record of new values
 -- @see getRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -765,9 +761,10 @@ end
 -------------------------------------------------------------------------------
 -- Return a new CSV file that includes all records matching the given field
 -- value.
--- @param t table holding CSV data
--- @param val value to match against
--- @param col column to match
+-- @tparam CSV t CSV Table
+-- @string val Value of the cell to find
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @treturn CSV New csv containing all matching records
 -- @see getRecordCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -792,9 +789,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns a column of data in a 1-D table
--- @param csvtbl is table holding CSV data
--- @param col is the column of data to match (default is col 1), column names are allowed
--- @return a column of data
+-- @tparam CSV csvtbl CSV Table
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @treturn tab A column of data
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -821,9 +818,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Return a row of data from a CSV table
--- @param csvtbl table holding CSV data
--- @param row The row number
--- @return Table containing the row of data numerically indexed
+-- @tparam CSV csvtbl CSV Table
+-- @int row The row number
+-- @treturn tab Table containing the row of data numerically indexed
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -837,9 +834,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Return a row of data from a CSV table as a named record
--- @param csvtbl table holding CSV data
--- @param row The row number
--- @return Table containing the row of data indexed by name
+-- @tparam CSV csvtbl CSV Table
+-- @int row The row number
+-- @treturn Table containing the row of data indexed by name
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -854,9 +851,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns the unique different values from a column of data in a 1-D table
--- @param csvtbl is table holding CSV data
--- @param col is the column of data to match (default is col 1), column names are allowed
--- @return a column of data
+-- @tparam CSV csvtbl CSV Table
+-- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @treturn tab A column of data
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -893,7 +890,7 @@ end
 -------------------------------------------------------------------------------
 -- Clean up a CSV table converting all field names and string fields into
 -- a canonical form.
--- @param t CSV table to convert
+-- @tparam CSV t CSV Table
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
@@ -919,9 +916,9 @@ end
 -------------------------------------------------------------------------------
 -- Convert a CSV file into a table indexed by the specified column names.
 -- No uniqueness checks are performed for the key field.
--- @param csvtbl CSV table to extract
--- @param column Column name for the key field
--- @return Table containing the rows indexed by the key field.  Each row is
+-- @tparam CSV csvtbl CSV Table
+-- @string[opt] column Column of data to match (string or int). Default is 1.
+-- @treturn Table containing the rows indexed by the key field.  Each row is
 -- indexed by the label names not the label numbers.
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -953,9 +950,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Replaces a line of data in the table (does not save the .CSV file)
--- @param t is table holding CSV data
--- @param row is the row number of the line of data
--- @param line is the line of data
+-- @tparam CSV t CSV Table
+-- @int row Row number of the line of data
+-- @tab line Line of data
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
@@ -979,9 +976,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Returns the column number of a particular label
--- @param t is table holding CSV data
--- @param label is name of column to find (not case sensitive)
--- @return column number of the label or nil if not found
+-- @tparam CSV t CSV Table
+-- @string label Name of column to find (not case sensitive)
+-- @treturn int column Number of the label or nil if not found
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
@@ -996,9 +993,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Converts contents of the CSV table into a print friendly string
--- @param t table to convert
--- @param w width to pad each cell to
--- @return string
+-- @tparam CSV t CSV Table
+-- @int[opt] w Width to pad each cell to. Default is 10.
+-- @treturn string String representation of table.
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
@@ -1021,8 +1018,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Converts contents of the 1-D column of data into a print friendly string
--- @param c column of data convert
--- @return string
+-- @tab c Column of data convert
+-- @treturn string Column represented as a string.
 -- @see tostringLine
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -1044,9 +1041,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Converts contents of the row into a print friendly string
--- @param line of data to convert
--- @param w width to pad each cell to
--- @return string
+-- @tab line Line of data to convert
+-- @int[opt] w Width to pad each cell to. Default is 10.
+-- @treturn string Row represented as string.
 -- @see tostringCol
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -1061,9 +1058,9 @@ function _M.tostringLine(line, w)
 end
 
 -------------------------------------------------------------------------------
--- returns the number of rows of data in CSV table
--- @param t CSV table
--- @return number of rows
+-- Returns the number of rows of data in CSV table
+-- @tparam CSV t CSV Table
+-- @treturn int Number of rows
 -- @see numColsCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -1076,8 +1073,8 @@ end
 
 -------------------------------------------------------------------------------
 -- returns the number of columns of data in CSV table
--- @param t CSV table
--- @return number of columns
+-- @tparam CSV t CSV Table
+-- @treturn int Number of columns
 -- @see numRowsCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -1092,8 +1089,8 @@ end
 -- Return an iterator over the rows of the given CSV table.
 -- Each row is presented as a table indexed numerically, thus the first column's
 -- value would be accessed using [1], the second column with [2] et cetera.
--- @param t CSV table
--- @return iterator
+-- @tparam CSV t CSV Table
+-- @treturn iterator Iterator for rows in csv
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -1112,8 +1109,8 @@ end
 -------------------------------------------------------------------------------
 -- Return an iterator over the rows of the given CSV table.
 -- Each row is presented as a table indexed by name.
--- @param t CSV table
--- @return iterator
+-- @tparam CSV t CSV Table
+-- @treturn iterator Iterator for rows in csv
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 --
@@ -1141,9 +1138,9 @@ end
 
 -----------------------------------------------------------------------------------
 -- Adds a database table to the database, updates contents with t if already present
--- @param db is the database table to populate
--- @param name is the name of table
--- @param t is the csv table to add
+-- @tparam db db Database table to populate
+-- @string name Name of table
+-- @tparam {CSVFields,...} t Table containing CSV fields
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local db = { 'initial table', { fname = '/tmp/initial-file' } }
@@ -1168,7 +1165,7 @@ end
 -------------------------------------------------------------------------------
 -- Restores database contents from CSV files
 -- Only loads in database tables already registered with database
--- @param db database table to populate
+-- @tparam db db Database table to populate
 -- @see saveDB
 -- @see loadCSV
 -- @usage
@@ -1183,9 +1180,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Adds line of data to a table in the database
--- @param db database table
--- @param name name of table in database to use
--- @param l line (1d array) of data to save
+-- @tparam db db Database table
+-- @string name Name of table in database to use
+-- @tab l line 1d array of data to save
 -- @see remLineDB
 -- @see addLineCSV
 -- @usage
@@ -1200,9 +1197,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Removes last line of data in a database table
--- @param db database table
--- @param name name of table to use
--- @param line is row number of table data 1..n to remove.
+-- @tparam db db Database table
+-- @string name Name of table in database to use
+-- @int line Row number of table data 1..n to remove.
 -- Removes last line if line is nil
 -- @see addLineDB
 -- @see remLineCSV
@@ -1218,7 +1215,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Save database to multiple CSV files
--- @param db database table
+-- @tparam db db Database table
 -- @see loadDB
 -- @see saveCSV
 -- @usage
@@ -1235,8 +1232,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Converts contents of the database into a print friendly string
--- @param db database table
--- @param w width of each cell
+-- @tparam db db Database table
+-- @int[opt] w Width of each cell. Default is 10.
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
 -- local db = { 'temporary table', { fname = '/tmp/temporary-file' } }
