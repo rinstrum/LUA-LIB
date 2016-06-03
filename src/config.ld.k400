@@ -46,6 +46,7 @@ file={
     'rinLibrary/rinCSV.lua',
     'rinLibrary/rinDebug.lua',
     'rinLibrary/rinINI.lua',
+    'rinLibrary/rinUSB.lua',
     'rinLibrary/rinVT100.lua',
     'rinSystem/IOSockets.lua',
     'rinSystem/rinSockets.lua',

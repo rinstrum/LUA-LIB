@@ -5,11 +5,15 @@
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 
+local io = io
+local string = string
+local type = type
+
 local _M= {}
 
 -------------------------------------------------------------------------------
 -- Send an escape sequence to the terminal
--- @param s string containing escape sequence to send
+-- @string s String containing escape sequence to send
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -33,8 +37,8 @@ end
 
 --------------------------------------------------------------------------------
 -- Move Cursor to position x,y on screen
--- @param x horizontal position from left, 0 (default) is start
--- @param y vertical position from top, 0 (default) is top of screen
+-- @int[opt] x Horizontal position from left, 0 (default) is start
+-- @int[opt] y Vertical position from top, 0 (default) is top of screen
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -45,7 +49,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Move Cursor up relative to current position
--- @param r is number of rows to move
+-- @int r Number of rows to move
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -56,7 +60,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Move Cursor down relative to current position
--- @param r is number of rows to move
+-- @int r Number of rows to move
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -67,7 +71,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Move Cursor left relative to current position
--- @param c is number of columns to move
+-- @int c Number of columns to move
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -78,7 +82,7 @@ end
 
 --------------------------------------------------------------------------------
 -- Move Cursor right relative to current position
--- @param c is number of columns to move
+-- @int c Number of columns to move
 -- @usage
 -- local VT100 = require rinLibrary.rinVT100
 --
@@ -195,8 +199,8 @@ end
 
 --------------------------------------------------------------------------------
 -- set terminal to scroll only a section of the screen
--- @param r1 row to start scrolling area
--- @param r2 row to end scrolling area
+-- @int r1 Row to start scrolling area
+-- @int r2 Row to end scrolling area
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
@@ -264,8 +268,8 @@ end
 
 --------------------------------------------------------------------------------
 -- Set terminal attributes
--- @param fg foreground colours "white", "red", "green", "yellow", "blue", "magenta", "cyan", "black"
--- @param bg background colours "white", "red", "green", "yellow", "blue", "magenta", "cyan", "black"
+-- @string fg Foreground colours "white", "red", "green", "yellow", "blue", "magenta", "cyan", "black"
+-- @string bg Background colours "white", "red", "green", "yellow", "blue", "magenta", "cyan", "black"
 -- @usage
 -- local VT100 = require 'rinLibrary.rinVT100'
 --
