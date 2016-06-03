@@ -30,8 +30,7 @@ local axleModeOptions = {
 -------------------------------------------------------------------------------
 -- Function to change the axle detection mode
 -- @function setAxleMode
--- @param mode Axle mode to change to
--- @see axleModes
+-- @tparam axleModes Axle mode to change to
 -- @usage
 -- device.setAxleMode('off')
 -- device.selectOption(...)
