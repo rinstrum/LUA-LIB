@@ -44,7 +44,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Return an ever increasing time.
--- @return Real time
+-- @treturn num Real time
 -- @usage
 -- local start = timers.monotonicTime()
 -- ...
@@ -140,9 +140,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Add a timer to the timer list
--- @param time Time between timer events in seconds, 0 means no repetition
--- @param delay Initial delay for timer in seconds
--- @param callback Function to run when timer is complete
+-- @number time Time between timer events in seconds, 0 means no repetition
+-- @number delay Initial delay for timer in seconds
+-- @func callback Function to run when timer is complete
 -- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addRegularTimer
@@ -166,9 +166,9 @@ end
 -- due to delays etc.  It is still possible for timing events to be missed
 -- or skipped but they won't drift.  Unless timing is critical, you won't
 -- need to use this flavour.
--- @param time Time between timer events in seconds, 0 means no repetition
--- @param delay Initial delay for timer in seconds
--- @param callback Function to run when timer is complete
+-- @number time Time between timer events in seconds, 0 means no repetition
+-- @number delay Initial delay for timer in seconds
+-- @func callback Function to run when timer is complete
 -- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addTimer
@@ -192,7 +192,7 @@ end
 -- something to occur now, but don't want to wait around for it and don't want
 -- other application functions to wait either.  The ordering of events is
 -- preserved.
--- @param callback Function to run when timer is complete
+-- @func callback Function to run when timer is complete
 -- @param ... Function arguments
 -- @return Timer key which should be considered a read only object
 -- @see addTimer
@@ -218,8 +218,8 @@ end
 -------------------------------------------------------------------------------
 -- Add a one shot event timer to the timer list.  One shots are functions that
 -- return true after the specified time has elapsed and false otherwise.
--- @param delay Initial delay for timer in seconds
--- @return one shot function
+-- @number delay Initial delay for timer in seconds
+-- @return func One shot function
 -- @see addTimer
 -- @see addEvent
 -- @usage
@@ -262,7 +262,7 @@ end
 -- waiting, it simply returns how long until the next scheduled timer event.
 -- Generally, you won't need to call this ever.  The rinApp application
 -- framework takes care of this for you.
--- @return Delay in seconds
+-- @treturn num Delay in seconds
 -- @see delayUntilTimer
 -- @see processTimeouts
 -- @usage
@@ -270,6 +270,7 @@ end
 --
 -- local timeTillNext = timers.delayUnitNext()
 -- print('snoozing for ' .. timeTillNext .. ' seconds')
+-- @local
 function _M.delayUntilNext()
 	if timers[1] ~= nil then
     	return max(0, timers[1].when - monotonictime())
@@ -281,8 +282,7 @@ end
 -- Get the time until the specified timer expires.
 -- A cancelled or non-existent timer will never trigger of course and return
 -- a huge number.
--- @return Delay in seconds
--- @see delayUntilNext
+-- @treturn num Delay in seconds
 -- @usage
 -- local timers = require 'rinSystem.rinTimers'
 --
@@ -309,6 +309,7 @@ end
 -- local timers = require 'rinSystem.rinTimers'
 --
 -- timers.processTimeouts()
+-- @local
 function _M.processTimeouts()
 	local now = monotonictime()
 
@@ -347,6 +348,7 @@ end
 -- local timers = require 'rinSystem.rinTimers'
 --
 -- timers.reset()
+-- @local
 function _M.reset()
     lastEventTimer = nil
     timers = {}

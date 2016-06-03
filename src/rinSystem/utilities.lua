@@ -37,7 +37,7 @@ function _M.null()   return nil      end
 
 -------------------------------------------------------------------------------
 -- A function that always returns true
--- @return true
+-- @treturn bool True
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -46,7 +46,7 @@ function _M.True()   return true     end
 
 -------------------------------------------------------------------------------
 -- A function that always returns false
--- @return false
+-- @treturn bool False
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -76,8 +76,8 @@ end
 -------------------------------------------------------------------------------
 -- Return a full deep copy of an original object.
 -- @function deepcopy
--- @param o Object to copy
--- @return A copy of o that shares no data but is otherwise identical
+-- @tab o Object to copy
+-- @treturn tab A copy of o that shares no data but is otherwise identical
 -- @usage
 -- local deepcopy = require('rinSystem.utilities').deepcopy
 --
@@ -88,12 +88,13 @@ end
 -- assert.same(t, u)
 function _M.deepcopy(o) return dc(o, {}) end
 
--- Return a read only version of the specified object.
+-------------------------------------------------------------------------------
 -- @function readonlyreference
 -- @param o Object to copy
 -- @return A copy of o that is read only
 -- @usage
 -- local readonly = readonlyreference{ 1, 2, 3 }
+-- @local
 function _M.readonlyreference(o)
     if type(o) == 'table' then
         return setmetatable({}, {
@@ -108,9 +109,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Return a callback if it is callable, return the default if not.
--- @param callback User supplied callback
--- @param default System suplied default
--- @return callback if callable, default if not
+-- @func callback User supplied callback
+-- @func default System suplied default
+-- @treturn func Callback if callable, default if not
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -122,7 +123,7 @@ end
 -------------------------------------------------------------------------------
 -- Check that an object is callable
 -- @param obj
--- @return boolean true if object is callable, false otherwise
+-- @treturn bool True if object is callable, false otherwise
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -137,7 +138,7 @@ end
 -- Check that a callback argument is really a function or nil
 -- @function checkCallback
 -- @param cb Callback argument
--- @return boolean true if the argument is a callback or nil, false otherwise
+-- @tparam bool True if the argument is a callback or nil, false otherwise
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -160,7 +161,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Call a callback if it is callable, do nothing otherwise
--- @param cb Callback to call
+-- @func cb Callback to call
 -- @param ... Arguments to be passed to call back
 -- @return The callback's return values
 -- @usage
@@ -175,7 +176,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Force buffers to discs
--- @param wait Boolean indicating if we're to wait or not, default is wait.
+-- @bool[opt] wait Boolean indicating if we're to wait, default is wait.
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -200,7 +201,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Invert a table returning a new table
--- @param map Table containing the forward mapping
+-- @tab map Table containing the forward mapping
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -218,9 +219,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Load a text file as a number of lines in a table
--- @param filename The path of the file to be read
--- @return Table of lines or nil on error
--- @return Error or nil if none
+-- @string filename The path of the file to be read
+-- @treturn tab Table of lines or nil on error
+-- @treturn string Error or nil if none
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -241,11 +242,11 @@ end
 -- Create a function that accepts an incoming stream of data and breaks it into
 -- pieces according to the start, end and escape characters, string or patterns.
 -- The stream is buffered and reassembled as required.
--- @param callback Callback to accept the broken down chunks
--- @param start Start character, string or pattern (can be nil for none)
--- @param fin End character, string or pattern (cannot be nil)
--- @param escape Escape character, string or pattern (can be nil for no escape)
--- @return a function to process and buffer an incoming stream
+-- @func callback Callback to accept the broken down chunks
+-- @string[opt] start Start character, string or pattern (can be nil for none)
+-- @string[opt] fin End character, string or pattern (cannot be nil)
+-- @string[opt] escape Escape character, string or pattern (can be nil for no escape)
+-- @treturn func A function to process and buffer an incoming stream
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -300,8 +301,8 @@ end
 -- Save a table or tables to file so they can be restored later using loadfile.
 -- The created file returns the tables in the same order they are passed to
 -- this function.
--- @param f File to save to
--- @param ... Tables to save
+-- @tparam file f File to save to
+-- @tab ... Tables to save
 -- @usage
 -- local utils = require 'rinSystem.utilities'
 --
@@ -472,9 +473,9 @@ end
 -- There are also restriction on functions in the table.  Only Lua functions
 -- that don't use upvalues can be saved (and they are).  There is no workaround
 -- for this restriction.
--- @param filename Name of the backing file for the persistent table
--- @param defaults Table of values which are added to the persistent table if not already present
--- @return Persistent table, contents as before or empty if newly created
+-- @string filename Name of the backing file for the persistent table
+-- @tab defaults Table of values which are added to the persistent table if not already present
+-- @treturn tab Persistent table, contents as before or empty if newly created
 -- @usage
 -- local history = utils.persistentTable 'history.lua'
 function _M.persistentTable(filename, defaults)

@@ -17,8 +17,8 @@ _M.socket = devCon		-- Allow for raw communication if necessary
 -------------------------------------------------------------------------------
 -- Makes an imitation socket from a LUA file descriptor that can be used with
 -- select.
--- @param fdin File descriptor to take input from
--- @param fdout File descriptor to send output to
+-- @tparam FileDescriptor fdin File descriptor to take input from
+-- @tparam FileDescriptor fdout File descriptor to send output to
 -- @return An imitation socket with the methods getfd, dirty, receive, send, 
 -- close
 function _M.makeSocket(fdin, fdout)
@@ -46,7 +46,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Connects to the user IO
--- @return the connection (not neccessary for use)
+-- @return The connection (not neccessary for use)
 function _M.connectDevice()
 	if devCon then
 		return devCon

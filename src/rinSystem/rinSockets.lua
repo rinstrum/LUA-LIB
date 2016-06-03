@@ -35,7 +35,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Callback function that ignores incoming data for a read only socket.
--- @param sock The socket to read all available data from
+-- @tparam socket sock The socket to read all available data from
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -53,8 +53,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Add a socket to the socket list
--- @param sock Socket to add to the list
--- @param callback Callback for the socket
+-- @tparam socket sock Socket to add to the list
+-- @func callback Callback for the socket
 -- @return a handle to the socket
 -- @see removeSocket
 -- @usage
@@ -94,7 +94,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Remove a socket from the socket list
--- @param sock Socket to remove from the list
+-- @tparam socket sock Socket to remove from the list
 -- @see addSocket
 -- @usage
 -- -- Refer to the 'exernal.lua' example or to the
@@ -114,8 +114,8 @@ end
 -------------------------------------------------------------------------------
 -- Create a server/listening socket.
 -- Generally you'll use createServerSocket to do this for you.
--- @param sock The socket to listen on
--- @param callback The callback that will be invoked when a new connection is established
+-- @tparam socket sock The socket to listen on
+-- @func callback The callback that will be invoked when a new connection is established
 -- @see createServerSocket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
@@ -139,8 +139,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the socket's timeout threshold
--- @param sock The socket to alter
--- @param timeout The socket's timeout in seconds
+-- @tparam socket sock The socket to alter
+-- @int timeout The socket's timeout in seconds
 -- @see addSocket
 -- @usage
 -- -- Refer to the 'exernal.lua' example or to the
@@ -157,9 +157,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Read a message from a socket
--- @param sock Socket to read from
--- @return The message received
--- @return Error string if an error occured, nil if no error
+-- @tparam socket sock Socket to read from
+-- @treturn string The message received
+-- @treturn string Error string if an error occured, nil if no error
 -- @see addSocket
 -- @see writeSocket
 -- @usage
@@ -188,9 +188,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Write a message to a socket
--- @param sock Socket to write to
--- @param msg Data to write
--- @return Number of packets in the send queue
+-- @tparam socket sock Socket to write to
+-- @string msg Data to write
+-- @treturn int Number of packets in the send queue
 -- @see addSocket
 -- @see readSocket
 -- @usage
@@ -219,7 +219,7 @@ end
 -------------------------------------------------------------------------------
 -- Get a set of sockets that have pending write data.
 -- You don't need to call this, the rinApp application takes care of this.
--- @return Set of sockets, nil if there are none
+-- @treturn table Set of sockets, nil if there are none
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -239,7 +239,7 @@ end
 -------------------------------------------------------------------------------
 -- Get a set of sockets that can safely be written to
 -- You don't need to call this, the rinApp application takes care of this.
--- @return Set of sockets, nil if there are none
+-- @treturn table Set of sockets, nil if there are none
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -261,7 +261,7 @@ end
 -------------------------------------------------------------------------------
 -- Read a readable socket
 -- You don't need to call this, the rinApp application takes care of this.
--- @param sock A readable socket
+-- @tparam socket sock A readable socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -278,7 +278,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Suppress debug messages to a socket
--- @param sock A socket
+-- @tparam socket sock A socket
 -- @local
 local function suppressSocketDebug(sock)
     local queue = writers[sock]
@@ -290,7 +290,7 @@ end
 -------------------------------------------------------------------------------
 -- Write a writable socket
 -- You don't need to call this, the rinApp application takes care of this.
--- @param sock A writable socket
+-- @tparam socket sock A writable socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -321,10 +321,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Create a TCP socket connected to the specified address
--- @param ip IP address for the socket
--- @param port Port address for the socket
--- @param timeout The timeout associated with the socket
--- @return the socket
+-- @string ip IP address for the socket
+-- @int port Port address for the socket
+-- @int timeout The timeout associated with the socket
+-- @treturn socket The socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -343,10 +343,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Create a new TCP socket and connect to the specified address
--- @param port Port address for the socket
--- @param callback The read callback for the socket
--- @return the socket
--- @return error code
+-- @int port Port address for the socket
+-- @func callback The read callback for the socket
+-- @treturn socket The socket
+-- @treturn int Error code
 -- @see addSocket
 -- @usage
 -- -- Refer to the 'exernal.lua' example or to the
@@ -376,10 +376,10 @@ end
 -------------------------------------------------------------------------------
 -- Add the specified socket into the named socket set.  Optionally supply
 -- a callback routine that can filter the packet stream.
--- @param name The name of the socket set
--- @param sock The socket to add
--- @param callback The filter callback.  Pass nil for complete filtering.
--- @param silent If true, suppresses debug output for message on this socket
+-- @string name The name of the socket set
+-- @tparam socket sock The socket to add
+-- @func callback The filter callback.  Pass nil for complete filtering.
+-- @bool[opt] silent If true, suppresses debug output for message on this socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -404,8 +404,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Remove the specified socket from the named socket set.
--- @param name The name of the socket set
--- @param sock The socket to remove
+-- @string name The name of the socket set
+-- @tparam socket sock The socket to remove
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -417,7 +417,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Remove the specified socket from all socket sets.
--- @param sock The socket to remove
+-- @tparam socket sock The socket to remove
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
 --
@@ -432,8 +432,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Write the specified message to all sockets in the named set.
--- @param name The socket set to write to
--- @param msg The message to write
+-- @string name The socket set to write to
+-- @string msg The message to write
 -- @param ... Optional arguments which will be passed to each call back filter.
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
