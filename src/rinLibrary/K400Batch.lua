@@ -25,7 +25,7 @@ local numStages, numMaterials = 0, 0
 
 -------------------------------------------------------------------------------
 -- Query the number of materials available in the display.
--- @return Number of material slots in display's database
+-- @treturn int Number of material slots in display's database
 -- @usage
 -- print('We can deal with '..device.getNativeMaterialCount()..' materials.')
 function _M.getNativeMaterialCount()
@@ -34,7 +34,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the number of batching stages available in the display.
--- @return Number of batching stages in display's database
+-- @treturn int Number of batching stages in display's database
 -- @usage
 -- print('We can deal with '..device.getNativeStageCount()..' stages.')
 function _M.getNativeStageCount()
@@ -237,7 +237,7 @@ private.registerDeviceInitialiser(function()
 
 -------------------------------------------------------------------------------
 -- Save the batching information back to the bacthing state files
--- @return nil normally, error on error
+-- @treturn string Error string on error, nil otherwise
 -- @usage
 -- device.saveBatchingChanges()
     private.exposeFunction('saveBatchingChanges', batching, function()
@@ -270,9 +270,9 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Return a material record
 -- @function getMaterial
--- @param m Material name
--- @return Record for the given material or nil on error
--- @return Error message or nil for no error
+-- @string m Material name
+-- @treturn tab Record for the given material or nil on error
+-- @treturn string Error message or nil for no error
 -- @usage
 -- local sand = device.getMaterial('sand')
     private.exposeFunction('getMaterial', batching, function(m)
@@ -286,8 +286,8 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Set the current material in the indicator
 -- @function setMaterialRegisters
--- @param m Material name to set to
--- @return nil if success, error message if failure
+-- @string m Material name to set to
+-- @treturn string nil if success, error message if failure
 -- @usage
 -- device.setCurrentMaterial 'sand'
 -- @local
@@ -304,7 +304,7 @@ private.registerDeviceInitialiser(function()
 
 -------------------------------------------------------------------------------
 -- Load the current material accumulations back from the device
--- @param s Stage to load back data for
+-- @tab s Stage to load back data for
 -- @local
     local function loadMaterialAccumulations(s)
         if s.type == 'fill' and s.fill_material then
@@ -322,7 +322,7 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Set the current stage in the indicator
 -- @function setStageRegisters
--- @param S Stage record to set to
+-- @tab S Stage record to set to
 -- @usage
 -- device.setStageRegisters { type='', fill_slow=1 }
 -- @local
@@ -362,9 +362,9 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Return a table that contains the stages in a specified recipe.
 -- @function getRecipe
--- @param r Names of recipe
--- @return Recipe table or nil on error
--- @return Error indicator or nil for no error
+-- @string r Names of recipe
+-- @treturn tab Recipe table or nil on error
+-- @treturn string Error indicator or nil for no error
 -- @usage
 -- local cement = device.getRecipe 'cement'
     private.exposeFunction('getRecipe', batching, function(r)
@@ -378,10 +378,10 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Return a table that contains the stages in a user selected recipe.
 -- @function selectRecipe
--- @param prompt User prompt
--- @param default Default selection, nil for none
--- @return Recipe table or nil on error
--- @return Error indicator or nil for no error
+-- @string prompt User prompt
+-- @string[opt] default Default selection, nil for none
+-- @treturn tab Recipe table or nil on error
+-- @treturn string Error indicator or nil for no error
 -- @usage
 -- local cement = device.selectRecipe('BATCH?', 'cement')
     private.exposeFunction('selectRecipe', batching, function(prompt, default)
@@ -401,7 +401,7 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Run a stage.  Wait until it begins before returning.
 -- @function runStage
--- @param stage Stage record to run
+-- @tparam tab stage Stage record to run
 -- @usage
 -- local function stageState(stage)
 --     device.runStage(stage)
@@ -447,7 +447,7 @@ private.registerDeviceInitialiser(function()
 -------------------------------------------------------------------------------
 -- Return the start delay associated with the specified stage or 0 if not defined
 -- @param stage Stage record to query
--- @return stage delay
+-- @treturn number stage delay
 -- @local
     local function stageDelay(stage)
         local start = stage[(stage.type or '')..'_delay_start'] or 0

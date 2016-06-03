@@ -255,16 +255,14 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a string
--- @param prompt string displayed on bottom right LCD
--- @param def default value
--- @param maxLen maximum number of characters to include (default 9)
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return value
--- @return true if ok pressed at end
+-- @string prompt string displayed on bottom right LCD
+-- @string def default value
+-- @int[opt] maxLen maximum number of characters to include (default 9)
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @treturn string Value from editor
+-- @treturn bool True if ok pressed at end
 -- @see edit
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local name = device.sEdit('NEW NAME', 'ZINC', 8)
 function _M.sEdit(prompt, def, maxLen, units, unitsOther)
@@ -509,20 +507,18 @@ end
 -- allows for the user to enter text in a numeric mode, and allows for 
 -- auto-complete using the arrow keys. This removes the insert and scroll 
 -- functionality from sEdit
--- @param prompt string displayed on bottom right LCD
--- @param defaults Table of strings to be used when user presses arrow keys 
+-- @string prompt string displayed on bottom right LCD
+-- @tparam {string,...} defaults Table of strings to be used when user presses arrow keys 
 -- with no text entered.
--- @param maxLen maximum number of characters to include (default 9)
--- @param autocompletes Table of strings to be used to auto-complete user 
+-- @int[opt] maxLen maximum number of characters to include (default 9)
+-- @tparam {string,...} autocompletes Table of strings to be used to auto-complete user 
 -- entered text. Table should be ordered by user.
--- @param numeric Use numeric mode by default?
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return value
--- @return true if ok pressed at end
+-- @bool[opt] numeric Use numeric mode by default?
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @treturn number Value in editor
+-- @treturn bool True if ok pressed at end
 -- @see edit
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local defaults = {"BUS", "CAR", "BIKE"}
 -- local autos = {"BUS", "CAR", "BIKE", "SCOOTER", "SKATEBOARD"}
@@ -837,17 +833,15 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to prompt operator to enter a value, numeric digits and '.' only
--- @param prompt string displayed on bottom right LCD
--- @param def default value
--- @param typ type of value to enter ('integer','number','passcode')
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @param clearDefault Clear the default value when a key is pressed
--- @return value
--- @return true if ok pressed at end
+-- @string prompt String displayed on bottom right LCD
+-- @number def Default value
+-- @string typ Type of value to enter ('integer','number','passcode')
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @bool[opt] clearDefault Clear the default value when a key is pressed
+-- @treturn number Value from editor
+-- @treturn bool True if ok pressed at end
 -- @see sEdit
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
 -- @usage
 -- local qty = device.edit('QUANTITY', 123, 'integer')
 function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
@@ -945,8 +939,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to edit value of specified register
--- @param register is the address of the register to edit
--- @param prompt is true if name of register to be displayed during editing,
+-- @string register Register to edit
+-- @tparam bool/string prompt True if name of register to be displayed during editing,
 -- or set to a literal prompt to display
 -- @return value of register
 -- @usage
@@ -983,13 +977,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Prompts operator and waits for OK or CANCEL key press
--- @param prompt string to put on bottom right LCD
--- @param q string to put on bottom left LCD
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return either 'ok' or 'cancel'
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
+-- @string prompt string to put on bottom right LCD
+-- @string q string to put on bottom left LCD
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @treturn string Either 'ok' or 'cancel'
 -- @usage
 -- local confirm = device.askOK('SURE?', 'FILE WILL BE DELETED') == 'ok'
 function _M.askOK(prompt, q, units, unitsOther)
@@ -1019,15 +1011,13 @@ end
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a list of options using
 -- arrow keys and ok
--- @param prompt string to put on bottom right LCD
--- @param options table of option strings
--- @param def default selection string.byte
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return selected string if OK pressed or nil if CANCEL pressed
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
+-- @string prompt String to put on bottom right LCD
+-- @tparam {string,...} options table of option strings
+-- @string[opt] def Default selection
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @treturn string Selected string if OK pressed or nil if CANCEL pressed
 -- @usage
 -- local opt = device.selectOption('COMMAND', { 'HELP', 'QUIT' }, 'QUIT', true)
 function _M.selectOption(prompt, options, def, loop, units, unitsOther)
@@ -1075,15 +1065,13 @@ end
 -- Keys uses are up and down to navigate, +/- to select or deselect, zero to
 -- select none, decimal point to select all, ok to accept the current selections
 -- and cancel to exit and revert to the original selections.
--- @param prompt string to put on bottom right LCD, this is preceeded by an
+-- @string prompt String to put on bottom right LCD, this is preceeded by an
 -- asterik or a space to indicate selection.
--- @param options multiselect object
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
--- @return array containing selected item names
--- @see rinLibrary.Device.LCD.Units
--- @see rinLibrary.Device.LCD.Other
+-- @tparam multiselect options Multiselect object
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
+-- @treturn {string,...} Array containing selected item names
 -- @usage
 -- local multiselect = require 'rinLibrary.multiselect'
 -- local options = multiselect()
@@ -1134,12 +1122,12 @@ end
 -------------------------------------------------------------------------------
 -- Prompts operator to select from a list of options using
 -- arrow keys and ok, simultaneously showing the current value of the option
--- @param prompt string to put on top left LCD
--- @param options table of option strings and values
--- @param def default selection index in options
--- @param loop If true, top option loops to the bottom option and vice versa.  Default: true
--- @param units optional units to display
--- @param unitsOther optional other units to display
+-- @string prompt String to put on top left LCD
+-- @tparam {{string,string},...} options Table of option strings and values
+-- @int[opt] def default Selection index in options
+-- @bool[opt] loop If true, top option loops to the bottom option and vice versa.  Default: true
+-- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
+-- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
 -- @return selected option string if OK pressed or nil if CANCEL pressed
 -- @see rinLibrary.Device.LCD.Units
 -- @see rinLibrary.Device.LCD.Other
