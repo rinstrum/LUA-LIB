@@ -70,10 +70,9 @@ end
 -----------------------------------------------------------------------------
 -- Link register address with display field to update automatically.
 -- Not all fields support this functionality.
--- @param where which display section to write to
--- @param register address of register to link display to.
+-- @tparam displayField where Which display to write to
+-- @tparam string register Address of register to link display to.
 -- Set to 0 to enable direct control of the area
--- @see displayField
 -- @usage
 -- device.writeAuto('topLeft', 'grossnet')
 function _M.writeAuto(where, register)
@@ -126,8 +125,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Rotate the WAIT annunciator
--- @param where which display section to write to
--- @param dir 1 clockwise, -1 anticlockwise 0 no change
+-- @tparam displayField where Which display to write to
+-- @int dir 1 clockwise, -1 anticlockwise 0 no change
 -- @usage
 -- while true do
 --     device.rotWAIT('topLeft', -1)
