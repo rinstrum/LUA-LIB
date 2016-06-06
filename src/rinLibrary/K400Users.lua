@@ -9,6 +9,12 @@ local dbg = require "rinLibrary.rinDebug"
 local lpeg = require "rinLibrary.lpeg"
 local C, P, R = lpeg.C, lpeg.P, lpeg.R
 
+local type = type
+local tostring = tostring
+local string = string
+local math = math
+local print = print
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -88,8 +94,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set one of the user IDs to the specified string
--- @param id User ID in question (1 .. 5)
--- @param s String to set to
+-- @int id User ID in question (1 .. 5)
+-- @string s String to set to
 -- @usage
 -- device.setUserId(3, 'Brick')
     function _M.setUserId(id, s)
@@ -101,9 +107,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Get one of the user IDs
--- @param id User ID in question (1 .. 5)
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- print('User ID is doing:', device.getUserId(3)
     function _M.getUserId(id)
@@ -115,10 +121,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Edit one of the user IDs and return the modified value
--- @param id User ID in question (1 .. 5)
--- @param prompt Prompt to display
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @string prompt Prompt to display
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- device.editUserId(3)
     function _M.editUserId(id, prompt)
@@ -130,8 +136,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set one of the user numbers to the specified value
--- @param id User number in question (1 .. 5)
--- @param x Number to set to
+-- @int id User ID in question (1 .. 5)
+-- @int x Number to set to
 -- @usage
 -- device.setUserNumber(5, 22)
     function _M.setUserNumber(id, x)
@@ -143,9 +149,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Get one of the user numbers
--- @param id User number in question (1 .. 5)
--- @return The user number
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @treturn int The user number
+-- @treturn string Error message, nil if none
 -- @usage
 -- print('User ID has', device.getUserNumber(5)
     function _M.getUserNumber(id)
@@ -157,10 +163,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Edit one of the user numbers and return the modified value
--- @param id User number in question (1 .. 5)
--- @param prompt Prompt to display
--- @return The user number
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @string prompt Prompt to display
+-- @treturn int The user number
+-- @treturn string Error message, nil if none
 -- @usage
 -- device.editUserId(3)
     function _M.editUserNumber(id, prompt)
@@ -172,8 +178,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set one of the user ID names to the specified string
--- @param id User ID in question (1 .. 5)
--- @param n Name to set to
+-- @int id User ID in question (1 .. 5)
+-- @tparam string n Name to set to
 -- @usage
 -- device.setUserIdName(1, 'Fred')
     function _M.setUserIdName(id, n)
@@ -185,9 +191,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Get one of the user ID names
--- @param id User ID in question (1 .. 5)
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- print('User ID is doing:', device.getUserIdName(1)
     function _M.getUserIdName(id)
@@ -199,10 +205,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Edit one of the user ID names and return the modified value
--- @param id User ID in question (1 .. 5)
--- @param prompt Prompt to display
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @string prompt Prompt to display
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- device.editUserId(3)
     function _M.editUserIdName(id, prompt)
@@ -214,8 +220,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set one of the user ID number names to the specified string
--- @param id User ID in question (1 .. 5)
--- @param n Name to set to
+-- @int id User ID in question (1 .. 5)
+-- @string n Name to set to
 -- @usage
 -- device.setUserIdName(2, 'Johnny')
     function _M.setUserNumberName(id, n)
@@ -227,9 +233,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Get one of the user ID number names
--- @param id User ID in question (1 .. 5)
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- print('User ID is doing:', device.getUserNumberName(2)
     function _M.getUserNumberName(id)
@@ -241,10 +247,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Edit one of the user ID number names and return the modified value
--- @param id User ID in question (1 .. 5)
--- @param prompt Prompt to display
--- @return The user ID string
--- @return Error message, nil if none
+-- @int id User ID in question (1 .. 5)
+-- @string prompt Prompt to display
+-- @treturn string The user ID string
+-- @treturn string Error message, nil if none
 -- @usage
 -- device.editUserId(3)
     function _M.editUserNumberName(id, prompt)
