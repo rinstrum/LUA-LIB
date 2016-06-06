@@ -8,6 +8,11 @@
 -------------------------------------------------------------------------------
 local string = string
 local pairs = pairs
+local ipairs = ipairs
+local tonumber = tonumber
+local type = type
+local tostring = tostring
+local table = table
 
 local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
@@ -84,7 +89,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Apply a substitution.
--- @param x Table containnig name list to be substituted
+-- @param x Table containing name list to be substituted
 -- @return Substituted value.
 -- @local
 local function substitute(x)
@@ -200,8 +205,8 @@ local curPrintPort = nil
 -- Send custom print token string to instrument comms port
 -- If the port is unspecified, the previous port will be used or 'ser1a' if
 -- no previous port has been used.
--- @param tokenStr string containing custom print tokens
--- @param comPortName port to use: 'ser1a', 'ser1b', 'ser2a' or 'ser2b'
+-- @string tokenStr String containing custom print tokens
+-- @string comPortName Port to use: 'ser1a', 'ser1b', 'ser2a' or 'ser2b'
 -- @see reqCustomTransmit
 -- @usage
 -- -- A usage application can be found in the printCopy example.
@@ -224,9 +229,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to request response based on custom transmit token string
--- @param tokenStr custom token string
--- @return Expanded token string or nil on error
--- @return nil on success or error code on failure
+-- @string tokenStr Custom token string
+-- @treturn string Expanded token string or nil on error
+-- @treturn string Nil on success or error code on failure
 -- @see printCustomTransmit
 -- @usage
 -- -- get the current weight as a string
@@ -240,9 +245,9 @@ end
 -- This function can either format a single string or a table of strings.
 -- A failed substitution will cause a nil return for a single string or
 -- no entry for a table of strings.
--- @param subs Table of substitution values
--- @param s String to format or table of strings
--- @return Formatted string(s).
+-- @tab subs Table of substitution values
+-- @string s String to format or table of strings
+-- @treturn string Formatted string(s).
 -- @usage
 -- local params = { gross = 1.234 }
 -- print(device.formatPrintString(params, 'Gross is {gross}'))
@@ -257,7 +262,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the print auto mode
--- @param setting The auto mode to enter ('manual' or 'auto')
+-- @string setting The auto mode to enter ('manual' or 'auto')
 -- @usage
 -- device.printModeAuto('auto')
 function _M.printModeAuto(setting)
