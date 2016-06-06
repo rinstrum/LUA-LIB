@@ -378,7 +378,7 @@ end
 -- a callback routine that can filter the packet stream.
 -- @string name The name of the socket set
 -- @tparam socket sock The socket to add
--- @func callback The filter callback.  Pass nil for complete filtering.
+-- @func[opt] callback The filter callback.  <b>Pass nil for complete filtering.</b>
 -- @bool[opt] silent If true, suppresses debug output for message on this socket
 -- @usage
 -- local sockets = require 'rinSystem.rinSockets'
