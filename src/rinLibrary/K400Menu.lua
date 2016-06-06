@@ -139,10 +139,10 @@ return function (_M, private, deprecated)
 -- call back instead.
 -- @field uppercasePrompt Boolean to force the prompt to be upper case or not (default: true for upper case)
 -- @field yes The name of the yes item in a boolean field (default: yes).
--- @field length Length of a string field (usually the third positional argumnet would be used for this)
--- @field name Name of field (usually the first positional argumnet would be used for this)
--- @field register Register to use with field (usually the second positional argumnet would be used for this)
--- @field value Value to set field to (usually the second positional argumnet would be used for this)
+-- @field length Length of a string field (usually the <b>third positional argument</b> would be used for this)
+-- @field name Name of field (usually the <b>first positional argument</b> would be used for this)
+-- @field register Register to use with field (usually the <b>second positional argument</b> would be used for this)
+-- @field value Value to set field to (usually the <b>second positional argument</b> would be used for this)
 
 -------------------------------------------------------------------------------
 -- Create a new empty menu
@@ -263,9 +263,8 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add an integer field to a menu
 -- @function integer
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
--- @see FieldDefinition
 -- @usage
 -- local mymenu = device.createMenu { 'MYMENU' } . integer { 'NUMBER', 3 }
     function menu.integer(args)
@@ -275,7 +274,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a real field to a menu
 -- @function number
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -287,7 +286,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a pass code field to a menu
 -- @function passcode
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -299,7 +298,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a string field to a menu
 -- @function string
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -323,7 +322,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a boolean field to a menu
 -- @function boolean
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -355,7 +354,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a register field to a menu.  When invoked, the register will be edited.
 -- @function register
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -400,7 +399,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a list pick field to a menu
 -- @function list
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -426,7 +425,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a sub-menu to a menu
 -- @function menu
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The sub-menu
 -- @see FieldDefinition
 -- @usage
@@ -472,7 +471,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Add a generic user item to a menu
 -- @function item
--- @param args Field arguments
+-- @tparam {FieldDefinition,...} args Field arguments
 -- @return The menu
 -- @see FieldDefinition
 -- @usage
@@ -486,7 +485,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Return the named field from within the menu heirarchy
 -- @function findField
--- @param ref Field reference name
+-- @tparam FieldDefinition ref Field reference
 -- @return field table
         menu.findField = function(ref)
             return fields[canonical(ref)]
@@ -495,7 +494,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Set a named field to the specified value
 -- @function getValue
--- @param ref Name of field
+-- @tparam FieldDefinition ref Field reference
 -- @return Value the field is set to
 -- @usage
 -- local big = menu.getValue('largest')
@@ -507,7 +506,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Set a named field to the specified value
 -- @function setValue
--- @param ref Name of field
+-- @tparam FieldDefinition ref Field reference
 -- @param value Value to set field to
 -- @usage
 -- menu.setValue('largest', 33.4)
@@ -531,8 +530,8 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Query if a field is currently enabled
 -- @function enabled
--- @param ref Name of field
--- @return true iff the field is currently enabled
+-- @tparam FieldDefinition ref Field reference
+-- @treturn bool True if the field is currently enabled
 -- @usage
 -- if menu.enabled('name') then print('name is '..menu.getValue('name')) end
         function menu.enabled(ref)
@@ -543,8 +542,8 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Enable a field
 -- @function enable
--- @param ref Name of field
--- @param state Boolean indicating if the field should be enabled (true)
+-- @tparam FieldDefinition ref Field reference
+-- @bool state Boolean indicating if the field should be enabled (true)
 -- or disabled (false)
 -- @usage
 -- menu.enable('name')
@@ -558,8 +557,8 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Query if a field is currently read only
 -- @function isReadonly
--- @param ref Name of field
--- @return true iff the field is currently read only
+-- @tparam FieldDefinition ref Field reference
+-- @treturn bool True if the field is currently read only
 -- @usage
 -- if not menu.isReadonly('name') then print('name can be changed') end
         function menu.isReadonly(ref)
@@ -570,8 +569,8 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Change the read only setting for a field
 -- @function setReadonly
--- @param ref Name of field
--- @param state Boolean indicating if the field should be read only (true)
+-- @tparam FieldDefinition ref Field reference
+-- @bool state Boolean indicating if the field should be read only (true)
 -- or writable (false)
 -- @usage
 -- menu.setReadonly('name')
@@ -586,7 +585,7 @@ local function makeMenu(args, parent, fields)
 -- Save menu values into a CSV file table.
 -- The CSV table is saved to file if a name exists.
 -- @function toCSV
--- @param t Filename for CSV table or CSV table or nil to make a new nameless table.
+-- @string t Filename for CSV table or CSV table or nil to make a new nameless table.
 -- specified the CSV is saved to the file too.
 -- @return CSV table
 -- @see fromCSV
@@ -610,7 +609,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Load values from the specified CSV file which was created by toCSV above.
 -- @function fromCSV
--- @param t CSV table filename or CSV table
+-- @string t CSV table filename or CSV table
 -- @see toCSV
 -- @usage
 -- local csv = require('rinLibrary.rinCSV')
@@ -632,9 +631,9 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Save menu values into a table.
 -- @function getValues
--- @param doLabels True if the column labels are wanted, default not
--- @return Table containing all the fields from this menu
--- @return Labels for column headings, if doLabels is true
+-- @bool[opt] doLabels True if the column labels are wanted, default not
+-- @treturn tab Table containing all the fields from this menu
+-- @treturn tab Labels for column headings, if doLabels is true
 -- @see setValues
 -- @see toCSV
 -- @usage
@@ -656,7 +655,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Load values from the table into this menu
 -- @function setValues
--- @param t Table of values
+-- @tparam tab t Table of values
 -- @see getValues
 -- @see fromCSV
 -- @usage
@@ -741,7 +740,7 @@ local function makeMenu(args, parent, fields)
 -------------------------------------------------------------------------------
 -- Display and execute a menu
 -- @function run
--- @return true if exit via EXIT item, false if exit via cancel
+-- @treturn bool True if exit via EXIT item, false if exit via cancel
 -- @usage
 -- local mymenu = device.createMenu {'MENU'}.string { 'NAME', 'Ethyl' }
 -- mymenu.run()
