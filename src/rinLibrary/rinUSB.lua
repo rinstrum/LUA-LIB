@@ -18,6 +18,13 @@ local deepcopy = utils.deepcopy
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation
 
+local pairs = pairs
+local pcall = pcall
+local tostring = tostring
+local table = table
+local next = next
+local os = os
+
 local usb, ev_lib, decodeKey, usbKeyboardMap, partition
 if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
@@ -80,8 +87,8 @@ local rs232ErrorTable = setmetatable({
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device change is detected
--- @param callback Callback function takes event table as a parameter
--- @return The previous callback
+-- @func callback Callback function takes event table as a parameter
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -102,7 +109,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device change is detected
--- @return current callback
+-- @treturn func current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -115,8 +122,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB device event is detected
--- @param callback Callback function takes event table as a parameter
--- @return The previous callback
+-- @func callback Callback function takes event table as a parameter
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 -- local input = linux_input or require("linux.input")
@@ -148,7 +155,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever a USB device event is detected
--- @return current callback
+-- @treturn func Current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -162,8 +169,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB Keyboard event is
 -- processed
--- @param callback Callback function takes key string as a parameter
--- @return The previous callback
+-- @func callback Callback function takes key string as a parameter
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -178,7 +185,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a USB Keyboard
 -- event is processed
--- @return current callback
+-- @treturn func current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -192,10 +199,10 @@ end
 -------------------------------------------------------------------------------
 -- Called to register a callback to run whenever a USB Keyboard has input a full
 -- line of text
--- @param callback Callback function takes line string as a parameter
--- @param endchar Ending character for a line (default \n)
--- @return The previous callback
--- @return The previous end of line character
+-- @func callback Callback function takes line string as a parameter
+-- @string endchar Ending character for a line (default \n)
+-- @treturn func The previous callback
+-- @treturn string The previous end of line character
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -226,8 +233,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a USB Keyboard
 -- has finished inputting a line.
--- @return The current callback
--- @return The current end of line character
+-- @treturn func The current callback
+-- @treturn string The current end of line character
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -240,8 +247,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Register a callback to run whenever a USB storage device is inserted
--- @param callback Callback function takes the mount point as a string
--- @return The previous callback
+-- @func callback Callback function takes the mount point as a string
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -256,7 +263,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a new USB storage
 -- device is detected
--- @return current callback
+-- @treturn func Current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -269,8 +276,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Register a callback to run whenever a USB storage device is removed
--- @param callback Callback function takes the mount point as a string
--- @return The previous callback
+-- @func callback Callback function takes the mount point as a string
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -285,7 +292,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a new USB storage
 -- device is removed
--- @return current callback
+-- @treturn func current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -298,7 +305,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Add the raw key stroke call back.
--- @param callback The library call back
+-- @treturn func callback The library call back
 -- @local
 function _M.setLibKBDCallback(callback)
     utils.checkCallback(callback)
@@ -330,7 +337,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Return a table of legal keys
--- @return Table of all known USB keys
+-- @treturn tab Table of all known USB keys
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -378,8 +385,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Register a callback to run whenever a USB printer device is inserted
--- @param callback Callback function takes the printer as a file
--- @return The previous callback
+-- @func callback Callback function takes the printer as a file
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -397,7 +404,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a new USB printer
 -- device is detected
--- @return current callback
+-- @treturn func Current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -410,7 +417,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Register a callback to run whenever a USB printer device is removed
--- @return The previous callback
+-- @treturn func The previous callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -425,7 +432,7 @@ end
 -------------------------------------------------------------------------------
 -- Called to get current callback that runs whenever whenever a new USB printer
 -- device is removed
--- @return current callback
+-- @treturn func Current callback
 -- @usage
 -- local usb = require 'rinLibrary.rinUSB'
 --
@@ -440,7 +447,7 @@ end
 -------------------------------------------------------------------------------
 -- Callback to receive meta-events associated with USB device appearance
 -- and disappearance.
--- @param t Event table
+-- @tab t Event table
 -- @local
 local function usbCallback(t)
     dbg.debug('', t)
@@ -474,12 +481,12 @@ end
 
 -------------------------------------------------------------------------------
 -- Setup a serial handler
--- @param callback Callback function that accepts data byte at a time
--- @param baud Baud rate to use (default 9600)
--- @param data Number of data bits per byte (default8)
--- @param parity Type of parity bit used (default none)
--- @param stopbits Number of stop bits used (default 1)
--- @param flow Flavour of flow control used (default off)
+-- @func callback Callback function that accepts data byte at a time
+-- @int[opt] baud Baud rate to use (default 9600)
+-- @int[opt] data Number of data bits per byte (default 8)
+-- @string[opt] parity Type of parity bit used (default 'none')
+-- @int[opt] stopbits Number of stop bits used (default 1)
+-- @string[opt] flow Flavour of flow control used (default 'off')
 -- @usage
 -- -- Refer to the myUSBApp example provided.
 --
@@ -582,8 +589,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Check is a file exists are the specified path
--- @param path Path to the file to be tested
--- @return Boolean, true if the file exists
+-- @string path Path to the file to be tested
+-- @treturn bool True if the file exists
 -- @usage
 -- if usb.fileExists('hello.lua') then
 -- end
@@ -593,8 +600,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Check is a directory exists are the specified path
--- @param path Path to the directory to be tested
--- @return Boolean, true if the directory exists
+-- @string path Path to the directory to be tested
+-- @treturn bool True if the directory exists
 -- @usage
 -- if usb.directoryExists('/tmp') then
 -- end
@@ -604,8 +611,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Make a directory, if one doesn't already exist in that location.
--- @param path Path to the directory
--- @return Result code, 0 being no error
+-- @string path Path to the directory
+-- @treturn int Result code, 0 being no error
 -- @usage
 -- device.makeDirectory(usbMountPoint .. '/logFile/myLogs')
 function _M.makeDirectory(path)
@@ -615,9 +622,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Copy all files in the specified directory to the destination
--- @param src Source diretory or mount point
--- @param dest Destination directory or mount point
--- @return Result code, 0 being no error
+-- @string src Source diretory or mount point
+-- @string dest Destination directory or mount point
+-- @treturn int Result code, 0 being no error
 -- @usage
 -- device.copyDirectory(dataPath, usbPath)
 function _M.copyDirectory(src, dest)
@@ -627,9 +634,9 @@ end
 
 -------------------------------------------------------------------------------
 -- Copy all files containing name from the source to the destination
--- @param src Source file
--- @param dest Destination file
--- @return Result code, 0 being no error
+-- @string src Source file
+-- @string dest Destination file
+-- @treturn int Result code, 0 being no error
 -- @usage
 -- device.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
 function _M.copyFile(src, dest)
@@ -639,10 +646,10 @@ end
 
 -------------------------------------------------------------------------------
 -- Copy all files containing name from the source to the destination
--- @param src Source diretory or mount point
--- @param dest Destination directory or mount point
--- @param name Fragment in file name to check for
--- @return Result code, 0 being no error
+-- @string src Source diretory or mount point
+-- @string dest Destination directory or mount point
+-- @string name Fragment in file name to check for
+-- @treturn int Result code, 0 being no error
 -- @usage
 -- device.copyFiles(localPath, usbPath, '.txt')
 function _M.copyFiles(src, dest, name)
@@ -657,7 +664,7 @@ end
 -- Install a specified package into the system
 --
 -- You will have to restart the module before changes take effect.
--- @param pkg Package file path
+-- @string pkg Package file path
 -- @usage
 -- device.installPackages(usbPath .. '/L000-517-1.1.1-M02.rpk')
 function _M.installPackage(pkg)
@@ -669,7 +676,7 @@ end
 -- Install all packages from the given directory into the system.
 --
 -- You will have to restart the module before changes take effect.
--- @param dir Directory containing packages
+-- @string dir Directory containing packages
 -- @usage
 -- device.installPackages(usbPath .. '/packages')
 function _M.installPackages(dir)
@@ -683,13 +690,13 @@ end
 
 -------------------------------------------------------------------------------
 -- Unmount a partition and remove the directory
--- @param path Location of mounted partition
--- @return Result code, 0 being no error
+-- @string path Location of mounted partition
+-- @treturn int Result code, 0 being no error
 -- @usage
 -- device.unmount(usbPath)
 function _M.unmount(path)
     _M.commitFileChanges()
-    return parition and partition.umount(path)
+    return partition and partition.umount(path)
 end
 
 return _M
