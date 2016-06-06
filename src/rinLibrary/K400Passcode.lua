@@ -30,12 +30,12 @@ local passcodes = {
 
 -------------------------------------------------------------------------------
 -- Command to check to see if passcode entry required and prompt if so
--- @param pc = 'full','safe','oper'
--- @param code = passcode to unlock, nil to prompt user
--- @param tries = number of tries to make before giving up (default 1),
--- more than 3 consecutive incorrect attempts will lock the instrument until it
--- is rebooted
--- @return true if unlocked false otherwise
+-- @string pc Options are 'full','safe','oper'
+-- @string[opt] code Passcode to unlock, nil to prompt user
+-- @int[opt] tries Number of tries to make before giving up (default 1).
+-- More than 3 consecutive incorrect attempts will lock the instrument until it
+-- is rebooted.
+-- @treturn bool True if unlocked, false otherwise
 -- @usage
 -- if device.checkPasscode('full', nil, 3) then
 --     print('you have full access now')
@@ -87,7 +87,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to lock instrument
--- @param pc = 'full','safe','oper'
+-- @string pc Options are 'full','safe','oper'
 -- Set a timeout of thirty seconds before full access is lost
 -- timers = require 'rinSystem.rinTimers'
 -- timers.addTimer(0, 30, function() device.lockPasscode('full') end)
@@ -107,11 +107,11 @@ end
 
 -------------------------------------------------------------------------------
 -- Command to change instrument passcode
--- @param pc = 'full','safe','oper'
--- @param oldCode passcode to unlock, nil to prompt user
--- @param newCode passcode to set, nil to prompt user
--- @return true if successful
--- @return new pass code if successful, nil otherwise
+-- @string pc Options are 'full','safe','oper'
+-- @string[opt] oldCode Passcode to unlock, nil to prompt user
+-- @string[opt] newCode Passcode to set, nil to prompt user
+-- @treturn bool True if successful
+-- @treturn string New pass code if successful, nil otherwise
 -- @usage
 -- local pc = device.selectOption('ENTER PASSCODE', {'full', 'safe', 'oper'}, 'full', true)
 -- if pc then
