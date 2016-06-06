@@ -7,6 +7,9 @@
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
 local math = math
+local ipairs = ipairs
+local tonumber = tonumber
+
 local bit32 = require "bit"
 local timers = require 'rinSystem.rinTimers'
 local dbg = require "rinLibrary.rinDebug"
@@ -193,7 +196,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output on.
--- @param ... list of IO to turn on 1..32
+-- @int ... List of IO to turn on 1..32
 -- @see enableOutput
 -- @usage
 -- -- set IOs 3 and 4 on
@@ -211,7 +214,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output off.
--- @param ... list of IO to turn off 1..32
+-- @int ... List of IO to turn off 1..32
 -- @see enableOutput
 -- @usage
 -- -- set IOs 3 and 4 off
@@ -229,8 +232,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Turns IO Output on for a period of time.
--- @param IO is output 1..32
--- @param t is time in seconds
+-- @int IO Output 1..32
+-- @int t Time in seconds
 -- @see enableOutput
 -- @usage
 -- -- turn IO 1 on for 5 seconds
@@ -253,7 +256,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets IO Output under LUA control.
--- @param ... list of IO to enable (input 1..32)
+-- @int ... List of IO to enable (input 1..32)
 -- @see releaseOutput
 -- @usage
 -- device.enableOutput(1,2,3,4)
@@ -276,7 +279,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Sets IO Output under instrument control.
--- @param ... list of IO to release to the instrument(input 1..32)
+-- @int ... List of IO to release to the instrument (input 1..32)
 -- @see enableOutput
 -- @usage
 -- device.enableOutput(1, 2, 3, 4)
@@ -298,10 +301,10 @@ end
 
 --------------------------------------------------------------------------------
 -- Returns actual register address for a particular setpoint parameter.
--- @param setp is setpoint 1 .. setPointCount()
--- @param register is REG_SETP_*
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam register register device.REG_SETP_*
 -- @see setPointCount
--- @return address of this register for setpoint setp
+-- @treturn int Address of this register for setpoint setp
 -- @usage
 -- -- edit the target for setpoint 3
 -- device.editReg(device.setpRegAddress(3, device.REG_SETP_TARGET))
@@ -320,9 +323,9 @@ end
 
 --------------------------------------------------------------------------------
 -- Write to a set point register.
--- @param setp Setpoint 1 .. setPointCount()
--- @param reg Register (REG_SETP_*)
--- @param v Value to write
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam register reg device.REG_SETP_*
+-- @int v Value to write
 -- @see setPointCount
 -- @local
 local function setpParam(setp, reg, v)
@@ -333,7 +336,7 @@ end
 -------------------------------------------------------------------------------
 -- Set the number of enabled Setpoints.
 -- this disables all setpoints above the set number
--- @param n is the number of setpoints 1 .. setPointCount()
+-- @int n Setpoint 1 .. setPointCount()
 -- @see setPointCount
 -- @usage
 -- -- reduce the number of active setpoints to setpoints 1 to 4 temporarily
@@ -351,8 +354,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set Target for setpoint.
--- @param setp Setpoint 1 .. setPointCount()
--- @param target Target value
+-- @int setp Setpoint 1 .. setPointCount()
+-- @int target Target value
 -- @see setPointCount
 -- @usage
 -- -- set the target for setpoint 5 to 150
@@ -363,8 +366,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set which Output the setpoint controls.
--- @param setp is setpoint 1 .. setPointCount()
--- @param IO is output 1..32, 0 for none
+-- @int setp Setpoint 1 .. setPointCount()
+-- @int IO Output 1..32, 0 for none
 -- @see setPointCount
 -- @usage
 -- -- make setpoint 12 use IO 3
@@ -375,8 +378,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the TYPE of the setpoint controls.
--- @param setp is setpoint 1 .. setPointCount()
--- @param sType is setpoint type
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam Types sType is setpoint type
 -- @see setPointCount
 -- @usage
 -- -- set setpoint 10 to over
@@ -390,8 +393,8 @@ end
 -- Set the Logic for the setpoint controls.
 -- High means the output will be on when the setpoint is active and
 -- low means the output will be on when the setpoint is inactive.
--- @param setp is setpount 1 .. setPointCount()
--- @param lType is setpoint logic type "high" or "low"
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam Logic lType Setpoint logic type "high" or "low"
 -- @see setPointCount
 -- @usage
 -- -- make setpoint 4 active high
@@ -405,8 +408,8 @@ end
 -- Set the Alarm for the setpoint.
 -- The alarm can beep once a second, twice a second or flash the display when
 -- the setpoint is active
--- @param setp is setpoint 1 .. setPointCount()
--- @param aType is alarm type
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam Alarms aType is alarm type
 -- @see setPointCount
 -- @usage
 -- -- disable the alarm on setpoint 11
@@ -420,8 +423,8 @@ end
 -- Set the Name of the setpoint.
 -- This name will be displayed when editing targets via the keys.
 -- @function setpName
--- @param setp is setpoint 1 .. setPointCount()
--- @param v is setpoint name (8 character string)
+-- @int setp Setpoint 1 .. setPointCount()
+-- @string v Setpoint name (8 character string)
 -- @see setPointCount
 -- @usage
 -- -- name setpoint 6 fred
@@ -439,9 +442,9 @@ end)
 
 -------------------------------------------------------------------------------
 -- Set the data source of the setpoint controls.
--- @param setp is setpoint 1 .. setPointCount()
--- @param sType is setpoint source type (string)
--- @param reg is register address for setpoints using source register type source data.
+-- @int setp Setpoint 1 .. setPointCount()
+-- @tparam Source sType Setpoint source type
+-- @tparam register reg Register address for setpoints using source register type source data.
 -- For other setpoint source types parameter reg is not required.
 -- @see setPointCount
 -- @usage
@@ -461,8 +464,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the Hysteresis for of the setpoint controls.
--- @param setp is setpoint 1 .. setPointCount()
--- @param v is setpoint hysteresis
+-- @int setp Setpoint 1 .. setPointCount()
+-- @int v Setpoint hysteresis
 -- @see setPointCount
 -- @usage
 -- -- set setpoint 1 target to 1200 and hysteresis to 10
@@ -474,7 +477,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Query the number of set points that are available.
--- @return The number of set points
+-- @treturn int The number of set points
 -- @usage
 -- local n = device.setPointCount()
 function _M.setPointCount()
