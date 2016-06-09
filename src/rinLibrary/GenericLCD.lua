@@ -60,7 +60,7 @@ local function nameArg(s) return Pi(s) / s end
 local writeArgPat = P{
             spc^0 * Ct((V'opt' * ((spc + P',')^1 * V'opt')^0)^-1) * spc^0 * P(-1),
     opt =   V'time' + boolArg'clear' + boolArg'wait' + boolArg'once' +
-                boolArg'sync' + boolArg'restore' + V'align',
+                boolArg'sync' + boolArg'restore' + V'align' + boolArg'marquee',
     time =  (Pi'time' * equals)^-1 * Cg(lpeg.float / tonumber, 'time'),
     align = Pi'align' * equals * Cg(nameArg'left' + nameArg'right', 'align')
 }
@@ -388,6 +388,8 @@ end
 -- @field wait Wait is a boolean for causes the display call to not return until after
 -- the message has been fully displayed (default: don't wait).  The wait implies the once option.
 -- The wait option and linked displays do not work well together.
+-- @field marquee The marquee parameter will cause the text to scroll across the screen, rather than 
+-- showing a word at a time.
 
 --- LCD Control Modes.
 --@table lcdControlModes
@@ -509,6 +511,7 @@ function private.write(f, s, params)
             local once = t.once or wait or t.clear or t.restore or t.finish
             local time = math.max(t.time or 0.8, 0.2)
             local sync = t.sync
+            local marquee = t.marquee
 
             if not t.finish then
                 if t.restore then
@@ -528,30 +531,64 @@ function private.write(f, s, params)
             if private.writeAuto then
               private.writeAuto(f, 0)
             end
-            f.params, f.current = t, tostring(s)
-            local slidePos, slideWords = 1, splitWords(f, f.current, t.align)
-
+            
             local function writeToDisplay(s)
                 if f.currentReg ~= s then
                     f.currentReg = s
                     f.write(s, sync)
                 end
             end
-            writeToDisplay(slideWords[1])
-
-            f.slideTimer = timers.addTimer(time, time, function()
-                slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
-                if slidePos == 1 and once then
-                    private.removeSlideTimer(f)
-                    wait = false
-                    utils.call(t.finish)
-                elseif #slideWords == 1 then
-                    private.removeSlideTimer(f)
-                else
-                    writeToDisplay(slideWords[slidePos])
-                end
-            end)
+            
+            if not marquee then
+              f.params, f.current = t, tostring(s)
+              local slidePos, slideWords = 1, splitWords(f, f.current, t.align)
+ 
+              writeToDisplay(slideWords[1])
+  
+              f.slideTimer = timers.addTimer(time, time, function()
+                  slidePos = private.addModBase1(slidePos, 1, #slideWords, true)
+                  if slidePos == 1 and once then
+                      private.removeSlideTimer(f)
+                      wait = false
+                      utils.call(t.finish)
+                  elseif #slideWords == 1 then
+                      private.removeSlideTimer(f)
+                  else
+                      writeToDisplay(slideWords[slidePos])
+                  end
+              end)
+            else
+              f.params, f.current = t, string.rep(" ", f.length) ..  s
+              f.slideTimer = timers.addTimer(time, time, function()
+                  -- Check if message is finished
+                  if f.current == false then
+                      return
+                  end
+              
+                  -- If there's nothing left to move, clear the screen
+                  if f.current == '' then
+                      writeToDisplay('')  
+                      if once then
+                        private.removeSlideTimer(f)
+                        wait = false
+                        utils.call(t.finish)
+                      else
+                        f.current = string.rep(" ", f.length) ..  s
+                      end
+              
+                  -- If there's something left to write, write a substring of 
+                  -- characters to the device and remove a character from the 
+                  -- message
+                  else
+                      local spec = string.format("%%-%ds", f.length)
+                      local sStr = string.sub(f.current,1,f.length)
+                      writeToDisplay(string.format(spec,string.upper(sStr)))
+                      f.current = string.sub(f.current, 2)
+                  end
+              end)
+            end
             _M.app.delayUntil(function() return not wait end)
+            
         elseif (f.auto == nil or f.auto == 0) and private.writeAuto then
             private.writeAuto(f, f.saveAuto)
         end
