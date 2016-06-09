@@ -249,8 +249,25 @@ end
 -- @string s String to format or table of strings
 -- @treturn string Formatted string(s).
 -- @usage
--- local params = { gross = 1.234 }
--- print(device.formatPrintString(params, 'Gross is {gross}'))
+--local tokens = {
+--   id1 = true,
+--   id2 = "13434",
+--   id3 = 132413,
+--   id4 = "boot",
+--   id5 = {t1 = 1, t2 = 3},
+--   id6 = "test this now"
+--}
+--
+--local testStr = [[
+--id1 = {id1}
+--id2 = {id2}
+--id3 = {id3}
+--id4 = {id4}
+--id5 = {id5.t1} {id5.t2}
+--id6 = {id6}
+--]]
+--
+--print(device.formatPrintString(tokens, testStr))
 function _M.formatPrintString(subs, s)
     formatSubstitutions = {}
     for k, v in pairs(subs) do
