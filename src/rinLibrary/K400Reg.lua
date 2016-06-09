@@ -106,6 +106,7 @@ private.registerDeviceInitialiser(function()
 -- @field product_total_alt_weight ?
 -- @field product_total_count ?
 -- @field product_total_number ?
+-- @field docket_total ?
         active_product_no       = 0xB000,
         active_product_name     = 0xB006,
         clr_all_totals          = 0xB002,
@@ -118,7 +119,9 @@ private.registerDeviceInitialiser(function()
         product_total_weight    = 0xB102,
         product_total_alt_weight= 0xB103,
         product_total_count     = 0xB104,
-        product_total_number    = 0xB105
+        product_total_number    = 0xB105,
+
+        docket_total            = 0xB180,
     }
 end)
 
