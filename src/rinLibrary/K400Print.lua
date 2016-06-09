@@ -202,6 +202,31 @@ return function (_M, private, deprecated)
 local curPrintPort = nil
 
 -------------------------------------------------------------------------------
+-- @string str String to split
+-- @int len Length to split string into
+-- @func f Function to call with split string
+-- @local
+local function splitStringWithTokens(str,len, f)
+    local i = 1
+    local sendStr
+    -- Break up the string as we send it, preventing tokens from being split
+    while i < #str do
+      if string.sub(str, i+len-2, i+len-2) == '\\' then
+        sendStr = string.sub(str, i, i+len)
+        i = i + len + 1
+      elseif string.sub(str, i+len-1, i+len-1) == '\\' then
+        sendStr = string.sub(str, i, i+len+1)
+        i = i + len + 2
+      else
+        sendStr = string.sub(str, i, i+len-1)
+        i = i + len
+      end
+      
+      f(sendStr)
+    end
+end
+
+-------------------------------------------------------------------------------
 -- Send custom print token string to instrument comms port
 -- If the port is unspecified, the previous port will be used or 'ser1a' if
 -- no previous port has been used.
@@ -218,13 +243,16 @@ local curPrintPort = nil
 -- device.printCustomTransmit([[<<Copy>>\C1]], 'ser1a')
 function _M.printCustomTransmit(tokenStr, comPortName)
     local comPort = naming.convertNameToValue(comPortName, portMap, curPrintPort or PRINT_SER1A)
-
-    if comPort ~= curPrintPort  then
-        curPrintPort = comPort
-        private.writeRegHex(REG_PRINTPORT, comPort)
-    end
     tokenStr = expandCustomTransmit(tokenStr)
-    private.writeRegHex(REG_PRINTTOKENSTR, tokenStr)
+    
+    -- Write the output string in chunks
+    splitStringWithTokens(tokenStr, 100, function (s) 
+        if comPort ~= curPrintPort  then
+            curPrintPort = comPort
+            private.writeRegHex(REG_PRINTPORT, comPort)
+        end
+        private.writeRegHex(REG_PRINTTOKENSTR, s)
+    end)
 end
 
 -------------------------------------------------------------------------------
@@ -237,7 +265,14 @@ end
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
 function _M.reqCustomTransmit(tokenStr)
-    return private.writeRegHex(REG_REPLYLUATOKEN, tokenStr, 1)
+    local result = ""
+    
+    -- Send in chunks and return concatenated result
+    splitStringWithTokens(tokenStr, 100, function (s) 
+        result = result .. private.writeRegHex(REG_REPLYLUATOKEN, s, 1)
+    end)
+    
+    return result
 end
 
 -------------------------------------------------------------------------------
