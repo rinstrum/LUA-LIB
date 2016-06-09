@@ -98,6 +98,11 @@ local initialisation_options = {
 -- device.connect(sA, sB, me)
 -- @local
 function _M.connect(sockA, sockB, app)
+    if sockA == nil or sockB == nil then
+      dbg.fatal('Unable to connect to device')
+      os.exit()
+    end
+  
     _M.socketA = sockA
     _M.socketB = sockB
     _M.app = app

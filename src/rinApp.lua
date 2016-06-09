@@ -14,6 +14,10 @@ local require = require
 local dofile = dofile
 local bit32 = require "bit"
 local io = io
+local table = table
+local os = os
+local ipairs = ipairs
+local unpack = unpack
 
 local lpeg = require "rinLibrary.lpeg"
 local P, Pi, V = lpeg.P, lpeg.Pi, lpeg.V
