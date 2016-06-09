@@ -147,6 +147,7 @@ end
 -- @treturn Traceable Traceable weight table
 -- @treturn string Error string if any error received, nil otherwise
 -- @see checkTraceable
+-- @see getNewTraceable
 -- @usage
 -- local traceable = device.getTraceable()
 function _M.getTraceable()
@@ -171,6 +172,52 @@ function _M.getTraceable()
     tab.crc = calcTableChecksum(tab, traceableRegisters)
   
     return  tab, err
+end
+
+-------------------------------------------------------------------------------
+-- Get a new traceable weight. This works by grabbing the current traceable 
+-- weight, and then requesting a new one be obtained until the traceable id
+-- changes.
+-- @tparam rinLibrary.Device.Keys.keys key Key to send to trigger print
+-- @tparam rinLibrary.Device.Keys.keyEvents length 'long' or 'short' key press to send
+-- @int[opt] tries Number of times to attempt getting a new traceable (default 5)
+-- @treturn Traceable Traceable weight table
+-- @treturn string Error string if any error received, nil otherwise
+-- @see checkTraceable
+-- @usage
+-- local traceable, err = device.getNewTraceable('f2', 'short')
+function _M.getNewTraceable(key, length, tries)
+  tries = tries or 5
+
+  -- Get the current traceable
+  local oldTraceable, err = _M.getTraceable()
+  
+  -- If there is an error getting the traceable weight
+  if (err ~= nil) then
+    return "Failed to capture original traceable weight"
+  end
+  
+  -- Try 5 times to get the new traceable weight. If we don't get, error
+  local i = 0
+  while true do
+    -- Send the keypress to generate a new traceable weight.
+    _M.sendKey(key, length)
+    
+    _M.app.delay(0.1)
+    
+    -- Get the new traceable
+    local newTraceable, err = _M.getTraceable()
+    
+    -- If there is an error getting the traceable weight
+    if (err ~= nil or i > tries) then
+      return nil, "Failed to capture new traceable weight"
+    -- If there was no error, and the traceid increased, return newtraceable
+    elseif newTraceable.id > oldTraceable.id then
+      return newTraceable
+    end
+    
+    i = i + 1
+  end
 end
 
 -------------------------------------------------------------------------------
