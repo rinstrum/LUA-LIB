@@ -179,7 +179,7 @@ end
 -- weight, and then requesting a new one be obtained until the traceable id
 -- changes.
 -- @tparam rinLibrary.Device.Keys.keys key Key to send to trigger print
--- @tparam rinLibrary.Device.Keys.keyEvents length 'long' or 'short' key press to send
+-- @string length 'long' or 'short' key press to send
 -- @int[opt] tries Number of times to attempt getting a new traceable (default 5)
 -- @treturn Traceable Traceable weight table
 -- @treturn string Error string if any error received, nil otherwise
