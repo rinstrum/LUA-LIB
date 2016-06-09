@@ -155,7 +155,7 @@ function _M.getTraceable()
     
     -- Read each register
     for k, register in pairs(traceableRegisters) do
-      tab[register], err = private.readReg(register)
+      tab[register], err = private.readReg("trace" .. register)
       
       -- Add the failed register to the error message if it exists
       if (err ~= nil) then
