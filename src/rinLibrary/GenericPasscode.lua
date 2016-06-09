@@ -58,7 +58,7 @@ function _M.checkPasscode(pc, code, tries)
                 return false
             end
             if count > 1 and err then
-                _M.write('bottomLeft', string.upper(err),1.0)
+                _M.write('defaultWriter', string.upper(err),1.0)
                 _M.buzz(1,_M.BUZZ_LONG)
                 _M.app.delay(2.0)
             end
@@ -89,6 +89,7 @@ end
 -- Command to lock instrument
 -- @string pc Options are 'full','safe','oper'
 -- Set a timeout of thirty seconds before full access is lost
+-- @usage
 -- timers = require 'rinSystem.rinTimers'
 -- timers.addTimer(0, 30, function() device.lockPasscode('full') end)
 function _M.lockPasscode(pc)
@@ -117,6 +118,8 @@ end
 -- if pc then
 --     device.changePasscode(pc)
 -- end
+-- -- Save settings to set the passcode
+-- device.saveSettings()
 function _M.changePasscode(pc, oldCode, newCode)
    local pc = pc or 'full'
    local pcodeData = passcodes[pc].pcodeData

@@ -24,6 +24,7 @@ local modules = {
     "C500Dialog", 
     "GenericFSM",
     "GenericCommand",
+    "GenericPasscode",
     "GenericWeights",
     
     -- Not done on C500
@@ -35,7 +36,6 @@ local modules = {
 
     -- "K400Print", (doing this totally different, wait for hw support)
     -- "K400Setpoint", (leave for now)
-    -- "K400Passcode", (wait for Sean to do registers)
     -- "K400USB", (wait for USB hw supprt)
     -- "K400Menu", (too complicated for now, and not widely used)
 }

@@ -352,6 +352,8 @@ function _M.add(private, displayTable, prefix)
       clearAnnun = function (...) return clearAnnunLocal(private, ...) end,
       rotWait = function (...) return rotWaitLocal(private, ...) end,
   }
+  
+  displayTable[prefix .. "defaultwriter"] = displayTable[prefix .. "bottomleft"] 
 
   return displayTable
 

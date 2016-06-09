@@ -30,7 +30,7 @@ local modules = {
     "K400Print",
     "GenericCommand",
     "K400Users",
-    "K400Passcode",
+    "GenericPasscode",
     "K400USB",
     "GenericWeights"
 }

@@ -236,7 +236,7 @@ function private.readRegHex(reg, timeout)
 
     data, err = sendRegWait('rdfinalhex', reg, nil, timeout)
     if err then
-        dbg.debug('Read Hex Error', err)
+        dbg.debug('Read Hex Error', string.format("%04X", reg), err)
     end
     return data, err
 end

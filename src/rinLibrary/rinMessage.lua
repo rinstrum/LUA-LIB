@@ -153,7 +153,7 @@ function _M.processMsg(msg, err)
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
     elseif bit32.band(addr, ADDR_ERR) == ADDR_ERR then
-        return addr % 32, cmd, reg, data, errStrings[tonumber(data, 16)], excess
+        return addr % 32, cmd, reg, data, errStrings[tonumber(data, 16)] or data, excess
     end
     return addr % 32, cmd, reg, data, nil, excess
 end

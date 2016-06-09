@@ -552,7 +552,7 @@ function private.write(f, s, params)
                 end
             end)
             _M.app.delayUntil(function() return not wait end)
-        elseif f.auto == nil or f.auto == 0 and private.writeAuto then
+        elseif (f.auto == nil or f.auto == 0) and private.writeAuto then
             private.writeAuto(f, f.saveAuto)
         end
 

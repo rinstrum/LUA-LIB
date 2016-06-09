@@ -23,6 +23,7 @@ file={
     'rinLibrary/GenericCommand.lua',
     'rinLibrary/GenericFSM.lua',
     'rinLibrary/GenericKeys.lua',
+    'rinLibrary/GenericPasscode.lua',
     'rinLibrary/GenericReg.lua',
     'rinLibrary/GenericRTC.lua',
     'rinLibrary/GenericStatus.lua',
