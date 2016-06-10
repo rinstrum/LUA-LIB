@@ -13,15 +13,18 @@ local tonumber = tonumber
 local type = type
 local tostring = tostring
 local table = table
+local loadstring = loadstring
 
 local bit32 = require "bit"
 local dbg = require "rinLibrary.rinDebug"
 local naming = require 'rinLibrary.namings'
 local can = naming.canonicalisation
+local utils = require 'rinSystem.utilities'
 
 local lpeg = require 'rinLibrary.lpeg'
 local C, Cg, Cs, Ct = lpeg.C, lpeg.Cg, lpeg.Cs, lpeg.Ct
 local P, Pi, V, S, spc = lpeg.P, lpeg.Pi, lpeg.V, lpeg.S, lpeg.space
+local R = lpeg.R
 
 local REG_PRINTPORT         = 0xA317
 local REG_REPLYLUATOKEN     = 0x004B
@@ -273,6 +276,135 @@ function _M.reqCustomTransmit(tokenStr)
     end)
     
     return result
+end
+
+local defaultHeadings = {
+  "serial port",
+  "instructions",
+  "baud",
+  "new line",
+  "tokens",
+  "print"
+}
+
+local function unescape(input)
+  return loadstring("return \"" .. input .. "\"")() 
+end
+
+local headingPat = Ct{
+  P"===" * V'heading' * (P"=")^1 * P(-1),
+  heading = Cg((R"AZ"+R"az"+R"09"+P" ")^1 / string.lower, 'heading'),
+}
+
+-------------------------------------------------------------------------------
+-- Print format file parser
+-- Default headings are "serial port", "instructions", "baud", "new line",
+-- "tokens", "print", will automatically be returned. Other headings can be
+-- added by the user. Tokens can then be passed by formatPrintString
+-- @string fileName File to load strings from
+-- @tparam[opt] {string,...} headings Table of strings to load. This will be merged with defaults.
+-- @treturn {heading=string,...} Return a table where headings are matched to
+-- their strings loaded from the file. Nil on error.
+-- @treturn string nil if no error, error string otherwise.
+-- @see formatPrintString
+-- @usage
+-- --Printer.txt should look like this 
+----[[
+--===INSTRUCTIONS========
+--Fill out SERIAL PORT with a K400 serial port (e.g. ser1a, ser1b, etc.) or 'usb'.
+--Build up your print message under the PRINT heading using the tokens defined in
+--TOKENS. If usb is used, BAUD can be set to attempt to use that baud rate for USB.
+--
+--NEW LINE should contain the escaped new line character. For the K400 serial this
+--is \\C1, \n for usb (or whatever the printer expects as newline).
+--===SERIAL PORT=========
+--usb
+--===BAUD================
+--9600
+--===NEW LINE============
+--\r\n
+--===TOKENS==============
+--
+--{plu}                   PLU selected for this item
+--{description1}          Description from PLU Table (1st line)
+--{description2}          Description from PLU Table (2nd line)
+--{useby}                 Product lifespan (e.g. 9) from PLU Table.
+--{tare_weight}           Tare weight from PLU Table.
+--{address1}              Address from PLU Table (1st line)
+--{address2}              Address from PLU Table (2nd line)
+--
+--{package_date}          Date receipt printed. Uses instrument format.
+--{useby_date}            PACKAGE_DATE+USEBY
+--
+--{weight}                GROSS_WEIGHT-TARE_WEIGHT
+--{units}                 Units of gross weight.
+--
+--===PRINT===============
+--Scale
+--
+--{plu}
+--{description1}
+--{description2}
+--{address1}
+--===PRINT2==============
+--{useby}
+--{package_date}
+--{useby_date}
+--
+--{weight}{units}
+-- --]]
+--local strs, err = device.loadPrintStrings("printer.txt", {"PRINT2"})
+--
+--if err then
+--  print(strs, err)
+--end
+--
+--for k,v in pairs(strs) do
+--  print(k)
+--  print("=============")
+--  print(v)
+--  print("-------------")
+--end
+function _M.loadPrintStrings(fileName, headings)
+  local modes = {}
+  local mode = nil
+  headings = headings or {}
+  
+  -- Add the defaultHeadings to the headings table
+  for k, heading in pairs(defaultHeadings) do
+    table.insert(headings, heading)
+  end
+  
+  -- Populate the modes table using the headings and empty strings
+  for k, heading in pairs(headings) do
+    modes[string.lower(heading)] = ""
+  end
+  
+  -- Load the file
+  local lines, err = utils.loadFileByLines(fileName)
+  if err then
+    return nil, err 
+  end  
+  
+  -- Iterate over each line
+  for k,line in pairs(lines) do
+  
+    -- Remove \r if it exists
+    if (string.sub(line, -1) == '\r') then
+      line = string.sub(line, 1, -2)
+    end
+    
+    -- Check if this is a control line
+    local m = headingPat:match(line)
+    if m ~= nil then
+      mode = m.heading
+    -- Append line to the current mode if it's not a control line
+    elseif mode ~= nil then
+      modes[mode] = modes[mode] .. line .. unescape(modes['new line'] or "")
+    end
+  end
+  
+  return modes
 end
 
 -------------------------------------------------------------------------------
