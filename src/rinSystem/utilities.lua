@@ -227,7 +227,7 @@ end
 --
 -- local lines, err = utils.loadFileByLines('myfile.txt')
 function _M.loadFileByLines(filename)
-    local lines, f, err = {}, io.open('ticket.txt', 'r')
+    local lines, f, err = {}, io.open(filename, 'r')
     if f then
         for l in f:lines() do
             table.insert(lines, l)
