@@ -577,7 +577,8 @@ end
 --
 -- This allows this function to be called liberally without incurring undue
 -- overhead.
--- device.commitFileChanges()
+-- @usage
+-- usb.commitFileChanges()
 function _M.commitFileChanges()
     if storageEvent == nil then
         storageEvent = timers.addEvent(function()
@@ -614,7 +615,7 @@ end
 -- @string path Path to the directory
 -- @treturn int Result code, 0 being no error
 -- @usage
--- device.makeDirectory(usbMountPoint .. '/logFile/myLogs')
+-- usb.makeDirectory(usbMountPoint .. '/logFile/myLogs')
 function _M.makeDirectory(path)
     _M.commitFileChanges()
     return os.execute('mkdir -p "'..path..'"')
@@ -626,7 +627,7 @@ end
 -- @string dest Destination directory or mount point
 -- @treturn int Result code, 0 being no error
 -- @usage
--- device.copyDirectory(dataPath, usbPath)
+-- usb.copyDirectory(dataPath, usbPath)
 function _M.copyDirectory(src, dest)
     _M.makeDirectory(dest)
     return os.execute('cp -a "'..src..'"/* "'..dest..'"/')
@@ -638,7 +639,7 @@ end
 -- @string dest Destination file
 -- @treturn int Result code, 0 being no error
 -- @usage
--- device.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
+-- usb.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
 function _M.copyFile(src, dest)
     _M.commitFileChanges()
     return os.execute('cp -dp "'..src..'" "'..dest..'"')
@@ -651,7 +652,7 @@ end
 -- @string name Fragment in file name to check for
 -- @treturn int Result code, 0 being no error
 -- @usage
--- device.copyFiles(localPath, usbPath, '.txt')
+-- usb.copyFiles(localPath, usbPath, '.txt')
 function _M.copyFiles(src, dest, name)
     if name == nil then
         return _M.copyDirectory(src, dest)
@@ -666,7 +667,7 @@ end
 -- You will have to restart the module before changes take effect.
 -- @string pkg Package file path
 -- @usage
--- device.installPackages(usbPath .. '/L000-517-1.1.1-M02.rpk')
+-- usb.installPackages(usbPath .. '/L000-517-1.1.1-M02.rpk')
 function _M.installPackage(pkg)
     _M.commitFileChanges()
     return os.execute('/usr/local/bin/rinfwupgrade ' .. pkg)
@@ -678,7 +679,7 @@ end
 -- You will have to restart the module before changes take effect.
 -- @string dir Directory containing packages
 -- @usage
--- device.installPackages(usbPath .. '/packages')
+-- usb.installPackages(usbPath .. '/packages')
 function _M.installPackages(dir)
     local packages = posix.glob(dir .. '/*.[oOrR][Pp][kK]')
     if packages ~= nil then
@@ -693,7 +694,7 @@ end
 -- @string path Location of mounted partition
 -- @treturn int Result code, 0 being no error
 -- @usage
--- device.unmount(usbPath)
+-- usb.unmount(usbPath)
 function _M.unmount(path)
     _M.commitFileChanges()
     return partition and partition.umount(path)
