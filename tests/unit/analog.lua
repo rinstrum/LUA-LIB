@@ -15,7 +15,7 @@ describe("analog #analog", function ()
     local function makeModule(device)
         local m, p, d = {}, {}, {}
         require("rinLibrary.utilities")(m, p, d)
-        require("rinLibrary.K400Analog")(m, p, d)
+        require("rinLibrary.GenericAnalog")(m, p, d)
         p.deviceType = device or 'a418'
         p.processDeviceInitialisers()
         numAnalog = m.getAnalogModuleMaximum()
