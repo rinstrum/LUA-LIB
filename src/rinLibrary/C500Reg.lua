@@ -63,8 +63,8 @@ private.registerDeviceInitialiser(function()
 -- @field tracesecond Date and time that the traceable weight was acquired
 -- @field piececount Number of pieces corresponding to the current weight
         adcsample               = 0x0020,
---        sysstatus               = 0x0021,
---        syserr                  = 0x0022,
+        sysstatus               = 0x0021,
+        syserr                  = 0x0022,
         absmvv                  = 0x0023, 
         grossnet                = 0x0025,
         gross                   = 0x0026,
