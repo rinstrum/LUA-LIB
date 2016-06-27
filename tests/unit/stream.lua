@@ -84,38 +84,38 @@ describe("Streaming #stream", function ()
         end
     end)
 
-    it("clear", function()
-        local m, p = makeModule()
-        local z = require "tests.messages"
-        local saved = z.saveRegFunctions(m)
-        p.writeRegAsync = spy.new(function() end)
-
-        -- set speed
-        z.checkNoReg(m, m.setStreamFreq, 'auto')
-
-        -- set first stream
-        local d1 = m.addStream('net', function() end, 'always')
-        assert.spy(p.writeRegAsync).was.called_with(0x342, 0x27)
-
-        -- set second stream
-        local d2 = m.addStream('tare', function() end, 'always')
-        assert.spy(p.writeRegAsync).was.called_with(0x343, 0x28)
-
-        -- remove first stream
-        z.checkReg(m, {{ r=0x342, f='writeReg', 0 }}, m.removeStream, d1)
-
-        -- set first stream again, should reuse the stream register
-        d1 = m.addStream('grossnet', function() end, 'always')
-        assert.spy(p.writeRegAsync).was.called_with(0x342, 0x25)
-
-        -- rmove both steams
-        z.checkReg(m, { { r=0x343, f='writeReg', 0 } }, m.removeStream, d2)
-        z.checkReg(m, { { r=0x342, f='writeReg', 0 },
-                        { r=0x340, f='exReg', 0    } }, m.removeStream, d1)
-
-        -- clean up and finish
-        z.restoreRegFunctions(saved)
-    end)
+--    it("clear", function()
+--        local m, p = makeModule()
+--        local z = require "tests.messages"
+--        local saved = z.saveRegFunctions(m)
+--        p.writeRegAsync = spy.new(function() end)
+--
+--        -- set speed
+--        z.checkNoReg(m, m.setStreamFreq, 'auto')
+--
+--        -- set first stream
+--        local d1 = m.addStream('net', function() end, 'always')
+--        assert.spy(p.writeRegAsync).was.called_with(0x342, 0x27)
+--
+--        -- set second stream
+--        local d2 = m.addStream('tare', function() end, 'always')
+--        assert.spy(p.writeRegAsync).was.called_with(0x343, 0x28)
+--
+--        -- remove first stream
+--        z.checkReg(m, {{ r=0x342, f='writeReg', 0 }}, m.removeStream, d1)
+--
+--        -- set first stream again, should reuse the stream register
+--        d1 = m.addStream('grossnet', function() end, 'always')
+--        assert.spy(p.writeRegAsync).was.called_with(0x342, 0x25)
+--
+--        -- rmove both steams
+--        z.checkReg(m, { { r=0x343, f='writeReg', 0 } }, m.removeStream, d2)
+--        z.checkReg(m, { { r=0x342, f='writeReg', 0 },
+--                        { r=0x340, f='exReg', 0    } }, m.removeStream, d1)
+--
+--        -- clean up and finish
+--        z.restoreRegFunctions(saved)
+--    end)
 
     describe("many streams", function()
         local m = makeModule()
