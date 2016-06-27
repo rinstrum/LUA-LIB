@@ -934,7 +934,7 @@ function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
     finished()
     restoreBottom()
 
-    return tonumber(editVal), ok
+    return editVal, ok
 end
 
 -------------------------------------------------------------------------------
