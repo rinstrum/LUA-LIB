@@ -51,7 +51,7 @@ _M.config = {
 }
 
 -- Create the rinApp resources
-_M.userio = require "IOSocket.Pack"
+_M.userio = require "rinSystem.IOSockets"
 
 _M.devices = {}
 _M.config = ini.loadINI('rinApp.ini',_M.config)
