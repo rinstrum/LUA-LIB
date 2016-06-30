@@ -674,8 +674,8 @@ end
 --
 -- -- Search for the value 3.14159 in the third column
 -- local row, data = csv.getLineCSV(csvfile, 3.14159, 3)
--- print('3.14159 is in the third column in row '..row)
--- print('That row is: ' .. csv.tostringLine(data))
+-- print('3.14159 is in the third column in row ', row)
+-- print('That row is: ', csv.tostringLine(data))
 function _M.getLineCSV(t, val, col)
     if hasData(t) then
         col = lookupColumn(t, col)
@@ -737,7 +737,7 @@ end
 -- Set a specified row in a CSV file to match the passed record
 -- @tparam CSV t CSV Table
 -- @string val Value of the cell to find
--- @string[opt] col Column of data to match (string or int). Default is 1.
+-- @string col Column of data to match (string or int).
 -- @tab f Record of new values
 -- @see getRecordCSV
 -- @usage
