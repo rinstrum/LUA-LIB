@@ -839,7 +839,7 @@ end
 -- @tparam[opt] rinLibrary.Device.LCD.Units units Optional units to display
 -- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther Optional other units to display
 -- @bool[opt] clearDefault Clear the default value when a key is pressed
--- @treturn number Value from editor
+-- @treturn string Value from editor
 -- @treturn bool True if ok pressed at end
 -- @see sEdit
 -- @usage

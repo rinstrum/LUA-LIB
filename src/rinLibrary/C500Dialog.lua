@@ -229,7 +229,7 @@ end
 -- @string[opt] typ type of value to enter ('number' (default),'integer','passcode')
 -- @tparam[opt] rinLibrary.Device.LCD.Units units Units to display
 -- @tparam[opt] rinLibrary.Device.LCD.Other unitsOther optional other units to display
--- @treturn number Number input by the user
+-- @treturn string Number input by the user
 -- @treturn bool True if ok pressed at end, false otherwise
 -- @usage
 -- local name = device.edit('Update Num', '0.04', 'number')
@@ -387,7 +387,7 @@ function _M.edit(prompt, def, typ, units, unitsOther)
     
     -- Return the entered value.
     if (ok == true)then
-      return tonumber(table.concat(sEditTab)), true
+      return table.concat(sEditTab), true
     else
       return default, false
     end
