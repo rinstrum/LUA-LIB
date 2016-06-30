@@ -316,9 +316,9 @@ function _M.saveCSV(t)
 end
 
 -------------------------------------------------------------------------------
--- Reads a .CSV file and returns a table with the loaded contents
--- If no CSV file found or contents different then file created with structure in it.
--- If the source table doesn't include the labels, then all fields will be loaded
+-- Reads a .CSV file and returns a table with the loaded contents.
+-- If the CSV file is not found, the file will be created with the defined labels.
+-- If the CSV file doesn't include the labels, then all fields will be loaded
 -- and the labels will be filled in as per the file.
 -- @tparam {CSVFields,...} t Table of CSV fields 
 -- @treturn CSV CSV table
@@ -327,7 +327,9 @@ end
 -- @usage
 -- -- Append a line to the CSV file and write it back to storage
 -- local csv = require('rinLibrary.rinCSV')
--- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file' }
+-- local csvfile = csv.loadCSV { fname = '/tmp/temporary-file',
+--                               labels = {'a', 'b', 'c'},
+--                             }
 --
 -- csv.addLineCSV(csvfile, { 1, 2, 3 })
 -- csv.saveCSV(csvfile)
