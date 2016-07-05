@@ -635,14 +635,23 @@ end
 function private.saver(p)
     local restorations = {}
     private.map(p, function(v)
-            table.insert(restorations, { f=v, c=v.current, p=v.params, u=v.units1, w=v.units2, wu=v.writeUnits })
+            table.insert(restorations, { disp=v, 
+                                         current=v.current, 
+                                         params=v.params, 
+                                         units1=v.units1, 
+                                         uints2=v.units2,
+                                         auto = v.auto or 0,
+                                        })
         end)
 
     return function()
         for _, v in ipairs(restorations) do
-            private.write(v.f, v.c, v.p)
-            if (v.wu) then
-              v.wu(v.u, v.w)
+            private.write(v.disp, v.current, v.params)
+            if (v.disp.writeUnits) then
+              v.disp.writeUnits(v.units1, v.units2)
+            end
+            if (v.disp.regAuto) then
+              private.writeAuto(v.disp, v.auto)
             end
         end
     end
@@ -653,7 +662,7 @@ end
 -- @treturn func Function that restores the display fields to their current values
 -- @usage
 -- local restore = device.saveDisplay()
--- device.write('topLeft', 'fnord')
+-- device.write('topLeft', 'fnord') -- If uses K400, may require device.writeAuto('topLeft', 0)
 -- restore()
 function _M.saveDisplay()
     return private.saver(function(v) return v.localDisplay end)

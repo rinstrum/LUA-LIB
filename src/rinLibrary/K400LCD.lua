@@ -52,7 +52,7 @@ end
 -- @param f Display field
 -- @param register Register name
 -- @local
-local function writeAuto(f, register)
+function private.writeAuto(f, register)
     if f ~= nil and register ~= nil then
         local reg = private.getRegisterNumber(register)
 
@@ -76,7 +76,7 @@ end
 -- @usage
 -- device.writeAuto('topLeft', 'grossnet')
 function _M.writeAuto(where, register)
-    return writeAuto(naming.convertNameToValue(where, private.getDisplay()), register)
+    return private.writeAuto(naming.convertNameToValue(where, private.getDisplay()), register)
 end
 
 -----------------------------------------------------------------------------
@@ -118,7 +118,7 @@ function _M.saveAutoLeft()
         end)
     return function()
         for _, v in ipairs(restorations) do
-            writeAuto(v.f, v.a)
+            private.writeAuto(v.f, v.a)
         end
     end
 end
@@ -146,10 +146,10 @@ end
 -- device.restoreLcd()
 function _M.restoreLcd()
     private.map(function(v) return v.localDisplay end, function(v) private.write(v, '') end)
-    writeAuto(private.getDisplay().topleft, 'grossnet')
-    writeAuto(private.getDisplay().bottomright, 0)
+    private.writeAuto(private.getDisplay().topleft, 'grossnet')
+    private.writeAuto(private.getDisplay().bottomright, 0)
 
-    writeAuto('topLeft', 0)
+    private.writeAuto('topLeft', 0)
     _M.clearAnnunciators('bottomLeft', 'all')
     _M.writeUnits('bottomLeft', 'none')
 end
