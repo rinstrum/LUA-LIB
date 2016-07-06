@@ -3,7 +3,9 @@ myproject/
 
 # Ignore build folder
 M01/
+M02/
 M03/
+M04/
 
 # Ignore gedit backup files
 *~

@@ -7,11 +7,15 @@ LDOC_CONFIG=src/config.ld.k400
 EXAMPLES_DIR=K400Examples
 M01_NAME = M01
 M01_DIR = $(M01_NAME)
+M02_NAME = M02
+M02_DIR = $(M02_NAME)
 else ifeq ($(DEV),C500)
 LDOC_CONFIG=src/config.ld.c500
 EXAMPLES_DIR=C500Examples
 M01_NAME = M03
 M01_DIR = $(M01_NAME)
+M02_NAME = M04
+M02_DIR = $(M02_NAME)
 else
 $(error Undefined or invalid DEV setting)
 endif
@@ -52,6 +56,11 @@ PDF_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-$(M01_NAME).pdf
 CHECKSUM_M01_TARGET := $(M01_DIR)/$(PKGNAMEVERS)-checksum
 LDOCOUT := $(shell mktemp /tmp/$(PKGNAMEVERS)-XXXXXXXXX)
 
+# Signed packing
+L000_503_DIR=$(BASEDIR)/L000-503
+PRIVATE_KEY = $(L000_503_DIR)/M01/L000-503-1.0.0-M01.pem
+RELEASE_M02_TARGET = $(M02_DIR)/$(PKGNAMEVERS)-$(M02_NAME).rpk
+
 LDOC_OPTS=--config config.ld
 
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
@@ -59,7 +68,7 @@ CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
 .PHONY: clean install compile net pdf checksum $(RELEASE_M01_TARGET) version
 
-all: clean $(RELEASE_M01_TARGET)
+all: clean $(RELEASE_M02_TARGET)
 
 clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
@@ -128,7 +137,13 @@ $(RELEASE_M01_TARGET): install checksum pdf
 	$(MKDIR) $(M01_DIR)
 	opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
-	
+
+# Rule to create M02 release target
+$(RELEASE_M02_TARGET): $(RELEASE_M01_TARGET)
+	$(MKDIR) $(M02_DIR)
+	openssl dgst -sha256 -sign $(PRIVATE_KEY) -out temp.sig $<
+	rinappendsig $< temp.sig $@
+	rm -f temp.sig
+
 version: 
 	echo $(PKGVERS) > version.autorelease
-
