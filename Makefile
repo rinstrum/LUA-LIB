@@ -72,7 +72,7 @@ all: clean $(RELEASE_M02_TARGET)
 
 clean:
 	cd $(STAGE_DIR) && rm -rf `ls | grep -v CONTROL`
-	rm -rf $(M01_DIR) $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
+	rm -rf $(M01_DIR) $(M02_DIR) $(CHECKSUM_FILES) $(CHECKSUM_TEMP)
 
 compile: 
 	luac -p $(shell find src -type f -name '*.lua')
