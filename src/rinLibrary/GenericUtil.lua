@@ -119,7 +119,10 @@ end
 -- device.terminate()
 -- @local
 function _M.terminate()
-    _M.restoreLcd()
+    -- Only restore the LCD if the ability to do so exists
+    if _M.restoreLcd ~= nil then
+      _M.restoreLcd()
+    end
     _M.lcdControl('default')
     _M.streamCleanup()
     _M.endKeys()
