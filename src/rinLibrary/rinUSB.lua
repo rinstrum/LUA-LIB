@@ -18,6 +18,8 @@ local deepcopy = utils.deepcopy
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation
 
+local os = os
+
 local usb, ev_lib, decodeKey, usbKeyboardMap, partition
 if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
@@ -666,15 +668,40 @@ end
 -- @param src Source diretory or mount point
 -- @param dest Destination directory or mount point
 -- @param name Fragment in file name to check for
+-- @param timeout Time in seconds to try to copy. Default is 10.
+-- @param delayFunc Function to call to delay. Default is os.sleep, but a better
+-- option would be rinApp.delay
 -- @return Result code, 0 being no error
 -- @usage
 -- device.copyFiles(localPath, usbPath, '.txt')
-function _M.copyFiles(src, dest, name)
+function _M.copyFiles(src, dest, name, timeout, delayFunc)
+    local i
+    timeout = timeout or 10
+    delayFunc = delayFunc or os.sleep
+
     if name == nil then
         return _M.copyDirectory(src, dest)
     end
     _M.makeDirectory(dest)
-    return os.execute('cp -dp "'..src..'"/*"'..name..'"* "'..dest..'"/')
+    local cpid = posix.fork()
+    -- In child, perform the copy and exit
+    if cpid == 0 then
+      os.execute('cp -dp "'..src..'"/*"'..name..'"* "'..dest..'"/')
+      posix._exit(0)
+    -- In the parent, wait until this completes
+    else
+      -- Try for 10 seconds.
+      for i = 0, timeout do
+        -- If we successfully waited, return 0.
+        if posix.wait(cpid, posix.WNOHANG) > 0 then
+          return 0
+        end
+        delayFunc(1)
+      end
+      
+      -- Otherwise return 1.
+      return 1
+    end
 end
 
 -------------------------------------------------------------------------------
