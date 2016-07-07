@@ -38,7 +38,7 @@ LDOCOUT := $(shell mktemp /tmp/$(PKGNAMEVERS)-XXXXXXXXX)
 CHECKSUM_FILES := src/rinLibrary/checksum-file-list.lua
 CHECKSUM_TEMP := $(CHECKSUM_FILES).new
 
-.PHONY: clean install compile net pdf checksum $(RELEASE_M01_TARGET)
+.PHONY: clean install compile net pdf checksum $(RELEASE_M01_TARGET) version
 
 all: $(RELEASE_M01_TARGET)
 
@@ -113,3 +113,5 @@ $(RELEASE_M01_TARGET): install checksum pdf
 	opkg-build -O -o root -g root $(STAGE_DIR)
 	mv $(PKGNAME)_$(PKGVERS)_$(PKGARCH).opk $(RELEASE_M01_TARGET)
 
+version: 
+	echo $(PKGVERS) > version.autorelease
