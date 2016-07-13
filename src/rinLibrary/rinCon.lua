@@ -255,9 +255,9 @@ end
 local function serBProcess(err)
     local msg = table.concat(serBBuffer)
     dbg.debug(_M.socketB:getpeername(), '-->', msg, err)
+    serBBuffer = {}
     utils.call(SerBCallback, msg, err)
     sockets.writeSet("uni", msg)
-    serBBuffer = {}
 end
 
 -------------------------------------------------------------------------------
