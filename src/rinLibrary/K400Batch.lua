@@ -16,6 +16,13 @@ local canonical = naming.canonicalisation
 local deepcopy = utils.deepcopy
 local null, cb = utils.null, utils.cb
 
+local pcall = pcall
+local loadfile = loadfile
+local os = os
+local io = io
+local pairs = pairs
+local type = type
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
