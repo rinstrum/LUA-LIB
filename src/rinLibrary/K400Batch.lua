@@ -228,9 +228,9 @@ end
 -- This is done automatically on start up and you should only need to call this
 -- function when the files have been modified (e.g. via a load from USB).
 -- @function loadBatchingDetails
--- @param recipeFile Recipe file to load data from. This will be updated with 
+-- @string recipeFile Recipe file name to load data from. This will be updated with 
 -- the material data (and cause reordering) if a materialLog is not specified.
--- @param materialLog File to store material data in. This will be re-loaded 
+-- @string[opt] materialLog File name to store material data in. This will be re-loaded 
 -- into the application if specified, but priority will be given to fields in 
 -- the recipeFile.
 -- @usage
