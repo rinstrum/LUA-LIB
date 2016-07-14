@@ -211,36 +211,83 @@ private.registerDeviceInitialiser(function()
         return stage
     end
 
+-- Join table t2 into table t1. Priority will be given to t2.
+local function recursiveTableJoin(t1, t2)
+  for k,v in pairs(t2) do
+    if type(t1[k]) == 'table' and type(v) == 'table' then
+      t1[k] = recursiveTableJoin(t1[k], v)
+    else
+      t1[k] = v
+    end
+  end
+  return t1
+end
 
 -------------------------------------------------------------------------------
 -- Load the material and stage data into memory.
 -- This is done automatically on start up and you should only need to call this
 -- function when the files have been modified (e.g. via a load from USB).
 -- @function loadBatchingDetails
+-- @param recipeFile Recipe file to load data from. This will be updated with 
+-- the material data (and cause reordering) if a materialLog is not specified.
+-- @param materialLog File to store material data in. This will be re-loaded 
+-- into the application if specified, but priority will be given to fields in 
+-- the recipeFile.
 -- @usage
 -- device.loadBatchingDetails()  -- reload the batching databases
-    private.exposeFunction('loadBatchingDetails', batching, function(fname)
-        materials, recipes = {}, {}
+    private.exposeFunction('loadBatchingDetails', batching, function(recipeFile, materialLog)
+      materials, recipes = {}, {}
+      local materialsStatic = {}
+      
+      -- Maintain backwards compatibility by preserving previous operation
+      -- if the materials file isn't specified.
+      if materialLog == nil then
+        -- Load the materials and recipes tables from file
         pcall(function()
-            materials, recipes = loadfile(fname)()
+            materials, recipes = loadfile(recipeFile)()
         end)
-
-        os.execute("cp '" .. fname .. "' '" .. fname .. ".old'")
-
+      
+        os.execute("cp '" .. recipeFile .. "' '" .. recipeFile .. ".old'")
+  
         --dbg.info('recipes', recipes)
         --dbg.info('materials', materials)
         _M.saveBatchingChanges = function()
-            local savname = fname .. '.new'
+            local savname = recipeFile .. '.new'
             local savf, err = io.open(savname, 'w')
             if err == nil then
                 utils.saveTableToFile(savf, materials, recipes)
                 savf:close()
-                os.rename(savname, fname)
+                os.rename(savname, recipeFile)
                 utils.sync(true)
             end
             return err
         end
-    end)
+      -- New function with materialsLog file.
+      else
+      
+        -- Load the data materials file
+        pcall(function()
+          materials = loadfile(materialLog)()
+        end)
+        
+        pcall(function() 
+          materialsStatic, recipes = loadfile(recipeFile)()
+        end)
+        
+        -- Join the table 
+        recursiveTableJoin(materials, materialsStatic)
+        
+        -- Save the batching changes
+        _M.saveBatchingChanges = function()
+          local savf, err = io.open(materialLog, 'w')
+          utils.saveTableToFile(savf, materials)
+          savf:close()
+          utils.sync(true)
+          return nil
+        end
+        
+     end
+  end)
 
 -------------------------------------------------------------------------------
 -- Save the batching information back to the bacthing state files
