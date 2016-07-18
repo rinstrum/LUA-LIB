@@ -803,7 +803,7 @@ end
 --
 -- -- alternatively, columns can be specified numerically:
 --
--- names = csv.getColCSV(db.material, 'material')           -- gather all material names
+-- names = csv.getColCSV(db.material, 1)           -- gather all material names
 -- sel = device.selectOption('SELECT', names, names[1], true)  -- chose a material
 function _M.getColCSV(csvtbl, col)
     local column = {}
