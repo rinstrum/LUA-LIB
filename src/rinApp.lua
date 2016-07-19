@@ -211,17 +211,16 @@ function _M.addC500(model, ip, portA, portB)
     local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
     local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
-    -- Connect to the K400, and attach system if using the system library
+    -- Connect to the C500, and attach system if using the system library
     device.connect(sA, sB, _M)
 
-    -- Register the K400 with system
+    -- Register the C500 with system
     socks.addSocket(device.socketA, device.socketACallback)
     --socks.addSocket(device.socketB, device.socketBCallback)
 
     -- Create the extra debug port
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
     dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
-
     device.initialisation(model)
 
     -- Flush the key presses
