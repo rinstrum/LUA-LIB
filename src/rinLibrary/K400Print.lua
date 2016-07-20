@@ -57,7 +57,10 @@ local autoModes = {
     manual = 0
 }
 
-local name, num, value, s = C(lpeg.alpha * lpeg.alnum^0), C(lpeg.digit^1), C(lpeg.alnum^1), spc^0
+local name = C(lpeg.alpha * (lpeg.alnum + P('_'))^0)
+local num = C(lpeg.digit^1)
+local value = C(lpeg.alnum^1)
+local s = spc^0
 local POS = P(function(t, p) formatPosition = p return p end)
 local eql = s * P'=' * s
 
