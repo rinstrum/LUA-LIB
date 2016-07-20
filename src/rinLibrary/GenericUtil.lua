@@ -120,7 +120,7 @@ end
 -- @local
 function _M.terminate()
     -- Only restore the LCD if the ability to do so exists
-    if _M.restoreLcd ~= nil then
+    if _M.deviceType == "k400" then
       _M.restoreLcd()
     end
     _M.lcdControl('default')
