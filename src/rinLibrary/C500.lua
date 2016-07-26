@@ -21,7 +21,8 @@ local modules = {
     "C500LCD",
     "GenericRTC",
     "GenericAnalog",
-    "C500Dialog", 
+    "C500Setpoint",
+    "C500Dialog",
     "GenericFSM",
     "GenericCommand",
     "GenericPasscode",
@@ -35,7 +36,6 @@ local modules = {
     -- To do
 
     -- "K400Print", (doing this totally different, wait for hw support)
-    -- "K400Setpoint", (leave for now)
     -- "K400USB", (wait for USB hw supprt)
     -- "K400Menu", (too complicated for now, and not widely used)
 }

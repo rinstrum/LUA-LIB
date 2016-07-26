@@ -16,6 +16,7 @@ file={
 	'rinLibrary/C500Dialog.lua',
 	'rinLibrary/C500LCD.lua',
 	'rinLibrary/C500Reg.lua',
+	'rinLibrary/C500Setpoint.lua',
 	'rinLibrary/display/C500.lua',
 	
 	'rinLibrary/GenericAnalog.lua',
