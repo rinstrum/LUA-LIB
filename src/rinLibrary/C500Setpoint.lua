@@ -364,9 +364,9 @@ end
 -- @tparam Lock lType Setpoint lock type "off" or "on"
 -- @see setPointCount
 -- @usage
--- -- lock setpoint 4 
--- device.setpLogic(4, 'on')
-function _M.setpLogic(setp, lType)
+-- -- lock setpoint 4
+-- device.setpLock(4, 'on')
+function _M.setpLock(setp, lType)
     local v = naming.convertNameToValue(lType, lockMap)
     setpParam(setp, REG_SETP_LOCK, v)
 end
