@@ -1114,7 +1114,8 @@ end
 -- @param status Status
 -- @param active Active?
 -- @local
-local function handleUSBNotify(status, active)
+local handleUSBNotifyFirstRun = true
+function _M.handleUSBNotify(status, active)
 
   -- If the status is high
   if active then
@@ -1123,9 +1124,14 @@ local function handleUSBNotify(status, active)
     if err == nil and data ~= "" then
       -- Call the partition callback with the two capture groups
       local event, device = string.match(data, "^([a-z]+): (.*)$")
-      usb.usbCallback({{"partition", event, device}})
+      -- Handle callback on first run
+      if (handleUSBNotifyFirstRun == true and event == "added")
+          or handleUSBNotifyFirstRun == false then
+        usb.usbCallback({{"partition", event, device}})
+      end
     end
-  end  
+  end
+  handleUSBNotifyFirstRun = false
 end
 
 -------------------------------------------------------------------------------
@@ -1155,7 +1161,7 @@ function _M.setupStatus()
     private.setEStatusMainCallback('rtc',  handleRTC)
     private.setEStatusMainCallback('init', handleINIT)
     private.setEStatusMainCallback('power_off', handlePowerOff)
-    private.setEStatusMainCallback('usb_notify', handleUSBNotify)
+    private.setEStatusMainCallback('usb_notify', _M.handleUSBNotify)
     writeRTCStatus(true)
 end
 

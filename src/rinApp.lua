@@ -388,6 +388,9 @@ function _M.init()
     for i,v in ipairs(_M.devices) do
         v.init()
     end
+    for k,v in pairs(_M.devices) do
+      v.handleUSBNotify(nil, true)
+    end
     _M.initialised = true
 end
 
