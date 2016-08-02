@@ -447,9 +447,10 @@ end
 -------------------------------------------------------------------------------
 -- Callback to receive meta-events associated with USB device appearance
 -- and disappearance.
+-- This must be called from genericStatus.
 -- @tab t Event table
 -- @local
-local function usbCallback(t)
+function _M.usbCallback(t)
     dbg.debug('', t)
     for k,v in pairs(t) do
         if v[1] == 'event' then
@@ -560,7 +561,7 @@ end
 function _M.initUSB()
     if usb then
         socks.addSocket(usb.init(), usb.receiveCallback)
-        usb.registerCallback(usbCallback)
+        usb.registerCallback(_M.usbCallback)
         usb.checkDev()  -- call to check if any usb devices already mounted
     end
 end

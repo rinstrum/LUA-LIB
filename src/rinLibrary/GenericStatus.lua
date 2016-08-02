@@ -21,6 +21,7 @@ local naming = require 'rinLibrary.namings'
 local utils = require 'rinSystem.utilities'
 local timers = require 'rinSystem.rinTimers'
 local pow2 = require 'rinLibrary.powersOfTwo'
+local usb = require 'rinLibrary.rinUSB'
 local True, False = utils.True, utils.False
 
 -------------------------------------------------------------------------------
@@ -135,6 +136,8 @@ local REG_LUA_ESTAT    = 0x0305
 local REG_LUA_STAT_RTC = 0x032A
 local REG_SETPSTATUS   = 0x032E
 local REG_LUA_STAT_NET = 0x030A
+
+local REG_LUA_USB_NOTIFY = 0x0371
 
 --- Status Bits for register lua_status.
 --@table luastatus
@@ -274,6 +277,7 @@ local estatusMap = {
     prod_load   = 0x00000040,
     prod_save   = 0x00000080,
     power_off   = 0x00000100,
+    usb_notify  = 0x00000200,
     init        = 0x01000000,
     rtc         = 0x02000000,
     ser1        = 0x10000000,
@@ -1104,6 +1108,27 @@ local function handlePowerOff(status, active)
 end
 
 -------------------------------------------------------------------------------
+-- Handle the USB notify flag being set. This is set high when the host device
+-- has mounted a USB device that we can access.
+--
+-- @param status Status
+-- @param active Active?
+-- @local
+local function handleUSBNotify(status, active)
+
+  -- If the status is high
+  if active then
+    -- Read the notification from the device.
+    local data, err = private.readRegLiteral(REG_LUA_USB_NOTIFY)
+    if err == nil and data ~= "" then
+      -- Call the partition callback with the two capture groups
+      local event, device = string.match(data, "^([a-z]+): (.*)$")
+      usb.usbCallback({{"partition", event, device}})
+    end
+  end  
+end
+
+-------------------------------------------------------------------------------
 -- Control the use of Net status bits
 -- @string status net1, net2, both or none
 -- @usage
@@ -1130,6 +1155,7 @@ function _M.setupStatus()
     private.setEStatusMainCallback('rtc',  handleRTC)
     private.setEStatusMainCallback('init', handleINIT)
     private.setEStatusMainCallback('power_off', handlePowerOff)
+    private.setEStatusMainCallback('usb_notify', handleUSBNotify)
     writeRTCStatus(true)
 end
 
@@ -1143,6 +1169,7 @@ function _M.endStatus()
     private.setEStatusMainCallback('rtc',  nil)
     private.setEStatusMainCallback('init', nil)
     private.setEStatusMainCallback('power_off', nil)
+    private.setEstatusMainCallback('usb_notify', nil)
     _M.removeStream(statID)     statID = nil
     _M.removeStream(eStatID)    eStatID = nil
     _M.endIOStatus()
