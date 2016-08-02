@@ -30,7 +30,8 @@ if pcall(function() usb = require "devicemounter" end) then
     ev_lib = require "ev_lib"
     decodeKey = require "kb_lib"
     usbKeyboardMap = require 'kb_mapping'
-    partition = require "dm.partition"
+    local status, module = pcall(require, "dm.partition")
+    partition = status and module or nil
 elseif not _TEST then
     dbg.warn('rinUSB:', 'USB not supported')
 end

@@ -26,6 +26,7 @@ local modules = {
     "GenericFSM",
     "GenericCommand",
     "GenericPasscode",
+    "C500USB",
     "GenericWeights",
     
     -- Not done on C500
