@@ -744,6 +744,8 @@ end
 
 -------------------------------------------------------------------------------
 -- Unmount a partition and remove the directory
+-- 
+-- Note: On the C500, device.usbEject() should be called.
 -- @string path Location of mounted partition
 -- @treturn int Result code, 0 being no error
 -- @usage
