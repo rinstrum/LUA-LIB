@@ -7,6 +7,7 @@
 
 local socket = require "socket"
 local utils = require 'rinSystem.utilities'
+local posix = require "posix"
 
 local unpack = unpack
 local math = math

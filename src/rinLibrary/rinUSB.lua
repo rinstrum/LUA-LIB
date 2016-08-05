@@ -14,6 +14,7 @@ local rs232 = require "luars232"
 local utils = require 'rinSystem.utilities'
 local timers = require 'rinSystem.rinTimers'
 local posix = require 'posix'
+local unistd = require "posix.unistd"
 local deepcopy = utils.deepcopy
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation
@@ -627,26 +628,22 @@ end
 -- Local function for running a function in a fork and waiting for it to end.
 -- This allows the connection with the indicator to be kept alive if 
 -- the rinApp.delay function is passed in.
-local function runInFork(timeout, delayFunc, forkFunc)
-  local cpid = posix.fork()
-  -- In child, perform the copy and exit
-  if cpid == 0 then
-    forkFunc()
-    posix._exit(0)
-  -- In the parent, wait until this completes
-  else
-    -- Try for 10 seconds.
-    for i = 0, timeout do
-      -- If we successfully waited, return 0.
-      if posix.wait(cpid, posix.WNOHANG) > 0 then
-        return 0
-      end
-      delayFunc(1)
+local function runInFork(timeout, delayFunc, execPath, execArgs)
+  
+  local cpid = unistd.vfork_spawn(execPath, execArgs)
+  
+  -- Try for 10 seconds.
+  for i = 0, timeout do
+    local pid, strRet, exitStatus = posix.wait(cpid, posix.WNOHANG)
+    -- If we successfully waited, return 0.
+    if pid > 0 then
+      return exitStatus
     end
-    
-    -- Otherwise return 1.
-    return 1
+    delayFunc(1)
   end
+  
+  -- Otherwise return 1.
+  return 1
 end
 
 -------------------------------------------------------------------------------
@@ -655,18 +652,17 @@ end
 -- @string dest Destination directory or mount point
 -- @treturn int Result code, 0 being no error
 -- @int[opt] timeout Time in seconds to try to copy. Default is 10.
--- @func[opt] delayFunc Function to call to delay. Default is os.sleep, but a 
+-- @func[opt] delayFunc Function to call to delay. Default is posix.sleep, but a 
 -- better option would be rinApp.delay
 -- @usage
 -- usb.copyDirectory(dataPath, usbPath)
 function _M.copyDirectory(src, dest, timeout, delayFunc)
     timeout = timeout or 10
-    delayFunc = delayFunc or os.sleep
+    delayFunc = delayFunc or posix.sleep
 
     _M.makeDirectory(dest)
-    return runInFork(timeout, delayFunc, function ()
-      os.execute('cp -dp "'..src..'" "'..dest..'"')
-    end)
+    return runInFork(timeout, delayFunc, "/bin/cp", 
+        {[0] = "cp", "-a", src..'/*', dest..'/'})
 end
 
 -------------------------------------------------------------------------------
@@ -674,19 +670,18 @@ end
 -- @string src Source file
 -- @string dest Destination file
 -- @int[opt] timeout Time in seconds to try to copy. Default is 10.
--- @func[opt] delayFunc Function to call to delay. Default is os.sleep, but a 
+-- @func[opt] delayFunc Function to call to delay. Default is posix.sleep, but a 
 -- better option would be rinApp.delay
 -- @treturn int Result code, 0 being no error
 -- @usage
 -- usb.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
 function _M.copyFile(src, dest, timeout, delayFunc)
     timeout = timeout or 10
-    delayFunc = delayFunc or os.sleep
+    delayFunc = delayFunc or posix.sleep
 
     _M.commitFileChanges()
-    return runInFork(timeout, delayFunc, function ()
-      os.execute('cp -dp "'..src..'" "'..dest..'"')
-    end)
+    return runInFork(timeout, delayFunc, "/bin/cp", 
+        {[0] = "cp", "-dp", src, dest})
 end
 
 -------------------------------------------------------------------------------
@@ -695,7 +690,7 @@ end
 -- @string dest Destination directory or mount point
 -- @string name Fragment in file name to check for
 -- @int[opt] timeout Time in seconds to try to copy. Default is 10.
--- @func[opt] delayFunc Function to call to delay. Default is os.sleep, but a 
+-- @func[opt] delayFunc Function to call to delay. Default is posix.sleep, but a 
 -- better option would be rinApp.delay
 -- @treturn int Result code, 0 being no error
 -- @usage
@@ -703,15 +698,14 @@ end
 function _M.copyFiles(src, dest, name, timeout, delayFunc)
     local i
     timeout = timeout or 10
-    delayFunc = delayFunc or os.sleep
+    delayFunc = delayFunc or posix.sleep
 
     if name == nil then
         return _M.copyDirectory(src, dest)
     end
     _M.makeDirectory(dest)
-    return runInFork(timeout, delayFunc, function ()
-      os.execute('cp -dp "'..src..'"/*"'..name..'"* "'..dest..'"/')
-    end)
+    return runInFork(timeout, delayFunc, "/bin/cp", 
+        {[0] = "cp", "-dp", src..'/*'..name..'*', dest..'/'})
 end
 
 -------------------------------------------------------------------------------
