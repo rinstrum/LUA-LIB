@@ -319,7 +319,7 @@ function _M.sEdit(prompt, def, maxLen, units, unitsOther)
       -- If a key wasn't been pressed within the timeout period, set the 
       -- previous key as timeout to force this key to be treated as an 
       -- independent key press.
-      if sEditKeyTimer > sEditKeyTimeout then   
+      if sEditKeyTimer >= sEditKeyTimeout then
         timeout = true
       else
         timeout = false
