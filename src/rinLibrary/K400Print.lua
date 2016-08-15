@@ -269,6 +269,8 @@ end
 -------------------------------------------------------------------------------
 -- Called to request response based on custom transmit token string
 -- @string tokenStr Custom token string
+-- @int[opt] splitLength Length to split string into when sending it to device
+-- @int[opt] delay Delay between transmits 
 -- @treturn string Expanded token string or nil on error
 -- @treturn string Nil on success or error code on failure
 -- @see printCustomTransmit
@@ -281,6 +283,7 @@ function _M.reqCustomTransmit(tokenStr)
     -- Send in chunks and return concatenated result
     splitStringWithTokens(tokenStr, splitLength, function (s) 
         result = result .. private.writeRegHex(REG_REPLYLUATOKEN, s, 1)
+        _M.app.delay(delay)
     end)
     
     return result
