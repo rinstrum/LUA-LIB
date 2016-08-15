@@ -277,7 +277,9 @@ end
 -- @usage
 -- -- get the current weight as a string
 -- local weightString = device.reqCustomTransmit([[\D7]])
-function _M.reqCustomTransmit(tokenStr)
+function _M.reqCustomTransmit(tokenStr, splitLength, delay)
+    local splitLength = splitLength or 100
+    local delay = delay or 0
     local result = ""
     
     -- Send in chunks and return concatenated result
