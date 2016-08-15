@@ -49,7 +49,6 @@ end
 function autoTest1()
   print('autoTest')
   for i = 0, 8, 1 do
-      print('i='tester..i)
       device.turnOn(i)
       rinApp.delay(1)
   end
