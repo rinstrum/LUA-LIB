@@ -238,6 +238,8 @@ end
 -- no previous port has been used.
 -- @string tokenStr String containing custom print tokens
 -- @string comPortName Port to use: 'ser1a', 'ser1b', 'ser2a' or 'ser2b'
+-- @int[opt] splitLength Length to split string into when sending it to device
+-- @int[opt] delay Delay between transmits 
 -- @see reqCustomTransmit
 -- @usage
 -- -- A usage application can be found in the printCopy example.
@@ -247,17 +249,20 @@ end
 --     device.printCustomTransmit(v, 'ser1a')
 -- end
 -- device.printCustomTransmit([[<<Copy>>\C1]], 'ser1a')
-function _M.printCustomTransmit(tokenStr, comPortName)
+function _M.printCustomTransmit(tokenStr, comPortName, splitLength, delay)
+    local splitLength = splitLength or 100
+    local delay = delay or 0
     local comPort = naming.convertNameToValue(comPortName, portMap, curPrintPort or PRINT_SER1A)
     tokenStr = expandCustomTransmit(tokenStr)
     
     -- Write the output string in chunks
-    splitStringWithTokens(tokenStr, 100, function (s) 
+    splitStringWithTokens(tokenStr, splitLength, function (s) 
         if comPort ~= curPrintPort  then
             curPrintPort = comPort
             private.writeRegHex(REG_PRINTPORT, comPort)
         end
         private.writeRegHex(REG_PRINTTOKENSTR, s)
+        _M.app.delay(delay)
     end)
 end
 
@@ -274,7 +279,7 @@ function _M.reqCustomTransmit(tokenStr)
     local result = ""
     
     -- Send in chunks and return concatenated result
-    splitStringWithTokens(tokenStr, 100, function (s) 
+    splitStringWithTokens(tokenStr, splitLength, function (s) 
         result = result .. private.writeRegHex(REG_REPLYLUATOKEN, s, 1)
     end)
     
