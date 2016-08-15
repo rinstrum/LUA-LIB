@@ -52,7 +52,6 @@ end
 -------------------------------------------------------------------------------
 -- Stop the currently running dialog and exit to the previous or the main
 -- application loop.
--- @local
 function _M.abortDialog()
     dialogRunning = false
 end
