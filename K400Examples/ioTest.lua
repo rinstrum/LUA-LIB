@@ -43,9 +43,9 @@ function refreshIO()
     
   -- set preset tare to 0
   device.presetTare(0)
-  
+      
+  device.enableOutput(IO1, IO2, IO3, IO4, IO5, IO6, IO7, IO8)
   for i = 1, 8, 1 do
-    device.enableOutput(IO1, IO2, IO3, IO4, IO5, IO6, IO7, IO8)
     device.turnOff(i)
   end
 end
