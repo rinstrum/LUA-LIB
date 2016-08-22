@@ -582,7 +582,7 @@ function private.write(f, s, params)
                   else
                       local spec = string.format("%%-%ds", f.length)
                       local sStr = string.sub(f.current,1,f.length)
-                      writeToDisplay(string.format(spec,string.upper(sStr)))
+                      writeToDisplay(string.format(spec, sStr))
                       f.current = string.sub(f.current, 2)
                   end
               end)
