@@ -266,8 +266,6 @@ function _M.setpRegAddress(setp, register)
     if (setp > _M.setPointCount()) or (setp < 1) then
         dbg.error('Setpoint Invalid: ', setp)
         return nil
-    elseif reg == REG_SETP_TARGET then
-        return reg+setp-1
     else
         return reg+((setp-1)*REG_SETP_REPEAT)
     end
