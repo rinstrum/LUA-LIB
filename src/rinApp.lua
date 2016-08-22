@@ -33,6 +33,8 @@ local canonical = require('rinLibrary.namings').canonicalisation
 
 local deprecatedFields, warned = {}, {}
 
+local userIOStarted = false
+
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 local function createRinApp()
@@ -182,6 +184,13 @@ function _M.addK400(model, ip, portA, portB)
     old = device.readAuto('bottomLeft')
     device.writeAuto('bottomLeft', old)
     
+    -- Only initialise the user IO when a device connects
+    if (userIOStarted == false) then
+      socks.addSocket(_M.userio.connectDevice(), userioCallback)
+      dbg.info('','------   User Terminal Started  ------')
+      userIOStarted = true
+    end
+        
     return device
 end
 
@@ -237,6 +246,13 @@ function _M.addC500(model, ip, portA, portB)
     -- these are correctly restored without being explicitly written by the user.
     --local old = device.readAuto('C500')
     --device.writeAuto('C500', old)
+    
+    -- Only initialise the user IO when a device connects
+    if (userIOStarted == false) then
+      socks.addSocket(_M.userio.connectDevice(), userioCallback)
+      dbg.info('','------   User Terminal Started  ------')
+      userIOStarted = true
+    end
     
     return device
 end
@@ -514,7 +530,6 @@ end
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Create the server and io sockets
 io.output():setvbuf('no')
-socks.addSocket(_M.userio.connectDevice(), userioCallback)
 socks.createServerSocket(2224, socketBidirectionalAccept)
 socks.createServerSocket(2225, socketUnidirectionalAccept)
 running = true
