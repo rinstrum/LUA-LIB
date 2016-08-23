@@ -1,6 +1,7 @@
 -------------------------------------------------------------------------------
 -- IOTest
--- Drive IO1 to IO8 using functions from the setpoint library
+-- Drive IO1 to IO8 using functions from the setpoint library. Please note that
+-- the operator must set the remote key settings to NONE for this app to work
 --
 -- @author Luke Allison
 -- @copyright 2016 Rinstrum Pty Ltd
