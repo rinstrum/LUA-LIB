@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
--- Library for K400 passcode support.
+-- Library for Passcode support.
 -- @module rinLibrary.Device.Passcode
 -- @author Darren Pearson
 -- @author Merrick Heley

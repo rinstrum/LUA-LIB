@@ -1,5 +1,5 @@
 -------------------------------------------------------------------------------
---- Library for K400 high level command support.
+--- Library for High level command support.
 -- @module rinLibrary.Device.Command
 -- @author Darren Pearson
 -- @author Merrick Heley
