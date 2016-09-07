@@ -60,9 +60,9 @@ net:
 
 pdf: install
 	$(MKDIR) $(M01_DIR)
-	htmldoc -f $(PDF_M01_TARGET) --webpage --size universal --no-title --no-toc \
-		--numbered --links --format pdf11 --book --color \
-		`find opkg/usr/local/www/html/libdocs -type f -name '*.html'`
+	#htmldoc -f $(PDF_M01_TARGET) --webpage --size universal --no-title --no-toc \
+	#	--numbered --links --format pdf11 --book --color \
+	#	`find opkg/usr/local/www/html/libdocs -type f -name '*.html'`
 
 checksum: install
 	$(MKDIR) $(M01_DIR)
