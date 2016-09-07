@@ -182,12 +182,12 @@ function _M.setReformation(year, month, day)
 end
 _M.setReformation('british')
 
--------------------------------------------------------------------------------
+--
 -- Check is a date is valid and in canonical form
 -- @param year Year of interest
 -- @param month Month in year
 -- @param day Day in month
--- @return True iff the date is legal
+-- @return True if the date is legal
 -- @local
 --local function checkDate(year, month, day)
 --	if year < -4799 or year > 9999 then
@@ -199,10 +199,11 @@ _M.setReformation('british')
 
 -------------------------------------------------------------------------------
 -- Test if a year is a leap year or not
+-- @function isLeapYear
 -- @param year Year of interest
--- @return True iff the year is a leap year
+-- @return True if the year is a leap year
 -- @usage
--- local date = require'rinLibrary.date'
+-- local date = require 'rinLibrary.date'
 --
 -- print('The year 2000 is a '..(date.isLeapYear(2000) and 'leap' or 'standard')..' year')
 function _M.isLeapYear(year)
