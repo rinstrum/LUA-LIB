@@ -670,6 +670,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Write string to this specified display section
+-- @function write
 -- @tparam displayField where Which display to write to
 -- @string s string to display
 -- @tparam[opt] displayControl params displayControl parameters
@@ -691,9 +692,10 @@ end
 -- Write a message directly to the given display field. 
 -- This message may include tokens, (only valid for displays connected directly 
 -- to the R400 i.e. the R400 LCD), or may include user-implemented protocols.
--- THIS FUNCTION IS NOT RECOMMENDED FOR TYPICAL USE, see @{write}
+-- THIS FUNCTION IS NOT RECOMMENDED FOR TYPICAL USE, see write
 -- @tparam displayField where which display section to write to
 -- @string s String to write
+-- @see write
 function _M.writeDirect(where, s)
   local disp = naming.convertNameToValue(where, display)
   
