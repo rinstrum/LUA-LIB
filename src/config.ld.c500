@@ -1,7 +1,7 @@
 project="rinLIB-C500 <font size=\"-1\">version %LATEST%</font>"
 title="Rinstrum Lua Library API"
 format='markdown'   -- 'discount' is faster but isn't available on the device.
-readme= { 'topics' }
+readme= { 'C500Topics' }
 style = '!fixed'
 use_markdown_titles = true
 sort_modules=true
@@ -62,6 +62,6 @@ Copyright &copy; 2013-2016 Rinstrum.
 
 This reference is correct for library version %LATEST% only.
 
-If you do not know where to begin, please start with the <a href="topics/overview.md.html">introduction</a>.
+If you do not know where to begin, please start with the <a href="C500Topics/overview.md.html">introduction</a>.
 
 ]]
