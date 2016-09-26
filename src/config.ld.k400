@@ -1,7 +1,7 @@
 project="rinLIB-K400 <font size=\"-1\">version %LATEST%</font>"
 title="Rinstrum Lua Library API"
 format='markdown'   -- 'discount' is faster but isn't available on the device.
-readme= { 'R400Topics' }
+readme= { 'K400Topics' }
 style = '!fixed'
 use_markdown_titles = true
 sort_modules=true
