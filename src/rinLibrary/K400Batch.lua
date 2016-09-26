@@ -291,6 +291,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Save the batching information back to the bacthing state files
+-- @function saveBatchingChanges
 -- @treturn string Error string on error, nil otherwise
 -- @usage
 -- device.saveBatchingChanges()

@@ -56,7 +56,7 @@ local function showMarquee (s)
 end
 
 -------------------------------------------------------------------------------
--- Callback to handle F1 key event
+-- Callback to handle 'all' keygroup event
 local function handleKey(key, state)
     showMarquee(string.format("%s Pressed", key))
     return true     -- key handled so don't send back to instrument
@@ -64,8 +64,8 @@ end
 device.setKeyGroupCallback('all', handleKey)
 
 -------------------------------------------------------------------------------
--- Callback to handle PWR+ABORT key and end application
-device.setKeyCallback('pwr_cancel', rinApp.finish, 'long')
+-- Callback to handle f1 key and end application
+device.setKeyCallback('f1', rinApp.finish, 'long')
 -------------------------------------------------------------------------------
 
 --=============================================================================

@@ -1,0 +1,10 @@
+#!/bin/sh
+# Script to be run after installing the application
+#
+
+# echo "post-lua install run"
+
+# Add SVG support to the mime types so the icons in the documentation are supported
+grep -nr 'svg' /etc/mime.types >/dev/null 2>/dev/null || echo 'image/svg+xml svg' >> /etc/mime.types
+
+exit 0
