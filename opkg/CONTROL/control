@@ -8,4 +8,5 @@ Architecture: all
 Homepage: http://www.rinstrum.com
 Depends: 
 Source: ${SRC}
-Replaces: L000-517
+Replaces: L000-519
+Replaces: L000-521
