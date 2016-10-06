@@ -17,17 +17,19 @@ local str = string
 local table = table
 local tonum = tonumber
 local type = type
+local os = os
 
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
 
 _M.socketA = nil   -- must be set to a connected socket for the module to work
+_M.socketAPeerName = ""
 _M.socketB = nil   -- must be set to a connected socket for the module to work
 
 local deviceRegisters = {}
 
-local serABuffer = {}
+local serABuffer = ""
 
 local startChar     = nil
 local end1Char      = '\13'
@@ -64,63 +66,55 @@ end
 -- @usage
 -- local msg, err = socketACallback()
 function _M.socketACallback()
-    -- This routine should be a lot smarter about the reading.  One character at
-    -- a time is grossly inefficient.  Read a buffer full, split the packets and
-    -- decode each.
-    local char, prevchar, err
-    while true do
-        prevchar = char
-        char, err = _M.socketA:receive(1)
-
-        if err then break end
-
-        if char == '\01' then
-            serABuffer = {}
-        end
-
-        table.insert(serABuffer,char)
-
-        -- Check for delimiters.
-        if serABuffer[1] == '\01' then
-            if char == '\04' then
-                break
-            end
-        elseif (prevchar == '\r' and char == '\n') or char == ';' then
-            break
-        end
-    end
-
-    if err == nil then
-        local msg = table.concat(serABuffer)
-        serABuffer = {}
-        dbg.debug(_M.socketA:getpeername(), '>>>', msg)
-        local addr, cmd, reg, data, e, excess = rinMsg.processMsg(msg, nil)
-        if e then
-            rinMsg.handleError(addr, cmd, reg, data, e)
-            data = nil
-        elseif excess ~= nil and excess ~= '' then
-            -- since we're reading character at a time and cheching delimiters,
-            -- this should never happen but let's be a bit paranoid just in case.
-            dbg.warn("excess data after message", excess)
-        end
-        if deviceRegisters[reg] then
-            deviceRegisters[reg](data, e)
-        elseif deviceRegisters[0] then
-            deviceRegisters[0](data, e)
-        end
-        return nil,nil
-
-    elseif err == 'timeout' then  -- partial message received
-         return nil, nil
-    end
-
-    dbg.error("Receive failed: ", err)
-    if err == "closed" or err == "Transport endpoint is not connected" then
-    	sockets.removeSocket(_M.socketA)
+    
+    -- Receive all the data
+    local  recvBuffer, err, partial = _M.socketA:receive("*all")
+    recvBuffer = recvBuffer or partial
+  
+    -- Handle critical errs
+    if err and err ~= "timeout" then
+      dbg.error("Receive failed: ", err)
+      if err == "closed" or err == "Transport endpoint is not connected" then
+        sockets.removeSocket(_M.socketA)
         dbg.fatal("Critical error. Exiting.", err)
         os.exit(1)
+      end
+      return nil, err
     end
-    return nil, err
+    
+    if recvBuffer == nil then
+      return nil, "timeout"
+    end
+    
+    -- Combine the previous data with the new data
+    serABuffer = serABuffer .. recvBuffer
+    
+    -- Iterate over the data
+    while serABuffer ~= "" do
+        dbg.debug(_M.socketAPeerName, '>>>', serABuffer)
+        local addr, cmd, reg, data, e, excess = rinMsg.processMsg(serABuffer, nil)
+        
+        -- Set the serABuffer to excess
+        serABuffer = excess
+        
+        -- This might just be a partial message. Break and wait for more data.
+        if e == "bad message" then
+          break
+        -- Handle any error
+        elseif e then
+          rinMsg.handleError(addr, cmd, reg, data, e)
+          data = nil
+        -- Handle any callbacks
+        else
+          if deviceRegisters[reg] then
+              deviceRegisters[reg](data, e)
+          elseif deviceRegisters[0] then
+              deviceRegisters[0](data, e)
+          end
+        end
+        
+    end
+
 end
 
 -------------------------------------------------------------------------------
@@ -132,6 +126,7 @@ end
 function _M.disconnect()
     _M.socketA:close()
     _M.socketA = nil
+    _M.socketAPeerName = ""
     _M.socketB:close()
     _M.socketB = nil
 end

@@ -53,6 +53,14 @@ local levelCodes, levelNames = {}, {
 }
 for k, v in pairs(levelNames) do levelCodes[v] = string.upper(k) end
 
+local levelLookup = {
+    DEBUG = 1,
+    INFO  = 2,
+    WARN  = 3,
+    ERROR = 4,
+    FATAL = 5,
+}
+
 local currentLevel = DEBUG
 local lastLevel = currentLevel
 local timestamp = 'off'
@@ -251,6 +259,13 @@ end
 -- dbg.print('hello', 'I want to tell you something at the current debug level')
 function _M.print(prompt, ...)
 
+    -- If the current logging level is greater than the level that we want to 
+    -- log at, we can safely exit.
+    local level = _M.tempLevel or currentLevel
+    if levelLookup[currentLevel] > levelLookup[level] then
+      return 
+    end
+
     local timestr = ''
     local s
 
@@ -258,7 +273,6 @@ function _M.print(prompt, ...)
         timestr = os.date("%Y-%m-%d %X ")
     end
 
-    local level = _M.tempLevel or currentLevel
     local header = string.format("%s %s: ", timestr, levelCodes[level])
     local margin = #header
 

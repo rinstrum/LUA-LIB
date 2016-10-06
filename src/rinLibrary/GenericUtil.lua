@@ -104,6 +104,7 @@ function _M.connect(sockA, sockB, app)
     end
   
     _M.socketA = sockA
+    _M.socketAPeerName = sockA:getpeername()
     _M.socketB = sockB
     _M.app = app
     local ip, port = sockA:getpeername()

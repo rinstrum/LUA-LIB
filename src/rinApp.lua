@@ -217,7 +217,7 @@ function _M.addC500(model, ip, portA, portB)
     device.portA = portA or 2222
     device.portB = portB or 2223
 
-    local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
+    local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0)
     local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
     -- Connect to the C500, and attach system if using the system library

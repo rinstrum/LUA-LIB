@@ -56,7 +56,7 @@ local frequencyTable = {
 }
 --- Frequencey streaming setttings
 -- @table StreamingFrequencies
--- @param auto 20z stearming
+-- @param auto 20Hz streaming
 -- @param auto10 10Hz streaming
 -- @param auto3 3Hz streaming
 -- @param auto1 1Hz streaming

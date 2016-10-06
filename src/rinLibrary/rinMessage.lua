@@ -16,7 +16,7 @@ local string    = string
 local table     = table
 local tonumber  = tonumber
 local type      = type
-local C, P, R, S, V = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V
+local C, P, R, S, V, Cp = lpeg.C, lpeg.P, lpeg.R, lpeg.S, lpeg.V, lpeg.Cp()
 
 local _M = {}
 
@@ -110,16 +110,22 @@ local function getcmd(s)
 end
 
 local msgpat = P{
-              (V"crc" + V"rns" + 1) * (P(1)^0   / function(s) excess = s end),
+              (V"crc" + V"rns") + 1 * lpeg.V(1),
+              
     crc     = P"\1" * (V"msgcrc" / function(s) delim="CRC"; tocrc = string.sub(s, 1, -5) end) * P"\4",
     msgcrc  = V"header" * ((P(1)-P"\4")^4       / datacrc),
+    
     rns     = V"msgrns" * (P"\r\n" + S"\r\n;")  / function(s) delim = "NORM"      end,
     msgrns  = V"header" * ((P(1)-S"\r\n;")^0    / function(s) data = s            end),
+    
     header  = V"addr" * V"cmd" * V"reg" * V"hd"^0 * P':',
     addr    = V"hd2"                            / function(s) addr = tonumber(s, 16) end,
     cmd     = V"hd2"                            / getcmd,
     reg     = V"hd4"                            / function(s) reg  = tonumber(s, 16) end,
-    hd      = R("AF", "09"),     hd2 = V"hd" * V"hd",    hd4 = V"hd2" * V"hd2"
+    
+    hd      = R("AF", "09"),     
+    hd2     = V"hd" * V"hd",    
+    hd4     = V"hd2" * V"hd2"
 }
 
 -------------------------------------------------------------------------------
@@ -146,9 +152,18 @@ function _M.processMsg(msg, err)
         return nil, nil, nil, nil, err, nil
     elseif msg == nil then
         return nil, nil, nil, nil, "msg was nil", nil
-    elseif not msgpat:match(msg) then
-        return nil, nil, nil, nil, "bad message", excess
-    elseif delim == "CRC" and ccitt(tocrc) ~= crc then
+    end
+    
+    local pos = msgpat:match(msg)
+      
+    if not pos then
+        -- Return the original message because nothing has matched.
+        return nil, nil, nil, nil, "bad message", msg
+    end
+    
+    excess = string.sub(msg, pos)
+    
+    if delim == "CRC" and ccitt(tocrc) ~= crc then
         return nil, nil, nil, nil, "bad crc", excess
     elseif not (addr and cmd and reg and data) then
         return nil, nil, nil, nil, "non-hex message", excess
