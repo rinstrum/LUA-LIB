@@ -18,7 +18,10 @@ local unistd = require "posix.unistd"
 local deepcopy = utils.deepcopy
 local naming = require 'rinLibrary.namings'
 local canonical = naming.canonicalisation
+local dirent = require "posix.dirent"
+local re = require "re"
 
+local ipairs = ipairs
 local pairs = pairs
 local pcall = pcall
 local tostring = tostring
@@ -655,14 +658,14 @@ end
 -- @func[opt] delayFunc Function to call to delay. Default is posix.sleep, but a 
 -- better option would be rinApp.delay
 -- @usage
--- usb.copyDirectory(dataPath, usbPath)
+-- usb.copyDirectory('log', usbPath)
 function _M.copyDirectory(src, dest, timeout, delayFunc)
     timeout = timeout or 10
     delayFunc = delayFunc or posix.sleep
 
     _M.makeDirectory(dest)
-    return runInFork(timeout, delayFunc, "/bin/cp", 
-        {[0] = "cp", "-a", src..'/*', dest..'/'})
+    return runInFork(timeout, delayFunc, "/bin/sh", 
+        {[0] = "sh", "-c", 'cp -a "'..src..'"/* "'..dest..'"/'})
 end
 
 -------------------------------------------------------------------------------
@@ -674,7 +677,7 @@ end
 -- better option would be rinApp.delay
 -- @treturn int Result code, 0 being no error
 -- @usage
--- usb.copyFiles(localPath .. '/log.csv', usbPath .. '/log.csv')
+-- usb.copyFile(localPath .. '/log.csv', usbPath .. '/log.csv')
 function _M.copyFile(src, dest, timeout, delayFunc)
     timeout = timeout or 10
     delayFunc = delayFunc or posix.sleep
@@ -704,8 +707,9 @@ function _M.copyFiles(src, dest, name, timeout, delayFunc)
         return _M.copyDirectory(src, dest)
     end
     _M.makeDirectory(dest)
-    return runInFork(timeout, delayFunc, "/bin/cp", 
-        {[0] = "cp", "-dp", src..'/*'..name..'*', dest..'/'})
+
+    return runInFork(timeout, delayFunc, "/bin/sh", 
+              {[0] = "sh", "-c", 'cp -dp "'..src..'"/*"'..name..'"* "'..dest..'"/'})
 end
 
 -------------------------------------------------------------------------------
