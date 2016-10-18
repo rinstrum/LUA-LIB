@@ -33,6 +33,7 @@ file={
     'rinLibrary/GenericUtil.lua',
     'rinLibrary/GenericWeights.lua',
     
+    'rinLibrary/rinCon.lua',
     'rinLibrary/date.lua',
     'rinLibrary/ldocUsage.lua',
     'rinLibrary/lpeg.lua',

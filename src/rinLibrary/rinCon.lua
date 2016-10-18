@@ -2,7 +2,7 @@
 -- Creates a connection to the M4223.
 -- Most of the functions here are for internal predominately.
 -- It is generally advised that they not be called directly.
--- @module rinLibrary.rinCon
+-- @module rinLibrary.Device.rinCon
 -- @author Merrick Heley
 -- @copyright 2013 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
@@ -65,6 +65,7 @@ end
 -- @return error code or nil if none
 -- @usage
 -- local msg, err = socketACallback()
+-- @local
 function _M.socketACallback()
     
     -- Receive all the data
@@ -263,6 +264,7 @@ end
 -- @return Error code or nil if no error
 -- @usage
 -- local msg, err = device.socketBCallback()
+-- @local
 function _M.socketBCallback()
     -- This routine should be a lot smarter about the reading.
     -- One character at a time is grossly inefficient.
@@ -365,6 +367,7 @@ end
 -- local sockets = require "rinSystem.rinSockets"
 --
 -- sockets.createServerSocket(1111, device.socketDebugAcceptCallback)
+-- @local
 function _M.socketDebugAcceptCallback(sock, ip, port)
 	sockets.addSocket(sock, sockets.flushReadSocket)
     sockets.setSocketTimeout(sock, 0.001)
