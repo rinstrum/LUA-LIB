@@ -84,6 +84,11 @@ function _M.loadINI(fname, def)
 
     lt = t    -- support settings with no section header directly
     for s in f:lines() do
+        -- Handle \r\n terminated ini files.
+        if string.sub(s, -1) == '\r' then
+            s = string.sub(s, 1, -2)  
+        end
+    
         local first = string.find(s,'%[')
         local last = string.find(s,'%]')
         if first ~= nil and last ~= nil then
