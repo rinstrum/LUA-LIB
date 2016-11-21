@@ -52,6 +52,12 @@ return function (_M, private, deprecated)
 -- @field name The name to be given to the state machine, use the first positional
 -- argument instead of the <i>name=</i> version for brevity.  This is only used when
 -- producing information messages.
+-- 
+-- @field statusCallback A function to be called when the state is changed. 
+-- There are three possible calls to the function:
+--     f('leave', oldStateName)
+--     f('transition', oldStateName, newStateName)
+--     f('enter', newStateName)
 
 --- State Definition Arguments.
 --
@@ -163,6 +169,7 @@ function _M.stateMachine(args)
     local states, current = {}, nil
     local events, raiseEvents, eventStatus = {}, {}, nil
     local showState, trace = args.showState or false, args.trace or false
+    local statusCallback = args.statusCallback or nil
     local fsm = {}
 
 -------------------------------------------------------------------------------
@@ -227,14 +234,17 @@ function _M.stateMachine(args)
         raiseEvents = {}
         if current ~= nil then
             prevName = current.name
+            utils.call(statusCallback, 'leave', prevName)
             eventStatus = 'leave'   current.leave(s.name)
             -- Ensure that all messages are flushed when the state is changed.
             --_M.flush()
         end
         current = s
         current.activeTime = timers.monotonicTime()
+        utils.call(statusCallback, 'transition', prevName, current.name)
         eventStatus = 'activate'    utils.call(f)
         if showState then _M.write('topRight', s.short) end
+        utils.call(statusCallback, 'enter', current.name)
         eventStatus = 'enter'       current.enter(prevName)
         eventStatus = nil
     end
