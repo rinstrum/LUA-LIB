@@ -6,7 +6,7 @@
 -- @author Merrick Heley
 -- @copyright 2014 Rinstrum Pty Ltd
 -------------------------------------------------------------------------------
---
+
 local tonumber = tonumber
 local math = math
 local string = string

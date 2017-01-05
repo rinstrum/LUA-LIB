@@ -150,7 +150,7 @@ function _M.addK400(model, ip, portA, portB)
     device.portA = portA or 2222
     device.portB = portB or 2223
 
-  	local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
+    local sA = socks.createTCPsocket(device.ipaddress, device.portA, 0.001)
     local sB = socks.createTCPsocket(device.ipaddress, device.portB, 0.001)
 
     -- Connect to the K400, and attach system if using the system library
@@ -160,9 +160,9 @@ function _M.addK400(model, ip, portA, portB)
     socks.addSocket(device.socketA, device.socketACallback)
     socks.addSocket(device.socketB, device.socketBCallback)
 
-	  -- Create the extra debug port
+    -- Create the extra debug port
     socks.createServerSocket(2226, device.socketDebugAcceptCallback)
-	  dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
+    dbg.setDebugCallback(function (m) socks.writeSet("debug", m .. "\r\n") end)
 
     device.initialisation(model)
 
@@ -264,8 +264,8 @@ end
 -- @usage
 -- rinApp.writeBidirectional('hello world!')
 function _M.writeBidirectional(msg)
-	if bidirectionalSocket ~= nil then
-		socks.writeSocket(bidirectionalSocket, msg)
+  if bidirectionalSocket ~= nil then
+    socks.writeSocket(bidirectionalSocket, msg)
     end
 end
 
@@ -283,12 +283,12 @@ end
 -- @param sock Socket that has something ready to read.
 -- @local
 local function bidirectionalFromExternal(sock)
-	  local m, err = socks.readSocket(sock)
+    local m, err = socks.readSocket(sock)
     if err ~= nil then
-    	socks.removeSocket(sock)
+      socks.removeSocket(sock)
         bidirectionalSocket = nil
     else
-    	if _M.userBidirectionalCallback then
+      if _M.userBidirectionalCallback then
             _M.userBidirectionalCallback(m)
         end
     end
@@ -316,11 +316,11 @@ end
 -- @param port Source port number
 -- @local
 local function socketBidirectionalAccept(sock, ip, port)
-	if bidirectionalSocket ~= nil then
+  if bidirectionalSocket ~= nil then
         dbg.info('second bidirectional connection from', ip, port)
     else
-	    bidirectionalSocket = sock
-	    socks.addSocket(sock, bidirectionalFromExternal)
+      bidirectionalSocket = sock
+      socks.addSocket(sock, bidirectionalFromExternal)
         socks.setSocketTimeout(sock, 0.001)
         dbg.debug('bidirectional connection from', ip, port)
         if _M.userBidirectionalConnectCallback then
@@ -348,19 +348,19 @@ end
 -- @param port The source port of the socket
 -- @local
 local function socketUnidirectionalAccept(sock, ip, port)
-	-- Set up so that all incoming traffic is ignored, this stream only
+  -- Set up so that all incoming traffic is ignored, this stream only
     -- does outgoings.  Failure to do this will cause a build up of incoming
     -- data packets and blockage.
-	socks.addSocket(sock, socks.flushReadSocket)
-	-- Set a brief timeout to prevent things clogging up.
+  socks.addSocket(sock, socks.flushReadSocket)
+  -- Set a brief timeout to prevent things clogging up.
     socks.setSocketTimeout(sock, 0.001)
-	-- Add the socket to the unidirectional broadcast group.  A message
+  -- Add the socket to the unidirectional broadcast group.  A message
     -- sent here is forwarded to all unidirectional sockets.
     -- We're using an inline filter function that just allows all traffic
     -- through, this function can return nil to prevent a message or something
     -- else to replace a message.
     socks.addSocketSet("uni", sock, unidirectionFilter)
-	-- Finally, log the fact that we've got a new connection
+  -- Finally, log the fact that we've got a new connection
     dbg.info('unidirectional connection from', ip, port)
 end
 
