@@ -159,7 +159,7 @@ local REG_LUA_USB_NOTIFY = 0x0371
 -- @field noterror There is no error active
 -- @field held Weight is held, not available in batching firmware
 -- @field notheld Weight is not held, not available in batching firmware
--- @field idle Batch is idle, only available in batching firmware
+-- @field idle Batch: Batch or truck is idle. Only available in batching firmware and K422
 -- @field run Batch is running, only available in batching firmware
 -- @field pause Batch is paused, only available in batching firmware
 -- @field slow Batch is filling at slow speed, only available in batching firmware
@@ -175,7 +175,6 @@ local REG_LUA_USB_NOTIFY = 0x0371
 -- @field no_type None of the 4 status bits above are true, only available in batching firmware
 -- @field belowmin the weight is below the minimum set for axle capture K422 only
 -- @field abovemin the wieght is above the minimum set for axle capture K422 only
--- @field idle the instrument is idle (not weighing a truck) K422 only
 -- @field sampling the instrument is currently measuring an axle K422 only
 -- @field captured the instrument has captured an axle weight K422 only
 -- @field waiting the instrument is waiting for another axle K422 only
