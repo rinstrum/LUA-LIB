@@ -120,8 +120,8 @@ install: compile
 	$(INSTALL_EXEC) src/rinSystem/rinTimers/*.lua $(DEST_DIR)/$(LUA_MOD_DIR)/rinSystem/rinTimers
 	
 	cp -rp $(EXAMPLES_DIR)/* $(DEST_DIR)/home/lualib_examples
-	find $(DEST_DIR)/home/lualib_examples -type d -exec chmod 775 {} \;
-	find $(DEST_DIR)/home/lualib_examples -type f -exec chmod 755 {} \;
+	find $(DEST_DIR)/home/lualib_examples -type d -exec chmod 777 {} \;
+	find $(DEST_DIR)/home/lualib_examples -type f -exec chmod 777 {} \;
 	
 	$(MKDIR) $(DEST_DIR)/$(WWW_DIR)
 	sed s/%LATEST%/$(PKGVERS)/g <$(LDOC_CONFIG) >src/config.ld
