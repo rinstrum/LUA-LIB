@@ -18,20 +18,6 @@ local unpack = unpack
 local error = error
 local string = string
 
--------------------------------------------------------------------------------
--- Check the curent status of a single bit trigger
--- @param f Bit check function to call
--- @param s Settings
--- @return Boolean, true if all are set, false otherwise
--- @local
-local function checkOneStatus(f, s)
-    if s ~= nil then
-        if type(s) ~= 'table' then return f(s) end
-        return f(unpack(s))
-    end
-    return true
-end
-
 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -
 -- Submodule function begins here
 return function (_M, private, deprecated)
@@ -126,6 +112,9 @@ return function (_M, private, deprecated)
 --
 -- @field io The inputs that must be set for this transition to trigger.  Either
 -- a number or a table of several numbers.
+-- 
+-- @field notio The inputs that must not be set for this transition to trigger. 
+-- Either a number of a table of several numbers.
 --
 -- @field name The name for this transition, by default from-destination will be used.
 -- This argument is only used for diagnostic messages and during tracing.
@@ -144,14 +133,30 @@ return function (_M, private, deprecated)
 -- @see rinLibrary.Device.Status.luastatus
 
 -------------------------------------------------------------------------------
+-- Check the curent status of a single bit trigger
+-- @param f Bit check function to call
+-- @param s Settings
+-- @param ret Default return (true)
+-- @return Boolean, true if all are set, false otherwise
+-- @local
+local function checkOneStatus(f, s, ret)
+    if s ~= nil then
+        if type(s) ~= 'table' then return f(s) end
+        return f(unpack(s))
+    end
+    return ret
+end
+
+-------------------------------------------------------------------------------
 -- Check the status, setpoint and IO settings for a transition trigger
 -- @param t Transition
 -- @return Boolean, true if all statuses, IOs and setpoints are set
 -- @local
 local function checkBitConditions(t)
-    return  checkOneStatus(_M.allStatusSet, t.status) and
-            checkOneStatus(_M.allIOSet, t.io) and
-            checkOneStatus(_M.allSETPSet, t.setpoint)
+    return  checkOneStatus(_M.allStatusSet, t.status, true) and
+            checkOneStatus(_M.allIOSet, t.io, true) and
+            (not checkOneStatus(_M.anyIOSet, t.notio, false)) and
+            checkOneStatus(_M.allSETPSet, t.setpoint, true)
 end
 
 -------------------------------------------------------------------------------
@@ -310,6 +315,7 @@ function _M.stateMachine(args)
                 time        = args.time,
                 status      = deepcopy(args.status),
                 io          = deepcopy(args.io),
+                notio       = deepcopy(args.notio),
                 setpoint    = deepcopy(args.setpoint),
                 activate    = cb(args.activate, null),
                 dest        = states[dest]
@@ -516,6 +522,7 @@ function _M.stateMachine(args)
                 end
                 bits(t.status, pink, '')
                 bits(t.io, blue, 'IO ')
+                bits(t.notio, blue, 'NOTIO ')
                 bits(t.setpoint, orange, 'SP ')
                 if lbl then
                     w('color="', col, '" label="', lbl, '" fontsize=10]')
