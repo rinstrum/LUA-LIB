@@ -914,6 +914,9 @@ function _M.edit(prompt, def, typ, units, unitsOther, clearDefault)
                 if string.len(editVal) == 0 then
                     editVal = def
                     editing = false
+                elseif first then
+                    editVal = ""
+                    first = false
                 else
                     editVal = string.sub(editVal,1,-2)
                 end
