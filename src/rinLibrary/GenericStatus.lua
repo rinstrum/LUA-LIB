@@ -568,7 +568,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a status bit
--- @tparam luastatus status Status name
+-- @tparam ?luastatus|{luastatus,..} status Status name or table of statuses (OR joined, not AND)
 -- @func callback Function to run when there is an event on change in status
 -- @see anyStatusSet
 -- @see allStatusSet
@@ -577,15 +577,24 @@ end
 -- device.setStatusCallback('motion', function(stat, value) print('motion of', stat, 'is', value) end)
 function _M.setStatusCallback(status, callback)
     utils.checkCallback(callback)
-
-    local stat = naming.convertNameToValue(status, statusMap)
-    if stat then
-        statBinds[stat] = statBinds[stat] or {}
-        statBinds[stat].f = callback
-        statBinds[stat].lastStatus = nil
-    else
-        setEStatusCallback(status, callback)
+    local function addCallback(status)
+      local stat = naming.convertNameToValue(status, statusMap)
+      if stat then
+          statBinds[stat] = statBinds[stat] or {}
+          statBinds[stat].f = callback
+          statBinds[stat].lastStatus = nil
+      else
+          setEStatusCallback(status, callback)
+      end
     end
+    
+    if type(status) == "table" then
+      for k,statusItem in pairs(status) do
+        addCallback(statusItem) 
+      end
+    else
+      addCallback(status)
+    end    
 end
 
 -------------------------------------------------------------------------------
@@ -783,7 +792,7 @@ end
 
 -------------------------------------------------------------------------------
 -- Set the callback function for a IO
--- @int io 1..32
+-- @tparam ?int|{int,..} io 1..32, or table of values (e.g. {1,2,15})
 -- @func callback Function taking IO and on/off status as parameters
 -- @see setAllIOCallback
 -- @see getCurIO
@@ -798,8 +807,15 @@ end
 -- end
 -- device.setIOCallback(1, handleIO1)
 function _M.setIOCallback(io, callback)
+  if type(io) == "table" then
+    for k,ioItem in pairs(io) do
+      private.checkInput(ioItem)
+      addIOsCallback(ioTable, ioItem, callback) 
+    end
+  else
     private.checkInput(io)
     return addIOsCallback(ioTable, io, callback)
+  end
 end
 
 -------------------------------------------------------------------------------
