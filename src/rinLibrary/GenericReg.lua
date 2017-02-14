@@ -507,8 +507,7 @@ end
 -------------------------------------------------------------------------------
 -- Query all the information about a register.
 -- @param reg Register to query information about
--- @return Table containing all the register information (name, type, min, max, 
--- decimalPlaces, permissions).
+-- @return Table containing all the register information (name, type, min, max, decimalPlaces, permissions).
 -- @usage
 -- local regInfo = device.getRegInfo('grossnet')
 -- print('grossnet decimals', regInfo.decimalPlaces)
