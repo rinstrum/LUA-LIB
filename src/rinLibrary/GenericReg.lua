@@ -40,6 +40,12 @@ local TYP_WEIGHT            = 0x09
 local TYP_BLOB              = 0x0A
 local TYP_EXECUTE           = 0x0B
 local TYP_BITFIELD          = 0x0C
+local TYP_REGSTREAM         = 0x0D
+local TYP_STRING_EXECUTE    = 0x0E
+local TYP_MENU_END          = 0x0F
+local TYP_STRING_ARRAY      = 0x10
+local TYP_OPTION16          = 0x11
+local TYP_IP                = 0x12
 
 --- Register Types.
 -- @table rinType
@@ -69,7 +75,13 @@ local typeMap = {
     [TYP_WEIGHT]            = 'weight',
     [TYP_BLOB]              = 'blob',
     [TYP_EXECUTE]           = 'execute',
-    [TYP_BITFIELD]          = 'bitfield'
+    [TYP_BITFIELD]          = 'bitfield',
+    [TYP_REGSTREAM]         = 'regstream',
+    [TYP_STRING_EXECUTE]    = 'string_execute',
+    [TYP_MENU_END]          = 'menu_end',
+    [TYP_STRING_ARRAY]      = 'string_array',
+    [TYP_OPTION16]          = 'option16',
+    [TYP_IP]                = 'ip',
 }
 
 local permissionsMap = {
@@ -381,7 +393,7 @@ end
 -- @return err error string if error received, nil otherwise
 -- @local
 function private.getRegName(reg, timeout)
-    return queryRegisterInformation(reg, 'name', queryNoChanges, 'rdname', reg, nil, timout)
+    return queryRegisterInformation(reg, 'name', queryNoChanges, 'rdname', reg, nil, timeout)
 end
 
 -------------------------------------------------------------------------------
@@ -567,6 +579,7 @@ local registerAccessorsByType = {
     blob        = { private.readRegHex,     private.writeRegHexAsync    },
     execute     = { nil,                    private.exReg               },
     bitfield    = { private.readRegHex,     private.writeRegHexAsync    },
+    string_execute = { nil,                 private.exReg               },
 }
 
 local registerReadAccessors = {
