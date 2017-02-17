@@ -33,6 +33,7 @@ private.registerDeviceInitialiser(function()
     private.addRegisters{
 --- Instrument Reading Registers.
 --@table rdgRegisters
+-- @field bitmap Bitmap of display
 -- @field adcsample Sample number of current reading
 -- @field sysstatus System Status Bits
 -- @field syserr System Error Bits
@@ -62,6 +63,7 @@ private.registerDeviceInitialiser(function()
 -- @field traceminute Date and time that the traceable weight was acquired
 -- @field tracesecond Date and time that the traceable weight was acquired
 -- @field unfiltered_weight Raw weight readings
+        bitmap                  = 0x0009,
         adcsample               = 0x0020,
         sysstatus               = 0x0021,
         syserr                  = 0x0022,
