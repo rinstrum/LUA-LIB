@@ -51,7 +51,12 @@ local displayModeMap = {
     secondary = DISPMODE_SECONDARY
 }
 
-local units = {"  ", "kg", "lb", "t ", "g ", "oz", "N ", "  ", "p ", "l ", "  "}
+local units
+if (_M.deviceType == "c500") then
+  units = {"  ", "g", "kg", "t", "lb", "oz", "N", "p ", "  ", "  ", "  ", "  ", "  ", "  ", "  ", "  "}
+else
+  units = {"  ", "kg", "lb", "t ", "g ", "oz", "N ", "  ", "p ", "l ", "  "}
+end
 local countby = {1, 2, 5, 10, 20, 50, 100, 200, 500}
 
 local settings = {
