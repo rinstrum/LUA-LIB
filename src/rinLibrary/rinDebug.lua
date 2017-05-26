@@ -287,7 +287,7 @@ function _M.print(prompt, ...)
         s = s .. varString(nil)
     else
         for i = 1,arg.n do
-            s = s .. varString(v,margin) .. ' '
+            s = s .. varString(arg[i],margin) .. ' '
         end
    end
 
