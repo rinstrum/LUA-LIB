@@ -286,7 +286,7 @@ function _M.print(prompt, ...)
     if arg.n == 0 then
         s = s .. varString(nil)
     else
-        for i,v in ipairs(arg) do
+        for i = 1,arg.n do
             s = s .. varString(v,margin) .. ' '
         end
    end
